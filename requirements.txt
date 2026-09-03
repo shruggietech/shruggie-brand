@@ -1,4 +1,4 @@
-coloraide==6.0
+coloraide==8.12.1
 fonttools==4.59.2
 pillow==11.3.0
 pikepdf==9.11.0
