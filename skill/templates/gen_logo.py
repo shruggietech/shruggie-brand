@@ -353,18 +353,21 @@ def main():
         tagline_d, _ = wordmark_outline(brand.get("brand_idea", "View your files."), tagline_ttf, 56)
         tagline_box = tuple(float(v) for v in Path(tagline_d).bbox())
         tagline_top = preview_lockup_center_y + preview_mark_height / 2.0 + 38.0
-        tagline_baseline = tagline_top - tagline_box[1]
-        tagline_x = preview_x + preview_mark_width + preview_gap - tagline_box[0]
+        tagline_left = preview_x + preview_mark_width + preview_gap
+        tagline_width = tagline_box[2] - tagline_box[0]
+        tagline_scale = min(1.0, (preview_width - 64.0 - tagline_left) / tagline_width)
+        tagline_baseline = tagline_top - tagline_box[1] * tagline_scale
+        tagline_x = tagline_left - tagline_box[0] * tagline_scale
         mark_group = render_paths(paths["full"], roles, "      ")
         preview = (
             '  <rect width="1280" height="640" fill="%s"/>\n'
             '  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n  </g>\n'
             '  <g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="#F2F5FA"/></g>\n'
-            '  <g transform="translate(%g,%g)"><path d="%s" fill="%s"/></g>'
+            '  <g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>'
             % (base, preview_x, preview_mark_top, mark_scale, -mark_box[0], -mark_box[1], mark_group,
                preview_x + preview_mark_width + preview_gap - wordmark_box[0] * preview_word_scale,
                preview_baseline, preview_word_scale, wordmark_d,
-               tagline_x, tagline_baseline, tagline_d, roles["neutral"])
+               tagline_x, tagline_baseline, tagline_scale, tagline_d, roles["neutral"])
         )
         filename = "%s-social-preview.svg" % slug
         write(os.path.join(svg_dir, filename), svg(preview_width, preview_height, preview))
