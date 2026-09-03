@@ -25,16 +25,18 @@ from capabilities import load_capabilities
 from process_utils import hidden_process_kwargs
 
 
+def write_utf8(path, value):
+    with open(str(path), "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(value)
+
+
 class PipelineTests(unittest.TestCase):
     def write_probe(self, kit, tier="core", raster=False, chromium=False, ico=False):
         qc = Path(kit) / "qc"
         qc.mkdir(parents=True, exist_ok=True)
-        (qc / "probe.json").write_text(
-            json.dumps({"tier": tier, "svg_raster": raster, "chromium": chromium,
-                        "ico_writer": ico}) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
+        write_utf8(qc / "probe.json",
+                   json.dumps({"tier": tier, "svg_raster": raster, "chromium": chromium,
+                               "ico_writer": ico}) + "\n")
 
     def test_capabilities_require_a_valid_probe(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -95,11 +97,8 @@ class PipelineTests(unittest.TestCase):
     def test_full_tier_page_qc_error_is_fatal(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp)
-            (kit / "brand.json").write_text(
-                json.dumps({"surfaces": {"base": "#000000"}}) + "\n",
-                encoding="utf-8",
-                newline="\n",
-            )
+            write_utf8(kit / "brand.json",
+                       json.dumps({"surfaces": {"base": "#000000"}}) + "\n")
             self.write_probe(kit, tier="full", raster=True, chromium=True, ico=True)
             old_argv = sys.argv
             try:
@@ -115,7 +114,7 @@ class PipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp)
             brand = kit / "brand.json"
-            brand.write_text("{}\n", encoding="utf-8", newline="\n")
+            write_utf8(brand, "{}\n")
             stale_pdf = kit / "brand-guide.pdf"
             stale_pdf.write_bytes(b"stale")
             self.write_probe(kit)
@@ -150,7 +149,7 @@ class PipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp)
             brand = kit / "brand.json"
-            brand.write_text("{}\n", encoding="utf-8", newline="\n")
+            write_utf8(brand, "{}\n")
             self.write_probe(kit, tier="full", raster=True, chromium=True, ico=True)
             old_argv = sys.argv
             try:

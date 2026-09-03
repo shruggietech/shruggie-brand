@@ -15,10 +15,13 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.8"
+      - name: Install minimum-version test dependencies
+        run: python -m pip install coloraide==3.3 fonttools==4.55.8 pillow==10.4.0 svgelements==1.9.6
       - name: Compile and discover kits on the minimum Python
         run: |
           python -m compileall -q scripts skill/templates
           python scripts/build_all.py --list
+          python skill/templates/test_pipeline.py
           python scripts/check_markdown.py
 
   build:

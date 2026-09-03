@@ -20,6 +20,7 @@
 - Made failed verification, image, PDF, and pagination gates print their diagnostic output in CI.
 - Cleared generated PDFs, raster exports, and favicons before capability-tier downgrade skips.
 - Separated favicon ICO verification from the SVG rasterizer capability gate.
+- Made pipeline regression fixtures runnable on Python 3.8.
 
 ## 1.1.1 - 2026-09-03
 

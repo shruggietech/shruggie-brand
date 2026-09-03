@@ -36,6 +36,7 @@ No unreleased changes.
 - Cleared generated PDFs, raster exports, and favicons before capability-tier downgrade skips so stale artifacts cannot enter a later manifest or release.
 - Verified favicon ICO output against its independently measured writer capability.
 - Enforced the repository's single-physical-line Markdown prose policy in public planning records and CI.
+- Made the pipeline regression fixtures Python 3.8-compatible and run them in the minimum-version hosted job.
 
 ## [1.1.1] - 2026-09-03
 

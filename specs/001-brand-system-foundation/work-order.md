@@ -17,7 +17,7 @@ The complete public translation is maintained as phase issues. Each issue contai
 | Clean-environment verification | [#14](https://github.com/shruggietech/shruggie-brand/issues/14) |
 | Guarded staging disposition | [#15](https://github.com/shruggietech/shruggie-brand/issues/15) |
 
-Post-merge review findings are tracked separately in [#17 through #30](https://github.com/shruggietech/shruggie-brand/issues?q=is%3Aissue%20milestone%3A%2A). They are release blockers where linked from the phase issues.
+Post-merge review findings are tracked separately in [#17 through #31](https://github.com/shruggietech/shruggie-brand/issues?q=is%3Aissue%20milestone%3A%2A). They are release blockers where linked from the phase issues.
 
 ## Definition of done
 
