@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>go-schedule — a cross-platform scheduler in Go</title>
+<link rel="icon" href="../../favicons/favicon.svg">
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="../../components/components.css">
+<style>
+  /* page-local layout only; all color/type/spacing come from tokens */
+  :root { --go-interval: #62D9B7; --go-hold: #F2B84B; }
+  .wrap { max-width: var(--go-content-max); margin: 0 auto; padding: 0 var(--go-space-6); }
+  header { display: flex; align-items: center; justify-content: space-between;
+           padding: var(--go-space-5) 0; border-bottom: 1px solid var(--go-border); }
+  header nav { display: flex; align-items: center; gap: var(--go-space-5); }
+  header nav a { color: var(--go-fg-muted); font-size: var(--go-body-sm); }
+  header nav a:hover { color: var(--go-fg); text-decoration: none; }
+  .logo { height: 34px; }
+  .hero { padding: var(--go-space-9) 0 var(--go-space-8); }
+  .hero h1 { font-size: var(--go-display-xl); line-height: var(--go-leading-display);
+             max-width: 16ch; }
+  .hero p.lede { font-size: var(--go-body-lg); color: var(--go-fg-muted); max-width: 54ch; }
+  .cta-row { display: flex; gap: var(--go-space-3); margin-top: var(--go-space-6); }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--go-space-4); }
+  .section { padding: var(--go-space-8) 0; }
+  .rows { display: flex; flex-direction: column; gap: var(--go-space-3); margin-top: var(--go-space-5); }
+  .card-title { font-family: var(--go-font-display); font-weight: 700; font-size: var(--go-display-xs); margin: 0 0 var(--go-space-2); }
+  .card-icon { color: var(--go-interval); margin-bottom: var(--go-space-3); }
+  .badges { display: flex; gap: var(--go-space-2); flex-wrap: wrap; margin-top: var(--go-space-5); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--go-space-4); max-width: 640px; margin-top: var(--go-space-5); }
+  .form-grid .full { grid-column: 1 / -1; }
+  footer { border-top: 1px solid var(--go-border); padding: var(--go-space-6) 0; margin-top: var(--go-space-8);
+           display: flex; justify-content: space-between; align-items: center; }
+  footer .endorse { font-family: var(--go-font-mono); text-transform: uppercase; letter-spacing: 0.12em;
+                    font-size: var(--go-body-xs); color: var(--go-fg-muted); }
+  .gs-code { background: var(--go-surface-sunken); border: 1px solid var(--go-border); border-radius: var(--go-radius-md); font-family: var(--go-font-mono); overflow-x: auto; padding: var(--go-space-4); white-space: pre-wrap; }
+  .tok-comment, .meta { color: var(--go-fg-muted); }
+  .tok-flag, .anchor { color: var(--go-accent); }
+  .tok-value, .cron { color: var(--go-interval); }
+  .gs-schedule-row { align-items: center; background: var(--go-panel); border: 1px solid var(--go-border); border-radius: var(--go-radius-md); display: grid; font-family: var(--go-font-mono); gap: var(--go-space-4); grid-template-columns: 11rem minmax(0, 1fr) auto; padding: var(--go-space-3) var(--go-space-4); }
+  .gs-label { display: block; font-size: var(--go-body-sm); font-weight: var(--go-weight-medium); margin-bottom: var(--go-space-2); }
+  .gs-input, .gs-select, .gs-textarea { background: var(--go-bg); border: 1px solid var(--go-border); border-radius: var(--go-radius-md); color: var(--go-fg); font: inherit; min-height: 2.75rem; padding: var(--go-space-2) var(--go-space-3); width: 100%; }
+  .gs-field-hint { color: var(--go-fg-muted); font-size: var(--go-body-xs); margin-top: var(--go-space-2); }
+  @media (max-width: 42rem) {
+    .wrap { padding: 0 var(--go-space-4); }
+    header nav a:not(:last-child) { display: none; }
+    .grid3, .form-grid { grid-template-columns: 1fr; }
+    .gs-schedule-row { grid-template-columns: 1fr; gap: var(--go-space-1); }
+    footer { align-items: flex-start; flex-direction: column; gap: var(--go-space-2); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="logo" src="../../logos/svg/go-schedule-horizontal-white.svg" alt="go-schedule">
+    <nav>
+      <a href="#">Docs</a>
+      <a href="#">Schedules</a>
+      <a href="#">GitHub</a>
+      <a class="go-button go-button--secondary" href="#">Install</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <span class="go-eyebrow">CROSS-PLATFORM SCHEDULER</span>
+    <h1 style="margin-top:var(--go-space-3)">Readable schedules for every OS.</h1>
+    <p class="lede">go-schedule brings familiar cron-field structure to a CLI, a desktop app,
+      and a background service — with explicit timezone, catch-up, and overlap policy.</p>
+    <div class="cta-row">
+      <a class="go-button go-button--primary" href="#">Get started</a>
+      <a class="go-button go-button--ghost" href="#">Read the docs →</a>
+    </div>
+    <div class="gs-code" style="margin-top:var(--go-space-6); max-width:720px">
+<span class="tok-comment"># add a task with a readable schedule</span>
+gosched task add backup <span class="tok-flag">--schedule</span> <span class="tok-value">"every day at 02:30"</span> <span class="tok-flag">--tz</span> <span class="tok-value">America/New_York</span>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="go-section-heading">
+      <span class="go-eyebrow">SCHEDULES AS FIELDS</span>
+      <h2>Cron you can actually read.</h2>
+      <p>Every schedule shows its five fields and a plain-English reading. The Anchor Blue field marks the exact run point.</p>
+    </div>
+    <div class="rows">
+      <div class="gs-schedule-row">
+        <span class="cron">* * <span class="anchor">*</span> * *</span>
+        <span class="desc">Every minute</span><span class="meta">next 00:00:00</span>
+      </div>
+      <div class="gs-schedule-row">
+        <span class="cron">0 <span class="anchor">9</span> * * 1-5</span>
+        <span class="desc">Every weekday at 09:00</span><span class="meta">tz America/New_York</span>
+      </div>
+      <div class="gs-schedule-row">
+        <span class="cron">30 <span class="anchor">2</span> * * *</span>
+        <span class="desc">Every day at 02:30 — backup</span><span class="meta">catch-up: on</span>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="go-badge go-badge--accent">recurring</span>
+      <span class="go-badge go-badge--accent">next run</span>
+      <span class="go-badge go-badge--emphasis">catch-up</span>
+      <span class="go-badge go-badge--danger">missed</span>
+      <span class="go-badge go-badge--neutral">paused</span>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="grid3">
+      <div class="go-card">
+        <div class="card-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 5 5-5 5"/><path d="M13 17h7"/></svg>
+        </div>
+        <h3 class="card-title">CLI</h3>
+        <p style="color:var(--go-fg-muted); margin:0">Script it. <code style="color:var(--go-interval)">gosched</code> reads and writes the same schedule store as the daemon.</p>
+      </div>
+      <div class="go-card">
+        <div class="card-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg>
+        </div>
+        <h3 class="card-title">Desktop</h3>
+        <p style="color:var(--go-fg-muted); margin:0">See every task, its next run, and its last result — without tailing a log.</p>
+      </div>
+      <div class="go-card">
+        <div class="card-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
+        </div>
+        <h3 class="card-title">Service</h3>
+        <p style="color:var(--go-fg-muted); margin:0">A background daemon runs the schedule with explicit timezone, catch-up, and overlap policy.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="go-section-heading">
+      <span class="go-eyebrow">ADD A TASK</span>
+      <h2>Explicit by default.</h2>
+      <p>No ambiguity: name the schedule, the timezone, and the command.</p>
+    </div>
+    <div class="form-grid">
+      <div>
+        <label class="gs-label" for="s">Schedule</label>
+        <input id="s" class="gs-input" value="every day at 02:30">
+        <div class="gs-field-hint">Natural language or a 5-field cron expression.</div>
+      </div>
+      <div>
+        <label class="gs-label" for="tz">Timezone</label>
+        <select id="tz" class="gs-select">
+          <option>America/New_York</option><option>UTC</option><option>Europe/Berlin</option>
+        </select>
+      </div>
+      <div class="full">
+        <label class="gs-label" for="cmd">Command</label>
+        <textarea id="cmd" class="gs-textarea">/usr/local/bin/backup --incremental</textarea>
+      </div>
+      <div class="full">
+        <button class="go-button go-button--primary">Add task</button>
+        <button class="go-button go-button--secondary">Dry run</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span class="endorse">A ShruggieTech project</span>
+    <span class="endorse">Ownership, not rentership.</span>
+  </footer>
+</div>
+</body>
+</html>

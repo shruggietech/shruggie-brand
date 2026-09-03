@@ -248,6 +248,16 @@ def measure(paths, grid, label, rep, reduced=False, provenance="glyphkit",
                  "imported geometry preserved unchanged: %s" % reason)
 
     for entry in paths:
+        if isinstance(entry, dict) and entry.get("element", "path") != "path":
+            detail = ("native SVG element %r cannot be measured by the filled-path "
+                      "rasteriser. Imported source is preserved unchanged and the "
+                      "remaining geometry measurements are skipped."
+                      % entry.get("element"))
+            if provenance == "imported":
+                rep.warn(prefix + "elements", detail)
+            else:
+                rep.bad(prefix + "elements", detail)
+            return None
         d = entry["d"] if isinstance(entry, dict) else entry
         if not G.path_commands_ok(d):
             detail = ("path uses a command outside absolute M, L, C, Z. "

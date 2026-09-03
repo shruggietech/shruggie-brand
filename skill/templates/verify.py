@@ -375,7 +375,9 @@ def c_glyph(kit, brand, rep):
         return rep.bad("glyph-geometry",
                        "imported geometry requires logo.geometry_provenance_reason")
 
-    bad = [i for i, e in enumerate(paths) if not GK.path_commands_ok(e["d"])]
+    bad = [i for i, e in enumerate(paths)
+           if e.get("element", "path") != "path"
+           or not GK.path_commands_ok(e["d"])]
     if bad and provenance == "glyphkit":
         return rep.bad("glyph-geometry",
                        "path %s uses a command outside absolute M, L, C, Z; "

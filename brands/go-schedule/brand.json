@@ -1,0 +1,347 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "go-schedule",
+  "kind": "sub-brand",
+  "title": "go-schedule",
+  "slug": "go-schedule",
+  "version": "1.0.0",
+  "parent": "ShruggieTech",
+  "homepage": "https://github.com/ShruggieTech/go-schedule",
+  "registry_base": "https://brand.shruggie.tech/go-schedule/brand",
+  "descriptor": "A cross-platform scheduler in Go.",
+  "functional_descriptor": "Cross-platform task scheduling",
+  "category": "Cross-platform task scheduling",
+  "role": "A readable scheduler for service-managed automation.",
+  "audience": "Developers, operators, maintainers, and technical users who want less cron ambiguity without giving up control.",
+  "brand_idea": "Schedules as fields and run points.",
+  "governing_principle": "Familiar scheduling, broader reach.",
+  "voice": {
+    "qualities": [
+      "exact",
+      "operational",
+      "calm",
+      "competent",
+      "fair to cron"
+    ],
+    "lead_with": [
+      "the current schedule state",
+      "the governing timezone and policy",
+      "the command or operational next step"
+    ],
+    "avoid": [
+      "vague claims",
+      "hidden policy",
+      "hype or urgency",
+      "condescending tutorials",
+      "jokes at cron's expense"
+    ]
+  },
+  "register": "operator-calm",
+  "shruggie_flourish": false,
+  "wordmark_text": "go-schedule",
+  "assumptions": [
+    "Anchor Blue is the identity accent. Interval Mint is a semantic recurrence and success color.",
+    "The existing mark and outlined wordmark are authoritative geometry and must not be redrawn.",
+    "The register is operational and calm, so the ShruggieTech verbal flourish is off."
+  ],
+  "accent": {
+    "bright": "#58A6FF",
+    "deep": "#1160C6",
+    "accessible": "#1160C6",
+    "dim": "#9BAEB6"
+  },
+  "chart_palette": {
+    "dark_target_lightness": 0.68,
+    "hue_rotations": [
+      0,
+      70,
+      145,
+      215,
+      285
+    ],
+    "rationale": "Anchor Blue begins the sequence. Rotations keep the series distinct from Interval Mint, Hold Amber, and Stop Red while maintaining usable separation on the Night surface."
+  },
+  "surfaces": {
+    "base": "#071014",
+    "card": "#0D171C",
+    "popover": "#071014",
+    "secondary": "#13232A",
+    "hover": "#1A2D36"
+  },
+  "typography": {
+    "families": {
+      "display": {
+        "name": "Space Grotesk",
+        "weights": [
+          500,
+          700
+        ]
+      },
+      "body": {
+        "name": "Geist",
+        "weights": [
+          400,
+          500
+        ]
+      },
+      "mono": {
+        "name": "Geist Mono",
+        "weights": [
+          400
+        ]
+      }
+    }
+  },
+  "domain_components": {
+    "ScheduleRow": [
+      "expression",
+      "timezone",
+      "next_run",
+      "catch_up",
+      "overlap",
+      "state"
+    ],
+    "RunRow": [
+      "scheduled_at",
+      "started_at",
+      "duration",
+      "exit_state"
+    ],
+    "PolicyRow": [
+      "timezone",
+      "catch_up",
+      "overlap",
+      "service"
+    ]
+  },
+  "legacy_palette": {
+    "night": "#071014",
+    "panel": "#0D171C",
+    "raised": "#13232A",
+    "line": "#28414B",
+    "text": "#F3F7F8",
+    "muted": "#9BAEB6",
+    "interval_mint": "#62D9B7",
+    "interval_deep": "#0E7C63",
+    "anchor_blue": "#58A6FF",
+    "anchor_deep": "#1160C6",
+    "hold_amber": "#F2B84B",
+    "hold_deep": "#9A6600",
+    "stop_red": "#E05F5F",
+    "stop_deep": "#C23B3B",
+    "paper": "#F6F8F7",
+    "ink": "#132027",
+    "muted_ink": "#4A5A62"
+  },
+  "logo": {
+    "grid": 512,
+    "canvas_width": 512,
+    "canvas_height": 512,
+    "clear_space_units": 54,
+    "reduced_below_px": 32,
+    "min_px": {
+      "mark": 24,
+      "horizontal": 160,
+      "stacked": 96,
+      "wordmark": 120
+    },
+    "role_colors": {
+      "color": {
+        "anchor": "#58A6FF",
+        "interval": "#62D9B7",
+        "neutral": "#28414B"
+      },
+      "light": {
+        "anchor": "#1160C6",
+        "interval": "#0E7C63",
+        "neutral": "#132027"
+      },
+      "white": {
+        "anchor": "#FFFFFF",
+        "interval": "#FFFFFF",
+        "neutral": "#FFFFFF"
+      },
+      "black": {
+        "anchor": "#000000",
+        "interval": "#000000",
+        "neutral": "#000000"
+      }
+    },
+    "construction": "The imported 512-unit mark is a rounded terminal frame containing a prompt, cursor, five cron-field asterisks, and five neutral rails. The reduced mark preserves the exact prompt and cursor from the shipped favicon and drops the frame and schedule fields.",
+    "paths": {
+      "full": [
+        {
+          "element": "rect",
+          "role": "neutral",
+          "x": 78,
+          "y": 102,
+          "width": 356,
+          "height": 308,
+          "rx": 54,
+          "fill": "none",
+          "stroke_width": 20
+        },
+        {
+          "role": "anchor",
+          "d": "M124 174l42 38-42 38",
+          "fill": "none",
+          "stroke_width": 22,
+          "stroke_linecap": "round",
+          "stroke_linejoin": "round"
+        },
+        {
+          "role": "interval",
+          "d": "M194 250h172",
+          "fill": "none",
+          "stroke_width": 22,
+          "stroke_linecap": "round"
+        },
+        {
+          "role": "interval",
+          "d": "M134.0 309.0L134.0 339.0 M121.0 316.5L147.0 331.5 M147.0 316.5L121.0 331.5",
+          "fill": "none",
+          "stroke_width": 7,
+          "stroke_linecap": "round"
+        },
+        {
+          "role": "interval",
+          "d": "M195.0 309.0L195.0 339.0 M182.0 316.5L208.0 331.5 M208.0 316.5L182.0 331.5",
+          "fill": "none",
+          "stroke_width": 7,
+          "stroke_linecap": "round"
+        },
+        {
+          "role": "anchor",
+          "d": "M256.0 309.0L256.0 339.0 M243.0 316.5L269.0 331.5 M269.0 316.5L243.0 331.5",
+          "fill": "none",
+          "stroke_width": 7,
+          "stroke_linecap": "round"
+        },
+        {
+          "role": "interval",
+          "d": "M317.0 309.0L317.0 339.0 M304.0 316.5L330.0 331.5 M330.0 316.5L304.0 331.5",
+          "fill": "none",
+          "stroke_width": 7,
+          "stroke_linecap": "round"
+        },
+        {
+          "role": "interval",
+          "d": "M378.0 309.0L378.0 339.0 M365.0 316.5L391.0 331.5 M391.0 316.5L365.0 331.5",
+          "fill": "none",
+          "stroke_width": 7,
+          "stroke_linecap": "round"
+        },
+        {
+          "element": "rect",
+          "role": "neutral",
+          "x": 118,
+          "y": 360,
+          "width": 32,
+          "height": 10,
+          "rx": 5
+        },
+        {
+          "element": "rect",
+          "role": "neutral",
+          "x": 179,
+          "y": 360,
+          "width": 32,
+          "height": 10,
+          "rx": 5
+        },
+        {
+          "element": "rect",
+          "role": "neutral",
+          "x": 240,
+          "y": 360,
+          "width": 32,
+          "height": 10,
+          "rx": 5
+        },
+        {
+          "element": "rect",
+          "role": "neutral",
+          "x": 301,
+          "y": 360,
+          "width": 32,
+          "height": 10,
+          "rx": 5
+        },
+        {
+          "element": "rect",
+          "role": "neutral",
+          "x": 362,
+          "y": 360,
+          "width": 32,
+          "height": 10,
+          "rx": 5
+        }
+      ],
+      "reduced": [
+        {
+          "role": "anchor",
+          "d": "M156 168l86 88-86 88",
+          "fill": "none",
+          "stroke_width": 50,
+          "stroke_linecap": "round",
+          "stroke_linejoin": "round"
+        },
+        {
+          "role": "interval",
+          "d": "M280 344h108",
+          "fill": "none",
+          "stroke_width": 50,
+          "stroke_linecap": "round"
+        }
+      ]
+    },
+    "prohibitions": [
+      "Do not rotate, skew, stretch, outline, bevel, or add glow.",
+      "Do not recolor individual schedule cells or lanes.",
+      "Do not set the wordmark in live text or a substitute typeface.",
+      "Do not add a tagline inside the horizontal lockup.",
+      "Do not place the logo over busy imagery.",
+      "Do not combine the go-schedule and ShruggieTech marks into one lockup."
+    ],
+    "geometry_provenance": "imported",
+    "geometry_provenance_reason": "The shipped mark uses native rounded rectangles and stroked SVG paths that predate glyphkit. Their exact element geometry and stroke attributes are preserved."
+  },
+  "guide": {
+    "idea": "Schedules as fields and run points.",
+    "descriptor": "A cross-platform scheduler in Go.",
+    "personality": [
+      [
+        "Exact",
+        "Uses precise nouns, units, timezones, and flags",
+        "Vague claims"
+      ],
+      [
+        "Operational",
+        "States policy and the next command",
+        "Hand-waving"
+      ],
+      [
+        "Calm",
+        "Uses quiet surfaces and steady rhythm",
+        "Hype or urgency"
+      ],
+      [
+        "Fair to cron",
+        "Uses cron as a reference frame",
+        "Copy that dismisses cron"
+      ]
+    ],
+    "promises": [
+      "Schedules are readable and their policy is explicit.",
+      "Timezone, catch-up, and overlap behavior are stated, not implied.",
+      "Terminology stays consistent across CLI, docs, schemas, and interfaces.",
+      "The same schedule store backs the CLI, desktop app, and service."
+    ],
+    "sharp_edge": "go-schedule makes scheduling policy readable, but it does not hide operational tradeoffs or claim that cron is obsolete.",
+    "logo": "The terminal prompt sits over five cron fields. Anchor Blue marks exact run points, Interval Mint marks recurrence, and neutral rails keep the construction quiet and technical. The reduced master retains only the prompt and cursor.",
+    "palette": "Night, Panel, and Line provide the infrastructure surface. Anchor Blue carries identity, links, focus, and exact run points. Interval Mint carries recurrence and success. Hold Amber and Stop Red remain scarce operational signals.",
+    "specimen_line": "A cross-platform scheduler in Go.",
+    "specimen_body": "Readable schedules with timezone, catch-up, and overlap policy stated plainly."
+  },
+  "canon": "1.1.2"
+}

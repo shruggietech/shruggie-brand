@@ -49,8 +49,23 @@ def path_bbox(d):
     return tuple(float(v) for v in box)
 
 
+def element_bbox(element):
+    kind = element.get("element", "path")
+    stroke = float(element.get("stroke_width", 0)) / 2.0
+    if kind == "path":
+        x0, y0, x1, y1 = path_bbox(element["d"])
+    elif kind == "rect":
+        x0 = float(element["x"])
+        y0 = float(element["y"])
+        x1 = x0 + float(element["width"])
+        y1 = y0 + float(element["height"])
+    else:
+        raise ValueError("unsupported imported SVG element %r" % kind)
+    return (x0 - stroke, y0 - stroke, x1 + stroke, y1 + stroke)
+
+
 def paths_bbox(paths):
-    boxes = [path_bbox(path["d"]) for path in paths]
+    boxes = [element_bbox(element) for element in paths]
     return (
         min(box[0] for box in boxes),
         min(box[1] for box in boxes),
@@ -149,10 +164,30 @@ def main():
     def render_paths(path_list, roles, indent="  "):
         output = []
         for item in path_list:
-            fill = roles.get(item.get("role", "accent"), accent)
+            colour = roles.get(item.get("role", "accent"), accent)
+            kind = item.get("element", "path")
+            stroke_width = item.get("stroke_width")
+            stroked = item.get("fill") == "none" or stroke_width is not None
+            paint = (' fill="none" stroke="%s"' % colour) if stroked else (' fill="%s"' % colour)
+            if stroke_width is not None:
+                paint += ' stroke-width="%g"' % float(stroke_width)
+            if item.get("stroke_linecap"):
+                paint += ' stroke-linecap="%s"' % item["stroke_linecap"]
+            if item.get("stroke_linejoin"):
+                paint += ' stroke-linejoin="%s"' % item["stroke_linejoin"]
+            if kind == "rect":
+                shape = '<rect x="%g" y="%g" width="%g" height="%g"' % (
+                    float(item["x"]), float(item["y"]),
+                    float(item["width"]), float(item["height"]))
+                if item.get("rx") is not None:
+                    shape += ' rx="%g"' % float(item["rx"])
+                output.append('%s%s%s/>' % (indent, shape, paint))
+                continue
+            if kind != "path":
+                raise ValueError("unsupported imported SVG element %r" % kind)
             rule = item.get("fill_rule")
             extra = '' if not rule else ' fill-rule="%s" clip-rule="%s"' % (rule, rule)
-            output.append('%s<path d="%s" fill="%s"%s/>' % (indent, item["d"], fill, extra))
+            output.append('%s<path d="%s"%s%s/>' % (indent, item["d"], paint, extra))
         return "\n".join(output)
 
     written = []
@@ -291,6 +326,16 @@ def main():
         preview_word_width = wordmark_ink_width_raw * preview_word_scale
         preview_word_height = wordmark_ink_height_raw * preview_word_scale
         preview_lockup_width = preview_mark_width + preview_gap + preview_word_width
+        preview_fit = min(1.0, (preview_width - 128.0) / preview_lockup_width)
+        if preview_fit < 1.0:
+            preview_word_scale *= preview_fit
+            preview_mark_height *= preview_fit
+            mark_scale *= preview_fit
+            preview_mark_width *= preview_fit
+            preview_gap *= preview_fit
+            preview_word_width *= preview_fit
+            preview_word_height *= preview_fit
+            preview_lockup_width = preview_mark_width + preview_gap + preview_word_width
         preview_x = (preview_width - preview_lockup_width) / 2
         preview_mark_top = preview_lockup_center_y - preview_mark_height / 2.0
         horizontal_height = float(horizontal_spec.get("canvas_height_units", 200.0))

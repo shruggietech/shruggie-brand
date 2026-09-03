@@ -52,8 +52,27 @@ def mark(brand, x, y, height):
     roles = (lg.get("role_colors") or {}).get("color") or {}
     acc = brand["accent"]["bright"]
     s = height / grid
-    inner = "".join('<path d="%s" fill="%s"/>' % (p["d"], roles.get(p.get("role", "accent"), acc))
-                    for p in paths)
+    elements = []
+    for item in paths:
+        colour = roles.get(item.get("role", "accent"), acc)
+        stroked = item.get("fill") == "none" or item.get("stroke_width") is not None
+        paint = (' fill="none" stroke="%s"' % colour) if stroked else (' fill="%s"' % colour)
+        if item.get("stroke_width") is not None:
+            paint += ' stroke-width="%g"' % float(item["stroke_width"])
+        if item.get("stroke_linecap"):
+            paint += ' stroke-linecap="%s"' % item["stroke_linecap"]
+        if item.get("stroke_linejoin"):
+            paint += ' stroke-linejoin="%s"' % item["stroke_linejoin"]
+        if item.get("element", "path") == "rect":
+            shape = '<rect x="%g" y="%g" width="%g" height="%g"' % (
+                float(item["x"]), float(item["y"]),
+                float(item["width"]), float(item["height"]))
+            if item.get("rx") is not None:
+                shape += ' rx="%g"' % float(item["rx"])
+            elements.append(shape + paint + '/>')
+        else:
+            elements.append('<path d="%s"%s/>' % (item["d"], paint))
+    inner = "".join(elements)
     return '<g transform="translate(%g,%g) scale(%g)">%s</g>' % (x, y, s, inner)
 
 

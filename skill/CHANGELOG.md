@@ -4,6 +4,7 @@
 
 - Added `logo.geometry_provenance` and a required imported-geometry reason.
 - Preserved legacy path data while downgrading unsupported imported commands to warnings.
+- Preserved native imported SVG rectangles, strokes, caps, and joins through export.
 - Recorded imported geometry and its reason in verification output.
 - Corrected the generated Next.js font comment to acknowledge the canon-permitted `next/font/google` build-time fetch.
 - Resolved specimen fonts relative to the staged kit instead of the skill directory.

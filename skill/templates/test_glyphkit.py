@@ -90,6 +90,15 @@ check("imported commands warn",
       imported_report.fails == 0 and imported_report.warns == 2,
       "%d warnings, %d failures" % (imported_report.warns, imported_report.fails))
 
+element_report = V.Report()
+V.measure([{"element": "rect", "x": 100, "y": 100, "width": 800,
+            "height": 800, "rx": 80, "fill": "none", "stroke_width": 20}],
+          GRID, "full", element_report, provenance="imported",
+          provenance_reason="shipped as native SVG elements")
+check("imported SVG elements warn",
+      element_report.fails == 0 and element_report.warns == 2,
+      "%d warnings, %d failures" % (element_report.warns, element_report.fails))
+
 glyphkit_report = V.Report()
 V.measure(legacy, GRID, "full", glyphkit_report, provenance="glyphkit")
 check("glyphkit commands fail",
@@ -112,5 +121,5 @@ except ValueError:
     check("unclosed subpath raises", True)
 
 print("")
-print("%d checks, %d failures" % (16 + 7 + 5 + 2, len(fails)))
+print("%d checks, %d failures" % (16 + 7 + 5 + 3, len(fails)))
 sys.exit(1 if fails else 0)
