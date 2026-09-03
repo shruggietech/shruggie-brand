@@ -8,9 +8,14 @@
 - Preserved native imported SVG rectangles, strokes, caps, and joins through export.
 - Added lossless raster-mask masters for identities whose authoritative artwork has no vector source.
 - Recorded imported geometry and its reason in verification output.
-- Corrected the generated Next.js font comment to acknowledge the canon-permitted `next/font/google` build-time fetch.
+- Replaced generated font-network imports with deterministic `next/font/local` bindings for all bundled faces.
+- Aligned the `fonts` registry item with its emitted `fonts.json` route.
+- Made full-tier PDF and rendered-page failures fatal while preserving explicit lower-tier skips.
+- Verified the bundled Node rasterizer fallback before advertising it as available.
+- Restored Python 3.8 build discovery and suppressed project-owned Windows console processes.
+- Forwarded native form `required` state and removed nested CTA controls from the ShruggieTech source UI kit.
 - Resolved specimen fonts relative to the staged kit instead of the skill directory.
-- Added ImageMagick as the implemented SVG raster fallback advertised by the capability probe.
+- Added the resvg and Inkscape CLI fallbacks advertised by the capability probe.
 - Made pagination report a recorded skip when Playwright is installed without a matching Chromium binary.
 - Made failed verification, image, PDF, and pagination gates print their diagnostic output in CI.
 

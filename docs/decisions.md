@@ -2,11 +2,17 @@
 
 ## Conventions inherited from sibling projects
 
-The audit was performed on 2026-09-03 against `A:\Code\fragcap`, `A:\Code\go-schedule`, and `A:\Code\glitchpad`, plus their live GitHub repositories where those repositories existed.
+The audit was performed on 2026-09-03 against local checkouts of Fragcap, Go
+Schedule, and Glitchpad, plus their live GitHub repositories where those
+repositories existed.
 
 ### Repository owner
 
-Go Schedule and Glitchpad are owned by the `ShruggieTech` organization. Fragcap remains under `h8rt3rmin8r`, and `ShruggieTech/fragcap` does not exist. The work order's singular "same owner" premise is therefore false. This repository uses `ShruggieTech`, following the two newer repositories and the instruction to prefer Glitchpad where siblings disagree.
+Go Schedule and Glitchpad are owned by the `ShruggieTech` organization. Fragcap
+remains in a personal namespace, and `ShruggieTech/fragcap` does not exist. The
+work order's singular "same owner" premise is therefore false. This repository
+uses `ShruggieTech`, following the two newer repositories and the instruction to
+prefer Glitchpad where siblings disagree.
 
 ### Source control and pull requests
 
@@ -47,7 +53,8 @@ Glitchpad is the newest complete reference: committed Spec Kit, Codex integratio
 - The authoritative skill tree contains 45 files, not 41.
 - The authoritative skill and canon are already version 1.1.1, not 1.1.0. Version 1.1.1 contains the accessibility floor described later in the work order, so the provenance change advances both to 1.1.2.
 - Section 11 calls the provenance release 1.1.1, contradicting section 6.2 and the actual 1.1.1 source. Section 6.2 and the source tree take precedence.
-- No Cloudflare CLI or token environment variable is present. The authenticated Cloudflare API connector has access to the ShruggieTech account and will be used as the permitted REST API path.
+- No Cloudflare CLI or token environment variable is present. The authenticated
+  Cloudflare API connector was used as the permitted REST API path.
 - The work order requires Phase 1 branch protection to name a `build` check that is only created in Phase 5. The local scaffold, skill import, and build workflow must therefore exist before that final Phase 1 acceptance check can be configured.
 - The canonical Covarity font binaries are byte-identical to Glitchpad, Go Schedule, and Fragcap. Their `README.md` or `fonts.css` text differs in two older kits. ShruggieTech predates the shared font bundle and has no comparable font tree. The Covarity copy remains canonical as directed.
 - The runtime `rsvg-convert.js` differs from the authoritative skill copy only in ternary-expression formatting. The skill copy is newer, functionally equivalent, and remains authoritative. The runtime wrapper is not committed.
@@ -80,10 +87,45 @@ The first hosted Ubuntu run proved that installing `librsvg2-bin` and ImageMagic
 
 ### DNS publication
 
-The authenticated Cloudflare connector was used in place of the absent CLI. The executed mutation was `POST /zones/4834962e3bea6970e558ed6b491b4631/dns_records` in account `39e3052d61e3edccea7d68269ec07182`, with `{type: CNAME, name: brand, content: shruggietech.github.io, ttl: 1, proxied: false}`. It created record `5f7e3e6d7324638be1a6d2daea8def64`. The record remains DNS-only while GitHub provisions the Pages certificate.
+The authenticated Cloudflare connector was used in place of the absent CLI.
+The executed mutation was `POST /zones/{redacted-zone-id}/dns_records` with
+`{type: CNAME, name: brand, content: shruggietech.github.io, ttl: 1, proxied:
+false}`. Account, zone, and record identifiers are intentionally omitted from
+the public repository. The record remains DNS-only because that is the most
+predictable GitHub Pages TLS configuration.
 
 GitHub Pages was enabled with `gh api --method POST repos/ShruggieTech/shruggie-brand/pages -f build_type=workflow`, then assigned the custom hostname with `gh api --method PUT repos/ShruggieTech/shruggie-brand/pages -f cname=brand.shruggie.tech`. Before the first deployment, GitHub correctly reports HTTPS enforcement as unavailable while the certificate is pending. Public DNS resolves the expected CNAME.
 
 ### Downstream accessibility correction
 
 The canonical parent correction does not silently rewrite the live company site. The original `#2BCC73` foreground measured 1.98:1 on `#F8F8F6`; the replacement `#037B40` measures 5.05:1. The required downstream work is tracked in [shruggie-web issue 35](https://github.com/ShruggieTech/shruggie-web/issues/35), with links to the committed CSS provenance.
+
+### Post-merge review and release hold
+
+Codex review on PR #16 arrived after the foundation merge and identified nine
+actionable defects. They are tracked as issues #17 through #25. Release v1.1.2
+was deliberately held before tagging so the published skill and kit archives do
+not preserve known portability, release-integrity, accessibility, or Windows
+process defects.
+
+The fixes distinguish missing capability from broken capability. A lower tier
+records a named skip and succeeds with the artifacts that tier promises. Once a
+probe confirms a renderer or full tier, any later export or QC failure is fatal.
+The Node resvg wrapper is now exercised during probing instead of treated as
+available because its script file exists.
+
+The generated manual Next.js binding uses bundled files through
+`next/font/local`. The current shadcn `registry:font` schema supports only the
+Google provider, so `fonts.json` remains a standards-compliant registry item
+while its install note directs deterministic and offline consumers to the local
+binding. This limitation is documented by the upstream
+[registry item schema](https://ui.shadcn.com/docs/registry/registry-item-json).
+
+### Public planning hygiene
+
+The private work directive was originally copied into the public Spec Kit tree.
+It included workstation paths and operational resource identifiers that are not
+needed by contributors. The public copy has been replaced with a sanitized phase
+index, the full requirements are translated into issues #6 through #15, and the
+operator-held directive remains available outside the repository. This is an
+intentional deviation from preserving the attachment verbatim.

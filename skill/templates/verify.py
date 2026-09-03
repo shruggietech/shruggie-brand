@@ -13,6 +13,7 @@ Exit code is the number of problems found, capped at 125.
 """
 import argparse, hashlib, json, os, re, struct, sys, unicodedata
 from coloraide import Color
+from capabilities import load_capabilities
 
 # ------------------------------------------------------------------ utilities
 def R(a, b): return round(Color(a).contrast(b, method="wcag21"), 2)
@@ -353,6 +354,40 @@ def c_manifest(kit, rep):
     rep.bad("manifest-checksums", "; ".join(bad[:8])) if bad else \
         rep.ok("manifest-checksums", "%d files match" % len(man.get("files", [])))
 
+
+def c_capability_artifacts(kit, rep):
+    try:
+        capabilities = load_capabilities(kit)
+    except Exception as error:
+        return rep.bad("capability-tier", str(error))
+    tier = capabilities["tier"]
+    rep.ok("capability-tier", "%s tier recorded by probe.py" % tier)
+
+    logo_png_dir = os.path.join(kit, "logos", "png")
+    pngs = ([os.path.join(logo_png_dir, name) for name in os.listdir(logo_png_dir)
+             if name.lower().endswith(".png")] if os.path.isdir(logo_png_dir) else [])
+    ico = os.path.join(kit, "favicons", "favicon.ico")
+    if capabilities.get("svg_raster"):
+        missing = []
+        if not pngs: missing.append("PNG exports")
+        if not os.path.isfile(ico): missing.append("favicon.ico")
+        if missing:
+            rep.bad("raster-artifacts", "probe found a rasterizer but output lacks %s"
+                    % " and ".join(missing))
+        else:
+            rep.ok("raster-artifacts", "%d PNGs and favicon.ico produced" % len(pngs))
+    else:
+        rep.skip("raster-artifacts", "core tier: SVG rasterizer unavailable; PNG and favicon outputs skipped")
+
+    pdf = os.path.join(kit, "brand-guide.pdf")
+    if tier == "full":
+        if os.path.isfile(pdf):
+            rep.ok("brand-guide-artifact", "PDF produced after successful Chromium probe")
+        else:
+            rep.bad("brand-guide-artifact", "Chromium probe passed but brand-guide.pdf is missing")
+    else:
+        rep.skip("brand-guide-artifact", "%s tier: headless Chromium unavailable; PDF skipped" % tier)
+
 # ---------------------------------------------------------------------- main
 def c_glyph(kit, brand, rep):
     """The measured geometry gate, folded into VERIFY.md.
@@ -504,6 +539,7 @@ def main():
     c_raw_values(kit, rep)
     c_font_weights(kit, canon, rep)
     c_glyph(kit, brand, rep)
+    c_capability_artifacts(kit, rep)
     c_svg(kit, rep)
     c_ico(kit, rep)
     c_pdf(kit, rep)

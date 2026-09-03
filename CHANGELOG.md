@@ -25,6 +25,14 @@ No unreleased changes.
 
 - Replaced ShruggieTech's `#2BCC73` light-surface link color, measured at 1.98:1, with `#037B40`, measured at 5.05:1, to meet WCAG 2.1 AA.
 - Corrected the shadcn binding documentation to use the published `/brand/r/{name}.json` route.
+- Restored Python 3.8 kit discovery and added a minimum-version CI job.
+- Replaced generated font-network imports with local bundled bindings and aligned the `fonts.json` registry route.
+- Made unexpected full-tier PDF and page-QC failures block builds and releases.
+- Made the core tier preserve vector output while explicitly recording raster and PDF skips.
+- Verified renderer fallbacks before advertising them as available.
+- Suppressed project-owned Windows console subprocesses and disabled their interactive input.
+- Forwarded native required state from generated form controls and removed nested interactive CTA markup.
+- Removed private workstation paths and Cloudflare resource identifiers from public planning records.
 
 ## [1.1.1] - 2026-09-03
 

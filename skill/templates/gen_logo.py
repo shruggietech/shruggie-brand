@@ -14,6 +14,8 @@ import subprocess
 import sys
 
 from svgelements import Path
+from capabilities import load_capabilities
+from process_utils import hidden_process_kwargs
 
 NODE = os.environ.get("GP_NODE") or shutil.which("node")
 RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__file__), "rsvg-convert.js")
@@ -25,15 +27,25 @@ def need(tool):
 
 def raster(args):
     raster_cwd = None
+    width = args[args.index("-w") + 1] if "-w" in args else None
+    height = args[args.index("-h") + 1] if "-h" in args else None
+    source = args[-3] if "-o" in args else args[-2]
+    output = args[args.index("-o") + 1]
     native = shutil.which("rsvg-convert")
     if native:
         command = [native] + args
+    elif shutil.which("resvg"):
+        command = [shutil.which("resvg")]
+        if width: command += ["--width", width]
+        if height: command += ["--height", height]
+        command += [source, output]
+    elif shutil.which("inkscape"):
+        command = [shutil.which("inkscape"), source, "--export-type=png",
+                   "--export-filename=" + output]
+        if width: command.append("--export-width=" + width)
+        if height: command.append("--export-height=" + height)
     elif shutil.which("magick"):
-        width = args[args.index("-w") + 1] if "-w" in args else ""
-        height = args[args.index("-h") + 1] if "-h" in args else ""
-        source = args[-3] if "-o" in args else args[-2]
-        output = args[args.index("-o") + 1]
-        geometry = "%sx%s" % (width, height)
+        geometry = "%sx%s" % (width or "", height or "")
         raster_cwd = os.path.dirname(os.path.abspath(source))
         command = [shutil.which("magick"), "-background", "none",
                    os.path.basename(source), "-resize", geometry,
@@ -42,7 +54,7 @@ def raster(args):
         command = [NODE, RESVG] + args
     else:
         raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, ImageMagick, or set GP_NODE and GP_RESVG_RENDERER.")
-    subprocess.run(command, check=True, cwd=raster_cwd)
+    subprocess.run(command, check=True, cwd=raster_cwd, **hidden_process_kwargs())
 
 
 def path_bbox(d):
@@ -119,7 +131,8 @@ def wordmark_outline(text, ttf, size=200):
 
 def main():
     spec_path, kit = sys.argv[1], sys.argv[2]
-    brand = json.load(open(spec_path, encoding="utf-8"))
+    with open(spec_path, encoding="utf-8") as handle:
+        brand = json.load(handle)
     logo = brand.get("logo") or {}
     paths = logo.get("paths") or {}
     if not paths.get("full"):
@@ -131,7 +144,7 @@ def main():
     gate = subprocess.run([sys.executable,
                            os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                         "validate_glyph.py"), spec_path],
-                          capture_output=True, text=True)
+                          capture_output=True, text=True, **hidden_process_kwargs())
     sys.stdout.write(gate.stdout)
     if gate.returncode:
         sys.exit("glyph gate failed with %d problem(s). Fix build/mk_paths.py and "
@@ -408,6 +421,12 @@ def main():
         write(os.path.join(svg_dir, filename), svg(preview_width, preview_height, preview))
         written.append(filename)
 
+    capabilities = load_capabilities(kit)
+    if not capabilities.get("svg_raster"):
+        print("SKIP raster exports, favicons and ICO: SVG rasterizer unavailable at core tier")
+        print("wrote %d vector SVG masters" % len(written))
+        return 0
+
     for filename in written:
         width = 1280 if "social-preview" in filename else 1024
         source = os.path.join(svg_dir, filename)
@@ -461,7 +480,8 @@ def main():
     ico = os.path.join(favicon_dir, "favicon.ico")
     converter = "magick" if need("magick") else ("convert" if need("convert") else None)
     if converter:
-        subprocess.run([converter] + ico_sources + [ico], check=True)
+        subprocess.run([converter] + ico_sources + [ico], check=True,
+                       **hidden_process_kwargs())
     else:
         # Pillow fallback. It is given the per-size PNGs that were already
         # rendered, so the reduced master is still what lands in the entries at

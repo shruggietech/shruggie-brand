@@ -8,6 +8,18 @@ permissions:
   contents: read
 
 jobs:
+  python-38-compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.8"
+      - name: Compile and discover kits on the minimum Python
+        run: |
+          python -m compileall -q scripts skill/templates
+          python scripts/build_all.py --list
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -31,7 +43,9 @@ jobs:
       - name: Install site and browser dependencies
         run: pnpm --dir site install --frozen-lockfile && pnpm --dir site exec playwright install chromium --with-deps
       - name: Test geometry
-        run: python skill/templates/test_glyphkit.py
+        run: |
+          python skill/templates/test_glyphkit.py
+          python skill/templates/test_pipeline.py
       - name: Probe capabilities
         run: python skill/templates/probe.py
       - name: Build and verify every kit

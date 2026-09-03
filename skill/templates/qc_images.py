@@ -17,6 +17,8 @@ agent opens.
 import argparse, functools, glob, http.server, os, shutil, subprocess, sys, tempfile, threading
 from urllib.parse import quote
 from PIL import Image, ImageDraw
+from capabilities import load_capabilities
+from process_utils import hidden_process_kwargs
 
 NODE = os.environ.get("GP_NODE") or shutil.which("node")
 RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__file__), "rsvg-convert.js")
@@ -26,11 +28,16 @@ def rsvg(src, w):
     native = shutil.which("rsvg-convert")
     if native:
         command = [native, "-w", str(w), src, "-o", out]
+    elif shutil.which("resvg"):
+        command = [shutil.which("resvg"), "--width", str(w), src, out]
+    elif shutil.which("inkscape"):
+        command = [shutil.which("inkscape"), src, "--export-type=png",
+                   "--export-filename=" + out, "--export-width=" + str(w)]
     elif NODE and os.path.exists(RESVG):
         command = [NODE, RESVG, "-w", str(w), src, "-o", out]
     else:
         raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert or set GP_NODE and GP_RESVG_RENDERER.")
-    subprocess.run(command, check=True)
+    subprocess.run(command, check=True, **hidden_process_kwargs())
     return Image.open(out).convert("RGBA")
 
 def logo_sheet(kit, out, dark, light):
@@ -121,23 +128,38 @@ def main():
     a = ap.parse_args()
     import json
     bj = os.path.join(a.kit, "brand.json")
-    dark = a.dark or (json.load(open(bj, encoding="utf-8")).get("surfaces", {}).get("base", "#000000")
-                      if os.path.exists(bj) else "#000000")
+    if a.dark:
+        dark = a.dark
+    elif os.path.exists(bj):
+        with open(bj, encoding="utf-8") as handle:
+            dark = json.load(handle).get("surfaces", {}).get("base", "#000000")
+    else:
+        dark = "#000000"
     out = os.path.join(a.kit, "qc"); os.makedirs(out, exist_ok=True)
+    capabilities = load_capabilities(a.kit)
     made = []
-    try:
-        ls = logo_sheet(a.kit, os.path.join(out, "logo-sheet.png"), dark, a.light)
-        if ls: made.append(ls)
-    except Exception as e:
-        print("logo sheet skipped: %s" % e)
-    try:
-        made += page_shots(a.kit, out)
-    except Exception as e:
-        print("page shots skipped: %s" % e)
+    errors = []
+    if capabilities.get("svg_raster"):
+        try:
+            ls = logo_sheet(a.kit, os.path.join(out, "logo-sheet.png"), dark, a.light)
+            if ls: made.append(ls)
+        except Exception as e:
+            errors.append("logo sheet failed after raster capability passed: %s" % e)
+    else:
+        print("SKIP logo sheet: SVG rasterizer unavailable at core tier")
+    if capabilities["tier"] == "full":
+        try:
+            made += page_shots(a.kit, out)
+        except Exception as e:
+            errors.append("page shots failed after Chromium capability passed: %s" % e)
+    else:
+        print("SKIP page shots: headless Chromium unavailable at %s tier"
+              % capabilities["tier"])
     for m in made: print("wrote", m)
+    for error in errors: print("FAIL", error)
     print("\nOPEN THESE. A logo that reduces to a smudge and a page that breaks at "
           "390px both pass every automated check in this kit.")
-    return 0
+    return min(len(errors), 125)
 
 if __name__ == "__main__":
     sys.exit(main())
