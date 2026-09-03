@@ -8,7 +8,7 @@ Changes are specification-first and enter `main` through a reviewed pull request
 - Python 3.8 or newer
 - Node.js 20 or newer and pnpm
 - `coloraide` for measured color work
-- Playwright Chromium, ImageMagick, and an SVG rasterizer for complete local artifacts
+- Playwright Chromium, ImageMagick, Poppler (`pdftoppm`), and an SVG rasterizer for complete local artifacts
 
 Create an isolated Python environment and install the required color dependency:
 
@@ -37,4 +37,3 @@ Every kit must report zero verification problems and zero glyph failures. Missin
 Complete the pull request template with issue traceability, Spec Kit artifacts, verification evidence, accessibility impact, and documentation impact. Tags use `vMAJOR.MINOR.PATCH`. Release workflows build artifacts from the tag and must never publish hand-built archives.
 
 Report vulnerabilities privately through GitHub's security advisory flow as described in [SECURITY.md](SECURITY.md).
-

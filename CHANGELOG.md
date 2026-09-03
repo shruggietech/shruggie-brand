@@ -4,25 +4,27 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
-### Added
-
-- Repository-wide CI, release automation, the generated documentation and registry site, and five migrated production kits.
-- A synthetic fixture that exercises the complete brandbuilder pipeline without consuming a production identity hue slot.
-- Spec Kit 1.0.4 with the Codex skills integration and PowerShell scripts.
-
-### Fixed
-
-- Replaced ShruggieTech's `#2BCC73` light-surface link color, measured at 1.98:1, with `#037B40`, measured at 5.05:1, to meet WCAG 2.1 AA.
+No unreleased changes.
 
 ## [1.1.2] - 2026-09-03
 
 ### Added
 
 - Added `logo.geometry_provenance` with `glyphkit` and `imported` values so legacy geometry remains unchanged while its origin is visible in verification.
+- Added repository-wide CI, deterministic release automation, and a generated documentation and registry site.
+- Added five migrated production kits and a synthetic pipeline fixture.
+- Added Spec Kit 1.0.4 with Codex skills integration and PowerShell scripts.
 
 ### Changed
 
 - Imported path command violations are warnings for legacy geometry and remain failures for glyphkit-authored geometry.
+- Preserved native SVG primitives and raster-only authoritative identity art through generated exports.
+- Scoped sibling hue allocation to production identities while retaining contrast checks for fixtures.
+
+### Fixed
+
+- Replaced ShruggieTech's `#2BCC73` light-surface link color, measured at 1.98:1, with `#037B40`, measured at 5.05:1, to meet WCAG 2.1 AA.
+- Corrected the shadcn binding documentation to use the published `/brand/r/{name}.json` route.
 
 ## [1.1.1] - 2026-09-03
 
@@ -45,4 +47,3 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 [1.1.2]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/ShruggieTech/shruggie-brand/releases/tag/v1.1.0
-

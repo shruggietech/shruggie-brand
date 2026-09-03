@@ -1,0 +1,151 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "fragcap",
+  "kind": "sub-brand",
+  "title": "fragcap",
+  "slug": "fragcap",
+  "version": "1.1.0",
+  "parent": "ShruggieTech",
+  "homepage": "https://fragcap.com",
+  "registry_base": "https://brand.shruggie.tech/fragcap/brand",
+  "descriptor": "Passive process-attributed network capture for games.",
+  "functional_descriptor": "Game network capture and analysis tooling",
+  "category": "Game network capture and analysis tooling",
+  "role": "Passive capture and decode. fragcap reads; it does not write.",
+  "audience": "Curious players first, then modders, server operators, developers, protocol researchers, security engineers, and tool authors.",
+  "brand_idea": "Captured signal. Preserved evidence.",
+  "governing_principle": "See what your game is actually saying.",
+  "voice": {
+    "qualities": ["precise", "restrained", "skeptical", "dry", "technically literate"],
+    "lead_with": ["the observable packet or process", "the prerequisite or technical boundary", "the current capture state"],
+    "avoid": ["gamer performance", "combat metaphors", "enterprise filler", "implied magic", "testimonials, feature grids, and urgency"]
+  },
+  "register": "precise-dry",
+  "shruggie_flourish": false,
+  "wordmark_text": "fragcap",
+  "assumptions": [
+    "Signal Cyan is the identity accent. Capture Orange is inherited emphasis and must stay scarce.",
+    "The existing mark and custom outlined wordmark are authoritative and must not be redrawn.",
+    "The product rejects the parent brand's verbal flourish because its technical boundaries should remain literal."
+  ],
+  "accent": {
+    "bright": "#27C7E7",
+    "deep": "#006F82",
+    "accessible": "#006F82",
+    "dim": "#94A8B0"
+  },
+  "chart_palette": {
+    "dark_target_lightness": 0.68,
+    "hue_rotations": [0, 72, 144, 216, 288],
+    "rationale": "Signal Cyan starts an evenly rotated series. The derived colors remain separated from Capture Orange and Fault while keeping equal visual priority on Void."
+  },
+  "surfaces": {
+    "base": "#050708",
+    "card": "#0B1115",
+    "popover": "#050708",
+    "secondary": "#101A20",
+    "hover": "#16242C"
+  },
+  "typography": {
+    "families": {
+      "display": {"name": "Space Grotesk", "weights": [500, 700]},
+      "body": {"name": "Geist", "weights": [400, 500]},
+      "mono": {"name": "Geist Mono", "weights": [400]}
+    }
+  },
+  "domain_components": {
+    "CaptureRow": ["timestamp", "process", "endpoint", "protocol", "bytes", "state"],
+    "PacketRow": ["direction", "source", "destination", "length", "decode"],
+    "SessionRow": ["interface", "filter", "started_at", "packet_count", "file"]
+  },
+  "legacy_palette": {
+    "signal_cyan": "#27C7E7",
+    "capture_orange": "#FF5300",
+    "fault": "#E9505F",
+    "void": "#050708",
+    "surface": "#0B1115",
+    "surface_raised": "#101A20",
+    "line": "#21323A",
+    "text": "#F2F7F8",
+    "text_muted": "#94A8B0",
+    "light_surface": "#F5F8F9",
+    "light_text": "#102027",
+    "light_text_muted": "#47606B",
+    "light_line": "#D5DFE3",
+    "light_cyan": "#006F82",
+    "light_orange": "#C24100",
+    "fault_deep": "#C0293A"
+  },
+  "logo": {
+    "grid": 512,
+    "canvas_width": 512,
+    "canvas_height": 512,
+    "clear_space_units": 34,
+    "reduced_below_px": 32,
+    "min_px": {"mark": 24, "horizontal": 160, "stacked": 96, "wordmark": 120},
+    "role_colors": {
+      "color": {"accent": "#27C7E7", "emphasis": "#FF5300"},
+      "light": {"accent": "#006F82", "emphasis": "#C24100"}
+    },
+    "construction": "The imported 512-unit mark combines four separated capture-frame corners, a triple-bladed F, and three isolated orange packet terminals. The reduced master drops the capture frame and enlarges the F and terminals for favicon use.",
+    "paths": {
+      "full": [
+        {"role": "accent", "d": "M72 154V72h82v22H94v60z"},
+        {"role": "accent", "d": "M358 72h82v82h-22V94h-60z"},
+        {"role": "accent", "d": "M72 358h22v60h60v22H72z"},
+        {"role": "accent", "d": "M418 358h22v82h-82v-22h60z"},
+        {"role": "accent", "d": "M156 134l16-16h34v272h-50z"},
+        {"role": "accent", "d": "M188 118h150l14 12-14 12H188z"},
+        {"role": "accent", "d": "M188 220h150l14 12-14 12H188z"},
+        {"role": "accent", "d": "M188 322h92l14 12-14 12h-92z"},
+        {"role": "emphasis", "d": "M370 118h34v34h-34z"},
+        {"role": "emphasis", "d": "M370 220h34v34h-34z"},
+        {"role": "emphasis", "d": "M312 322h34v34h-34z"}
+      ],
+      "reduced": [
+        {"role": "accent", "d": "M120 108l24-24h50v344h-74z"},
+        {"role": "accent", "d": "M168 84h198l20 18-20 18H168z"},
+        {"role": "accent", "d": "M168 220h198l20 18-20 18H168z"},
+        {"role": "accent", "d": "M168 356h122l20 18-20 18H168z"},
+        {"role": "emphasis", "d": "M398 84h46v46h-46z"},
+        {"role": "emphasis", "d": "M398 220h46v46h-46z"},
+        {"role": "emphasis", "d": "M320 356h46v46h-46z"}
+      ]
+    },
+    "prohibitions": [
+      "Do not rotate, skew, stretch, outline, bevel, or add glow.",
+      "Do not recolor individual packet lanes.",
+      "Do not move the orange terminals or make them appear explosive.",
+      "Do not close the four reticle corners into a box or circle.",
+      "Do not set the wordmark in live text or a substitute typeface.",
+      "Do not place the logo over busy imagery.",
+      "Do not combine the fragcap and ShruggieTech marks into one lockup.",
+      "Do not add skulls, weapons, controllers, shields, or exploit imagery."
+    ],
+    "geometry_provenance": "imported",
+    "geometry_provenance_reason": "The shipped Fragcap mark and reduced master predate glyphkit. Their exact filled path data is preserved unchanged."
+  },
+  "guide": {
+    "idea": "Captured signal. Preserved evidence.",
+    "descriptor": "Passive process-attributed network capture for games.",
+    "personality": [
+      ["Precise", "Uses exact nouns, units, formats, and commands", "Vague claims"],
+      ["Observational", "Names observation, capture, decode, and traces", "Combat metaphors"],
+      ["Dry", "Uses calm statements and sparse wit", "Hype or performed excitement"],
+      ["Transparent", "Names limitations, prerequisites, and sharp edges", "Implied magic"]
+    ],
+    "promises": [
+      "Capture is passive and inspectable.",
+      "Every row is a packet that actually happened.",
+      "Technical boundaries are stated before convenience claims.",
+      "Terminology remains consistent across CLI, docs, schemas, and interfaces.",
+      "Unknowns are labeled as unknowns."
+    ],
+    "sharp_edge": "Protocol knowledge can be used to write cheats. fragcap answers that risk with a strict product scope: capture and decode only, with no injection, modification, automation, or concealment.",
+    "logo": "The triple-bladed F represents parallel packet lanes. Four separated corners form a capture frame without a weapon-like crosshair. Orange terminals identify the isolated bytes, and the shorter lower lane keeps the silhouette legible as an F.",
+    "palette": "Signal Cyan marks observed data, links, focus, and active capture. Capture Orange identifies isolated terminals and warnings, and remains scarce. Fault is reserved for failed capture or hard errors. Near-black surfaces keep packet data primary.",
+    "specimen_line": "See what your game is actually saying.",
+    "specimen_body": "Every captured row is a packet that crossed the wire, timestamped and attributed to a process."
+  },
+  "canon": "1.1.2"
+}

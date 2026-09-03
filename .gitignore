@@ -2,11 +2,20 @@
 dist/
 site/out/
 site/public/generated/
+site/generated/
+site/public/covarity/
+site/public/fragcap/
+site/public/glitchpad/
+site/public/go-schedule/
+site/public/shruggietech/
+site/public/example-brand/
+release/
 
 # Local dependencies and caches
 .venv/
 __pycache__/
 *.py[cod]
+*.tsbuildinfo
 node_modules/
 .next/
 .turbo/
@@ -26,4 +35,3 @@ Thumbs.db
 .env
 .env.*
 !.env.example
-

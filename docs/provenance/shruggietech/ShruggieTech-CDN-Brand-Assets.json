@@ -1,0 +1,171 @@
+{
+  "_doc": "ShruggieTech CDN asset index. Authoritative lookup for CDN-hosted assets. When using a CDN asset in any deliverable, look it up here by URL. Do not construct CDN URLs from memory.",
+  "version": "1.0.0",
+  "last_updated": "2026-05-07",
+  "maintained_by": "Operator (manual updates). Update this file when CDN inventory changes.",
+  "cdn": {
+    "base_url": "https://cdn.shruggie.tech",
+    "host": "Cloudflare R2",
+    "bucket": "shruggie-cdn",
+    "managed_via": "Cloudflare web interface (no GitHub repo as of v1.0.0)",
+    "indexing_status": "This file is the authoritative index until a programmatic indexer ships."
+  },
+  "brand": {
+    "logo": {
+      "_select": "Choose by background brightness. Use 'mark_only_green' when wordmark is not needed. Use 'github_social_share' for repo social cards.",
+      "light_background": {
+        "url": "https://cdn.shruggie.tech/brand/logo/logo-lightbg.png",
+        "format": "PNG",
+        "use_when": "Page or container background is white or near-white. Logo uses dark text on a brand-spec light fill.",
+        "notes": "Green shade is tuned for light backgrounds and differs slightly from the dark-bg variant."
+      },
+      "dark_background": {
+        "url": "https://cdn.shruggie.tech/brand/logo/logo-darkbg.png",
+        "format": "PNG",
+        "use_when": "Page or container background is dark or black. Logo uses light text on a brand-spec dark fill.",
+        "notes": "Green shade is tuned for dark backgrounds and differs slightly from the light-bg variant."
+      },
+      "mark_only_green": {
+        "url": "https://cdn.shruggie.tech/brand/logo/logo-icon-only-green.png",
+        "format": "PNG",
+        "use_when": "Mark needed without wordmark. Standalone branding, partner co-marks, decorative use.",
+        "notes": "Custom paid design, NOT the Unicode emoji \\(ツ)/. Full character with arms, eyes, smile, no text."
+      },
+      "github_social_share": {
+        "url": "https://cdn.shruggie.tech/brand/logo/github-social-share.png",
+        "format": "PNG",
+        "use_when": "GitHub repository social preview image (Settings > General > Social preview).",
+        "notes": "Pre-sized to GitHub's exact pixel dimensions with brand-correct padding. Always reference this URL in repo setup runbooks; never hand-make a new one."
+      }
+    },
+    "favicon": {
+      "_select": "Use 'default' (the .ico) for primary <link rel='icon'> tags. Use specific PNG sizes for PWA manifests, app icons, and OG-card variants.",
+      "default": "https://cdn.shruggie.tech/brand/favicon/icon.ico",
+      "ico": {
+        "url": "https://cdn.shruggie.tech/brand/favicon/icon.ico",
+        "notes": "Multi-layer ICO containing multiple sizes in one file. Use for the primary favicon link tag."
+      },
+      "png": {
+        "64": "https://cdn.shruggie.tech/brand/favicon/icon-64.png",
+        "92": "https://cdn.shruggie.tech/brand/favicon/icon-92.png",
+        "144": "https://cdn.shruggie.tech/brand/favicon/icon-144.png",
+        "192": "https://cdn.shruggie.tech/brand/favicon/icon-192.png",
+        "256": "https://cdn.shruggie.tech/brand/favicon/icon-256.png",
+        "512": "https://cdn.shruggie.tech/brand/favicon/icon-512.png",
+        "master": "https://cdn.shruggie.tech/brand/favicon/icon-master.png"
+      }
+    },
+    "typography": {
+      "stylesheet": {
+        "url": "https://cdn.shruggie.tech/brand/typography.css",
+        "use_when": "Reference this single CSS file in any HTML or web artifact to get the official ShruggieTech font stack with correct @font-face declarations.",
+        "notes": "Contains web-friendly variants of all core fonts plus Geist Pixel."
+      },
+      "fonts": {
+        "display": {
+          "family": "Space Grotesk",
+          "use_when": "Display text, large headings, hero titles, section titles."
+        },
+        "body": {
+          "family": "Geist",
+          "use_when": "Body copy, UI text, paragraphs, lists. Default for prose."
+        },
+        "mono": {
+          "family": "Geist Mono",
+          "use_when": "Code, technical labels, eyebrow/section labels, metadata."
+        },
+        "decorative": {
+          "family": "Geist Pixel",
+          "use_when": "Decorative or stylistic accents only. Not for body or general UI."
+        }
+      },
+      "fonts_directory": {
+        "ttf": "https://cdn.shruggie.tech/brand/fonts/ttf/",
+        "woff2": "https://cdn.shruggie.tech/brand/fonts/wf2/",
+        "_notes": "WOFF2 directory is literally named 'wf2', not 'woff2'. Files inside use the .woff2 extension. Prefer WOFF2 for web; TTF for desktop and design tools. Contents of TTF and WF2 are mirrored except for file extension."
+      },
+      "italic_policy": "Only base 'Geist-Italic' is included. Bold-italic, extra-bold-italic, light-italic, medium-italic, regular-italic, semi-bold-italic, and thin-italic variants of Geist are deliberately omitted. Use italic sparingly in prose only."
+    },
+    "colors": {
+      "_lookup_via": "Brand color values are not CDN assets. Query the ShruggieTech (Private) MCP server for canonical hex values, palette structure, and usage rules. Search the knowledge base for brand colors before referencing any color in a deliverable. Do not embed hex values in this file."
+    }
+  },
+  "avatars": {
+    "_use": "Cartoon ('toon') and standard headshot variants of internal team and external contacts. Use in internal contact lists, knowledge graph nodes, and similar contexts.",
+    "directory": "https://cdn.shruggie.tech/avatars/",
+    "naming_convention": "PascalCase-Hyphenated. 'First-Last.jpg' for headshots, 'First-Last-toon.jpg' for cartoon variants.",
+    "people": {
+      "alex_hilbert": {
+        "headshot": "https://cdn.shruggie.tech/avatars/Alex-Hilbert.jpg",
+        "toon": "https://cdn.shruggie.tech/avatars/Alex-Hilbert-toon.jpg"
+      },
+      "josiah_thompson": {
+        "headshot": "https://cdn.shruggie.tech/avatars/Josiah-Thompson.jpg",
+        "toon": "https://cdn.shruggie.tech/avatars/Josiah-Thompson-toon.jpg",
+        "toon_casual": "https://cdn.shruggie.tech/avatars/Josiah-Thompson-toon-casual.jpg"
+      },
+      "natalie_thompson": {
+        "headshot": "https://cdn.shruggie.tech/avatars/Natalie-Thompson.jpg",
+        "toon": "https://cdn.shruggie.tech/avatars/Natalie-Thompson-toon.jpg"
+      },
+      "philip_thompson": {
+        "headshot": "https://cdn.shruggie.tech/avatars/Philip-Thompson.jpg",
+        "toon": "https://cdn.shruggie.tech/avatars/Philip-Thompson-toon.jpg"
+      },
+      "william_thompson": {
+        "headshot": "https://cdn.shruggie.tech/avatars/William-Thompson.jpg",
+        "toon": "https://cdn.shruggie.tech/avatars/William-Thompson-toon.jpg"
+      }
+    }
+  },
+  "entity_icons": {
+    "_use": "Square-cropped PNG icons of common third-party brands (tech companies, payment platforms, social networks). Use when referencing or linking to external services.",
+    "directory": "https://cdn.shruggie.tech/entity-icons/",
+    "format": "PNG, square-cropped",
+    "url_pattern": "https://cdn.shruggie.tech/entity-icons/{slug}.png",
+    "approximate_count": 60,
+    "known_entities_partial": [
+      "adobe",
+      "apple",
+      "azure",
+      "bitcoin",
+      "cash-app",
+      "cloudflare",
+      "ethereum",
+      "facebook",
+      "gemini",
+      "get-your-guide",
+      "git",
+      "github",
+      "gmail",
+      "perplexity",
+      "pinterest"
+    ]
+  },
+  "lib": {
+    "_use": "Vendored third-party JS/CSS libraries. Use these CDN paths instead of public CDNs (jsDelivr, cdnjs) to keep page assets within ShruggieTech infrastructure.",
+    "directory": "https://cdn.shruggie.tech/lib/",
+    "url_pattern": "https://cdn.shruggie.tech/lib/{library}/{version}/{filename}",
+    "filename_convention": "Files use the original distributor-provided filename. Library name and version may be embedded in the filename itself; that is irrelevant for path construction.",
+    "libraries": {
+      "bootstrap": {
+        "versions": [
+          "5.3.8"
+        ],
+        "known_files": [
+          "bootstrap.min.css",
+          "bootstrap.min.css.map",
+          "bootstrap.min.js",
+          "bootstrap.min.js.map",
+          "bootstrap.bundle.min.js",
+          "bootstrap.js.map"
+        ],
+        "example_url": "https://cdn.shruggie.tech/lib/bootstrap/5.3.8/bootstrap.min.css"
+      },
+      "jquery": {},
+      "jquery-ui": {},
+      "jquery-color": {},
+      "popper.js": {}
+    }
+  }
+}

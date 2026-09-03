@@ -1,0 +1,207 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "glitchpad",
+  "kind": "sub-brand",
+  "title": "Glitchpad",
+  "slug": "glitchpad",
+  "version": "1.0.0",
+  "parent": "ShruggieTech",
+  "homepage": "https://glitchpad.com",
+  "registry_base": "https://brand.shruggie.tech/glitchpad/brand",
+  "descriptor": "A fast, cross-platform viewer and editor for local files.",
+  "functional_descriptor": "Cross-platform file viewer and editor",
+  "category": "Developer tool",
+  "role": "Open, view, inspect, and selectively edit common local file formats.",
+  "audience": "Developers, support engineers, reverse engineers, and technical power users.",
+  "brand_idea": "View your files.",
+  "governing_principle": "Make common local files easy to open, read, inspect, and edit. Keep controls compact and predictable.",
+  "voice": {
+    "qualities": [
+      "direct",
+      "calm",
+      "matter-of-fact"
+    ],
+    "lead_with": [
+      "the file",
+      "the user task",
+      "the current state"
+    ],
+    "avoid": [
+      "mystery and suspense",
+      "revelation or transformation metaphors",
+      "self-important product claims",
+      "language that makes the interface the subject"
+    ]
+  },
+  "register": "precise-dry",
+  "shruggie_flourish": false,
+  "wordmark_text": "Glitchpad",
+  "assumptions": [
+    "Glitchpad inspects files locally and never executes their contents.",
+    "The product name is written as Glitchpad in prose and lowercase only in technical identifiers.",
+    "Sulfur gold is the identity accent; inherited orange remains reserved for emphasis and warning states."
+  ],
+  "accent": {
+    "bright": "#FFD900",
+    "deep": "#CBAD00",
+    "accessible": "#867100",
+    "dim": "#A8A39D"
+  },
+  "chart_palette": {
+    "dark_target_lightness": 0.62,
+    "rationale": "Retain the canon hue rotations and chroma relationship while using a darker, saturated target on the product surface. Chart colors are functional data colors, never decorative brand accents."
+  },
+  "surfaces": {
+    "base": "#0B0C0D",
+    "card": "#121416",
+    "popover": "#090A0B",
+    "secondary": "#151719",
+    "hover": "#181A1D"
+  },
+  "typography": {
+    "families": {
+      "display": {
+        "name": "Space Grotesk",
+        "weights": [
+          500,
+          700
+        ]
+      },
+      "body": {
+        "name": "Geist",
+        "weights": [
+          400,
+          500
+        ]
+      },
+      "mono": {
+        "name": "Geist Mono",
+        "weights": [
+          400
+        ]
+      }
+    }
+  },
+  "domain_components": {
+    "FileRow": [
+      "name",
+      "kind",
+      "size",
+      "modified",
+      "selected"
+    ]
+  },
+  "logo": {
+    "grid": 1000,
+    "canvas_width": 800,
+    "canvas_height": 1000,
+    "artwork_width": 720,
+    "artwork_height": 900,
+    "clear_space_units": 70,
+    "g_thickness_units": 70,
+    "g_to_paper_clearance_units": 70,
+    "lockups": {
+      "reference_unit": "canonical master composition",
+      "horizontal": {
+        "wordmark_scale": 0.62,
+        "mark_height_units": 160,
+        "gap_units": 34,
+        "canvas_height_units": 200,
+        "wordmark_baseline_units": 144.64,
+        "alignment": "optical center"
+      },
+      "stacked": {
+        "wordmark_scale": 0.62,
+        "mark_height_c": 1.8,
+        "gap_c": 0.45
+      }
+    },
+    "min_px": {
+      "mark": 40,
+      "horizontal": 160,
+      "stacked": 144,
+      "wordmark": 120
+    },
+    "reduced_below_px": 32,
+    "role_colors": {
+      "color": {
+        "neutral": "#A8A39D",
+        "accent": "#FFD900"
+      },
+      "light": {
+        "neutral": "#0A0A0A",
+        "accent": "#867100"
+      }
+    },
+    "paths": {
+      "full": [
+        {
+          "role": "neutral",
+          "fill_rule": "evenodd",
+          "d": "M130 50H580L760 230V860C760 909.706 719.706 950 670 950H130C80.294 950 40 909.706 40 860V140C40 90.294 80.294 50 130 50ZM510 120H145C125.67 120 110 135.67 110 155V845C110 864.33 125.67 880 145 880H655C674.33 880 690 864.33 690 845V425C690 405.67 674.33 390 655 390H520V460H620V810H180V190H510Z"
+        },
+        {
+          "role": "accent",
+          "d": "M580 50L760 230H580Z"
+        }
+      ],
+      "reduced": [
+        {
+          "role": "accent",
+          "fill_rule": "evenodd",
+          "d": "M130 50H580L760 230V860C760 909.706 719.706 950 670 950H130C80.294 950 40 909.706 40 860V140C40 90.294 80.294 50 130 50ZM510 120H145C125.67 120 110 135.67 110 155V845C110 864.33 125.67 880 145 880H655C674.33 880 690 864.33 690 845V425C690 405.67 674.33 390 655 390H520V460H620V810H180V190H510Z"
+        }
+      ]
+    },
+    "prohibitions": [
+      "Do not detach the G from the paper into a separate glyph.",
+      "Keep sulfur gold exclusive to the folded corner in the full-color mark.",
+      "Do not add fragments, scan lines, glow, bevel, texture, or motion effects.",
+      "Do not alter the 720 by 900 paper, 70-unit G channel, or 70-unit inset."
+    ],
+    "geometry_provenance": "imported",
+    "geometry_provenance_reason": "The shipped Glitchpad paper-and-G paths predate glyphkit and have no authoritative mk_paths.py source."
+  },
+  "guide": {
+    "idea": "View your files.",
+    "descriptor": "Text, source code, images, PDFs, and office documents.",
+    "foundation_title": "Supported file categories",
+    "foundation": "Glitchpad opens common local file formats on desktop and Android. View text, source code, Markdown, raster and vector images, PDFs, DOCX, and ODT files. Edit Markdown, text, and source files where supported.",
+    "personality": [
+      [
+        "Direct",
+        "Uses plain labels and short sentences",
+        "Metaphor and suspense"
+      ],
+      [
+        "Unobtrusive",
+        "Keeps controls compact and file content visually primary",
+        "Decorative or attention-seeking UI"
+      ],
+      [
+        "Familiar",
+        "Uses predictable controls and layouts",
+        "Novel interaction for its own sake"
+      ]
+    ],
+    "promises": [
+      "Common file formats open in one app across desktop and Android.",
+      "Content, structure, and metadata use familiar navigation.",
+      "Markdown, text, and source files can be edited where supported."
+    ],
+    "in_scope": [
+      "Text, source code, Markdown, images, PDFs, DOCX, and ODT",
+      "Search, navigation, document metadata, image dimensions, and EXIF",
+      "Editing Markdown, text, and source files where supported"
+    ],
+    "out_of_scope": [
+      "Executing file contents",
+      "Claiming a file is safe",
+      "Replacing a dedicated editor or forensic suite"
+    ],
+    "sharp_edge": "File contents can be sensitive or malformed. Glitchpad reports what it can read and does not determine whether a file is safe.",
+    "logo": "The paper and G share one construction. The G is cut from the page. The sulfur corner makes Glitchpad easy to identify in app lists, tabs, and file association menus.",
+    "palette": "Near-black surfaces keep controls visually secondary to file content. Sulfur gold makes Glitchpad easy to find and marks selected items, active views, and keyboard focus."
+  },
+  "canon": "1.1.2"
+}

@@ -1,0 +1,49 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+      - name: Install native renderers
+        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin imagemagick poppler-utils
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Install site and browser dependencies
+        run: pnpm --dir site install --frozen-lockfile && pnpm --dir site exec playwright install chromium --with-deps
+      - name: Test geometry
+        run: python skill/templates/test_glyphkit.py
+      - name: Probe capabilities
+        run: python skill/templates/probe.py
+      - name: Build and verify every kit
+        run: python scripts/build_all.py
+      - name: Check generated agent contract
+        run: |
+          python skill/templates/sync_agents_md.py skill
+          git diff --exit-code -- skill/AGENTS.md
+      - name: Type-check and export site
+        run: pnpm --dir site lint && pnpm --dir site build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: verified-brand-kits
+          path: dist/
+          if-no-files-found: error

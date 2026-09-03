@@ -1,0 +1,55 @@
+@import "../generated/parent.css";
+@import "../generated/registry-theme.css";
+
+:root {
+  --sh-font-display: var(--font-space-grotesk), sans-serif;
+  --sh-font-body: var(--font-geist), sans-serif;
+  --sh-font-mono: var(--font-geist-mono), monospace;
+}
+
+html { scroll-behavior: smooth; }
+body { min-height: 100vh; background: var(--background); color: var(--foreground); }
+a { color: inherit; }
+.skip-link { position: fixed; top: -5rem; left: 1rem; z-index: 20; padding: .75rem 1rem; background: var(--sh-light-panel); color: var(--sh-light-text); }
+.skip-link:focus { top: 1rem; }
+.site-header, footer { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.25rem clamp(1.25rem, 5vw, 5rem); border-bottom: 1px solid var(--border); }
+.site-header { position: sticky; top: 0; z-index: 10; background: rgb(0 0 0 / 88%); backdrop-filter: blur(16px); }
+.site-name { font-family: var(--sh-font-display); font-size: 1.1rem; font-weight: 700; }
+nav { display: flex; gap: 1.25rem; font-size: .875rem; }
+main { min-height: 75vh; }
+.shell { width: min(1160px, calc(100% - 2.5rem)); margin: 0 auto; padding: clamp(4rem, 9vw, 8rem) 0; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(18rem, .7fr); gap: 4rem; align-items: end; }
+.eyebrow { margin-bottom: 1rem; color: var(--sh-accent); font: 400 .72rem/1.5 var(--sh-font-mono); letter-spacing: .16em; text-transform: uppercase; }
+h1 { max-width: 14ch; font-size: clamp(3rem, 8vw, 7rem); }
+.lede { max-width: 55ch; color: var(--sh-text-muted); font-size: clamp(1.05rem, 2vw, 1.35rem); }
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+.button { display: inline-block; padding: .8rem 1rem; border: 1px solid var(--sh-accent); border-radius: var(--radius-sm); color: var(--sh-accent); font-weight: 500; }
+.button.primary { background: var(--primary); color: var(--primary-foreground); }
+.section { margin-top: clamp(5rem, 10vw, 9rem); }
+.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: 1.5rem; }
+.section-heading p { max-width: 54ch; color: var(--sh-text-muted); }
+.brand-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.brand-card { min-height: 15rem; padding: 1.5rem; background: var(--card); border-top: 4px solid var(--brand-accent); }
+.brand-card h3 { margin-top: 4rem; }
+.brand-card p { color: var(--sh-text-muted); }
+.swatch { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--brand-accent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--brand-accent) 18%, transparent); }
+.brand-hero { display: grid; grid-template-columns: 1fr minmax(16rem, .65fr); gap: 3rem; align-items: center; }
+.brand-logo { width: 100%; min-height: 10rem; padding: 2rem; object-fit: contain; background: var(--card); border: 1px solid var(--border); }
+.meta { color: var(--sh-text-muted); font-family: var(--sh-font-mono); font-size: .75rem; }
+.doc-layout { display: grid; grid-template-columns: minmax(14rem, .3fr) minmax(0, 1fr); gap: 4rem; }
+.doc-nav { display: grid; align-content: start; gap: .6rem; }
+.prose { max-width: 78ch; }
+.prose h1, .prose h2, .prose h3 { margin-top: 2em; }
+.prose h1 { font-size: clamp(2.5rem, 6vw, 5rem); }
+.prose p, .prose li { color: #d3d3d3; }
+.prose pre { overflow: auto; padding: 1rem; background: var(--card); border: 1px solid var(--border); }
+.prose code { color: var(--sh-accent); }
+.download-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 2rem; padding: 0; list-style: none; }
+.download-list a { display: block; height: 100%; padding: 1.25rem; background: var(--card); border: 1px solid var(--border); }
+footer { border-top: 1px solid var(--border); border-bottom: 0; color: var(--muted-foreground); font: 400 .7rem/1.5 var(--sh-font-mono); letter-spacing: .1em; text-transform: uppercase; }
+@media (max-width: 760px) {
+  .hero, .brand-hero, .doc-layout { grid-template-columns: 1fr; }
+  .site-header { align-items: flex-start; }
+  .site-header, footer { flex-direction: column; }
+  .section-heading { align-items: flex-start; flex-direction: column; }
+}

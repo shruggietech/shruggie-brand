@@ -14,6 +14,7 @@ Go Schedule and Glitchpad are owned by the `ShruggieTech` organization. Fragcap 
 - Conventional Commit subjects are preferred. Recent sibling squash subjects also use `SNNN: summary (#PR)`, so a slice number is included whenever one exists.
 - `main` is governed by the ShruggieTech organization ruleset named `default-branch PR gate`. It blocks deletion and non-fast-forward updates, requires a pull request with zero mandatory approvals, and permits squash or rebase. The work order additionally requires the `build` status check here.
 - The classic branch-protection endpoint returns 404 for both newer siblings because the organization ruleset is the effective control. This repository will use a repository ruleset to add the required check rather than attempting to replace the inherited organization rule.
+- Repository ruleset `required brand build` (ID `22231594`) now requires the `build` context against the latest target branch before `main` can advance.
 
 ### Project management
 
@@ -49,9 +50,40 @@ Glitchpad is the newest complete reference: committed Spec Kit, Codex integratio
 - No Cloudflare CLI or token environment variable is present. The authenticated Cloudflare API connector has access to the ShruggieTech account and will be used as the permitted REST API path.
 - The work order requires Phase 1 branch protection to name a `build` check that is only created in Phase 5. The local scaffold, skill import, and build workflow must therefore exist before that final Phase 1 acceptance check can be configured.
 - The canonical Covarity font binaries are byte-identical to Glitchpad, Go Schedule, and Fragcap. Their `README.md` or `fonts.css` text differs in two older kits. ShruggieTech predates the shared font bundle and has no comparable font tree. The Covarity copy remains canonical as directed.
-- The runtime `rsvg-convert.js` comparison will be recorded after its two source paths are inspected during toolchain migration.
+- The runtime `rsvg-convert.js` differs from the authoritative skill copy only in ternary-expression formatting. The skill copy is newer, functionally equivalent, and remains authoritative. The runtime wrapper is not committed.
 
 ## Public repository assumption
 
 The repository is public because the required GitHub Pages site must be available without relying on a private-repository Pages entitlement. Changing the repository to private requires choosing and configuring a different public site host.
 
+## Migration and publication decisions
+
+### Authoritative mark preservation
+
+- Fragcap, Go Schedule, and Glitchpad retain imported vector path geometry. Unsupported glyphkit command forms remain visible as warnings and never become silent conversions.
+- ShruggieTech has no authoritative vector source in the migration material. Its paid raster artwork is preserved as deterministic alpha/luminance masks inside SVG wrappers. Reconstructing or tracing a replacement would invent geometry and violate the work order's no-redraw rule.
+- The generator was extended proportionally to preserve native rectangles, strokes, joins, and raster images. Glyphkit-authored marks continue to receive the stricter path-command gate.
+
+### Fixture identity scope
+
+The synthetic fixture reuses parent green and is declared with `kind: fixture`. It exercises contrast and every artifact gate but is excluded from sibling hue allocation because it is not a product identity. Treating it as a sixth identity would consume scarce hue space for test data and contradict the variance contract.
+
+### Site as a kit consumer
+
+The site stages generated outputs into ignored build directories. Next.js 16 prevents `next/font/local` imports from traversing above the site build root, so `scripts/prepare_site.py` copies the exact canonical WOFF2 bytes from `assets/fonts/` into `site/generated/fonts/` before compilation. No font copy is committed, and the resulting bytes remain identical to the kits.
+
+The same preparation step installs the generated ShruggieTech shadcn registry theme into CSS, imports the parent vanilla token layer, and copies guidelines, registry JSON, PDFs, masters, favicons, and specimens into the static export. Registry files are copied without transformation and verified by hash locally.
+
+### Linux renderer dependencies
+
+The first hosted Ubuntu run proved that installing `librsvg2-bin` and ImageMagick was insufficient for the existing PDF visual gate: `qc_render.py` also invokes Poppler's `pdftoppm`. CI, Pages, and release jobs therefore install `poppler-utils` explicitly. This dependency is now part of the documented pipeline rather than an accidental feature of the Windows workstation.
+
+### DNS publication
+
+The authenticated Cloudflare connector was used in place of the absent CLI. The executed mutation was `POST /zones/4834962e3bea6970e558ed6b491b4631/dns_records` in account `39e3052d61e3edccea7d68269ec07182`, with `{type: CNAME, name: brand, content: shruggietech.github.io, ttl: 1, proxied: false}`. It created record `5f7e3e6d7324638be1a6d2daea8def64`. The record remains DNS-only while GitHub provisions the Pages certificate.
+
+GitHub Pages was enabled with `gh api --method POST repos/ShruggieTech/shruggie-brand/pages -f build_type=workflow`, then assigned the custom hostname with `gh api --method PUT repos/ShruggieTech/shruggie-brand/pages -f cname=brand.shruggie.tech`. Before the first deployment, GitHub correctly reports HTTPS enforcement as unavailable while the certificate is pending. Public DNS resolves the expected CNAME.
+
+### Downstream accessibility correction
+
+The canonical parent correction does not silently rewrite the live company site. The original `#2BCC73` foreground measured 1.98:1 on `#F8F8F6`; the replacement `#037B40` measures 5.05:1. The required downstream work is tracked in [shruggie-web issue 35](https://github.com/ShruggieTech/shruggie-web/issues/35), with links to the committed CSS provenance.

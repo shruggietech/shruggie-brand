@@ -1,0 +1,214 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "covarity",
+  "kind": "sub-brand",
+  "title": "Covarity",
+  "slug": "covarity",
+  "version": "1.0.0",
+  "parent": "ShruggieTech",
+  "homepage": "https://covarity.ai",
+  "registry_base": "https://brand.shruggie.tech/covarity/brand",
+  "descriptor": "An evidence-backed knowledge graph and a policy-enforcing context compiler.",
+  "functional_descriptor": "Evidence-backed knowledge graph and context compiler",
+  "category": "Knowledge and agent infrastructure",
+  "role": "Hold sources and their evidence spans with provenance intact, decide identity before publishing canonical entities, and compile task-scoped context for agents.",
+  "audience": "Developers, researchers, and technical operators who need every answer traceable to the span it came from.",
+  "brand_idea": "See what is known.",
+  "governing_principle": "Evidence comes first. Every claim keeps the source and the span it came from, and a question without support gets an honest no-answer.",
+  "voice": {
+    "qualities": [
+      "precise",
+      "plain",
+      "unhurried"
+    ],
+    "lead_with": [
+      "the evidence",
+      "the current state",
+      "the boundary between the two systems"
+    ],
+    "avoid": [
+      "confidence language about unproven results",
+      "metaphors of memory, mind, or understanding",
+      "claims that the system knows a person",
+      "ceremony around ordinary operations"
+    ]
+  },
+  "register": "precise-dry",
+  "shruggie_flourish": false,
+  "wordmark_text": "Covarity",
+  "assumptions": [
+    "The wordmark is Covarity. covarity.ai is the domain and the disambiguator in any context where unrelated companies named Covarity could be confused with this one.",
+    "Covariance Purple is the identity accent. Inherited ShruggieTech orange stays reserved for emphasis, warning, and the split terminal of the mark.",
+    "The register is precise-dry and the shruggie flourish is off, because a product whose entire claim is provenance should not wink.",
+    "Covarity holds two products, covarity-knowledge and covarity-context, under one identity. Neither gets its own accent."
+  ],
+  "accent": {
+    "bright": "#C659FF",
+    "deep": "#BF36FF",
+    "accessible": "#A000EC",
+    "dim": "#A79CB8"
+  },
+  "chart_palette": {
+    "dark_target_lightness": 0.68,
+    "hue_rotations": [
+      0,
+      -57,
+      -113,
+      -170,
+      -226
+    ],
+    "rationale": "The canon rotation set assumes an accent sitting mid-spectrum. From green 153 the canon spread runs 49 to 257 and behaves. From Covariance Purple at 311.8 the +52 entry wraps onto 3.7, a magenta that reads as a lighter accent and sits 15 degrees from the failure red. The five entries sweep one direction across the same arc instead, at an even 57 degrees, holding the canon 0.92 chroma relationship and still solving lightness against the real surface. Minimum pairwise separation is 55.7 degrees and no entry comes within 47 degrees of the warning orange or 67 of the failure red."
+  },
+  "surfaces": {
+    "base": "#0A0910",
+    "card": "#13111D",
+    "popover": "#08070D",
+    "secondary": "#15131E",
+    "hover": "#1A1824"
+  },
+  "typography": {
+    "families": {
+      "display": {
+        "name": "Space Grotesk",
+        "weights": [
+          500,
+          700
+        ]
+      },
+      "body": {
+        "name": "Geist",
+        "weights": [
+          400,
+          500
+        ]
+      },
+      "mono": {
+        "name": "Geist Mono",
+        "weights": [
+          400
+        ]
+      }
+    }
+  },
+  "domain_components": {
+    "EvidenceRow": [
+      "source",
+      "span",
+      "support",
+      "verdict",
+      "confidence",
+      "selected"
+    ],
+    "VerdictRow": [
+      "reference",
+      "candidate",
+      "decision",
+      "threshold",
+      "reviewer"
+    ],
+    "ContextUnitRow": [
+      "scope",
+      "unit",
+      "origin",
+      "precedence",
+      "bytes"
+    ]
+  },
+  "logo": {
+    "grid": 1000,
+    "center": [
+      554,
+      500
+    ],
+    "outer_radius_units": 420,
+    "inner_radius_units": 252,
+    "reduced_inner_radius_units": 230,
+    "aperture_degrees": 84,
+    "slot_degrees": 10,
+    "clear_space_units": 100,
+    "min_px": {
+      "mark": 24,
+      "horizontal": 160,
+      "stacked": 144,
+      "wordmark": 120
+    },
+    "reduced_below_px": 32,
+    "role_colors": {
+      "color": {
+        "accent": "#C659FF",
+        "emphasis": "#FF5300"
+      },
+      "light": {
+        "accent": "#A000EC",
+        "emphasis": "#C24000"
+      }
+    },
+    "construction": "An aperture C on a 1000-unit grid, centred at 554 500 so the drawn bounding box sits optically centred despite the 84-degree opening. One 168-unit ring from 88 to 318 degrees carries the identity accent. A second 36-degree ring segment from 42 to 78 degrees carries the inherited orange. The 10-degree radial slot between them is the adjudication boundary. Every terminal is a flat radial cut. The reduced mark drops the slot and the orange segment and runs a single 190-unit ring across the whole 42 to 318 sweep.",
+    "paths": {
+      "full": [
+        {
+          "role": "accent",
+          "d": "M568.66 80.26 C474.17 76.96 381.33 105.64 305.16 161.65 C228.99 217.67 173.95 297.75 148.95 388.94 C123.95 480.12 130.44 577.07 167.39 664.11 C204.33 751.14 269.56 823.16 352.52 868.52 C435.48 913.88 531.32 929.91 624.52 914.04 C717.73 898.16 802.85 851.3 866.12 781.03 L741.27 668.62 C703.31 710.78 652.24 738.9 596.31 748.42 C540.39 757.95 482.89 748.33 433.11 721.11 C383.34 693.9 344.2 650.68 322.03 598.46 C299.87 546.24 295.97 488.07 310.97 433.36 C325.97 378.65 358.99 330.6 404.69 296.99 C450.4 263.38 506.1 246.17 562.79 248.15 Z"
+        },
+        {
+          "role": "emphasis",
+          "d": "M866.12 218.97 C806.77 153.05 728.08 107.62 641.32 89.18 L606.39 253.51 C658.45 264.57 705.66 291.83 741.27 331.38 Z"
+        }
+      ],
+      "reduced": [
+        {
+          "role": "accent",
+          "d": "M866.12 218.97 C801.01 146.65 712.82 99.19 616.6 84.69 C520.38 70.19 422.11 89.54 338.58 139.45 C255.05 189.36 191.44 266.72 158.62 358.32 C125.79 449.92 125.79 550.08 158.62 641.68 C191.44 733.28 255.05 810.64 338.58 860.55 C422.11 910.46 520.38 929.81 616.6 915.31 C712.82 900.81 801.01 853.35 866.12 781.03 L724.92 653.9 C689.27 693.5 640.97 719.49 588.28 727.43 C535.59 735.37 481.78 724.77 436.03 697.44 C390.29 670.11 355.46 627.75 337.48 577.59 C319.51 527.42 319.51 472.58 337.48 422.41 C355.46 372.25 390.29 329.89 436.03 302.56 C481.78 275.23 535.59 264.63 588.28 272.57 C640.97 280.51 689.27 306.5 724.92 346.1 Z"
+        }
+      ]
+    },
+    "prohibitions": [
+      "Do not close the aperture or the slot. The opening and the break are the whole idea.",
+      "Do not recolour the long arc to orange or the terminal segment to purple.",
+      "Do not add a node, dot, or glyph inside the aperture.",
+      "Do not set the C in a typeface. The mark is drawn geometry and the wordmark is outlined Space Grotesk.",
+      "Do not alter the 420-unit outer radius, the 168-unit ring, the 84-degree aperture, or the 10-degree slot.",
+      "Do not use the full mark below 24 px. The reduced mark takes over at and below 32 px."
+    ],
+    "geometry_provenance": "glyphkit"
+  },
+  "guide": {
+    "idea": "See what is known.",
+    "descriptor": "An evidence-backed knowledge graph and a policy-enforcing context compiler.",
+    "personality": [
+      [
+        "Exact",
+        "Names the source, the span, and the confidence",
+        "Summary that hides where the answer came from"
+      ],
+      [
+        "Reserved",
+        "Says unknown when support is missing",
+        "Filling a gap with a plausible sentence"
+      ],
+      [
+        "Structural",
+        "Shows the graph, the timeline, and the queue",
+        "Black boxes and unexplained results"
+      ]
+    ],
+    "promises": [
+      "Every answer names the source revision and the evidence span behind it.",
+      "An unsupported question returns an honest no-answer.",
+      "Correction, revocation, export, and deletion are ordinary operations."
+    ],
+    "sharp_edge": "Provenance shows where a claim came from and stops there. Covarity does not judge whether a source is honest, and a well-cited answer built on a bad source is still a bad answer.",
+    "logo": "The aperture C is one ring broken once. The long arc is durable knowledge, the short orange terminal is agent context, and the radial slot between them is the adjudication boundary where a reference waits for a verdict. The opening at the right keeps the ring readable as a C at favicon size, and the reduced mark closes the split so the silhouette survives 16 px.",
+    "palette": "Covariance Purple carries identity, links, focus, and selected state. The inherited orange marks emphasis, required fields, and warnings, and it never stands in for the accent. Surfaces run a purple-tinted near-black so the accent sits on a related ground instead of a neutral one.",
+    "specimen_line": "An evidence-backed knowledge graph and a policy-enforcing context compiler.",
+    "specimen_body": "Every claim keeps the source and the span it came from.",
+    "name_story": [
+      "The name was fixed on 18 March 2026, before there was a specification to attach it to.",
+      "<b>co</b> carries two systems and two parties. A knowledge system and a context system that run apart and meet at a single contract, and a person and a machine working the same material. Cooperation and collaboration start in the same place.",
+      "<b>varity</b> is covariance folded into verity. Covariance measures how two quantities move together. Verity is the older word for something true that can be shown to be true. Put side by side they describe the work: watch two things move against each other, and keep a record honest enough that somebody else can check it."
+    ],
+    "written_form": "<span class=\"m\">Covarity</span> in title case in prose. <span class=\"m\">covarity</span> in lowercase for technical identifiers, repositories and package names. <span class=\"m\">covarity.ai</span> in a URL, and anywhere an unrelated company of the same name could be confused with this one. Never set <span class=\"m\">Covarity.ai</span> in a wordmark or a headline: a top-level domain is an address, and it dates a mark.",
+    "named": "18 March 2026"
+  },
+  "canon": "1.1.2"
+}
