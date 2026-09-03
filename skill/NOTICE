@@ -1,0 +1,20 @@
+shruggie-brandbuilder
+Copyright 2026 Shruggie LLC
+
+This product includes software developed by Shruggie LLC (ShruggieTech).
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+The following are NOT covered by the Apache License grant. See LICENSE-BRAND.md.
+
+  - The names ShruggieTech, Shruggie, and the sub-brand names built with this
+    tool, together with their wordmarks and logo geometry.
+
+The following are covered by their own licences and are redistributed unchanged.
+
+  - Geist and Geist Mono, SIL Open Font License 1.1.
+    Bundled in a generated kit at fonts/, with the licence text at
+    fonts/licenses/OFL-Geist.txt
+  - Space Grotesk, SIL Open Font License 1.1.
+    Bundled in a generated kit at fonts/, with the licence text at
+    fonts/licenses/OFL-Space-Grotesk.txt

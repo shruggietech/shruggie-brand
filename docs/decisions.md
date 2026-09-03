@@ -49,9 +49,8 @@ Glitchpad is the newest complete reference: committed Spec Kit, Codex integratio
 - No Cloudflare CLI or token environment variable is present. The authenticated Cloudflare API connector has access to the ShruggieTech account and will be used as the permitted REST API path.
 - The work order requires Phase 1 branch protection to name a `build` check that is only created in Phase 5. The local scaffold, skill import, and build workflow must therefore exist before that final Phase 1 acceptance check can be configured.
 - The canonical Covarity font binaries are byte-identical to Glitchpad, Go Schedule, and Fragcap. Their `README.md` or `fonts.css` text differs in two older kits. ShruggieTech predates the shared font bundle and has no comparable font tree. The Covarity copy remains canonical as directed.
-- The runtime `rsvg-convert.js` comparison will be recorded after its two source paths are inspected during toolchain migration.
+- The runtime `rsvg-convert.js` differs from the authoritative skill copy only in ternary-expression formatting. The skill copy is newer, functionally equivalent, and remains authoritative. The runtime wrapper is not committed.
 
 ## Public repository assumption
 
 The repository is public because the required GitHub Pages site must be available without relying on a private-repository Pages entitlement. Changing the repository to private requires choosing and configuring a different public site host.
-
