@@ -95,22 +95,28 @@ def main():
     for label, argv in POST:
         script = argv[0]; args = [a.format(brand=brand, kit=kit) for a in argv[1:]]
         if not os.path.exists(os.path.join(here, script)): continue
-        rc, _ = run(script, args, here)
+        rc, out = run(script, args, here)
         print("%-5s %-42s %s" % ("ok" if rc == 0 else "FAIL", label,
                                  "0 problems" if rc == 0 else "%d problems" % rc))
+        if rc:
+            print(out)
         fail += rc
     pdf = os.path.join(kit, "brand-guide.pdf")
     if os.path.exists(pdf):
-        rc, _ = run("qc_render.py", [pdf, "--out", os.path.join(kit, "qc"),
-                                     "--expect-ground", "dark"], here)
+        rc, out = run("qc_render.py", [pdf, "--out", os.path.join(kit, "qc"),
+                                       "--expect-ground", "dark"], here)
         print("%-5s %-42s %s" % ("ok" if rc == 0 else "FAIL", "PDF QC",
                                  "0 problems" if rc == 0 else "%d problems" % rc))
+        if rc:
+            print(out)
         fail += rc
     ph = os.path.join(kit, "build", "brand-guide.print.html")
     if os.path.exists(ph):
-        rc, _ = run("qc_paginate.py", [ph], here)
+        rc, out = run("qc_paginate.py", [ph], here)
         print("%-5s %-42s %s" % ("ok" if rc == 0 else "FAIL", "pagination",
                                  "0 split elements" if rc == 0 else "%d split" % rc))
+        if rc:
+            print(out)
         fail += rc
     print("\n%s" % ("BUILD CLEAN" if not fail else "BUILD HAS %d PROBLEMS" % fail))
     print("Not finished. Open every sheet in %s and look at it. The gates above "

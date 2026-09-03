@@ -14,6 +14,7 @@ Go Schedule and Glitchpad are owned by the `ShruggieTech` organization. Fragcap 
 - Conventional Commit subjects are preferred. Recent sibling squash subjects also use `SNNN: summary (#PR)`, so a slice number is included whenever one exists.
 - `main` is governed by the ShruggieTech organization ruleset named `default-branch PR gate`. It blocks deletion and non-fast-forward updates, requires a pull request with zero mandatory approvals, and permits squash or rebase. The work order additionally requires the `build` status check here.
 - The classic branch-protection endpoint returns 404 for both newer siblings because the organization ruleset is the effective control. This repository will use a repository ruleset to add the required check rather than attempting to replace the inherited organization rule.
+- Repository ruleset `required brand build` (ID `22231594`) now requires the `build` context against the latest target branch before `main` can advance.
 
 ### Project management
 

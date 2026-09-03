@@ -12,6 +12,7 @@
 - Resolved specimen fonts relative to the staged kit instead of the skill directory.
 - Added ImageMagick as the implemented SVG raster fallback advertised by the capability probe.
 - Made pagination report a recorded skip when Playwright is installed without a matching Chromium binary.
+- Made failed verification, image, PDF, and pagination gates print their diagnostic output in CI.
 
 ## 1.1.1 - 2026-09-03
 
