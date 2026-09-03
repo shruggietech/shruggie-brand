@@ -92,12 +92,15 @@ def c_accent(canon, brand, rep):
     base = brand.get("surfaces", {}).get("base", "#000000")
     sibs = canon["color"]["constrained_rules"]["identity_accent"]["checks"][0]["current_siblings"]
     fails = []
-    for name, s in sibs.items():
-        if name == brand.get("slug"): continue
-        g = hue_gap(a, s["hex"])
-        if g is not None and g < 30: fails.append("hue %s from %s (needs 30)" % (g, name))
-    g = hue_gap(a, canon["color"]["immutable"]["orange"]["hex"])
-    if g is not None and g < 30: fails.append("hue %s from inherited orange (needs 30)" % g)
+    # Fixtures exercise the pipeline and do not claim a sibling identity slot.
+    # They still have to pass every contrast and accessibility requirement.
+    if brand.get("kind") != "fixture":
+        for name, s in sibs.items():
+            if name == brand.get("slug"): continue
+            g = hue_gap(a, s["hex"])
+            if g is not None and g < 30: fails.append("hue %s from %s (needs 30)" % (g, name))
+        g = hue_gap(a, canon["color"]["immutable"]["orange"]["hex"])
+        if g is not None and g < 30: fails.append("hue %s from inherited orange (needs 30)" % g)
     r = R(a, base)
     if r < 4.5: fails.append("accent %s on base = %s (needs 4.5)" % (a, r))
     if not al: fails.append("no accessible light-surface variant declared")
@@ -105,8 +108,9 @@ def c_accent(canon, brand, rep):
         rl = R(al, "#F8F8F6")
         if rl < 4.5: fails.append("light variant %s = %s on #F8F8F6 (needs 4.5)" % (al, rl))
     rep.bad("accent-rule", "; ".join(fails)) if fails else \
-        rep.ok("accent-rule", "hue %s, %s:1 on base, light variant %s at %s:1"
-               % (hue(a), r, al, R(al, "#F8F8F6")))
+        rep.ok("accent-rule", "%s%s:1 on base, light variant %s at %s:1"
+               % (("fixture hue exempt, " if brand.get("kind") == "fixture" else "hue %s, " % hue(a)),
+                  r, al, R(al, "#F8F8F6")))
 
 def c_immutables(canon, brand, rep):
     drift = []

@@ -2,6 +2,7 @@
 
 ## 1.1.2 - 2026-09-03
 
+- Scoped identity hue-separation checks to production identities while preserving all fixture contrast checks.
 - Added `logo.geometry_provenance` and a required imported-geometry reason.
 - Preserved legacy path data while downgrading unsupported imported commands to warnings.
 - Preserved native imported SVG rectangles, strokes, caps, and joins through export.

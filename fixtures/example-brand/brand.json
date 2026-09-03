@@ -1,0 +1,88 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "example-brand",
+  "kind": "fixture",
+  "title": "Example Brand",
+  "slug": "example-brand",
+  "version": "0.1.0",
+  "parent": "ShruggieTech",
+  "homepage": "https://brand.shruggie.tech/docs/",
+  "registry_base": "https://brand.shruggie.tech/example-brand/brand",
+  "descriptor": "A synthetic brand fixture for end-to-end pipeline testing.",
+  "functional_descriptor": "Brandbuilder regression fixture",
+  "category": "Documentation fixture",
+  "role": "Exercise every generator and verification gate without representing a real product.",
+  "audience": "Operators adding or maintaining a ShruggieTech brand kit.",
+  "brand_idea": "Build the frame. Check the result.",
+  "governing_principle": "A fixture proves the path from source to artifact.",
+  "voice": {
+    "qualities": ["literal", "instructional", "brief"],
+    "lead_with": ["the command", "the expected output", "the verification result"],
+    "avoid": ["product positioning", "identity claims", "promotional copy"]
+  },
+  "register": "operator-runbook",
+  "shruggie_flourish": false,
+  "wordmark_text": "Example Brand",
+  "assumptions": [
+    "This fixture is separate from the sibling products and consumes no identity hue slot.",
+    "Parent green is intentionally reused instead of occupying either remaining legal gap in the sibling hue circle.",
+    "The mark exists to exercise glyphkit capsules and polygons."
+  ],
+  "accent": {"bright": "#2BCC73", "deep": "#00AB21", "accessible": "#037B40", "dim": "#9A9A9A"},
+  "chart_palette": {
+    "dark_target_lightness": 0.68,
+    "hue_rotations": [0, 52, 104, 156, 208],
+    "rationale": "The fixture reuses the parent palette and is explicitly exempt from sibling identity separation."
+  },
+  "surfaces": {"base": "#000000", "card": "#111111", "popover": "#0A0A0A", "secondary": "#0D0F12", "hover": "#1A1A1A"},
+  "typography": {
+    "families": {
+      "display": {"name": "Space Grotesk", "weights": [500, 700]},
+      "body": {"name": "Geist", "weights": [400, 500]},
+      "mono": {"name": "Geist Mono", "weights": [400]}
+    }
+  },
+  "domain_components": {
+    "FixtureRow": ["source", "generator", "artifact", "check", "result", "duration"]
+  },
+  "logo": {
+    "grid": 1000,
+    "clear_space_units": 100,
+    "reduced_below_px": 32,
+    "min_px": {"mark": 24, "horizontal": 160, "stacked": 96, "wordmark": 120},
+    "role_colors": {
+      "color": {"accent": "#2BCC73", "emphasis": "#FF5300"},
+      "light": {"accent": "#037B40", "emphasis": "#C24000"}
+    },
+    "construction": "Four glyphkit capsules join into a rounded frame. A separate polygon diamond marks the full master. The reduced master drops the diamond and thickens the frame.",
+    "paths": {
+      "full": [
+        {"role": "accent", "d": "M220 136 L780 136 C791.67 136 802.86 140.64 811.11 148.89 C819.36 157.14 824 168.33 824 180 C824 191.67 819.36 202.86 811.11 211.11 C802.86 219.36 791.67 224 780 224 L220 224 C208.33 224 197.14 219.36 188.89 211.11 C180.64 202.86 176 191.67 176 180 C176 168.33 180.64 157.14 188.89 148.89 C197.14 140.64 208.33 136 220 136 Z"},
+        {"role": "accent", "d": "M220 776 L780 776 C791.67 776 802.86 780.64 811.11 788.89 C819.36 797.14 824 808.33 824 820 C824 831.67 819.36 842.86 811.11 851.11 C802.86 859.36 791.67 864 780 864 L220 864 C208.33 864 197.14 859.36 188.89 851.11 C180.64 842.86 176 831.67 176 820 C176 808.33 180.64 797.14 188.89 788.89 C197.14 780.64 208.33 776 220 776 Z"},
+        {"role": "accent", "d": "M224 220 L224 780 C224 791.67 219.36 802.86 211.11 811.11 C202.86 819.36 191.67 824 180 824 C168.33 824 157.14 819.36 148.89 811.11 C140.64 802.86 136 791.67 136 780 L136 220 C136 208.33 140.64 197.14 148.89 188.89 C157.14 180.64 168.33 176 180 176 C191.67 176 202.86 180.64 211.11 188.89 C219.36 197.14 224 208.33 224 220 Z"},
+        {"role": "accent", "d": "M864 220 L864 780 C864 791.67 859.36 802.86 851.11 811.11 C842.86 819.36 831.67 824 820 824 C808.33 824 797.14 819.36 788.89 811.11 C780.64 802.86 776 791.67 776 780 L776 220 C776 208.33 780.64 197.14 788.89 188.89 C797.14 180.64 808.33 176 820 176 C831.67 176 842.86 180.64 851.11 188.89 C859.36 197.14 864 208.33 864 220 Z"},
+        {"role": "emphasis", "d": "M500 326 L674 500 L500 674 L326 500 Z"}
+      ],
+      "reduced": [
+        {"role": "accent", "d": "M220 124 L780 124 C794.85 124 809.1 129.9 819.6 140.4 C830.1 150.9 836 165.15 836 180 C836 194.85 830.1 209.1 819.6 219.6 C809.1 230.1 794.85 236 780 236 L220 236 C205.15 236 190.9 230.1 180.4 219.6 C169.9 209.1 164 194.85 164 180 C164 165.15 169.9 150.9 180.4 140.4 C190.9 129.9 205.15 124 220 124 Z"},
+        {"role": "accent", "d": "M220 764 L780 764 C794.85 764 809.1 769.9 819.6 780.4 C830.1 790.9 836 805.15 836 820 C836 834.85 830.1 849.1 819.6 859.6 C809.1 870.1 794.85 876 780 876 L220 876 C205.15 876 190.9 870.1 180.4 859.6 C169.9 849.1 164 834.85 164 820 C164 805.15 169.9 790.9 180.4 780.4 C190.9 769.9 205.15 764 220 764 Z"},
+        {"role": "accent", "d": "M236 220 L236 780 C236 794.85 230.1 809.1 219.6 819.6 C209.1 830.1 194.85 836 180 836 C165.15 836 150.9 830.1 140.4 819.6 C129.9 809.1 124 794.85 124 780 L124 220 C124 205.15 129.9 190.9 140.4 180.4 C150.9 169.9 165.15 164 180 164 C194.85 164 209.1 169.9 219.6 180.4 C230.1 190.9 236 205.15 236 220 Z"},
+        {"role": "accent", "d": "M876 220 L876 780 C876 794.85 870.1 809.1 859.6 819.6 C849.1 830.1 834.85 836 820 836 C805.15 836 790.9 830.1 780.4 819.6 C769.9 809.1 764 794.85 764 780 L764 220 C764 205.15 769.9 190.9 780.4 180.4 C790.9 169.9 805.15 164 820 164 C834.85 164 849.1 169.9 859.6 180.4 C870.1 190.9 876 205.15 876 220 Z"}
+      ]
+    },
+    "prohibitions": ["Do not present the fixture as a product identity.", "Do not assign its reused green an identity hue slot.", "Do not hand-edit generated path data."],
+    "geometry_provenance": "glyphkit"
+  },
+  "guide": {
+    "idea": "Build the frame. Check the result.",
+    "descriptor": "A synthetic brand fixture for end-to-end pipeline testing.",
+    "personality": [["Literal", "Names the command and result", "Product positioning"], ["Repeatable", "Builds from a clean source tree", "Undocumented local state"], ["Visible", "Surfaces every warning and failure", "Silent fallback"]],
+    "promises": ["The fixture uses the same build as every production kit.", "Its mark is generated from named glyphkit primitives.", "A clean result reports zero problems."],
+    "sharp_edge": "This fixture tests software behavior only. It is not a design proposal and must not be treated as a sixth brand.",
+    "logo": "The frame exercises joined capsules, and the removable center diamond exercises polygon geometry. The reduced master proves that small-size simplification removes a complete element.",
+    "palette": "The fixture deliberately reuses parent green. This avoids claiming one of the two remaining legal identity hue gaps for test data.",
+    "specimen_line": "Build the frame. Check the result.",
+    "specimen_body": "One documented command rebuilds the fixture and reports every gate."
+  },
+  "canon": "1.1.2"
+}
