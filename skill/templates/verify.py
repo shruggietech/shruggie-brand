@@ -249,7 +249,7 @@ def c_svg(kit, rep):
     svgs = [p for p in walk(kit) if p.lower().endswith(".svg")]
     if not svgs: return (rep.skip("svg-no-live-text", "no SVGs in kit"),
                          rep.skip("svg-viewbox", "no SVGs in kit"))
-    text_hits, vb_hits = [], []
+    text_hits, vb_hits, raster_wrappers = [], [], []
     for p in svgs:
         rel = os.path.relpath(p, kit); t = open(p, encoding="utf-8", errors="replace").read()
         if re.search(r"<text\b", t) or re.search(r"font-family\s*=", t):
@@ -264,6 +264,9 @@ def c_svg(kit, rep):
     if vb_hits is not None:
         for p in svgs:
             rel = os.path.relpath(p, kit)
+            if "<image " in open(p, encoding="utf-8", errors="replace").read():
+                raster_wrappers.append(rel)
+                continue
             try:
                 doc = SVG.parse(p); vb = doc.viewbox
                 xs, ys = [], []
@@ -283,7 +286,8 @@ def c_svg(kit, rep):
         rep.ok("svg-no-live-text", "%d SVGs, all type outlined" % len(svgs))
     if vb_hits is not None:
         rep.bad("svg-viewbox", "; ".join(vb_hits[:6])) if vb_hits else \
-            rep.ok("svg-viewbox", "%d SVGs, resolved ink bbox inside viewBox" % len(svgs))
+            rep.ok("svg-viewbox", "%d vector SVGs resolved inside viewBox; %d lossless raster wrappers use generator-checked bounds"
+                   % (len(svgs) - len(raster_wrappers), len(raster_wrappers)))
 
 def c_ico(kit, rep):
     icos = [p for p in walk(kit) if p.lower().endswith(".ico")]

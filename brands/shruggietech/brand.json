@@ -1,0 +1,156 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "shruggietech",
+  "kind": "parent-brand",
+  "title": "ShruggieTech",
+  "slug": "shruggietech",
+  "version": "1.0.0",
+  "parent": "ShruggieTech",
+  "homepage": "https://shruggie.tech",
+  "registry_base": "https://brand.shruggie.tech/shruggietech/brand",
+  "descriptor": "A modern technical studio building digital systems, software, and AI-driven experiences.",
+  "functional_descriptor": "Technical studio and product builder",
+  "category": "Digital systems, software, and applied AI",
+  "role": "Build practical digital systems that clients can understand, operate, and own.",
+  "audience": "Organizations and operators who need capable technical partners without corporate ceremony or platform lock-in.",
+  "brand_idea": "We advance your vision.",
+  "governing_principle": "Ownership, not rentership.",
+  "voice": {
+    "qualities": ["direct", "helpful", "slightly witty", "confidently scrappy", "practical"],
+    "lead_with": ["what the reader needs", "the concrete business or technical outcome", "the next useful step"],
+    "avoid": ["forced hype", "generic technology jargon", "corporate filler", "overcomplication", "emoji decoration"]
+  },
+  "register": "direct-witty",
+  "shruggie_flourish": true,
+  "wordmark_text": "ShruggieTech",
+  "assumptions": [
+    "The paid raster logo files are the only authoritative geometry sources. No vector master exists in the supplied kit, bundle, or CDN index.",
+    "Bright green remains the signature identity color on dark surfaces. Accessible green replaces it for text and links on light surfaces.",
+    "The textual shruggie flourish is accepted for one restrained moment per view."
+  ],
+  "accent": {
+    "bright": "#2BCC73",
+    "deep": "#00AB21",
+    "accessible": "#037B40",
+    "dim": "#9A9A9A"
+  },
+  "chart_palette": {
+    "dark_target_lightness": 0.68,
+    "hue_rotations": [0, 52, 104, 156, 208],
+    "rationale": "The canon rotation set begins at the parent green and moves through a broad, evenly spaced arc. Series colors remain separated from warning orange and failure red."
+  },
+  "surfaces": {
+    "base": "#000000",
+    "card": "#111111",
+    "popover": "#0A0A0A",
+    "secondary": "#0D0F12",
+    "hover": "#1A1A1A"
+  },
+  "typography": {
+    "families": {
+      "display": {"name": "Space Grotesk", "weights": [500, 700]},
+      "body": {"name": "Geist", "weights": [400, 500]},
+      "mono": {"name": "Geist Mono", "weights": [400]}
+    }
+  },
+  "domain_components": {
+    "ProjectRow": ["name", "category", "status", "repository", "owner", "updated_at"],
+    "ServiceRow": ["service", "outcome", "scope", "ownership", "next_step"],
+    "ShruggieCTA": ["prompt", "action", "flourish", "state"]
+  },
+  "legacy_palette": {
+    "brand_black": "#000000",
+    "brand_white": "#FFFFFF",
+    "brand_green_bright": "#2BCC73",
+    "brand_green_deep": "#00AB21",
+    "brand_green_accessible": "#037B40",
+    "brand_orange": "#FF5300",
+    "cta_orange": "#C24000",
+    "brand_gray_light": "#D1D3D4",
+    "gray_950": "#0A0A0A",
+    "gray_900": "#111111",
+    "gray_800": "#1A1A1A",
+    "gray_600": "#6B6B6B",
+    "gray_400": "#9A9A9A",
+    "gray_200": "#E5E5E5",
+    "gray_100": "#F5F5F5",
+    "light_surface": "#F8F8F6",
+    "light_secondary": "#F0EFED",
+    "line_dark": "#262626",
+    "surface_dark_warm": "#0D0F12",
+    "surface_dark_rich": "#0A0E18",
+    "surface_dark_slate": "#111318",
+    "surface_dark_deep": "#060608",
+    "surface_dark_products": "#0E1014"
+  },
+  "logo": {
+    "grid": 919,
+    "canvas_width": 919,
+    "canvas_height": 500,
+    "clear_space_units": 92,
+    "reduced_below_px": 48,
+    "min_px": {"mark": 48, "horizontal": 180, "stacked": 128, "wordmark": 140},
+    "role_colors": {
+      "color": {"accent": "#2BCC73"},
+      "light": {"accent": "#037B40"}
+    },
+    "construction": "The authoritative paid mark exists only as raster artwork. The full master is the complete stylized shruggie face with arms, eyes, and smile. The reduced master is the square social-media face without the outer arms. Exported SVGs embed recolored lossless PNG masks rather than traced approximations.",
+    "paths": {
+      "full": [
+        {
+          "element": "image",
+          "role": "accent",
+          "source": "assets/logo-icon-only-green.png",
+          "mask": "alpha",
+          "x": 0,
+          "y": 99,
+          "width": 919,
+          "height": 302
+        }
+      ],
+      "reduced": [
+        {
+          "element": "image",
+          "role": "accent",
+          "source": "assets/socialmedia_logo.png",
+          "mask": "luminance",
+          "x": 209.5,
+          "y": 0,
+          "width": 500,
+          "height": 500
+        }
+      ]
+    },
+    "prohibitions": [
+      "Do not redraw, trace, or approximate the custom shruggie mark.",
+      "Do not substitute the Unicode shruggie or any emoji for the mark.",
+      "Do not distort, rotate, crop, outline, bevel, or add glow to the mark.",
+      "Do not use the bright green for text or links on the light reading surface.",
+      "Do not combine a sub-brand mark with the parent mark inside one lockup."
+    ],
+    "geometry_provenance": "imported",
+    "geometry_provenance_reason": "The supplied kit, design-system bundle, and CDN index contain only paid raster logo masters. Their exact pixel masks are embedded without tracing or redrawing."
+  },
+  "guide": {
+    "idea": "We advance your vision.",
+    "descriptor": "A modern technical studio building digital systems, software, and AI-driven experiences.",
+    "personality": [
+      ["Direct", "States the useful outcome and next step", "Corporate ceremony"],
+      ["Helpful", "Explains technology at the reader's altitude", "Generic jargon"],
+      ["Scrappy", "Ships, learns, and iterates in the open", "Performed disruption"],
+      ["Owner-minded", "Builds systems clients can operate and keep", "Platform lock-in"]
+    ],
+    "promises": [
+      "We make the technical work legible.",
+      "We build toward ownership and operational independence.",
+      "We specify, ship, measure, and iterate.",
+      "We state uncertainty and constraints plainly."
+    ],
+    "sharp_edge": "ShruggieTech is confidently scrappy, but the humor never replaces an answer. The flourish appears once at most, and ownership claims must be backed by concrete handoff and operating terms.",
+    "logo": "The custom stylized shruggie face is paid artwork, not a Unicode glyph. The wide master carries the complete arms, eyes, and smile. The reduced square master keeps the central face legible on social and favicon surfaces.",
+    "palette": "Pure black and restrained near-black surfaces carry the parent identity. Bright green marks identity, links, focus, and the shruggie face on dark surfaces. Accessible green replaces it for text on light surfaces. Orange remains rare emphasis.",
+    "specimen_line": "Smart, practical, confidently scrappy.",
+    "specimen_body": "You have a business to run. We handle the technology that makes it grow."
+  },
+  "canon": "1.1.2"
+}

@@ -1,0 +1,51 @@
+<!-- @dsCard group="Marketing Site" viewport="1280x860" name="ShruggieTech Website" subtitle="Interactive marketing-site recreation — Home, Services, Products, Contact" -->
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShruggieTech — Marketing Site UI Kit</title>
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="../../components/components.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+:root{scroll-behavior:smooth;
+  --accent-color:var(--sh-accent);--bg-primary:var(--sh-bg);--bg-secondary:var(--sh-panel);
+  --border-color:var(--sh-border);--font-body:var(--sh-font-body);--font-display:var(--sh-font-display);
+  --font-mono:var(--sh-font-mono);--green-bright-10:var(--sh-accent-10);
+  --green-bright-40:color-mix(in srgb,var(--sh-accent) 40%,transparent);
+  --surface-dark-deep:var(--sh-void);--surface-dark-products:var(--sh-surface-raised);
+  --surface-dark-rich:var(--sh-surface-sunken);--surface-dark-warm:var(--sh-surface);
+  --text-body-light:var(--sh-fg-muted);--text-muted:var(--sh-dim);
+  --text-primary:var(--sh-fg);--text-secondary:var(--sh-fg-muted)}
+body{margin:0;background:var(--bg-primary);color:var(--text-primary);font-family:var(--font-body)}
+*{box-sizing:border-box}
+.kit-container{max-width:1200px;margin-inline:auto;padding-inline:48px}
+@media(max-width:768px){.kit-container{padding-inline:24px}}
+.eyebrow{font-family:var(--font-display);font-weight:500;font-size:14px;text-transform:uppercase;letter-spacing:.12em;color:var(--accent-color)}
+.i{display:inline-flex;width:1em;height:1em;vertical-align:-0.125em}
+.i svg{width:100%;height:100%}
+.runtime-center{margin-inline:auto;text-align:center}
+.runtime-cta{display:inline-flex;position:relative}
+.runtime-cta>a{text-decoration:none}
+.runtime-cta__tag{color:var(--sh-fg-muted);font-size:var(--sh-body-xs);left:50%;opacity:0;position:absolute;top:100%;transform:translate(-50%,-4px);transition:all var(--sh-motion-normal) var(--sh-ease);white-space:nowrap}
+.runtime-cta__tag span{color:var(--sh-accent)}
+.runtime-cta:hover .runtime-cta__tag{opacity:1;transform:translate(-50%,4px)}
+</style>
+</head>
+<body>
+<div id="shruggie-kit-root"></div>
+<script src="runtime.js" type="text/babel"></script>
+<script src="Icon.js" type="text/babel"></script>
+<script src="Header.js" type="text/babel"></script>
+<script src="Footer.js" type="text/babel"></script>
+<script src="HomeScreen.js" type="text/babel"></script>
+<script src="ServicesScreen.js" type="text/babel"></script>
+<script src="ProductsScreen.js" type="text/babel"></script>
+<script src="ContactScreen.js" type="text/babel"></script>
+<script src="App.js" type="text/babel"></script>
+</body>
+</html>

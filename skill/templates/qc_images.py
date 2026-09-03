@@ -14,7 +14,8 @@ agent opens.
 
     python3 build/qc_images.py <kit-dir> [--dpi-scale 1]
 """
-import argparse, glob, os, shutil, subprocess, sys, tempfile
+import argparse, functools, glob, http.server, os, shutil, subprocess, sys, tempfile, threading
+from urllib.parse import quote
 from PIL import Image, ImageDraw
 
 NODE = os.environ.get("GP_NODE") or shutil.which("node")
@@ -71,35 +72,47 @@ def logo_sheet(kit, out, dark, light):
 
 def page_shots(kit, outdir):
     from playwright.sync_api import sync_playwright
-    import pathlib
     pages = [p for p in glob.glob(os.path.join(kit, "**", "*.html"), recursive=True)
              if "node_modules" not in p and "/build/" not in p.replace(os.sep, "/")]
     made = []
     if not pages: return made
-    with sync_playwright() as pw:
-        b = pw.chromium.launch()
-        for p in pages:
-            name = os.path.splitext(os.path.basename(p))[0]
-            parent = os.path.basename(os.path.dirname(p))
-            u = "file://" + str(pathlib.Path(p).resolve())
-            dk = b.new_page(viewport={"width": 1280, "height": 900}); dk.goto(u); dk.wait_for_timeout(900)
-            desktop_path = os.path.join(tempfile.gettempdir(), "_brandkit_qc_desktop.png")
-            mobile_path = os.path.join(tempfile.gettempdir(), "_brandkit_qc_mobile.png")
-            dk.screenshot(path=desktop_path, full_page=True)
-            mb = b.new_page(viewport={"width": 390, "height": 844}); mb.goto(u); mb.wait_for_timeout(700)
-            mb.screenshot(path=mobile_path, full_page=False)
-            D = Image.open(desktop_path).convert("RGB"); M = Image.open(mobile_path).convert("RGB")
-            D = D.crop((0, 0, D.width, min(D.height, 2400)))
-            sc = 700.0 / D.width; D = D.resize((700, int(D.height * sc)))
-            h = max(D.height, M.height) + 40
-            sheet = Image.new("RGB", (700 + M.width + 60, h), "#9AA0A6")
-            sheet.paste(D, (20, 30)); sheet.paste(M, (700 + 40, 30))
-            dr = ImageDraw.Draw(sheet)
-            dr.text((20, 8), "%s/%s  -  desktop 1280 (top 2400px)   |   mobile 390" % (parent, name), fill="#111")
-            o = os.path.join(outdir, "pages-%s-%s.png" % (parent, name))
-            sheet.save(o); made.append(o)
-            dk.close(); mb.close()
-        b.close()
+    class QuietHandler(http.server.SimpleHTTPRequestHandler):
+        def log_message(self, format, *args):
+            pass
+    handler = functools.partial(QuietHandler, directory=os.path.abspath(kit))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with sync_playwright() as pw:
+            b = pw.chromium.launch()
+            for p in pages:
+                name = os.path.splitext(os.path.basename(p))[0]
+                parent = os.path.basename(os.path.dirname(p))
+                rel = os.path.relpath(p, kit).replace(os.sep, "/")
+                u = "http://127.0.0.1:%d/%s" % (server.server_port, quote(rel))
+                dk = b.new_page(viewport={"width": 1280, "height": 900}); dk.goto(u); dk.wait_for_timeout(1400)
+                desktop_path = os.path.join(tempfile.gettempdir(), "_brandkit_qc_desktop.png")
+                mobile_path = os.path.join(tempfile.gettempdir(), "_brandkit_qc_mobile.png")
+                dk.screenshot(path=desktop_path, full_page=True)
+                mb = b.new_page(viewport={"width": 390, "height": 844}); mb.goto(u); mb.wait_for_timeout(1100)
+                mb.screenshot(path=mobile_path, full_page=False)
+                D = Image.open(desktop_path).convert("RGB"); M = Image.open(mobile_path).convert("RGB")
+                D = D.crop((0, 0, D.width, min(D.height, 2400)))
+                sc = 700.0 / D.width; D = D.resize((700, int(D.height * sc)))
+                h = max(D.height, M.height) + 40
+                sheet = Image.new("RGB", (700 + M.width + 60, h), "#9AA0A6")
+                sheet.paste(D, (20, 30)); sheet.paste(M, (700 + 40, 30))
+                dr = ImageDraw.Draw(sheet)
+                dr.text((20, 8), "%s/%s  -  desktop 1280 (top 2400px)   |   mobile 390" % (parent, name), fill="#111")
+                o = os.path.join(outdir, "pages-%s-%s.png" % (parent, name))
+                sheet.save(o); made.append(o)
+                dk.close(); mb.close()
+            b.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
     return made
 
 def main():

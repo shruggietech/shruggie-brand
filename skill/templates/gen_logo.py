@@ -24,6 +24,7 @@ def need(tool):
 
 
 def raster(args):
+    raster_cwd = None
     native = shutil.which("rsvg-convert")
     if native:
         command = [native] + args
@@ -33,13 +34,15 @@ def raster(args):
         source = args[-3] if "-o" in args else args[-2]
         output = args[args.index("-o") + 1]
         geometry = "%sx%s" % (width, height)
-        command = [shutil.which("magick"), "-background", "none", source,
-                   "-resize", geometry, output]
+        raster_cwd = os.path.dirname(os.path.abspath(source))
+        command = [shutil.which("magick"), "-background", "none",
+                   os.path.basename(source), "-resize", geometry,
+                   os.path.abspath(output)]
     elif NODE and os.path.exists(RESVG):
         command = [NODE, RESVG] + args
     else:
         raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, ImageMagick, or set GP_NODE and GP_RESVG_RENDERER.")
-    subprocess.run(command, check=True)
+    subprocess.run(command, check=True, cwd=raster_cwd)
 
 
 def path_bbox(d):
@@ -59,6 +62,11 @@ def element_bbox(element):
         y0 = float(element["y"])
         x1 = x0 + float(element["width"])
         y1 = y0 + float(element["height"])
+    elif kind == "image":
+        x0 = float(element.get("x", 0))
+        y0 = float(element.get("y", 0))
+        x1 = x0 + float(element["width"])
+        y1 = y0 + float(element["height"])
     else:
         raise ValueError("unsupported imported SVG element %r" % kind)
     return (x0 - stroke, y0 - stroke, x1 + stroke, y1 + stroke)
@@ -76,7 +84,7 @@ def paths_bbox(paths):
 
 def svg(width, height, body):
     return (
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %g %g" '
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 %g %g" '
         'width="%g" height="%g" fill="none">\n%s\n</svg>\n'
         % (width, height, width, height, body)
     )
@@ -161,7 +169,26 @@ def main():
         with open(path, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(value)
 
-    def render_paths(path_list, roles, indent="  "):
+    def raster_mask_file(item, colour):
+        from PIL import Image
+        source = os.path.join(kit, item["source"])
+        with Image.open(source) as opened:
+            image = opened.convert("RGBA")
+        pixels = image.load()
+        rgb = tuple(int(colour[i:i + 2], 16) for i in (1, 3, 5))
+        luminance_mask = item.get("mask") == "luminance"
+        for y in range(image.height):
+            for x in range(image.width):
+                red, green, blue, alpha = pixels[x, y]
+                if luminance_mask:
+                    alpha = round(alpha * max(red, green, blue) / 255)
+                pixels[x, y] = (rgb[0], rgb[1], rgb[2], alpha)
+        stem = os.path.splitext(os.path.basename(source))[0]
+        filename = "_%s-mask-%s-%s.png" % (slug, colour.lstrip("#").lower(), stem)
+        image.save(os.path.join(svg_dir, filename), format="PNG", optimize=False)
+        return filename
+
+    def render_paths(path_list, roles, indent="  ", asset_prefix=""):
         output = []
         for item in path_list:
             colour = roles.get(item.get("role", "accent"), accent)
@@ -182,6 +209,14 @@ def main():
                 if item.get("rx") is not None:
                     shape += ' rx="%g"' % float(item["rx"])
                 output.append('%s%s%s/>' % (indent, shape, paint))
+                continue
+            if kind == "image":
+                source = asset_prefix + raster_mask_file(item, colour)
+                output.append(
+                    '%s<image x="%g" y="%g" width="%g" height="%g" '
+                    'preserveAspectRatio="xMidYMid meet" href="%s" xlink:href="%s"/>' % (
+                        indent, float(item.get("x", 0)), float(item.get("y", 0)),
+                        float(item["width"]), float(item["height"]), source, source))
                 continue
             if kind != "path":
                 raise ValueError("unsupported imported SVG element %r" % kind)
@@ -400,7 +435,8 @@ def main():
         body = (
             '  <rect width="%g" height="%g" fill="%s"/>\n'
             '  <g transform="translate(%g,0)">\n%s\n  </g>'
-            % (square, square, base, x_offset, render_paths(path_list, role_maps["color"], "    "))
+            % (square, square, base, x_offset,
+               render_paths(path_list, role_maps["color"], "    ", "../logos/svg/"))
         )
         write(os.path.join(favicon_dir, name + ".svg"), svg(square, square, body))
 

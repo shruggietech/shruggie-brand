@@ -42,7 +42,7 @@ def clip(text, n):
     return text[:n].rsplit(" ", 1)[0].rstrip(",;:") + "."
 
 
-def mark(brand, x, y, height):
+def mark(brand, kit, x, y, height):
     """The reduced mark, scaled into the specimen header."""
     lg = brand.get("logo") or {}
     paths = (lg.get("paths") or {}).get("full") or (lg.get("paths") or {}).get("reduced") or []
@@ -55,6 +55,14 @@ def mark(brand, x, y, height):
     elements = []
     for item in paths:
         colour = roles.get(item.get("role", "accent"), acc)
+        if item.get("element", "path") == "image":
+            source = "../" + item["source"].replace("\\", "/")
+            elements.append(
+                '<image x="%g" y="%g" width="%g" height="%g" '
+                'preserveAspectRatio="xMidYMid meet" href="%s" xlink:href="%s"/>' % (
+                    float(item.get("x", 0)), float(item.get("y", 0)),
+                    float(item["width"]), float(item["height"]), source, source))
+            continue
         stroked = item.get("fill") == "none" or item.get("stroke_width") is not None
         paint = (' fill="none" stroke="%s"' % colour) if stroked else (' fill="%s"' % colour)
         if item.get("stroke_width") is not None:
@@ -100,9 +108,9 @@ def main():
     fams = B["typography"]["families"]
 
     parts = [
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">',
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1600 1000">',
         '<rect width="1600" height="1000" fill="%s"/>' % base,
-        mark(B, 66, 66, 170),
+        mark(B, kit, 66, 66, 170),
         outlined_text("%s TYPE SYSTEM" % title.upper(), mono, 20, 260, 110, dim),
         outlined_text(title, display, 154, 252, 365, "#FFFFFF"),
         outlined_text(clip(guide.get("specimen_line") or descriptor, 86), body, 34, 258, 462, dim),
