@@ -30,6 +30,12 @@ and correctness is decided by a number.
 | `<kit>/build/mk_paths.py` | This brand's mark, as named parameters and a few primitive calls | The agent, once, per brand |
 | `templates/validate_glyph.py` | The measured gate | Ships with the skill. Run it before anything else. |
 
+## Imported legacy geometry
+
+Existing shipped marks are identity assets, not raw material for cleanup. Set `logo.geometry_provenance` to `imported` and add `logo.geometry_provenance_reason` when usable path data predates glyphkit. Preserve that path data byte-for-byte and explain the migration in the kit's `NOTES.md`, including what a future owner-approved move to `glyphkit` would require.
+
+The absolute M, L, C, Z command rule remains a failure for the default `glyphkit` provenance. For `imported` geometry, unsupported commands are warnings. Measurements that require the absolute-only standard-library parser are skipped rather than producing invented numbers or forcing an identity redraw. `VERIFY.md` records the provenance and reason. All non-geometry checks, especially accessibility, remain mandatory.
+
 `mk_paths.py` is the master. The `logo.paths` block in `brand.json` is generated
 output. When the mark changes, the parameters in `mk_paths.py` change and
 `brand.json` is regenerated. Editing path data in `brand.json` by hand is the

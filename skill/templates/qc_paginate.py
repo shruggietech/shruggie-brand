@@ -42,12 +42,16 @@ def main():
       });
       return out;
     }""" % a.page_height_mm
-    with sync_playwright() as p:
-        b = p.chromium.launch(); pg = b.new_page(viewport={"width": 794, "height": 1123})
-        pg.goto(u); pg.wait_for_timeout(1400)
-        pg.emulate_media(media="print")
-        split = pg.evaluate(js, a.selector)
-        b.close()
+    try:
+        with sync_playwright() as p:
+            b = p.chromium.launch(); pg = b.new_page(viewport={"width": 794, "height": 1123})
+            pg.goto(u); pg.wait_for_timeout(1400)
+            pg.emulate_media(media="print")
+            split = pg.evaluate(js, a.selector)
+            b.close()
+    except Exception as e:
+        print("pagination: SKIP, headless Chromium unavailable (%s)" % e)
+        return 0
     if not split:
         print("pagination: 0 atomic elements split across a page break")
         return 0

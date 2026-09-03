@@ -79,6 +79,23 @@ check("rejects relative commands", not G.path_commands_ok("m0 0 l10 10 z"))
 check("rejects H and V", not G.path_commands_ok("M0 0H10V10Z"))
 check("accepts absolute M L C Z", G.path_commands_ok(G.rect(0, 0, 10, 10)))
 
+# Imported geometry preserves shipped path data. Unsupported commands remain
+# visible, but they warn instead of forcing a redraw. Glyphkit-authored paths
+# keep the strict failure because they can be regenerated safely.
+legacy = [{"d": "M100 100H900V900H100Z"}]
+imported_report = V.Report()
+V.measure(legacy, GRID, "full", imported_report,
+          provenance="imported", provenance_reason="shipped before glyphkit")
+check("imported commands warn",
+      imported_report.fails == 0 and imported_report.warns == 2,
+      "%d warnings, %d failures" % (imported_report.warns, imported_report.fails))
+
+glyphkit_report = V.Report()
+V.measure(legacy, GRID, "full", glyphkit_report, provenance="glyphkit")
+check("glyphkit commands fail",
+      glyphkit_report.fails == 1 and glyphkit_report.warns == 0,
+      "%d warnings, %d failures" % (glyphkit_report.warns, glyphkit_report.fails))
+
 # Arc segmentation: a full circle must not be emitted as one cubic.
 segs = G.arc_points(500, 500, 400, 0, 360)
 check("arcs are split at 45 degrees", len(segs) == 8, "got %d segments" % len(segs))
@@ -95,5 +112,5 @@ except ValueError:
     check("unclosed subpath raises", True)
 
 print("")
-print("%d checks, %d failures" % (16 + 7 + 5, len(fails)))
+print("%d checks, %d failures" % (16 + 7 + 5 + 2, len(fails)))
 sys.exit(1 if fails else 0)

@@ -27,10 +27,18 @@ def raster(args):
     native = shutil.which("rsvg-convert")
     if native:
         command = [native] + args
+    elif shutil.which("magick"):
+        width = args[args.index("-w") + 1] if "-w" in args else ""
+        height = args[args.index("-h") + 1] if "-h" in args else ""
+        source = args[-3] if "-o" in args else args[-2]
+        output = args[args.index("-o") + 1]
+        geometry = "%sx%s" % (width, height)
+        command = [shutil.which("magick"), "-background", "none", source,
+                   "-resize", geometry, output]
     elif NODE and os.path.exists(RESVG):
         command = [NODE, RESVG] + args
     else:
-        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert or set GP_NODE and GP_RESVG_RENDERER.")
+        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, ImageMagick, or set GP_NODE and GP_RESVG_RENDERER.")
     subprocess.run(command, check=True)
 
 

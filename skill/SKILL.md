@@ -4,8 +4,8 @@ description: Build a complete, conforming brand kit for a new ShruggieTech sub-b
 license: Apache-2.0. The code, templates and reference documentation are licensed under the Apache License 2.0. Apache-2.0 section 6 grants no trademark rights, and the ShruggieTech and sub-brand names, wordmarks and logo geometry are additionally reserved: see LICENSE-BRAND.md. Bundled fonts keep their own SIL Open Font License 1.1.
 compatibility: Python 3.8 or newer. `coloraide` is the only hard dependency and without it no colour work can proceed. Everything else degrades to a recorded skip: an SVG rasteriser adds PNGs and favicons, headless Chromium adds the brand guide PDF and the QC sheets. Run `templates/probe.py` first and route off what it reports. The mark geometry and its gate use the standard library only, so they run everywhere.
 metadata:
-  version: 1.1.1
-  canon: 1.1.1
+  version: 1.1.2
+  canon: 1.1.2
   parent: ShruggieTech
 allowed-tools:
   - Read

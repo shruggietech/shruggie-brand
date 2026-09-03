@@ -233,16 +233,32 @@ class Report(object):
         return "\n".join(out)
 
 
-def measure(paths, grid, label, rep, reduced=False):
+def measure(paths, grid, label, rep, reduced=False, provenance="glyphkit",
+            provenance_reason=""):
     """Run every check against one master and record the numbers."""
     prefix = "%s " % label
+
+    if provenance not in {"glyphkit", "imported"}:
+        rep.bad(prefix + "geometry-provenance",
+                "must be 'glyphkit' or 'imported', got %r" % provenance)
+        return None
+    if provenance == "imported":
+        reason = provenance_reason or "no migration reason recorded"
+        rep.warn(prefix + "geometry-provenance",
+                 "imported geometry preserved unchanged: %s" % reason)
 
     for entry in paths:
         d = entry["d"] if isinstance(entry, dict) else entry
         if not G.path_commands_ok(d):
-            rep.bad(prefix + "commands",
-                    "path uses a command outside absolute M, L, C, Z. Compose it "
-                    "with glyphkit rather than writing path data by hand.")
+            detail = ("path uses a command outside absolute M, L, C, Z. "
+                      "Imported source is preserved unchanged and the remaining "
+                      "geometry measurements are skipped.")
+            if provenance == "imported":
+                rep.warn(prefix + "commands", detail)
+            else:
+                rep.bad(prefix + "commands",
+                        "path uses a command outside absolute M, L, C, Z. Compose it "
+                        "with glyphkit rather than writing path data by hand.")
             return None
 
     x0, y0, x1, y1 = G.bbox(paths)
@@ -353,7 +369,9 @@ def load(spec):
     paths = lg.get("paths") or {}
     return {"grid": lg.get("grid", 1000),
             "full": paths.get("full"),
-            "reduced": paths.get("reduced")}
+            "reduced": paths.get("reduced"),
+            "provenance": lg.get("geometry_provenance", "glyphkit"),
+            "provenance_reason": lg.get("geometry_provenance_reason", "")}
 
 
 def main():
@@ -368,14 +386,20 @@ def main():
 
     rep = Report()
     grid = float(data["grid"])
-    full = measure(data["full"], grid, "full", rep)
+    provenance = data.get("provenance", "glyphkit")
+    provenance_reason = data.get("provenance_reason", "")
+    full = measure(data["full"], grid, "full", rep,
+                   provenance=provenance,
+                   provenance_reason=provenance_reason)
 
     if not data["reduced"]:
         rep.warn("reduced-master",
                  "absent. Below 32 px the full mark will be downscaled, which is "
                  "the defect this house keeps rediscovering.")
     else:
-        red = measure(data["reduced"], grid, "reduced", rep, reduced=True)
+        red = measure(data["reduced"], grid, "reduced", rep, reduced=True,
+                      provenance=provenance,
+                      provenance_reason=provenance_reason)
         if full and red:
             same = json.dumps(data["reduced"], sort_keys=True) == \
                 json.dumps(data["full"], sort_keys=True)

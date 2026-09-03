@@ -18,9 +18,6 @@ from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 
-ROOT = Path(__file__).resolve().parents[1]
-
-
 def outlined_text(text, font_path, size, x, baseline, fill):
     font = TTFont(font_path)
     glyphs, cmap = font.getGlyphSet(), font.getBestCmap()
@@ -61,12 +58,13 @@ def mark(brand, x, y, height):
 
 
 def main():
-    spec = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "brand.json"
+    spec = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path.cwd() / "brand.json"
+    kit = spec.parent
     B = json.load(open(spec, encoding="utf-8"))
-    out = ROOT / "specimens"
+    out = kit / "specimens"
     out.mkdir(parents=True, exist_ok=True)
 
-    ttf = ROOT / "fonts" / "ttf"
+    ttf = kit / "fonts" / "ttf"
     display, body, mono = (ttf / "SpaceGrotesk-Bold.ttf",
                            ttf / "Geist-Regular.ttf",
                            ttf / "GeistMono-Regular.ttf")

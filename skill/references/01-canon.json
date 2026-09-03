@@ -2,7 +2,7 @@
   "$schema": "./canon.schema.json",
   "id": "shruggietech",
   "kind": "canon",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "generated": "2026-09-03",
   "generator": "shruggie-brandbuilder/gen_canon.py",
   "summary": "The ShruggieTech inheritance root. Every sub-brand kit is generated against this file. Values marked immutable are copied verbatim and never re-decided. Values marked constrained are chosen per sub-brand but must satisfy the stated rule, which is machine-checkable. Everything else is free. Version 1.1.0 adds the glyph construction layer, the portability tiers, and a per-brand chart rotation escape for accents that sit near the ends of the hue circle.",
@@ -1021,6 +1021,15 @@
   "glyph": {
     "tier": "immutable",
     "note": "Mark GEOMETRY is free. How it is produced and checked is not. See references/08-glyph-construction.md.",
+    "geometry_provenance": {
+      "default": "glyphkit",
+      "allowed": [
+        "glyphkit",
+        "imported"
+      ],
+      "reason_field": "logo.geometry_provenance_reason",
+      "rule": "glyphkit geometry must use absolute M, L, C and Z and passes every measured gate. imported geometry predates the skill and remains byte-for-byte unchanged; unsupported commands warn and skip measurements that the standard-library parser cannot perform. Imported geometry requires a written reason in brand.json and NOTES.md."
+    },
     "authoring": {
       "master": "<kit>/build/mk_paths.py, a parametric script importing templates/glyphkit.py. logo.paths in brand.json is generated from it and never hand-edited.",
       "commands": "Absolute M, L, C and Z only, with explicit x y pairs. No A, H, V, S, Q or T, and no relative commands. Tools in this kit read path data positionally, and those commands corrupt a positional reader silently.",

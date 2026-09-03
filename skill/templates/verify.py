@@ -366,21 +366,34 @@ def c_glyph(kit, brand, rep):
     except Exception as e:
         return rep.skip("glyph-geometry", "glyphkit unavailable (%s)" % e)
 
+    provenance = lg.get("geometry_provenance", "glyphkit")
+    reason = lg.get("geometry_provenance_reason", "")
+    if provenance not in {"glyphkit", "imported"}:
+        return rep.bad("glyph-geometry",
+                       "logo.geometry_provenance must be glyphkit or imported")
+    if provenance == "imported" and not reason.strip():
+        return rep.bad("glyph-geometry",
+                       "imported geometry requires logo.geometry_provenance_reason")
+
     bad = [i for i, e in enumerate(paths) if not GK.path_commands_ok(e["d"])]
-    if bad:
+    if bad and provenance == "glyphkit":
         return rep.bad("glyph-geometry",
                        "path %s uses a command outside absolute M, L, C, Z; "
                        "compose the mark with glyphkit" % ", ".join(str(i) for i in bad))
     sub = VG.Report()
     grid = float(lg.get("grid", 1000))
-    VG.measure(paths, grid, "full", sub)
+    VG.measure(paths, grid, "full", sub, provenance=provenance,
+               provenance_reason=reason)
     if (lg.get("paths") or {}).get("reduced"):
-        VG.measure(lg["paths"]["reduced"], grid, "reduced", sub, reduced=True)
+        VG.measure(lg["paths"]["reduced"], grid, "reduced", sub, reduced=True,
+                   provenance=provenance, provenance_reason=reason)
     if sub.fails:
         rep.bad("glyph-geometry", "; ".join(
             "%s %s" % (n, d) for st, n, d in sub.rows if st == "FAIL")[:280])
     else:
         note = "%d checks clean" % len(sub.rows)
+        if provenance == "imported":
+            note = "imported geometry (%s); %s" % (reason, note)
         if sub.warns:
             note += ", %d warning(s): %s" % (sub.warns, "; ".join(
                 n for st, n, _ in sub.rows if st == "WARN")[:120])
