@@ -1,0 +1,27 @@
+skill:
+  - changed-files:
+      - any-glob-to-any-file: skill/**
+site:
+  - changed-files:
+      - any-glob-to-any-file: site/**
+ci:
+  - changed-files:
+      - any-glob-to-any-file: .github/workflows/**
+canon:
+  - changed-files:
+      - any-glob-to-any-file: skill/references/01-canon.json
+kit:shruggietech:
+  - changed-files:
+      - any-glob-to-any-file: brands/shruggietech/**
+kit:fragcap:
+  - changed-files:
+      - any-glob-to-any-file: brands/fragcap/**
+kit:go-schedule:
+  - changed-files:
+      - any-glob-to-any-file: brands/go-schedule/**
+kit:glitchpad:
+  - changed-files:
+      - any-glob-to-any-file: brands/glitchpad/**
+kit:covarity:
+  - changed-files:
+      - any-glob-to-any-file: brands/covarity/**

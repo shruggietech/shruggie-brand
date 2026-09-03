@@ -1,0 +1,6 @@
+coloraide==6.0
+fonttools==4.59.2
+pillow==11.3.0
+pikepdf==9.11.0
+playwright==1.55.0
+

@@ -1,0 +1,48 @@
+# Changelog
+
+All notable changes to the Shruggie brand system are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Repository-wide CI, release automation, the generated documentation and registry site, and five migrated production kits.
+- A synthetic fixture that exercises the complete brandbuilder pipeline without consuming a production identity hue slot.
+- Spec Kit 1.0.4 with the Codex skills integration and PowerShell scripts.
+
+### Fixed
+
+- Replaced ShruggieTech's `#2BCC73` light-surface link color, measured at 1.98:1, with `#037B40`, measured at 5.05:1, to meet WCAG 2.1 AA.
+
+## [1.1.2] - 2026-09-03
+
+### Added
+
+- Added `logo.geometry_provenance` with `glyphkit` and `imported` values so legacy geometry remains unchanged while its origin is visible in verification.
+
+### Changed
+
+- Imported path command violations are warnings for legacy geometry and remain failures for glyphkit-authored geometry.
+
+## [1.1.1] - 2026-09-03
+
+### Added
+
+- Added the non-exemptable WCAG AA floor for all canon-declared text and fill roles.
+- Added canon rules for accessible ShruggieTech green on light surfaces.
+
+## [1.1.0] - 2026-09-02
+
+### Added
+
+- Added the glyph construction layer, portability tiers, per-brand chart hue rotations, promoted generators, and standard-library geometry tests.
+
+### Changed
+
+- Relicensed the brandbuilder code, templates, and reference documentation from proprietary terms to Apache-2.0 while reserving names and marks.
+
+[Unreleased]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.1...v1.1.2
+[1.1.1]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/ShruggieTech/shruggie-brand/releases/tag/v1.1.0
+

@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a reproducible defect in the skill, a kit, CI, or the site.
+title: "[bug] "
+labels:
+  - bug
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Skill or canon
+        - Brand kit
+        - Site or registry
+        - CI or release
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: State the observed behavior and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include exact commands, slug, revision, and relevant output.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Verification evidence
+      description: Include verify.py, validate_glyph.py, browser, or registry evidence as applicable.
+

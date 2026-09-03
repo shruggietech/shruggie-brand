@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/ShruggieTech/shruggie-brand/security/advisories/new
+    about: Report security issues privately.
+  - name: Published brand system
+    url: https://brand.shruggie.tech
+    about: Check the generated documentation and live registries.

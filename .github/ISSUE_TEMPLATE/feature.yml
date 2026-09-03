@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose a brand-system, generator, kit, site, or automation change.
+title: "[feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user or operator problem, not only the proposed mechanism.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: State the externally verifiable result and any compatibility requirements.
+    validations:
+      required: true
+  - type: textarea
+    id: identity
+    attributes:
+      label: Identity and accessibility impact
+      description: Identify any logo geometry, trademark, canon, color, or WCAG implications.
+  - type: input
+    id: spec
+    attributes:
+      label: Spec Kit slice
+      description: Link the existing slice or say that one must be created.
+

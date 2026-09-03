@@ -1,0 +1,29 @@
+# Generated brand kits and site exports
+dist/
+site/out/
+site/public/generated/
+
+# Local dependencies and caches
+.venv/
+__pycache__/
+*.py[cod]
+node_modules/
+.next/
+.turbo/
+coverage/
+
+# Local Spec Kit state
+.specify/feature.json
+.specify/memory/active-feature.md
+
+# Editor and operating-system state
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
