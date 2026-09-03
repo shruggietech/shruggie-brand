@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Covarity evidence workspace specimen</title>
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../../components/components.css">
+  <style>
+    body { background: var(--co-bg); color: var(--co-fg); min-height: 100vh; }
+    .app { display: grid; grid-template-rows: auto auto 1fr; min-height: 100vh; }
+    .topbar { align-items: center; border-bottom: var(--co-stroke-hairline) solid var(--co-border); display: flex; gap: var(--co-space-4); min-height: 4rem; padding: 0 var(--co-space-5); }
+    .brand { align-items: center; display: flex; gap: var(--co-space-3); margin-right: auto; }
+    .brand img { height: 2rem; width: auto; }
+    .brand strong { font-family: var(--co-font-display); font-size: var(--co-display-xs); letter-spacing: var(--co-tracking-display); }
+    .command { align-items: center; background: var(--co-panel); border: var(--co-stroke-hairline) solid var(--co-border); border-radius: var(--co-radius-md); color: var(--co-fg-muted); display: flex; font-family: var(--co-font-mono); font-size: var(--co-body-xs); gap: var(--co-space-2); min-width: 18rem; padding: var(--co-space-2) var(--co-space-3); }
+    .command kbd { background: var(--co-panel-raised); border: var(--co-stroke-hairline) solid var(--co-border); border-radius: var(--co-radius-sm); color: var(--co-fg); margin-left: auto; padding: 0 var(--co-space-2); }
+    .scopebar { align-items: center; border-bottom: var(--co-stroke-hairline) solid var(--co-border); color: var(--co-fg-muted); display: flex; font-family: var(--co-font-mono); font-size: var(--co-body-xs); gap: var(--co-space-2); min-height: 2.75rem; overflow: hidden; padding: 0 var(--co-space-5); white-space: nowrap; }
+    .scopebar span { color: var(--co-fg); }
+    .workspace { display: grid; grid-template-columns: 16rem minmax(0, 1fr) 19rem; min-height: 0; }
+    .rail { background: var(--co-panel); min-height: 0; overflow: auto; padding: var(--co-space-4); }
+    .rail--left { border-right: var(--co-stroke-hairline) solid var(--co-border); }
+    .rail--right { border-left: var(--co-stroke-hairline) solid var(--co-border); }
+    .rail-title { color: var(--co-fg-muted); font-family: var(--co-font-mono); font-size: var(--co-body-xs); letter-spacing: var(--co-tracking-eyebrow); margin: 0 0 var(--co-space-3); text-transform: uppercase; }
+    .tree { display: grid; gap: var(--co-space-1); margin-bottom: var(--co-space-5); }
+    .tree-item { align-items: center; border-radius: var(--co-radius-sm); color: var(--co-fg-muted); display: flex; font-family: var(--co-font-mono); font-size: var(--co-body-xs); gap: var(--co-space-2); min-height: 2rem; padding: 0 var(--co-space-2); }
+    .tree-item::before { background: var(--co-dim); border-radius: 50%; content: ""; height: .375rem; width: .375rem; }
+    .tree-item--vault::before { border-radius: 1px; height: .5rem; width: .75rem; }
+    .tree-item--active { background: var(--co-accent-10); color: var(--co-fg); }
+    .tree-item--active::before { background: var(--co-accent); }
+    .indent { margin-left: var(--co-space-4); }
+    .panel { display: grid; grid-template-rows: auto auto 1fr; min-width: 0; }
+    .entity-head { align-items: end; display: flex; flex-wrap: wrap; gap: var(--co-space-4); padding: var(--co-space-6) var(--co-space-6) var(--co-space-4); }
+    .entity-head h1 { font-size: var(--co-display-sm); margin: 0; }
+    .entity-head p { color: var(--co-fg-muted); font-family: var(--co-font-mono); font-size: var(--co-body-xs); margin: var(--co-space-1) 0 0; }
+    .entity-head .co-badge { margin-left: auto; }
+    .tabs { border-bottom: var(--co-stroke-hairline) solid var(--co-border); display: flex; gap: var(--co-space-5); padding: 0 var(--co-space-6); }
+    .tab { border-bottom: var(--co-stroke-focus) solid transparent; color: var(--co-fg-muted); font-family: var(--co-font-mono); font-size: var(--co-body-xs); padding: var(--co-space-3) 0; }
+    .tab--active { border-color: var(--co-accent); color: var(--co-fg); }
+    .body { overflow: auto; padding: var(--co-space-5) var(--co-space-6); }
+    .claim { border-left: var(--co-stroke-focus) solid var(--co-accent-20); margin-bottom: var(--co-space-5); padding-left: var(--co-space-4); }
+    .claim p { margin: 0 0 var(--co-space-2); }
+    .claim .co-badge { margin-right: var(--co-space-2); }
+    .rows { display: grid; gap: var(--co-space-1); margin-bottom: var(--co-space-6); }
+    .rows-head { color: var(--co-fg-muted); display: grid; font-family: var(--co-font-mono); font-size: var(--co-body-xs); gap: var(--co-space-3); grid-template-columns: minmax(0, 1fr) 8rem 8rem 8rem 8rem; letter-spacing: var(--co-tracking-eyebrow); padding: 0 var(--co-space-3) var(--co-space-2); text-transform: uppercase; }
+    .noanswer { border: var(--co-stroke-hairline) solid var(--co-border); border-radius: var(--co-radius-md); color: var(--co-fg-muted); font-size: var(--co-body-sm); padding: var(--co-space-4); }
+    .noanswer strong { color: var(--co-fg); display: block; margin-bottom: var(--co-space-1); }
+    .trace { display: grid; gap: var(--co-space-3); margin: 0 0 var(--co-space-5); }
+    .trace div { border-bottom: var(--co-stroke-hairline) solid var(--co-border); padding-bottom: var(--co-space-2); }
+    .trace dt { color: var(--co-fg-muted); font-family: var(--co-font-mono); font-size: var(--co-body-xs); }
+    .trace dd { font-family: var(--co-font-mono); font-size: var(--co-body-sm); margin: var(--co-space-1) 0 0; }
+    .queue { border: var(--co-stroke-hairline) solid var(--co-accent-20); border-radius: var(--co-radius-md); padding: var(--co-space-3); }
+    .queue strong { color: var(--co-accent); display: block; font-family: var(--co-font-mono); font-size: var(--co-body-xs); letter-spacing: var(--co-tracking-eyebrow); margin-bottom: var(--co-space-2); text-transform: uppercase; }
+    .queue p { color: var(--co-fg-muted); font-size: var(--co-body-xs); margin: 0 0 var(--co-space-3); }
+    .queue-actions { display: flex; gap: var(--co-space-2); }
+    .footer { align-items: center; border-top: var(--co-stroke-hairline) solid var(--co-border); display: flex; flex-wrap: wrap; gap: var(--co-space-3); padding: var(--co-space-4) var(--co-space-6); }
+    @media (max-width: 68rem) { .workspace { grid-template-columns: 13rem minmax(0, 1fr); } .rail--right { display: none; } }
+    @media (max-width: 46rem) { .command { display: none; } .topbar, .scopebar { padding-left: var(--co-space-4); padding-right: var(--co-space-4); } .workspace { grid-template-columns: 1fr; } .rail--left { display: none; } .entity-head, .body { padding-left: var(--co-space-4); padding-right: var(--co-space-4); } .tabs { gap: var(--co-space-4); overflow: auto; padding-left: var(--co-space-4); padding-right: var(--co-space-4); } .rows-head { grid-template-columns: minmax(0, 1fr) 6rem; } .h-span, .h-support, .h-verdict { display: none; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><img src="../../logos/svg/covarity-mark-color.svg" alt=""><strong>Covarity</strong></div>
+      <div class="command">Ask a question or jump to an entity <kbd>Ctrl K</kbd></div>
+      <button class="co-button co-button--secondary co-button--sm" type="button">Add source</button>
+      <button class="co-button co-button--primary co-button--sm" type="button">Compile context</button>
+    </header>
+    <nav class="scopebar" aria-label="Current scope">household-vault / knowledge / entity / <span>Marion Reyes</span></nav>
+    <div class="workspace">
+      <aside class="rail rail--left" aria-label="Vaults and sources">
+        <h2 class="rail-title">Vaults</h2>
+        <div class="tree">
+          <div class="tree-item tree-item--vault tree-item--active">household-vault</div>
+          <div class="tree-item indent">local, read and write</div>
+          <div class="tree-item tree-item--vault">field-notes</div>
+          <div class="tree-item indent">connected, read only</div>
+        </div>
+        <h2 class="rail-title">Recent sources</h2>
+        <div class="tree">
+          <div class="tree-item">deed-1974.pdf r3</div>
+          <div class="tree-item">interview-04.md r1</div>
+          <div class="tree-item">census-1980.csv r2</div>
+          <div class="tree-item">letter-scan.png r1</div>
+        </div>
+      </aside>
+
+      <section class="panel" aria-label="Entity">
+        <header class="entity-head">
+          <div>
+            <h1>Marion Reyes</h1>
+            <p>entity:person:0f4c21 &nbsp; canonical since 2026-08-14</p>
+          </div>
+          <span class="co-badge co-badge--accent">4 supported claims</span>
+        </header>
+        <nav class="tabs" aria-label="Entity views">
+          <span class="tab tab--active">Evidence</span>
+          <span class="tab">Graph</span>
+          <span class="tab">Timeline</span>
+          <span class="tab">Revisions</span>
+        </nav>
+        <div class="body">
+          <div class="claim">
+            <p><span class="co-badge co-badge--accent">supported</span>Held title to 118 Ash Street between 1974 and 1991.</p>
+            <p style="color: var(--co-fg-muted); font-size: var(--co-body-sm)">Two independent sources agree. No contradicting revision.</p>
+          </div>
+
+          <div class="rows-head" role="row">
+            <span class="h-source">Source</span><span class="h-span">Span</span><span class="h-support">Support</span><span class="h-verdict">Verdict</span><span class="h-confidence">Confidence</span>
+          </div>
+          <div class="rows" role="table" aria-label="Evidence for this claim">
+            <div class="co-evidence-row" role="row" aria-selected="true">
+              <div class="co-evidence-row__source" role="cell">deed-1974.pdf r3</div>
+              <div class="co-evidence-row__span" role="cell">412-488</div>
+              <div class="co-evidence-row__support" role="cell">direct</div>
+              <div class="co-evidence-row__verdict" role="cell">accepted</div>
+              <div class="co-evidence-row__confidence" role="cell">0.94</div>
+            </div>
+            <div class="co-evidence-row" role="row">
+              <div class="co-evidence-row__source" role="cell">census-1980.csv r2</div>
+              <div class="co-evidence-row__span" role="cell">row 2211</div>
+              <div class="co-evidence-row__support" role="cell">corroborating</div>
+              <div class="co-evidence-row__verdict" role="cell">accepted</div>
+              <div class="co-evidence-row__confidence" role="cell">0.81</div>
+            </div>
+            <div class="co-evidence-row" role="row">
+              <div class="co-evidence-row__source" role="cell">interview-04.md r1</div>
+              <div class="co-evidence-row__span" role="cell">88-140</div>
+              <div class="co-evidence-row__support" role="cell">hearsay</div>
+              <div class="co-evidence-row__verdict" role="cell">provisional</div>
+              <div class="co-evidence-row__confidence" role="cell">0.42</div>
+            </div>
+          </div>
+
+          <div class="noanswer">
+            <strong>No supported answer for: date of departure</strong>
+            One reference was found in letter-scan.png r1 and it failed the support threshold, so nothing was published. The reference is queued for review.
+          </div>
+        </div>
+      </section>
+
+      <aside class="rail rail--right" aria-label="Context trace and review queue">
+        <h2 class="rail-title">Context trace</h2>
+        <dl class="trace">
+          <div><dt>scope</dt><dd>project:deed-audit</dd></div>
+          <div><dt>units</dt><dd>7 of 9 admitted</dd></div>
+          <div><dt>precedence</dt><dd>task &gt; project &gt; profile</dd></div>
+          <div><dt>envelope</dt><dd>sha256:9f3c 4.1 kB</dd></div>
+        </dl>
+        <div class="queue">
+          <strong>Review queue</strong>
+          <p>One ambiguous reference is waiting. Nothing is published until it resolves.</p>
+          <div class="queue-actions">
+            <button class="co-button co-button--primary co-button--sm" type="button">Review</button>
+            <button class="co-button co-button--ghost co-button--sm" type="button">Defer</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <footer class="footer">
+      <span class="co-endorsement">A ShruggieTech project</span>
+      <span class="co-badge co-badge--emphasis" style="margin-left:auto">2 sources need a revision check</span>
+    </footer>
+  </main>
+</body>
+</html>
