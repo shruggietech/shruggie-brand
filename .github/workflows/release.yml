@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install renderers and Python dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin imagemagick
+          python -m pip install -r requirements.txt
+          python -m playwright install chromium --with-deps
+      - name: Rebuild verified kits and release archives
+        run: |
+          python scripts/build_all.py
+          python scripts/package_release.py --version "${GITHUB_REF_NAME#v}"
+      - name: Assert bundle licenses
+        run: |
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          for path in Path("release").iterdir():
+              with zipfile.ZipFile(path) as archive:
+                  missing = {"LICENSE", "NOTICE", "LICENSE-BRAND.md"} - set(archive.namelist())
+                  if missing:
+                      raise SystemExit(f"{path}: missing {sorted(missing)}")
+          PY
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --title "shruggie-brandbuilder ${GITHUB_REF_NAME#v}" \
+            --notes "Skill version: ${GITHUB_REF_NAME#v}
+          Canon version: ${GITHUB_REF_NAME#v}
+          Existing kits need migration: yes, rebuild to record geometry provenance and the accessible parent-green correction.
+
+          See CHANGELOG.md for the complete release history."

@@ -100,7 +100,7 @@ Current output for ShruggieTech:
 Publish the catalog and let a consuming project install with one command:
 
 ```bash
-npx shadcn@latest registry add @shruggietech=https://brand.shruggie.tech/shruggietech/r/{name}.json
+npx shadcn@latest registry add @shruggietech=https://brand.shruggie.tech/shruggietech/brand/r/{name}.json
 npx shadcn@latest add @shruggietech/theme @shruggietech/fonts
 ```
 
