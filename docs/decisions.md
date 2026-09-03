@@ -54,3 +54,25 @@ Glitchpad is the newest complete reference: committed Spec Kit, Codex integratio
 ## Public repository assumption
 
 The repository is public because the required GitHub Pages site must be available without relying on a private-repository Pages entitlement. Changing the repository to private requires choosing and configuring a different public site host.
+
+## Migration and publication decisions
+
+### Authoritative mark preservation
+
+- Fragcap, Go Schedule, and Glitchpad retain imported vector path geometry. Unsupported glyphkit command forms remain visible as warnings and never become silent conversions.
+- ShruggieTech has no authoritative vector source in the migration material. Its paid raster artwork is preserved as deterministic alpha/luminance masks inside SVG wrappers. Reconstructing or tracing a replacement would invent geometry and violate the work order's no-redraw rule.
+- The generator was extended proportionally to preserve native rectangles, strokes, joins, and raster images. Glyphkit-authored marks continue to receive the stricter path-command gate.
+
+### Fixture identity scope
+
+The synthetic fixture reuses parent green and is declared with `kind: fixture`. It exercises contrast and every artifact gate but is excluded from sibling hue allocation because it is not a product identity. Treating it as a sixth identity would consume scarce hue space for test data and contradict the variance contract.
+
+### Site as a kit consumer
+
+The site stages generated outputs into ignored build directories. Next.js 16 prevents `next/font/local` imports from traversing above the site build root, so `scripts/prepare_site.py` copies the exact canonical WOFF2 bytes from `assets/fonts/` into `site/generated/fonts/` before compilation. No font copy is committed, and the resulting bytes remain identical to the kits.
+
+The same preparation step installs the generated ShruggieTech shadcn registry theme into CSS, imports the parent vanilla token layer, and copies guidelines, registry JSON, PDFs, masters, favicons, and specimens into the static export. Registry files are copied without transformation and verified by hash locally.
+
+### Downstream accessibility correction
+
+The canonical parent correction does not silently rewrite the live company site. The original `#2BCC73` foreground measured 1.98:1 on `#F8F8F6`; the replacement `#037B40` measures 5.05:1. The required downstream work is tracked in [shruggie-web issue 35](https://github.com/ShruggieTech/shruggie-web/issues/35), with links to the committed CSS provenance.
