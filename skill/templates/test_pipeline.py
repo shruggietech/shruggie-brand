@@ -20,16 +20,18 @@ import gen_guide_pdf
 import gen_logo
 import gen_nextjs
 import qc_images
+import verify
 from capabilities import load_capabilities
 from process_utils import hidden_process_kwargs
 
 
 class PipelineTests(unittest.TestCase):
-    def write_probe(self, kit, tier="core", raster=False, chromium=False):
+    def write_probe(self, kit, tier="core", raster=False, chromium=False, ico=False):
         qc = Path(kit) / "qc"
         qc.mkdir(parents=True, exist_ok=True)
         (qc / "probe.json").write_text(
-            json.dumps({"tier": tier, "svg_raster": raster, "chromium": chromium}) + "\n",
+            json.dumps({"tier": tier, "svg_raster": raster, "chromium": chromium,
+                        "ico_writer": ico}) + "\n",
             encoding="utf-8",
             newline="\n",
         )
@@ -72,6 +74,12 @@ class PipelineTests(unittest.TestCase):
             kit = Path(tmp) / "example"
             shutil.copytree(ROOT / "fixtures" / "example-brand", kit)
             shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            stale_png = kit / "logos" / "png" / "stale.png"
+            stale_favicon = kit / "favicons" / "stale.png"
+            stale_png.parent.mkdir(parents=True)
+            stale_favicon.parent.mkdir(parents=True)
+            stale_png.write_bytes(b"stale")
+            stale_favicon.write_bytes(b"stale")
             self.write_probe(kit)
             old_argv = sys.argv
             try:
@@ -82,6 +90,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(result, 0)
             self.assertTrue(any((kit / "logos" / "svg").glob("*.svg")))
             self.assertFalse(any((kit / "logos" / "png").glob("*.png")))
+            self.assertFalse(any((kit / "favicons").iterdir()))
 
     def test_full_tier_page_qc_error_is_fatal(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -91,7 +100,7 @@ class PipelineTests(unittest.TestCase):
                 encoding="utf-8",
                 newline="\n",
             )
-            self.write_probe(kit, tier="full", raster=True, chromium=True)
+            self.write_probe(kit, tier="full", raster=True, chromium=True, ico=True)
             old_argv = sys.argv
             try:
                 sys.argv = ["qc_images.py", str(kit)]
@@ -107,12 +116,15 @@ class PipelineTests(unittest.TestCase):
             kit = Path(tmp)
             brand = kit / "brand.json"
             brand.write_text("{}\n", encoding="utf-8", newline="\n")
+            stale_pdf = kit / "brand-guide.pdf"
+            stale_pdf.write_bytes(b"stale")
             self.write_probe(kit)
             old_argv = sys.argv
             try:
                 sys.argv = ["gen_guide_pdf.py", str(brand), str(kit)]
                 with mock.patch.object(gen_guide_pdf, "build", return_value="<html></html>"):
                     self.assertEqual(gen_guide_pdf.main(), 0)
+                    self.assertFalse(stale_pdf.exists())
             finally:
                 sys.argv = old_argv
 
@@ -139,7 +151,7 @@ class PipelineTests(unittest.TestCase):
             kit = Path(tmp)
             brand = kit / "brand.json"
             brand.write_text("{}\n", encoding="utf-8", newline="\n")
-            self.write_probe(kit, tier="full", raster=True, chromium=True)
+            self.write_probe(kit, tier="full", raster=True, chromium=True, ico=True)
             old_argv = sys.argv
             try:
                 sys.argv = ["gen_guide_pdf.py", str(brand), str(kit)]
@@ -153,6 +165,35 @@ class PipelineTests(unittest.TestCase):
     def test_generated_forms_forward_required(self):
         source = (HERE / "gen_vanilla.py").read_text(encoding="utf-8")
         self.assertEqual(source.count("required={required}"), 2)
+
+    def test_ico_output_follows_its_measured_capability(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            png_dir = kit / "logos" / "png"
+            png_dir.mkdir(parents=True)
+            (png_dir / "logo.png").write_bytes(b"png")
+            self.write_probe(kit, tier="raster", raster=True, ico=False)
+            report = verify.Report()
+            verify.c_capability_artifacts(str(kit), report)
+            self.assertFalse(report.problems)
+            self.assertTrue(any(skip.startswith("ico-artifact:") for skip in report.skips))
+
+            ico = kit / "favicons" / "favicon.ico"
+            ico.parent.mkdir(parents=True)
+            ico.write_bytes(b"ico")
+            self.write_probe(kit, tier="raster", raster=True, ico=True)
+            report = verify.Report()
+            verify.c_capability_artifacts(str(kit), report)
+            self.assertFalse(report.problems)
+            self.assertTrue(any(row[0] == "ico-artifact" and row[1] == "pass"
+                                for row in report.rows))
+
+            ico.unlink()
+            self.write_probe(kit, tier="core", raster=False, ico=True)
+            report = verify.Report()
+            verify.c_capability_artifacts(str(kit), report)
+            self.assertFalse(report.problems)
+            self.assertTrue(any(skip.startswith("ico-artifact:") for skip in report.skips))
 
     def test_shruggietech_runtime_uses_native_form_and_link_semantics(self):
         source = (ROOT / "brands" / "shruggietech" / "ui_kits" /

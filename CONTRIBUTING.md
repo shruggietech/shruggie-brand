@@ -26,6 +26,7 @@ Run the geometry unit tests, probe the toolchain, build every kit, and build the
 ```powershell
 .\.venv\Scripts\python skill/templates/test_glyphkit.py
 .\.venv\Scripts\python skill/templates/test_pipeline.py
+.\.venv\Scripts\python scripts/check_markdown.py
 .\.venv\Scripts\python skill/templates/probe.py
 .\.venv\Scripts\python scripts/build_all.py
 pnpm --dir site build

@@ -25,6 +25,20 @@ def need(tool):
     return shutil.which(tool) is not None
 
 
+def reset_generated_dir(kit, directory):
+    root = os.path.abspath(kit)
+    target = os.path.abspath(directory)
+    allowed = {
+        os.path.join(root, "logos", "png"),
+        os.path.join(root, "favicons"),
+    }
+    if target not in allowed:
+        raise ValueError("refusing to clear non-generated directory %s" % target)
+    if os.path.isdir(target):
+        shutil.rmtree(target)
+    os.makedirs(target, exist_ok=True)
+
+
 def raster(args):
     raster_cwd = None
     width = args[args.index("-w") + 1] if "-w" in args else None
@@ -175,8 +189,9 @@ def main():
     svg_dir = os.path.join(kit, "logos", "svg")
     png_dir = os.path.join(kit, "logos", "png")
     favicon_dir = os.path.join(kit, "favicons")
-    for directory in (svg_dir, png_dir, favicon_dir):
-        os.makedirs(directory, exist_ok=True)
+    os.makedirs(svg_dir, exist_ok=True)
+    reset_generated_dir(kit, png_dir)
+    reset_generated_dir(kit, favicon_dir)
 
     def write(path, value):
         with open(path, "w", encoding="utf-8", newline="\n") as handle:

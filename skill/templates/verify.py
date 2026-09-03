@@ -368,16 +368,22 @@ def c_capability_artifacts(kit, rep):
              if name.lower().endswith(".png")] if os.path.isdir(logo_png_dir) else [])
     ico = os.path.join(kit, "favicons", "favicon.ico")
     if capabilities.get("svg_raster"):
-        missing = []
-        if not pngs: missing.append("PNG exports")
-        if not os.path.isfile(ico): missing.append("favicon.ico")
-        if missing:
-            rep.bad("raster-artifacts", "probe found a rasterizer but output lacks %s"
-                    % " and ".join(missing))
+        if not pngs:
+            rep.bad("raster-artifacts", "probe found a rasterizer but PNG exports are missing")
         else:
-            rep.ok("raster-artifacts", "%d PNGs and favicon.ico produced" % len(pngs))
+            rep.ok("raster-artifacts", "%d logo PNGs produced" % len(pngs))
     else:
-        rep.skip("raster-artifacts", "core tier: SVG rasterizer unavailable; PNG and favicon outputs skipped")
+        rep.skip("raster-artifacts", "core tier: SVG rasterizer unavailable; PNG outputs skipped")
+
+    if not capabilities.get("svg_raster"):
+        rep.skip("ico-artifact", "%s tier: source PNGs unavailable; ICO skipped" % tier)
+    elif capabilities.get("ico_writer"):
+        if os.path.isfile(ico):
+            rep.ok("ico-artifact", "favicon.ico produced after successful writer probe")
+        else:
+            rep.bad("ico-artifact", "ICO writer probe passed but favicon.ico is missing")
+    else:
+        rep.skip("ico-artifact", "%s tier: ImageMagick, convert, and Pillow unavailable; ICO skipped" % tier)
 
     pdf = os.path.join(kit, "brand-guide.pdf")
     if tier == "full":

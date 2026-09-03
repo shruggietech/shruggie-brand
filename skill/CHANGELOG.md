@@ -18,6 +18,8 @@
 - Added the resvg and Inkscape CLI fallbacks advertised by the capability probe.
 - Made pagination report a recorded skip when Playwright is installed without a matching Chromium binary.
 - Made failed verification, image, PDF, and pagination gates print their diagnostic output in CI.
+- Cleared generated PDFs, raster exports, and favicons before capability-tier downgrade skips.
+- Separated favicon ICO verification from the SVG rasterizer capability gate.
 
 ## 1.1.1 - 2026-09-03
 

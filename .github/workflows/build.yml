@@ -19,6 +19,7 @@ jobs:
         run: |
           python -m compileall -q scripts skill/templates
           python scripts/build_all.py --list
+          python scripts/check_markdown.py
 
   build:
     runs-on: ubuntu-latest
@@ -46,6 +47,7 @@ jobs:
         run: |
           python skill/templates/test_glyphkit.py
           python skill/templates/test_pipeline.py
+          python scripts/check_markdown.py
       - name: Probe capabilities
         run: python skill/templates/probe.py
       - name: Build and verify every kit

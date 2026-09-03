@@ -26,6 +26,7 @@ jobs:
         run: |
           python skill/templates/test_glyphkit.py
           python skill/templates/test_pipeline.py
+          python scripts/check_markdown.py
           python scripts/build_all.py
           python scripts/package_release.py --version "${GITHUB_REF_NAME#v}"
       - name: Assert bundle licenses

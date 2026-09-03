@@ -410,6 +410,9 @@ def main():
     with open(a.brand, encoding="utf-8") as handle:
         B = json.load(handle)
     os.makedirs(os.path.join(a.kit, "build"), exist_ok=True)
+    pdf_path = os.path.join(a.kit, "brand-guide.pdf")
+    if os.path.isfile(pdf_path):
+        os.remove(pdf_path)
     hp = os.path.join(a.kit, "build", "brand-guide.print.html")
     with open(hp, "w", encoding="utf-8", newline="\n") as f: f.write(build(B, a.kit))
     print("wrote", hp)
@@ -426,10 +429,10 @@ def main():
             b = p.chromium.launch(); pg = b.new_page()
             pg.goto("file://" + str(pathlib.Path(hp).resolve())); pg.wait_for_timeout(1800)
             pg.emulate_media(media="print")
-            pg.pdf(path=os.path.join(a.kit, "brand-guide.pdf"), format="A4", print_background=True,
+            pg.pdf(path=pdf_path, format="A4", print_background=True,
                    margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
             b.close()
-        print("wrote", os.path.join(a.kit, "brand-guide.pdf"))
+        print("wrote", pdf_path)
         print("Now run qc_render.py --expect-ground dark AND OPEN THE CONTACT SHEET.")
     except Exception as e:
         print("FAIL brand guide PDF: Chromium was probed successfully but export failed (%s)" % e)

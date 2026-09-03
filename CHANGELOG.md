@@ -33,6 +33,9 @@ No unreleased changes.
 - Suppressed project-owned Windows console subprocesses and disabled their interactive input.
 - Forwarded native required state from generated form controls and removed nested interactive CTA markup.
 - Removed private workstation paths and Cloudflare resource identifiers from public planning records.
+- Cleared generated PDFs, raster exports, and favicons before capability-tier downgrade skips so stale artifacts cannot enter a later manifest or release.
+- Verified favicon ICO output against its independently measured writer capability.
+- Enforced the repository's single-physical-line Markdown prose policy in public planning records and CI.
 
 ## [1.1.1] - 2026-09-03
 

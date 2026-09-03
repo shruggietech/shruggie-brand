@@ -120,9 +120,7 @@ Two things this unlocks beyond convenience:
 
 ## Fonts
 
-`fonts.ts` uses `next/font/local` for Geist, Geist Mono, and Space Grotesk.
-Keep it beside the exported kit's `fonts/` tree so a Next.js build makes no
-font-network request.
+`fonts.ts` uses `next/font/local` for Geist, Geist Mono, and Space Grotesk. Keep it beside the exported kit's `fonts/` tree so a Next.js build makes no font-network request.
 
 The generated README carries the warning that matters: never fetch fonts at
 build time inside a sandbox. `fonts.gstatic.com` is blocked by the egress proxy
