@@ -74,6 +74,10 @@ The site stages generated outputs into ignored build directories. Next.js 16 pre
 
 The same preparation step installs the generated ShruggieTech shadcn registry theme into CSS, imports the parent vanilla token layer, and copies guidelines, registry JSON, PDFs, masters, favicons, and specimens into the static export. Registry files are copied without transformation and verified by hash locally.
 
+### Linux renderer dependencies
+
+The first hosted Ubuntu run proved that installing `librsvg2-bin` and ImageMagick was insufficient for the existing PDF visual gate: `qc_render.py` also invokes Poppler's `pdftoppm`. CI, Pages, and release jobs therefore install `poppler-utils` explicitly. This dependency is now part of the documented pipeline rather than an accidental feature of the Windows workstation.
+
 ### Downstream accessibility correction
 
 The canonical parent correction does not silently rewrite the live company site. The original `#2BCC73` foreground measured 1.98:1 on `#F8F8F6`; the replacement `#037B40` measures 5.05:1. The required downstream work is tracked in [shruggie-web issue 35](https://github.com/ShruggieTech/shruggie-web/issues/35), with links to the committed CSS provenance.

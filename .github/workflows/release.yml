@@ -11,15 +11,15 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
       - name: Install renderers and Python dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y librsvg2-bin imagemagick
+          sudo apt-get install -y librsvg2-bin imagemagick poppler-utils
           python -m pip install -r requirements.txt
           python -m playwright install chromium --with-deps
       - name: Rebuild verified kits and release archives

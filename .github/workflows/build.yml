@@ -11,21 +11,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v5
         with:
           version: 10.28.2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
           cache-dependency-path: site/pnpm-lock.yaml
       - name: Install native renderers
-        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin imagemagick
+        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin imagemagick poppler-utils
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
       - name: Install site and browser dependencies
@@ -47,4 +47,3 @@ jobs:
           name: verified-brand-kits
           path: dist/
           if-no-files-found: error
-
