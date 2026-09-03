@@ -78,6 +78,10 @@ The same preparation step installs the generated ShruggieTech shadcn registry th
 
 The first hosted Ubuntu run proved that installing `librsvg2-bin` and ImageMagick was insufficient for the existing PDF visual gate: `qc_render.py` also invokes Poppler's `pdftoppm`. CI, Pages, and release jobs therefore install `poppler-utils` explicitly. This dependency is now part of the documented pipeline rather than an accidental feature of the Windows workstation.
 
+### DNS publication
+
+The authenticated Cloudflare connector was used in place of the absent CLI. The executed mutation was `POST /zones/4834962e3bea6970e558ed6b491b4631/dns_records` in account `39e3052d61e3edccea7d68269ec07182`, with `{type: CNAME, name: brand, content: shruggietech.github.io, ttl: 1, proxied: false}`. It created record `5f7e3e6d7324638be1a6d2daea8def64`. The record remains DNS-only while GitHub provisions the Pages certificate.
+
 ### Downstream accessibility correction
 
 The canonical parent correction does not silently rewrite the live company site. The original `#2BCC73` foreground measured 1.98:1 on `#F8F8F6`; the replacement `#037B40` measures 5.05:1. The required downstream work is tracked in [shruggie-web issue 35](https://github.com/ShruggieTech/shruggie-web/issues/35), with links to the committed CSS provenance.
