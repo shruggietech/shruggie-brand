@@ -23,8 +23,14 @@ NODE = os.environ.get("GP_NODE") or shutil.which("node")
 RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__file__), "rsvg-convert.js")
 
 
-def need(tool):
-    return shutil.which(tool) is not None
+def measured_ico_converter(capabilities):
+    """Return only an ImageMagick executable accepted by the capability probe."""
+    cli = capabilities.get("cli") or {}
+    if cli.get("magick"):
+        return "magick"
+    if cli.get("convert"):
+        return "convert"
+    return None
 
 
 def reset_generated_dir(kit, directory):
@@ -127,7 +133,6 @@ def recolour_rgba_png(source, target, colour, luminance_mask):
 
 
 def raster(args):
-    raster_cwd = None
     width = args[args.index("-w") + 1] if "-w" in args else None
     height = args[args.index("-h") + 1] if "-h" in args else None
     source = args[-3] if "-o" in args else args[-2]
@@ -145,17 +150,11 @@ def raster(args):
                    "--export-filename=" + output]
         if width: command.append("--export-width=" + width)
         if height: command.append("--export-height=" + height)
-    elif shutil.which("magick"):
-        geometry = "%sx%s" % (width or "", height or "")
-        raster_cwd = os.path.dirname(os.path.abspath(source))
-        command = [shutil.which("magick"), "-background", "none",
-                   os.path.basename(source), "-resize", geometry,
-                   os.path.abspath(output)]
     elif NODE and os.path.exists(RESVG):
         command = [NODE, RESVG] + args
     else:
-        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, ImageMagick, or set GP_NODE and GP_RESVG_RENDERER.")
-    subprocess.run(command, check=True, cwd=raster_cwd, **hidden_process_kwargs())
+        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, resvg, Inkscape, or set GP_NODE and GP_RESVG_RENDERER.")
+    subprocess.run(command, check=True, **hidden_process_kwargs())
 
 
 def path_bbox(d):
@@ -570,7 +569,7 @@ def main():
     # host carrying ImageMagick 6 the ICO was silently skipped and verify reported
     # ico-entries as a skip. The legacy `convert` binary does the same job here.
     ico = os.path.join(favicon_dir, "favicon.ico")
-    converter = "magick" if need("magick") else ("convert" if need("convert") else None)
+    converter = measured_ico_converter(capabilities)
     if converter:
         subprocess.run([converter] + ico_sources + [ico], check=True,
                        **hidden_process_kwargs())

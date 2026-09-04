@@ -36,7 +36,7 @@ def rsvg(src, w):
     elif NODE and os.path.exists(RESVG):
         command = [NODE, RESVG, "-w", str(w), src, "-o", out]
     else:
-        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert or set GP_NODE and GP_RESVG_RENDERER.")
+        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, resvg, Inkscape, or set GP_NODE and GP_RESVG_RENDERER.")
     subprocess.run(command, check=True, **hidden_process_kwargs())
     return Image.open(out).convert("RGBA")
 

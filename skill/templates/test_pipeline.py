@@ -163,6 +163,51 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("Pillow unavailable", capabilities["raster_reason"])
             self.assertFalse(any((kit / "logos" / "png").iterdir()))
 
+    def test_imagemagick_is_not_measured_as_an_svg_renderer(self):
+        found = {"rsvg-convert": False, "resvg": False, "inkscape": False,
+                 "magick": True, "convert": False}
+        self.assertFalse(probe.svg_renderer_capability(found, False))
+        found["magick"] = False
+        found["convert"] = True
+        self.assertFalse(probe.svg_renderer_capability(found, False))
+
+    def test_windows_convert_utility_is_not_imagemagick(self):
+        windows_result = types.SimpleNamespace(
+            returncode=4, stdout="", stderr="Invalid drive specification."
+        )
+        image_result = types.SimpleNamespace(
+            returncode=0, stdout="Version: ImageMagick 6.9.13", stderr=""
+        )
+        with mock.patch.object(probe.subprocess, "run", return_value=windows_result):
+            self.assertFalse(probe.imagemagick_convert_ok("convert.exe"))
+        with mock.patch.object(probe.subprocess, "run", return_value=image_result):
+            self.assertTrue(probe.imagemagick_convert_ok("convert.exe"))
+
+    def test_ico_generation_reuses_the_validated_converter_result(self):
+        capabilities = {
+            "cli": {"magick": False, "convert": False},
+            "modules": {"PIL": True},
+            "ico_writer": True,
+        }
+        with mock.patch.object(gen_logo.shutil, "which", return_value="convert.exe"):
+            self.assertIsNone(gen_logo.measured_ico_converter(capabilities))
+
+        capabilities["cli"]["convert"] = True
+        self.assertEqual(gen_logo.measured_ico_converter(capabilities), "convert")
+
+    def test_svg_consumers_do_not_use_imagemagick(self):
+        def which(name):
+            return "magick.exe" if name == "magick" else None
+
+        with mock.patch.object(qc_images.shutil, "which", side_effect=which), \
+                mock.patch.object(qc_images, "NODE", None):
+            with self.assertRaises(RuntimeError):
+                qc_images.rsvg("mark.svg", 64)
+        with mock.patch.object(gen_logo.shutil, "which", side_effect=which), \
+                mock.patch.object(gen_logo, "NODE", None):
+            with self.assertRaises(RuntimeError):
+                gen_logo.raster(["-w", "64", "mark.svg", "-o", "mark.png"])
+
     def test_pdf_skip_is_only_allowed_without_chromium(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp)
@@ -256,11 +301,25 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue(any(skip.startswith("ico-artifact:") for skip in report.skips))
 
     def test_shruggietech_runtime_uses_native_form_and_link_semantics(self):
-        source = (ROOT / "brands" / "shruggietech" / "ui_kits" /
-                  "shruggie-web" / "runtime.js").read_text(encoding="utf-8")
-        self.assertIn("required={required}", source)
-        self.assertNotIn("<a href={href}><Button", source)
-        self.assertIn('<a href={href} className={classNames("sh-button"', source)
+        kit = ROOT / "brands" / "shruggietech" / "ui_kits" / "shruggie-web"
+        runtime = (kit / "runtime.js").read_text(encoding="utf-8")
+        all_scripts = "\n".join(path.read_text(encoding="utf-8")
+                                for path in kit.glob("*.js"))
+        self.assertIn("required={required}", runtime)
+        self.assertNotIn('<Button variant="primary" size="sm">Get in Touch</Button>',
+                         all_scripts)
+        self.assertIn('<a href={href} className={classNames("sh-button"', runtime)
+
+    def test_ui_fixtures_have_mobile_overflow_guards(self):
+        glitchpad = (ROOT / "brands" / "glitchpad" / "ui_kits" /
+                     "glitchpad-web" / "index.html").read_text(encoding="utf-8")
+        shruggie = (ROOT / "brands" / "shruggietech" / "ui_kits" /
+                    "shruggie-web" / "index.html").read_text(encoding="utf-8")
+        self.assertNotIn("--gp-", glitchpad)
+        self.assertNotIn('class="gp-', glitchpad)
+        self.assertIn("grid-template-columns: minmax(0, 1fr)", glitchpad)
+        self.assertIn(".bytes { display: block; overflow-x: auto", glitchpad)
+        self.assertIn(".site-nav{display:none!important}", shruggie)
 
 
 if __name__ == "__main__":

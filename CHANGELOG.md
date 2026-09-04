@@ -4,7 +4,11 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
-No unreleased changes.
+### Fixed
+
+- Aligned SVG-renderer capability reporting with the governed librsvg, resvg, Inkscape, and Node resvg chain; removed ImageMagick SVG fallbacks; rejected the unrelated Windows `convert.exe` utility; and made ICO generation reuse the validated ImageMagick or Pillow result.
+- Corrected the Glitchpad fixture's token and class prefixes and added narrow-screen overflow guards.
+- Corrected ShruggieTech's narrow-screen header layout and removed the remaining nested interactive contact control.
 
 ## [1.1.2] - 2026-09-03
 

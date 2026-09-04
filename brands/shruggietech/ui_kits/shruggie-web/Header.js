@@ -1,7 +1,6 @@
 // Header — fixed translucent site header with logo, nav, CTA.
 // Nav links drive the UI-kit's active screen (interactive recreation).
 const { useState, useEffect } = React;
-const { Button } = window.ShruggieTechDesignSystem_1f6967;
 
 const NAV = ["Services", "Work", "Research", "Products", "About", "Blog"];
 
@@ -20,6 +19,7 @@ function Header({ current, onNavigate }) {
 
   return (
     <header
+      className="site-header"
       style={{
         position: "sticky", top: 0, zIndex: 50,
         transition: "background-color .2s, backdrop-filter .2s",
@@ -28,11 +28,11 @@ function Header({ current, onNavigate }) {
         WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
       }}
     >
-      <div className="kit-container" style={{ display: "flex", height: 64, alignItems: "center", justifyContent: "space-between" }}>
+      <div className="kit-container site-header__inner" style={{ display: "flex", height: 64, alignItems: "center", justifyContent: "space-between" }}>
         <a href="#" onClick={(e) => { e.preventDefault(); onNavigate("Home"); }} style={{ display: "flex", alignItems: "center" }}>
           <img src="../../assets/logo-darkbg.png" alt="ShruggieTech" style={{ height: 30, width: "auto" }} />
         </a>
-        <nav style={{ display: "flex", gap: 4 }}>
+        <nav className="site-nav" style={{ display: "flex", gap: 4 }}>
           {NAV.map((label) => {
             const active = current === label;
             return (
@@ -58,10 +58,8 @@ function Header({ current, onNavigate }) {
             );
           })}
         </nav>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigate("Contact"); }}>
-            <Button variant="primary" size="sm">Get in Touch</Button>
-          </a>
+        <div className="site-contact" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <a href="#" className="sh-button sh-button--primary sh-button--sm" onClick={(e) => { e.preventDefault(); onNavigate("Contact"); }}>Get in Touch</a>
         </div>
       </div>
     </header>

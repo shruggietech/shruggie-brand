@@ -101,3 +101,9 @@ The generated manual Next.js binding uses bundled files through `next/font/local
 ### Public planning hygiene
 
 The private work directive was originally copied into the public Spec Kit tree. It included workstation paths and operational resource identifiers that are not needed by contributors. The public copy has been replaced with a sanitized phase index, the full requirements are translated into issues #6 through #15, and the operator-held directive remains available outside the repository. This is an intentional deviation from preserving the attachment verbatim.
+
+### S003 capability and fixture reconciliation
+
+S003 revalidation found a dormant ImageMagick SVG branch in raster generation. Advertising and copying that branch into image QC would contradict the governed high-fidelity fallback chain in `skill/references/04-toolchain.md`. The probe, raster generation, and image QC therefore use only librsvg, resvg, Inkscape, or the verified Node resvg wrapper for SVG rendering. ImageMagick remains available solely for validated multi-entry ICO generation. The probe validates any `convert` executable as ImageMagick before recording ICO capability, and ICO generation reuses that recorded result instead of rediscovering an executable from `PATH`. This prevents the unrelated Windows filesystem conversion utility from producing a false positive or overriding the Pillow fallback.
+
+Manual narrow-screen inspection exposed two fixture defects that the earlier source scan did not cover. The Glitchpad fixture referenced nonexistent `gp` tokens and classes instead of its generated `gl` namespace, and the ShruggieTech header retained a nested interactive contact control plus an overflowing mobile navigation row. S003 corrects those consumers and adds regression coverage without changing any authoritative identity geometry.

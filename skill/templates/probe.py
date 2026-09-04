@@ -110,6 +110,31 @@ def node_resvg_ok():
         return False
 
 
+def imagemagick_convert_ok(command):
+    """Reject Windows' filesystem ``convert.exe`` while accepting ImageMagick 6."""
+    if not command:
+        return False
+    try:
+        result = subprocess.run(
+            [command, "-version"], capture_output=True, text=True, timeout=8,
+            **hidden_process_kwargs()
+        )
+        output = (result.stdout or "") + (result.stderr or "")
+        return result.returncode == 0 and "ImageMagick" in output
+    except Exception:
+        return False
+
+
+def svg_renderer_capability(found_cli, node_resvg):
+    """Match the governed high-fidelity SVG renderer fallback chain."""
+    return bool(
+        found_cli.get("rsvg-convert")
+        or found_cli.get("resvg")
+        or found_cli.get("inkscape")
+        or node_resvg
+    )
+
+
 def raster_capability(renderer, pillow):
     if not renderer:
         return False, "SVG rasterizer unavailable"
@@ -130,6 +155,8 @@ def main():
 
     for name, why in CLI:
         p = which(name)
+        if name == "convert" and not imagemagick_convert_ok(p):
+            p = None
         found_cli[name] = bool(p)
         print("%-12s %s" % (name, version(name) if p else "MISSING     (%s)" % why))
 
@@ -146,8 +173,7 @@ def main():
     print("%-12s %s" % ("chromium", chrome_note))
 
     node_resvg = node_resvg_ok()
-    renderer = (found_cli["rsvg-convert"] or found_cli["resvg"] or found_cli["inkscape"]
-                or node_resvg)
+    renderer = svg_renderer_capability(found_cli, node_resvg)
     raster, raster_reason = raster_capability(renderer, found_py.get("PIL"))
     ico = found_cli["magick"] or found_cli["convert"] or found_py.get("PIL")
     tier = "full" if (raster and chrome) else ("raster" if raster else "core")

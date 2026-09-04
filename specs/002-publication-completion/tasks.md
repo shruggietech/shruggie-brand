@@ -1,5 +1,7 @@
 # Tasks: Publication completion
 
+> **2026-09-03 reconciliation note**: Checked implementation items below record work performed during S002, but they did not prove that the 19 originating review threads were answered or resolved, or that their GitHub issues met the later current-main closure gate. S003 (`specs/003-reconcile-pr-reviews/`) supersedes those operational completion claims and performs the missing evidence, reply, resolution, and issue-certification work. This note preserves the historical checklist rather than silently rewriting it.
+
 ## Chronological execution
 
 - [x] Audit all unresolved review threads on merged PR #16 and correction PR #26.
