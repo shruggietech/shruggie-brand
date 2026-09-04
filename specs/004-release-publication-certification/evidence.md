@@ -47,7 +47,9 @@
 | Issue #63 | https://github.com/shruggietech/shruggie-brand/issues/63 | Open pending publication |
 | Issue #72 | https://github.com/shruggietech/shruggie-brand/issues/72 | Open pending publication |
 | Issue #73 | https://github.com/shruggietech/shruggie-brand/issues/73 | Open pending publication |
-| Pull request | https://github.com/shruggietech/shruggie-brand/pull/91 | Open pending CI and two bounded Codex rounds |
+| Pull request | https://github.com/shruggietech/shruggie-brand/pull/91 | Open, green, review-complete, and pending the owner merge ritual |
+| Review finding #92 | https://github.com/shruggietech/shruggie-brand/issues/92 | Closed after correction and hosted verification |
+| Review finding #93 | https://github.com/shruggietech/shruggie-brand/issues/93 | Closed after correction and hosted verification |
 
 Pre-merge acceptance comments: [#63](https://github.com/shruggietech/shruggie-brand/issues/63#issuecomment-5536081006), [#72](https://github.com/shruggietech/shruggie-brand/issues/72#issuecomment-5536081269), [#73](https://github.com/shruggietech/shruggie-brand/issues/73#issuecomment-5536081492), and [#90](https://github.com/shruggietech/shruggie-brand/issues/90#issuecomment-5536081710).
 
@@ -56,13 +58,15 @@ Pre-merge acceptance comments: [#63](https://github.com/shruggietech/shruggie-br
 | Round | Trigger | Signal | Actionable comments | Finding issues | State |
 | --- | --- | --- | ---: | --- | --- |
 | 1 | Automatic on PR publication | [Environment unavailable](https://github.com/shruggietech/shruggie-brand/pull/91#issuecomment-5536088206) | 0 | None | Complete |
-| 2 | [One explicit request](https://github.com/shruggietech/shruggie-brand/pull/91#issuecomment-5536098285) after round 1 | [Completed review](https://github.com/shruggietech/shruggie-brand/pull/91#issuecomment-5536100694) | 2 | #92 and #93 | Corrections locally verified; replies and resolution pending push |
+| 2 | [One explicit request](https://github.com/shruggietech/shruggie-brand/pull/91#issuecomment-5536098285) after round 1 | [Completed review](https://github.com/shruggietech/shruggie-brand/pull/91#issuecomment-5536100694) | 2 | #92 and #93 | Fixed in `b405053`; [#92 reply](https://github.com/shruggietech/shruggie-brand/pull/91#discussion_r3931167302) and [#93 reply](https://github.com/shruggietech/shruggie-brand/pull/91#discussion_r3931167411) posted; both threads resolved; both issues closed after hosted verification |
 
 Review request ceiling: 2 rounds. No third request is authorized.
 
+An accidental duplicate, #94, was closed as a duplicate of #93 without changing the two-finding review ledger.
+
 ## Hosted checks
 
-The first hosted pull-request run passed both Python 3.8 compatibility and the full build. A correction push for round 2 findings will start the final required run.
+The initial pull-request run passed both Python 3.8 compatibility and the full build. The round 2 correction tree at `b405053` passed both required jobs on the [push run](https://github.com/shruggietech/shruggie-brand/actions/runs/33840928933) and [pull-request run](https://github.com/shruggietech/shruggie-brand/actions/runs/33840930561). The final ledger-only head is subject to the same hosted gates before owner handoff.
 
 ## Post-merge publication
 
