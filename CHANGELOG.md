@@ -37,6 +37,8 @@ No unreleased changes.
 - Verified favicon ICO output against its independently measured writer capability.
 - Enforced the repository's single-physical-line Markdown prose policy in public planning records and CI.
 - Made the pipeline regression fixtures Python 3.8-compatible and run them in the minimum-version hosted job.
+- Included Pillow compositing in the measured raster capability instead of allowing a late import failure.
+- Cleared stale generated QC sheets before full-tier capture or lower-tier skips.
 
 ## [1.1.1] - 2026-09-03
 

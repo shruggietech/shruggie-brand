@@ -438,7 +438,8 @@ def main():
 
     capabilities = load_capabilities(kit)
     if not capabilities.get("svg_raster"):
-        print("SKIP raster exports, favicons and ICO: SVG rasterizer unavailable at core tier")
+        print("SKIP raster exports, favicons and ICO: %s at core tier"
+              % capabilities.get("raster_reason", "required raster capability unavailable"))
         print("wrote %d vector SVG masters" % len(written))
         return 0
 

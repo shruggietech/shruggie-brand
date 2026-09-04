@@ -373,7 +373,8 @@ def c_capability_artifacts(kit, rep):
         else:
             rep.ok("raster-artifacts", "%d logo PNGs produced" % len(pngs))
     else:
-        rep.skip("raster-artifacts", "core tier: SVG rasterizer unavailable; PNG outputs skipped")
+        rep.skip("raster-artifacts", "core tier: %s; PNG outputs skipped"
+                 % capabilities.get("raster_reason", "required raster capability unavailable"))
 
     if not capabilities.get("svg_raster"):
         rep.skip("ico-artifact", "%s tier: source PNGs unavailable; ICO skipped" % tier)

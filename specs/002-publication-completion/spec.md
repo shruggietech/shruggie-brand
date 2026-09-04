@@ -6,7 +6,7 @@ Resolve every actionable post-merge review finding before v1.1.2, expose the pri
 
 ## Tracked findings
 
-This slice implements issues #17 through #31:
+This slice implements issues #17 through #33:
 
 1. Python 3.8 build discovery.
 2. Local bundled Next.js font bindings.
@@ -22,6 +22,8 @@ This slice implements issues #17 through #31:
 12. Independent SVG raster and ICO capability gates.
 13. Single-physical-line Markdown prose in governed planning records.
 14. Runtime execution of pipeline regression tests on Python 3.8.
+15. Pillow compositing as part of the measured raster capability.
+16. Removal of stale generated QC sheets before lower-tier skips.
 
 ## Additional requirements
 
@@ -33,7 +35,7 @@ This slice implements issues #17 through #31:
 ## Acceptance criteria
 
 - Python 3.8 compiles the scripts, lists all six build sources, and passes the pipeline regression suite.
-- Unit tests cover capability parsing, offline fonts, core raster skips, tier-downgrade cleanup, fatal full-tier PDF/page failures, independent ICO capability, Windows flags, form semantics, and CTA semantics.
+- Unit tests cover capability parsing, offline fonts, core raster skips, missing Pillow, tier-downgrade cleanup, stale QC cleanup, fatal full-tier PDF/page failures, independent ICO capability, Windows flags, form semantics, and CTA semantics.
 - A full-tier local run builds all five production kits and the fixture with zero problems.
 - The site statically exports all 25 routes and contains `fonts.json` for every brand registry.
 - Release packaging emits exactly two skill bundles and five production kits, each with required licenses and each production kit with a PDF.

@@ -136,6 +136,11 @@ def main():
     else:
         dark = "#000000"
     out = os.path.join(a.kit, "qc"); os.makedirs(out, exist_ok=True)
+    stale_sheets = [os.path.join(out, "logo-sheet.png")]
+    stale_sheets += glob.glob(os.path.join(out, "pages-*.png"))
+    for stale in stale_sheets:
+        if os.path.isfile(stale):
+            os.remove(stale)
     capabilities = load_capabilities(a.kit)
     made = []
     errors = []

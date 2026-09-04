@@ -110,6 +110,14 @@ def node_resvg_ok():
         return False
 
 
+def raster_capability(renderer, pillow):
+    if not renderer:
+        return False, "SVG rasterizer unavailable"
+    if not pillow:
+        return False, "Pillow unavailable for required image compositing"
+    return True, None
+
+
 def main():
     kit = sys.argv[1] if len(sys.argv) > 1 else None
     found_cli, found_py = {}, {}
@@ -138,8 +146,9 @@ def main():
     print("%-12s %s" % ("chromium", chrome_note))
 
     node_resvg = node_resvg_ok()
-    raster = (found_cli["rsvg-convert"] or found_cli["resvg"] or found_cli["inkscape"]
-              or node_resvg)
+    renderer = (found_cli["rsvg-convert"] or found_cli["resvg"] or found_cli["inkscape"]
+                or node_resvg)
+    raster, raster_reason = raster_capability(renderer, found_py.get("PIL"))
     ico = found_cli["magick"] or found_cli["convert"] or found_py.get("PIL")
     tier = "full" if (raster and chrome) else ("raster" if raster else "core")
 
@@ -149,7 +158,10 @@ def main():
         "cli": found_cli,
         "modules": found_py,
         "chromium": chrome,
+        "svg_renderer": renderer,
+        "pillow_composite": found_py.get("PIL"),
         "svg_raster": raster,
+        "raster_reason": raster_reason,
         "node_resvg": node_resvg,
         "ico_writer": ico,
     }
@@ -161,7 +173,7 @@ def main():
         print("             typed, so no colour work can proceed. Try:")
         print("               %s -m pip install --user coloraide" % os.path.basename(sys.executable))
     if tier == "core":
-        print("NOTE         no SVG rasteriser. Vector masters, tokens, bindings, the")
+        print("NOTE         %s. Vector masters, tokens, bindings, the" % raster_reason)
         print("             guidelines page and the glyph gate all still run. PNGs,")
         print("             favicons and the ICO will be recorded as skips.")
     if tier != "full":

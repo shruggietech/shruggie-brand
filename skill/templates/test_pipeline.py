@@ -19,6 +19,7 @@ sys.path.insert(0, str(HERE))
 import gen_guide_pdf
 import gen_logo
 import gen_nextjs
+import probe
 import qc_images
 import verify
 from capabilities import load_capabilities
@@ -31,12 +32,20 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
-    def write_probe(self, kit, tier="core", raster=False, chromium=False, ico=False):
+    def write_probe(self, kit, tier="core", raster=False, chromium=False, ico=False,
+                    renderer=None, pillow=None, raster_reason=None):
         qc = Path(kit) / "qc"
         qc.mkdir(parents=True, exist_ok=True)
+        renderer = raster if renderer is None else renderer
+        pillow = raster if pillow is None else pillow
+        if raster_reason is None and not raster:
+            raster_reason = ("Pillow unavailable for required image compositing"
+                             if renderer and not pillow else "SVG rasterizer unavailable")
         write_utf8(qc / "probe.json",
                    json.dumps({"tier": tier, "svg_raster": raster, "chromium": chromium,
-                               "ico_writer": ico}) + "\n")
+                               "ico_writer": ico, "svg_renderer": renderer,
+                               "pillow_composite": pillow,
+                               "raster_reason": raster_reason}) + "\n")
 
     def test_capabilities_require_a_valid_probe(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -109,6 +118,46 @@ class PipelineTests(unittest.TestCase):
             finally:
                 sys.argv = old_argv
             self.assertEqual(result, 1)
+
+    def test_lower_tier_page_qc_removes_stale_sheets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            qc = kit / "qc"
+            qc.mkdir()
+            stale_logo = qc / "logo-sheet.png"
+            stale_page = qc / "pages-old.png"
+            stale_logo.write_bytes(b"stale")
+            stale_page.write_bytes(b"stale")
+            write_utf8(kit / "brand.json", '{"surfaces":{"base":"#000000"}}\n')
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["qc_images.py", str(kit)]
+                self.assertEqual(qc_images.main(), 0)
+            finally:
+                sys.argv = old_argv
+            self.assertFalse(stale_logo.exists())
+            self.assertFalse(stale_page.exists())
+
+    def test_renderer_without_pillow_records_a_named_core_skip(self):
+        self.assertEqual(
+            probe.raster_capability(True, False),
+            (False, "Pillow unavailable for required image compositing"),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "example"
+            shutil.copytree(ROOT / "fixtures" / "example-brand", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            self.write_probe(kit, renderer=True, pillow=False)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            capabilities = load_capabilities(str(kit))
+            self.assertIn("Pillow unavailable", capabilities["raster_reason"])
+            self.assertFalse(any((kit / "logos" / "png").iterdir()))
 
     def test_pdf_skip_is_only_allowed_without_chromium(self):
         with tempfile.TemporaryDirectory() as tmp:
