@@ -25,6 +25,23 @@ No unreleased changes.
 
 - Replaced ShruggieTech's `#2BCC73` light-surface link color, measured at 1.98:1, with `#037B40`, measured at 5.05:1, to meet WCAG 2.1 AA.
 - Corrected the shadcn binding documentation to use the published `/brand/r/{name}.json` route.
+- Restored Python 3.8 kit discovery and added a minimum-version CI job.
+- Replaced generated font-network imports with local bundled bindings and aligned the `fonts.json` registry route.
+- Made unexpected full-tier PDF and page-QC failures block builds and releases.
+- Made the core tier preserve vector output while explicitly recording raster and PDF skips.
+- Verified renderer fallbacks before advertising them as available.
+- Suppressed project-owned Windows console subprocesses and disabled their interactive input.
+- Forwarded native required state from generated form controls and removed nested interactive CTA markup.
+- Removed private workstation paths and Cloudflare resource identifiers from public planning records.
+- Cleared generated PDFs, raster exports, and favicons before capability-tier downgrade skips so stale artifacts cannot enter a later manifest or release.
+- Verified favicon ICO output against its independently measured writer capability.
+- Enforced the repository's single-physical-line Markdown prose policy in public planning records and CI.
+- Made the pipeline regression fixtures Python 3.8-compatible and run them in the minimum-version hosted job.
+- Included Pillow compositing in the measured raster capability instead of allowing a late import failure.
+- Cleared stale generated QC sheets before full-tier capture or lower-tier skips.
+- Recolored image-backed SVG master masks through a standard-library PNG path so core-tier generation does not import Pillow.
+- Cleared stale PDF contact sheets and extracted pages before lower-tier skips or replacement attempts.
+- Deferred Pillow imports in image QC so core-tier named skips execute on hosts without Pillow.
 
 ## [1.1.1] - 2026-09-03
 

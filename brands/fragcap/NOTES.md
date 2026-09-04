@@ -1,6 +1,6 @@
 # fragcap migration notes
 
-The brand source was migrated from the generated kit in `A:\_tmp\branding\fragcap-brand`.
+The brand source was migrated from the operator's legacy generated kit.
 
 - The existing full and reduced marks remain imported filled SVG paths without geometry changes.
 - Signal Cyan remains the identity accent. Capture Orange remains inherited emphasis and is intentionally scarce.

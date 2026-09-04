@@ -131,7 +131,7 @@
         {
           "rank": 2,
           "source": "npm packages in the GENERATED project",
-          "why": "Different context from rank 1. A Next.js project the kit scaffolds uses `geist` (geist/font/sans, geist/font/mono) and next/font/google for Space Grotesk. The build machine has registry access; the skill sandbox may not.",
+          "why": "Different context from rank 1. A Next.js project the kit scaffolds uses next/font/local against the bundled WOFF2 files. The binding must build without font-network access.",
           "applies_to": "the consumer application, never the skill's own rendering path"
         },
         {
