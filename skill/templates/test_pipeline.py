@@ -163,10 +163,10 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("Pillow unavailable", capabilities["raster_reason"])
             self.assertFalse(any((kit / "logos" / "png").iterdir()))
 
-    def test_imagemagick_is_measured_as_an_svg_renderer(self):
+    def test_imagemagick_is_not_measured_as_an_svg_renderer(self):
         found = {"rsvg-convert": False, "resvg": False, "inkscape": False,
                  "magick": True, "convert": False}
-        self.assertTrue(probe.svg_renderer_capability(found, False))
+        self.assertFalse(probe.svg_renderer_capability(found, False))
         found["magick"] = False
         found["convert"] = True
         self.assertFalse(probe.svg_renderer_capability(found, False))
@@ -195,20 +195,18 @@ class PipelineTests(unittest.TestCase):
         capabilities["cli"]["convert"] = True
         self.assertEqual(gen_logo.measured_ico_converter(capabilities), "convert")
 
-    def test_image_qc_uses_measured_imagemagick_renderer(self):
-        opened = mock.Mock()
-        opened.convert.return_value = opened
-
+    def test_svg_consumers_do_not_use_imagemagick(self):
         def which(name):
             return "magick.exe" if name == "magick" else None
 
         with mock.patch.object(qc_images.shutil, "which", side_effect=which), \
-                mock.patch.object(qc_images.subprocess, "run") as run, \
-                mock.patch("PIL.Image.open", return_value=opened):
-            qc_images.rsvg("mark.svg", 64)
-        command = run.call_args.args[0]
-        self.assertEqual(command[:3], ["magick.exe", "-background", "none"])
-        self.assertIn("64x", command)
+                mock.patch.object(qc_images, "NODE", None):
+            with self.assertRaises(RuntimeError):
+                qc_images.rsvg("mark.svg", 64)
+        with mock.patch.object(gen_logo.shutil, "which", side_effect=which), \
+                mock.patch.object(gen_logo, "NODE", None):
+            with self.assertRaises(RuntimeError):
+                gen_logo.raster(["-w", "64", "mark.svg", "-o", "mark.png"])
 
     def test_pdf_skip_is_only_allowed_without_chromium(self):
         with tempfile.TemporaryDirectory() as tmp:

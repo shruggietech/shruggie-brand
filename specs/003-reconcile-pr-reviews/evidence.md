@@ -20,7 +20,7 @@
 | 003-T006 | #22 | PR #16 `r3929374508` | Existing runtime regression expanded to all kit scripts; remaining header nesting corrected | Fixed in S003 | [Reply](https://github.com/shruggietech/shruggie-brand/pull/16#discussion_r3930672144) | Resolved |
 | 003-T007 | #23 | PR #16 `r3929374510` | Generated native required-state regression across input, textarea, and select | Fixed on main | [Reply](https://github.com/shruggietech/shruggie-brand/pull/16#discussion_r3930672188) | Resolved |
 | 003-T008 | #24 | PR #16 `r3929374514` | Hidden non-interactive Windows subprocess regression | Fixed on main | [Reply](https://github.com/shruggietech/shruggie-brand/pull/16#discussion_r3930672235) | Resolved |
-| 003-T009 | #25 | PR #16 `r3929374522` | Core-tier vector retention and raster-skip regression; ImageMagick measurement and QC fallback corrected | Fixed in S003 | [Reply](https://github.com/shruggietech/shruggie-brand/pull/16#discussion_r3930672891) | Resolved |
+| 003-T009 | #25 | PR #16 `r3929374522` | Core-tier vector retention and raster-skip regression; governed SVG renderer measurement aligned across generation and QC | Fixed in S003 | [Reply](https://github.com/shruggietech/shruggie-brand/pull/16#discussion_r3930672891) | Resolved |
 | 003-T010 | #27 | PR #26 `r3929603634` | Stale PDF removal regression | Fixed on main | [Reply](https://github.com/shruggietech/shruggie-brand/pull/26#discussion_r3930673576) | Resolved |
 | 003-T011 | #28 | PR #26 `r3929603638` | Stale raster and favicon removal regression | Fixed on main | [Reply](https://github.com/shruggietech/shruggie-brand/pull/26#discussion_r3930673621) | Resolved |
 | 003-T012 | #29 | PR #26 `r3929603642` | Independently measured ICO-writer regression | Fixed on main | [Reply](https://github.com/shruggietech/shruggie-brand/pull/26#discussion_r3930673678) | Resolved, outdated |
@@ -60,7 +60,7 @@ Parent and program evidence comments: [#6](https://github.com/shruggietech/shrug
 |---|---|---|---|
 | Focused pipeline regressions | Local branch | Pass | 17 tests passed after the round-1 correction |
 | Glyph tests | Local branch | Pass | 31 checks, 0 failures |
-| Capability probe | Local branch | Pass | Full tier; ImageMagick and Chromium measured |
+| Capability probe | Local branch | Pass | Full tier; Node resvg and Chromium measured for raster work, with ImageMagick reserved for ICO output |
 | Six-kit build and verification | Local branch | Pass | Six kits, 0 verification, image-QC, PDF-QC, or pagination problems |
 | Site lint and static export | Local branch | Pass | ESLint clean; Next.js exported 25 routes |
 | Seven-archive packaging dry run | Local branch | Pass | Exactly seven expected archives built |
@@ -74,7 +74,7 @@ Manual inspection covered all six logo sheets, all eleven desktop and 390-pixel 
 | Round | Trigger | Signal | Actionable comments | State |
 |---|---|---|---:|---|
 | 1 | Automatic on pull-request publication | [Review](https://github.com/shruggietech/shruggie-brand/pull/87#pullrequestreview-5109030010) | 1 | Complete: issue filed, regression-first correction verified, comment answered, and thread resolved |
-| 2 | One explicit `@Codex` comment after round 1 | Not requested | Pending | Pending |
+| 2 | [One explicit `@Codex` comment](https://github.com/shruggietech/shruggie-brand/pull/87#issuecomment-5535469445) after round 1 | [Review](https://github.com/shruggietech/shruggie-brand/pull/87#pullrequestreview-5109078395) | 1 | In progress: issue filed and regression-first correction verified locally |
 
 Review request ceiling: 2 rounds. No third request is authorized.
 
@@ -85,6 +85,14 @@ Review request ceiling: 2 rounds. No third request is authorized.
 | ICO generation rediscovered a rejected Windows converter | [#88](https://github.com/shruggietech/shruggie-brand/issues/88) | [PR #87](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930735256) | `test_ico_generation_reuses_the_validated_converter_result` | Fixed in S003 | [Reply](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930757408) | Resolved |
 
 Round-1 issue evidence: [#88](https://github.com/shruggietech/shruggie-brand/issues/88#issuecomment-5535459620). The issue remains open until merge because its correction is branch-only.
+
+### Round 2 Findings
+
+| Finding | Issue | Source thread | Regression | Disposition | Reply | Thread |
+|---|---:|---|---|---|---|---|
+| ImageMagick was admitted into the governed SVG raster fallback chain | [#89](https://github.com/shruggietech/shruggie-brand/issues/89) | [PR #87](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930779209) | `test_imagemagick_is_not_measured_as_an_svg_renderer`; `test_svg_consumers_do_not_use_imagemagick` | Fixed in S003 | Pending | Pending |
+
+Issue #89 remains open until merge because its correction is branch-only. No further Codex review request is authorized.
 
 ## Final Gate
 

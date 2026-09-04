@@ -13,7 +13,7 @@ follows from it.
 | Understand a supplied concept | `potrace`, Inkscape trace, palette extraction | reference geometry, never shipped |
 | Construct the mark | the agent composes glyphkit primitives in `build/mk_paths.py` | the deliverable |
 | Prove the mark | `templates/validate_glyph.py` | a pass or a numbered failure |
-| Export | `rsvg-convert`, ImageMagick, `oxipng` | rasters derived from the vector master |
+| Export | `rsvg-convert`, `resvg`, Inkscape, Node resvg, `oxipng`; ImageMagick only for ICO assembly | rasters derived from the vector master |
 
 Generated images are how the operator and the agent agree on what the thing
 should feel like. They are input to a conversation. The moment a shape is

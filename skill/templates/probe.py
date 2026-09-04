@@ -126,12 +126,11 @@ def imagemagick_convert_ok(command):
 
 
 def svg_renderer_capability(found_cli, node_resvg):
-    """Match the renderer fallbacks implemented by ``gen_logo.raster``."""
+    """Match the governed high-fidelity SVG renderer fallback chain."""
     return bool(
         found_cli.get("rsvg-convert")
         or found_cli.get("resvg")
         or found_cli.get("inkscape")
-        or found_cli.get("magick")
         or node_resvg
     )
 

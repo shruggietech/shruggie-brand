@@ -133,7 +133,6 @@ def recolour_rgba_png(source, target, colour, luminance_mask):
 
 
 def raster(args):
-    raster_cwd = None
     width = args[args.index("-w") + 1] if "-w" in args else None
     height = args[args.index("-h") + 1] if "-h" in args else None
     source = args[-3] if "-o" in args else args[-2]
@@ -151,17 +150,11 @@ def raster(args):
                    "--export-filename=" + output]
         if width: command.append("--export-width=" + width)
         if height: command.append("--export-height=" + height)
-    elif shutil.which("magick"):
-        geometry = "%sx%s" % (width or "", height or "")
-        raster_cwd = os.path.dirname(os.path.abspath(source))
-        command = [shutil.which("magick"), "-background", "none",
-                   os.path.basename(source), "-resize", geometry,
-                   os.path.abspath(output)]
     elif NODE and os.path.exists(RESVG):
         command = [NODE, RESVG] + args
     else:
-        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, ImageMagick, or set GP_NODE and GP_RESVG_RENDERER.")
-    subprocess.run(command, check=True, cwd=raster_cwd, **hidden_process_kwargs())
+        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, resvg, Inkscape, or set GP_NODE and GP_RESVG_RENDERER.")
+    subprocess.run(command, check=True, **hidden_process_kwargs())
 
 
 def path_bbox(d):
