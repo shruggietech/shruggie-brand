@@ -29,6 +29,7 @@
 - Corrected Glitchpad token prefixes and mobile overflow and corrected ShruggieTech mobile header and contact-control semantics.
 - Added changelog-derived release notes and complete seven-archive release certification.
 - Corrected generated kit manifests to carry each kit's declared version.
+- Finalized release manifests after verification, image QC, PDF QC, and pagination so those outputs are checksum-protected.
 
 ## 1.1.1 - 2026-09-03
 

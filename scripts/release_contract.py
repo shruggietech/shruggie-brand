@@ -103,6 +103,9 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
         brand_version = brand.get("version")
         if not isinstance(brand_version, str) or not brand_version:
             raise ValueError("brands/%s/brand.json lacks a version" % slug)
+        if brand.get("canon") != canon["version"]:
+            raise ValueError("brands/%s/brand.json canon differs from authoritative canon %s"
+                             % (slug, canon["version"]))
         brands[slug] = {"version": brand_version, "canon": brand.get("canon")}
 
     return {
@@ -206,6 +209,7 @@ def _read_json(archive: zipfile.ZipFile, name: str, archive_name: str) -> Mappin
 
 
 def verify_brand_archive(path: Path, slug: str, version: str,
+                         expected_canon: Optional[str] = None,
                          root: Optional[Path] = None) -> None:
     entries = archive_entries(path)
     required = set(LICENSES) | {"brand.json", "manifest.json", "VERIFY.md", "brand-guide.pdf"}
@@ -217,6 +221,9 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         manifest = _read_json(archive, "manifest.json", path.name)
         if brand.get("slug") != slug or brand.get("version") != version:
             raise ValueError("%s filename and brand.json metadata disagree" % path.name)
+        if expected_canon is not None and brand.get("canon") != expected_canon:
+            raise ValueError("%s canon differs from authoritative canon %s"
+                             % (path.name, expected_canon))
         if manifest.get("name") != "%s-brand-kit" % slug:
             raise ValueError("%s manifest name disagrees" % path.name)
         if manifest.get("version") != version:
@@ -243,11 +250,10 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             if hashlib.sha256(value).hexdigest() != item.get("sha256"):
                 raise ValueError("%s checksum mismatch: %s" % (path.name, name))
 
-        exempt = set(LICENSES) | {"manifest.json", "VERIFY.md"}
+        exempt = set(LICENSES) | {"manifest.json"}
         unrecorded = sorted(
             name for name in entries
-            if name not in recorded and name not in exempt and not name.startswith("qc/")
-            and not name.endswith("/")
+            if name not in recorded and name not in exempt and not name.endswith("/")
         )
         if unrecorded:
             raise ValueError("%s contains unrecorded files: %s"
@@ -281,7 +287,13 @@ def verify_release_directory(release_dir: Path, metadata: Mapping[str, object],
         elif kind == "portable":
             verify_skill_archive(path, portable=True, root=root)
         else:
-            verify_brand_archive(path, contract["slug"], contract["version"], root=root)
+            verify_brand_archive(
+                path,
+                contract["slug"],
+                contract["version"],
+                expected_canon=str(metadata["canon_version"]),
+                root=root,
+            )
 
     if notes is not None:
         actual_notes = "\n".join(read_text(notes).splitlines()).rstrip() + "\n"

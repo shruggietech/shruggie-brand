@@ -45,6 +45,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - Corrected ShruggieTech's narrow-screen header layout and removed the remaining nested interactive contact control.
 - Generated release notes from the exact versioned changelog section and added a reusable seven-archive metadata, licensing, PDF, and checksum contract.
 - Corrected generated kit manifests to carry each kit's declared version instead of a constant 1.0.0.
+- Rejected source and archive canon metadata that differs from the authoritative release canon.
+- Finalized kit manifests after verification and QC so every published verification artifact is size- and checksum-protected.
 
 ## [1.1.1] - 2026-09-03
 

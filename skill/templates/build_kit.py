@@ -44,14 +44,18 @@ def run(script, args, here):
                        capture_output=True, text=True, **hidden_process_kwargs())
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
-def manifest(kit):
+def manifest(kit, complete=False):
     import hashlib
     files = []
     for dp, dn, fn in os.walk(kit):
-        dn[:] = [d for d in dn if d not in {"node_modules", "qc", "concepts", ".git", "__pycache__"}]
+        excluded = {"node_modules", "concepts", ".git", "__pycache__"}
+        if not complete:
+            excluded.add("qc")
+        dn[:] = sorted(d for d in dn if d not in excluded)
         for f in sorted(fn):
             p = os.path.join(dp, f)
-            if os.path.basename(p) in ("manifest.json", "VERIFY.md"): continue
+            omitted = {"manifest.json"} if complete else {"manifest.json", "VERIFY.md"}
+            if os.path.basename(p) in omitted: continue
             with open(p, "rb") as source:
                 b = source.read()
             files.append({"path": os.path.relpath(p, kit).replace(os.sep, "/"),
@@ -99,7 +103,7 @@ def main():
         last = out.strip().splitlines()[-1] if out.strip() else ""
         print("%-5s %-42s %s" % ("ok" if rc == 0 else "FAIL", label, last[:70]))
         if rc: fail += 1; print(out)
-    print("%-5s %-42s %d files" % ("ok", "manifest with checksums", manifest(kit)))
+    print("%-5s %-42s %d files" % ("ok", "verification manifest", manifest(kit)))
     for label, argv in POST:
         script = argv[0]; args = [a.format(brand=brand, kit=kit) for a in argv[1:]]
         if not os.path.exists(os.path.join(here, script)): continue
@@ -126,6 +130,8 @@ def main():
         if rc:
             print(out)
         fail += rc
+    print("%-5s %-42s %d files" % ("ok", "final release manifest",
+                                          manifest(kit, complete=True)))
     print("\n%s" % ("BUILD CLEAN" if not fail else "BUILD HAS %d PROBLEMS" % fail))
     print("Not finished. Open every sheet in %s and look at it. The gates above "
           "measure correctness; none can tell you it looks right."

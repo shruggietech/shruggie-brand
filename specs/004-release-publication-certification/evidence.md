@@ -26,13 +26,13 @@
 
 | Gate | Result | Evidence |
 | --- | --- | --- |
-| Release-contract regressions | PASS | 6 tests passed, including metadata, notes, unsafe paths, bundle shape, checksum drift, and unexpected assets |
-| Pipeline regressions | PASS | 18 tests passed, including the new declared manifest-version regression |
+| Release-contract regressions | PASS | 9 tests passed, including metadata, notes, unsafe paths, bundle shape, canon drift, complete verification/QC coverage, checksum drift, and unexpected assets |
+| Pipeline regressions | PASS | 19 tests passed, including declared manifest version and final verification/QC coverage regressions |
 | Glyph construction | PASS | 31 checks and 0 failures |
 | Full six-kit rebuild | PASS | Five production kits and the fixture built at full capability with 0 reported problems and 0 glyph failures |
 | Visual contact sheets | PASS | Logo and page contact sheets for all six targets were reviewed as one generated montage; no new visual defect was observed |
 | PDF and pagination QC | PASS | All six targets reported 0 PDF QC problems and 0 split elements |
-| Release packaging | PASS | Exactly 7 expected archives were produced and the shared verifier accepted metadata, licenses, bundle shape, PDFs, versions, and recorded checksums |
+| Release packaging | PASS | Exactly 7 expected archives were produced and the shared verifier accepted metadata, authoritative canon, licenses, bundle shape, PDFs, versions, complete verification/QC coverage, and recorded checksums |
 | Release notes | PASS | Generated from root 1.1.2 history with skill 1.1.2, canon 1.1.2, and explicit rebuild migration guidance |
 | Static site | PASS | TypeScript lint passed and Next.js exported 25 static pages |
 | Generated agent contract | PASS | Sync reported unchanged output |
@@ -55,14 +55,14 @@ Pre-merge acceptance comments: [#63](https://github.com/shruggietech/shruggie-br
 
 | Round | Trigger | Signal | Actionable comments | Finding issues | State |
 | --- | --- | --- | ---: | --- | --- |
-| 1 | Automatic on PR publication | Pending | Pending | Pending | Pending |
-| 2 | One explicit `@Codex` comment after round 1 | Not requested | Pending | Pending | Pending |
+| 1 | Automatic on PR publication | [Environment unavailable](https://github.com/shruggietech/shruggie-brand/pull/91#issuecomment-5536088206) | 0 | None | Complete |
+| 2 | [One explicit request](https://github.com/shruggietech/shruggie-brand/pull/91#issuecomment-5536098285) after round 1 | [Completed review](https://github.com/shruggietech/shruggie-brand/pull/91#issuecomment-5536100694) | 2 | #92 and #93 | Corrections locally verified; replies and resolution pending push |
 
 Review request ceiling: 2 rounds. No third request is authorized.
 
 ## Hosted checks
 
-Pending pull-request publication.
+The first hosted pull-request run passed both Python 3.8 compatibility and the full build. A correction push for round 2 findings will start the final required run.
 
 ## Post-merge publication
 

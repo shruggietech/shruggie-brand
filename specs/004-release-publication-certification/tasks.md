@@ -53,8 +53,8 @@
 
 - [X] T013 [US2] Complete `specs/004-release-publication-certification/evidence.md`, mark finished pre-merge tasks, run `git diff --check` and the full quickstart, and create a Conventional Commit for S004
 - [X] T014 [US2] Push `codex/004-release-publication-certification` and open the official pull request with issue traceability, release evidence, explicit post-merge work, and the initial ledger from `specs/004-release-publication-certification/contracts/review-ledger.md`
-- [ ] T015 [US2] Observe automatic Codex round 1, file every negative finding as a GitHub issue, respond to every comment, implement and verify warranted corrections, push them, resolve every addressed thread, and update `specs/004-release-publication-certification/evidence.md` plus the pull-request ledger
-- [ ] T016 [US2] Post exactly one `@Codex` pull-request comment for round 2 and record its immutable URL in `specs/004-release-publication-certification/evidence.md`
+- [X] T015 [US2] Observe automatic Codex round 1, file every negative finding as a GitHub issue, respond to every comment, implement and verify warranted corrections, push them, resolve every addressed thread, and update `specs/004-release-publication-certification/evidence.md` plus the pull-request ledger
+- [X] T016 [US2] Post exactly one `@Codex` pull-request comment for round 2 and record its immutable URL in `specs/004-release-publication-certification/evidence.md`
 - [ ] T017 [US2] Observe Codex round 2, file every new negative finding as a GitHub issue, respond to every comment, implement and verify warranted corrections, push them, resolve every addressed thread, and update `specs/004-release-publication-certification/evidence.md` plus the pull-request ledger without another review request
 - [ ] T018 [US2] Wait for every required continuous-integration check to succeed, verify the pull request remains open and review-complete with no v1.1.2 tag or release, and hand it to the owner for the final review and merge ritual
 
