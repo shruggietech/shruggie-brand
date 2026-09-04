@@ -44,21 +44,31 @@ def run(script, args, here):
                        capture_output=True, text=True, **hidden_process_kwargs())
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
-def manifest(kit):
+def manifest(kit, complete=False):
     import hashlib
     files = []
     for dp, dn, fn in os.walk(kit):
-        dn[:] = [d for d in dn if d not in {"node_modules", "qc", "concepts", ".git", "__pycache__"}]
+        excluded = {"node_modules", "concepts", ".git", "__pycache__"}
+        if not complete:
+            excluded.add("qc")
+        dn[:] = sorted(d for d in dn if d not in excluded)
         for f in sorted(fn):
             p = os.path.join(dp, f)
-            if os.path.basename(p) in ("manifest.json", "VERIFY.md"): continue
-            b = open(p, "rb").read()
+            omitted = {"manifest.json"} if complete else {"manifest.json", "VERIFY.md"}
+            if os.path.basename(p) in omitted: continue
+            with open(p, "rb") as source:
+                b = source.read()
             files.append({"path": os.path.relpath(p, kit).replace(os.sep, "/"),
                           "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()})
     bj = os.path.join(kit, "brand.json")
-    B = json.load(open(bj, encoding="utf-8")) if os.path.exists(bj) else {}
+    if os.path.exists(bj):
+        with open(bj, encoding="utf-8") as source:
+            B = json.load(source)
+    else:
+        B = {}
     with open(os.path.join(kit, "manifest.json"), "w", encoding="utf-8", newline="\n") as f:
-        json.dump({"name": "%s-brand-kit" % B.get("slug", "brand"), "version": "1.0.0",
+        json.dump({"name": "%s-brand-kit" % B.get("slug", "brand"),
+                   "version": B.get("version", "1.0.0"),
                    "parent": "ShruggieTech", "canon": B.get("canon", "1.0.0"),
                    "files": files}, f, indent=2)
         f.write("\n")
@@ -93,7 +103,7 @@ def main():
         last = out.strip().splitlines()[-1] if out.strip() else ""
         print("%-5s %-42s %s" % ("ok" if rc == 0 else "FAIL", label, last[:70]))
         if rc: fail += 1; print(out)
-    print("%-5s %-42s %d files" % ("ok", "manifest with checksums", manifest(kit)))
+    print("%-5s %-42s %d files" % ("ok", "verification manifest", manifest(kit)))
     for label, argv in POST:
         script = argv[0]; args = [a.format(brand=brand, kit=kit) for a in argv[1:]]
         if not os.path.exists(os.path.join(here, script)): continue
@@ -120,6 +130,8 @@ def main():
         if rc:
             print(out)
         fail += rc
+    print("%-5s %-42s %d files" % ("ok", "final release manifest",
+                                          manifest(kit, complete=True)))
     print("\n%s" % ("BUILD CLEAN" if not fail else "BUILD HAS %d PROBLEMS" % fail))
     print("Not finished. Open every sheet in %s and look at it. The gates above "
           "measure correctness; none can tell you it looks right."

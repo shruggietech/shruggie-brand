@@ -19,6 +19,7 @@ sys.path.insert(0, str(HERE))
 import gen_guide_pdf
 import gen_logo
 import gen_nextjs
+import build_kit
 import probe
 import qc_images
 import verify
@@ -32,6 +33,45 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_manifest_uses_the_declared_kit_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            write_utf8(kit / "brand.json", json.dumps({
+                "slug": "fragcap",
+                "version": "1.1.0",
+                "canon": "1.1.2",
+            }) + "\n")
+            write_utf8(kit / "tokens.css", ":root {}\n")
+
+            build_kit.manifest(str(kit))
+
+            manifest = json.loads((kit / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["name"], "fragcap-brand-kit")
+            self.assertEqual(manifest["version"], "1.1.0")
+            self.assertEqual(manifest["canon"], "1.1.2")
+
+    def test_complete_manifest_records_verification_and_qc_outputs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            write_utf8(kit / "brand.json", json.dumps({
+                "slug": "fragcap",
+                "version": "1.1.0",
+                "canon": "1.1.2",
+            }) + "\n")
+            write_utf8(kit / "VERIFY.md", "verified\n")
+            (kit / "qc").mkdir()
+            write_utf8(kit / "qc" / "probe.json", "{}\n")
+            (kit / "qc" / "contact-sheet.png").write_bytes(b"png")
+
+            build_kit.manifest(str(kit), complete=True)
+
+            manifest = json.loads((kit / "manifest.json").read_text(encoding="utf-8"))
+            recorded = {item["path"] for item in manifest["files"]}
+            self.assertIn("VERIFY.md", recorded)
+            self.assertIn("qc/probe.json", recorded)
+            self.assertIn("qc/contact-sheet.png", recorded)
+            self.assertNotIn("manifest.json", recorded)
+
     def write_probe(self, kit, tier="core", raster=False, chromium=False, ico=False,
                     renderer=None, pillow=None, raster_reason=None):
         qc = Path(kit) / "qc"
