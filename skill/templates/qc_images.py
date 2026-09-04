@@ -25,6 +25,7 @@ RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__fi
 def rsvg(src, w):
     from PIL import Image
     out = os.path.join(tempfile.gettempdir(), "_qc_%d.png" % abs(hash(src + str(w))))
+    renderer_cwd = None
     native = shutil.which("rsvg-convert")
     if native:
         command = [native, "-w", str(w), src, "-o", out]
@@ -33,11 +34,16 @@ def rsvg(src, w):
     elif shutil.which("inkscape"):
         command = [shutil.which("inkscape"), src, "--export-type=png",
                    "--export-filename=" + out, "--export-width=" + str(w)]
+    elif shutil.which("magick"):
+        renderer_cwd = os.path.dirname(os.path.abspath(src))
+        command = [shutil.which("magick"), "-background", "none",
+                   os.path.basename(src), "-resize", "%sx" % w,
+                   os.path.abspath(out)]
     elif NODE and os.path.exists(RESVG):
         command = [NODE, RESVG, "-w", str(w), src, "-o", out]
     else:
-        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert or set GP_NODE and GP_RESVG_RENDERER.")
-    subprocess.run(command, check=True, **hidden_process_kwargs())
+        raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, ImageMagick, or set GP_NODE and GP_RESVG_RENDERER.")
+    subprocess.run(command, check=True, cwd=renderer_cwd, **hidden_process_kwargs())
     return Image.open(out).convert("RGBA")
 
 def logo_sheet(kit, out, dark, light):
