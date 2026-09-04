@@ -65,7 +65,7 @@ Parent and program evidence comments: [#6](https://github.com/shruggietech/shrug
 | Site lint and static export | Local branch | Pass | ESLint clean; Next.js exported 25 routes |
 | Seven-archive packaging dry run | Local branch | Pass | Exactly seven expected archives built |
 | Clean repository-only rebuild | Detached checkout at `9cb5153` | Pass | Fresh dependency install; 16 pipeline tests, 31 glyph checks, six-kit build, 25-route site export, and seven-archive dry run all passed; checkout remained clean |
-| Hosted pull-request checks | GitHub Actions | Pending | Pending |
+| Hosted pull-request checks | GitHub Actions | Pass | Both build and Python 3.8 jobs succeeded on review-complete head `faa5a22` |
 
 Manual inspection covered all six logo sheets, all eleven desktop and 390-pixel page sheets, and all six PDF contact sheets. No clipping, overflow, blank page, unreadable type, or identity-art defect remained after the S003 fixture corrections.
 
@@ -100,6 +100,6 @@ Round-2 issue evidence: [#89](https://github.com/shruggietech/shruggie-brand/iss
 - Every candidate issue evaluated with public evidence: complete
 - Eligible issue and parent closures completed: complete
 - Local verification green: complete
-- Hosted checks green: pending
+- Hosted checks green: complete
 - Both Codex rounds complete: complete
-- Pull request remains open for owner merge: pending
+- Pull request remains open for owner merge: complete
