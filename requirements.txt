@@ -1,4 +1,5 @@
-coloraide==8.12.1
+coloraide==4.2.2; python_version < "3.10"
+coloraide==8.12.1; python_version >= "3.10"
 fonttools==4.59.2
 pillow==11.3.0
 pikepdf==9.11.0
