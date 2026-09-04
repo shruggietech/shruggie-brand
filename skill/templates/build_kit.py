@@ -14,6 +14,8 @@ automated gate in this kit can pass on a document that looks wrong.
 """
 import json, os, subprocess, sys
 
+from process_utils import hidden_process_kwargs
+
 # probe.py runs first so every later step routes off measured capability, and
 # the glyph gate runs before anything is exported so a broken mark fails in one
 # line rather than after twenty colourways. Both are cheap and both are the
@@ -39,7 +41,7 @@ POST = [
 
 def run(script, args, here):
     r = subprocess.run([sys.executable, os.path.join(here, script)] + args,
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, **hidden_process_kwargs())
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 def manifest(kit):
@@ -98,7 +100,7 @@ def main():
         rc, out = run(script, args, here)
         print("%-5s %-42s %s" % ("ok" if rc == 0 else "FAIL", label,
                                  "0 problems" if rc == 0 else "%d problems" % rc))
-        if rc:
+        if rc or script == "qc_images.py":
             print(out)
         fail += rc
     pdf = os.path.join(kit, "brand-guide.pdf")

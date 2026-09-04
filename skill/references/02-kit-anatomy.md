@@ -52,7 +52,7 @@ because that is what the agent's hands already know.
     registry/
       registry.json                 the catalog
       theme.json                    registry:theme carrying cssVars
-      font.json                     registry:font
+      fonts.json                    registry:font
       <component>.json              registry:ui, ONLY where the brand
                                     genuinely diverges from stock shadcn
 

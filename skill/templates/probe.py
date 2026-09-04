@@ -25,6 +25,14 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
+
+from process_utils import hidden_process_kwargs
+
+NODE = os.environ.get("GP_NODE") or shutil.which("node")
+RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "rsvg-convert.js"
+)
 
 CLI = [
     ("rsvg-convert", "SVG to PNG, first choice"),
@@ -54,7 +62,8 @@ def which(name):
 
 def version(name):
     try:
-        r = subprocess.run([name, "--version"], capture_output=True, text=True, timeout=8)
+        r = subprocess.run([name, "--version"], capture_output=True, text=True, timeout=8,
+                           **hidden_process_kwargs())
         line = ((r.stdout or "") + (r.stderr or "")).strip().splitlines()
         return line[0][:60] if line else "present"
     except Exception:
@@ -76,6 +85,37 @@ def chromium_ok():
             p.stop()
     except Exception as e:
         return False, str(e).strip().splitlines()[0][:70]
+
+
+def node_resvg_ok():
+    """Exercise the bundled fallback; file existence alone does not prove its module loads."""
+    if not NODE or not os.path.isfile(RESVG):
+        return False
+    try:
+        with tempfile.TemporaryDirectory() as directory:
+            source = os.path.join(directory, "probe.svg")
+            output = os.path.join(directory, "probe.png")
+            with open(source, "w", encoding="utf-8", newline="\n") as handle:
+                handle.write('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect width="1" height="1"/></svg>\n')
+            result = subprocess.run(
+                [NODE, RESVG, "-w", "1", source, "-o", output],
+                cwd=os.path.dirname(os.path.abspath(RESVG)),
+                capture_output=True,
+                text=True,
+                timeout=8,
+                **hidden_process_kwargs()
+            )
+            return result.returncode == 0 and os.path.isfile(output)
+    except Exception:
+        return False
+
+
+def raster_capability(renderer, pillow):
+    if not renderer:
+        return False, "SVG rasterizer unavailable"
+    if not pillow:
+        return False, "Pillow unavailable for required image compositing"
+    return True, None
 
 
 def main():
@@ -105,9 +145,10 @@ def main():
     chrome, chrome_note = chromium_ok() if found_py.get("playwright") else (False, "playwright missing")
     print("%-12s %s" % ("chromium", chrome_note))
 
-    raster = (found_cli["rsvg-convert"] or found_cli["resvg"] or found_cli["inkscape"]
-              or (found_cli["node"] and os.path.exists(
-                  os.path.join(os.path.dirname(os.path.abspath(__file__)), "rsvg-convert.js"))))
+    node_resvg = node_resvg_ok()
+    renderer = (found_cli["rsvg-convert"] or found_cli["resvg"] or found_cli["inkscape"]
+                or node_resvg)
+    raster, raster_reason = raster_capability(renderer, found_py.get("PIL"))
     ico = found_cli["magick"] or found_cli["convert"] or found_py.get("PIL")
     tier = "full" if (raster and chrome) else ("raster" if raster else "core")
 
@@ -117,7 +158,11 @@ def main():
         "cli": found_cli,
         "modules": found_py,
         "chromium": chrome,
+        "svg_renderer": renderer,
+        "pillow_composite": found_py.get("PIL"),
         "svg_raster": raster,
+        "raster_reason": raster_reason,
+        "node_resvg": node_resvg,
         "ico_writer": ico,
     }
 
@@ -128,7 +173,7 @@ def main():
         print("             typed, so no colour work can proceed. Try:")
         print("               %s -m pip install --user coloraide" % os.path.basename(sys.executable))
     if tier == "core":
-        print("NOTE         no SVG rasteriser. Vector masters, tokens, bindings, the")
+        print("NOTE         %s. Vector masters, tokens, bindings, the" % raster_reason)
         print("             guidelines page and the glyph gate all still run. PNGs,")
         print("             favicons and the ICO will be recorded as skips.")
     if tier != "full":

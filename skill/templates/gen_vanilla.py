@@ -105,9 +105,9 @@ def emit_components(kit, P, brand, w):
           'export function %s({ %s }) {\n  return <div className="%s-%s" role="row"%s>%s</div>;\n}\n'
           % (comp, args, P, k, sel, cells))
     for name, (tag, typ) in FORM_JSX.items():
-        el = ("<%s className=\"%s-field__control\" id={id} {...props}%s />"
+        el = ("<%s className=\"%s-field__control\" id={id} required={required} {...props}%s />"
               % (tag, P, (' type="%s"' % typ) if typ else "")) if tag != "select" else (
-              "<select className=\"%s-field__control\" id={id} {...props}>{children}</select>" % P)
+              "<select className=\"%s-field__control\" id={id} required={required} {...props}>{children}</select>" % P)
         extra = ", children" if tag == "select" else ""
         w("components/forms/%s.jsx" % name,
           'export function %s({ id, label, required = false, error%s, ...props }) {\n'
