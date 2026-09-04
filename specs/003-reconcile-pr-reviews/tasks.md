@@ -96,7 +96,7 @@
 - [X] T038 [US3] Push `codex/003-reconcile-pr-reviews` and open the official pull request with issue links, exclusions, verification results, and the initial ledger from `specs/003-reconcile-pr-reviews/contracts/review-ledger.md`
 - [X] T039 [US3] Observe automatic Codex review round 1, respond to every comment, implement regression-first corrections where warranted, rerun verification, push changes, resolve every addressed thread, and update the pull-request ledger
 - [X] T040 [US3] Post exactly one `@Codex` pull-request comment for round 2 and record its immutable comment URL in `specs/003-reconcile-pr-reviews/evidence.md`
-- [ ] T041 [US3] Observe Codex review round 2, respond to every comment, implement regression-first corrections where warranted, rerun verification, push changes, resolve every addressed thread, and update the pull-request ledger without another review request
+- [X] T041 [US3] Observe Codex review round 2, respond to every comment, implement regression-first corrections where warranted, rerun verification, push changes, resolve every addressed thread, and update the pull-request ledger without another review request
 - [ ] T042 [US3] Wait for every required continuous-integration check to succeed, verify the pull request remains open and review-complete, and hand it to the owner for the final review and merge ritual
 
 ---

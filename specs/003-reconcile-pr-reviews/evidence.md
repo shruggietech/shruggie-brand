@@ -58,7 +58,7 @@ Parent and program evidence comments: [#6](https://github.com/shruggietech/shrug
 
 | Check | Environment | Result | Evidence |
 |---|---|---|---|
-| Focused pipeline regressions | Local branch | Pass | 17 tests passed after the round-1 correction |
+| Focused pipeline regressions | Local branch | Pass | 17 tests passed after both review-round corrections |
 | Glyph tests | Local branch | Pass | 31 checks, 0 failures |
 | Capability probe | Local branch | Pass | Full tier; Node resvg and Chromium measured for raster work, with ImageMagick reserved for ICO output |
 | Six-kit build and verification | Local branch | Pass | Six kits, 0 verification, image-QC, PDF-QC, or pagination problems |
@@ -74,7 +74,7 @@ Manual inspection covered all six logo sheets, all eleven desktop and 390-pixel 
 | Round | Trigger | Signal | Actionable comments | State |
 |---|---|---|---:|---|
 | 1 | Automatic on pull-request publication | [Review](https://github.com/shruggietech/shruggie-brand/pull/87#pullrequestreview-5109030010) | 1 | Complete: issue filed, regression-first correction verified, comment answered, and thread resolved |
-| 2 | [One explicit `@Codex` comment](https://github.com/shruggietech/shruggie-brand/pull/87#issuecomment-5535469445) after round 1 | [Review](https://github.com/shruggietech/shruggie-brand/pull/87#pullrequestreview-5109078395) | 1 | In progress: issue filed and regression-first correction verified locally |
+| 2 | [One explicit `@Codex` comment](https://github.com/shruggietech/shruggie-brand/pull/87#issuecomment-5535469445) after round 1 | [Review](https://github.com/shruggietech/shruggie-brand/pull/87#pullrequestreview-5109078395) | 1 | Complete: issue filed, regression-first correction verified, comment answered, and thread resolved |
 
 Review request ceiling: 2 rounds. No third request is authorized.
 
@@ -90,9 +90,9 @@ Round-1 issue evidence: [#88](https://github.com/shruggietech/shruggie-brand/iss
 
 | Finding | Issue | Source thread | Regression | Disposition | Reply | Thread |
 |---|---:|---|---|---|---|---|
-| ImageMagick was admitted into the governed SVG raster fallback chain | [#89](https://github.com/shruggietech/shruggie-brand/issues/89) | [PR #87](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930779209) | `test_imagemagick_is_not_measured_as_an_svg_renderer`; `test_svg_consumers_do_not_use_imagemagick` | Fixed in S003 | Pending | Pending |
+| ImageMagick was admitted into the governed SVG raster fallback chain | [#89](https://github.com/shruggietech/shruggie-brand/issues/89) | [PR #87](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930779209) | `test_imagemagick_is_not_measured_as_an_svg_renderer`; `test_svg_consumers_do_not_use_imagemagick` | Fixed in S003 | [Reply](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930814028) | Resolved |
 
-Issue #89 remains open until merge because its correction is branch-only. No further Codex review request is authorized.
+Round-2 issue evidence: [#89](https://github.com/shruggietech/shruggie-brand/issues/89#issuecomment-5535560887). The issue remains open until merge because its correction is branch-only. No further Codex review request is authorized.
 
 ## Final Gate
 
@@ -101,5 +101,5 @@ Issue #89 remains open until merge because its correction is branch-only. No fur
 - Eligible issue and parent closures completed: complete
 - Local verification green: complete
 - Hosted checks green: pending
-- Both Codex rounds complete: pending
+- Both Codex rounds complete: complete
 - Pull request remains open for owner merge: pending
