@@ -47,7 +47,7 @@
 | Issue #63 | https://github.com/shruggietech/shruggie-brand/issues/63 | Open pending publication |
 | Issue #72 | https://github.com/shruggietech/shruggie-brand/issues/72 | Open pending publication |
 | Issue #73 | https://github.com/shruggietech/shruggie-brand/issues/73 | Open pending publication |
-| Pull request | Pending | Pending |
+| Pull request | https://github.com/shruggietech/shruggie-brand/pull/91 | Open pending CI and two bounded Codex rounds |
 
 Pre-merge acceptance comments: [#63](https://github.com/shruggietech/shruggie-brand/issues/63#issuecomment-5536081006), [#72](https://github.com/shruggietech/shruggie-brand/issues/72#issuecomment-5536081269), [#73](https://github.com/shruggietech/shruggie-brand/issues/73#issuecomment-5536081492), and [#90](https://github.com/shruggietech/shruggie-brand/issues/90#issuecomment-5536081710).
 
