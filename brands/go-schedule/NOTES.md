@@ -1,6 +1,6 @@
 # go-schedule migration notes
 
-The brand source was migrated from the generated kit in `A:\_tmp\branding\go-schedule-brand`.
+The brand source was migrated from the operator's legacy generated kit.
 
 - The existing 512-unit mark remains imported SVG geometry. Rounded rectangles, open paths, stroke widths, caps, joins, and relative commands are preserved.
 - The reduced master comes directly from the shipped SVG favicon.

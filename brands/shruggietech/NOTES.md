@@ -1,6 +1,6 @@
 # ShruggieTech migration notes
 
-The parent brand source was migrated from `A:\_tmp\branding\shruggietech-brand`.
+The parent brand source was migrated from the operator's legacy staging kit.
 
 - No vector mark exists in the supplied kit, `_ds_bundle.js`, or the authoritative CDN index. Tracing the paid antialiased PNG would change its geometry, so the source PNG masks remain authoritative and generated SVGs embed those masks without tracing.
 - The four logo PNGs are committed as necessary source binaries. This is a ground-truth exception to the source-tree preference for font binaries only.

@@ -64,6 +64,8 @@ def main() -> int:
         source = ROOT / "dist" / slug
         if not (source / "brand.json").is_file():
             raise ValueError(f"missing built kit: {slug}")
+        if not (source / "brand-guide.pdf").is_file():
+            raise ValueError(f"missing required brand guide PDF: {slug}")
         brand = json.loads((source / "brand.json").read_text(encoding="utf-8"))
         archive_path = OUTPUT / f"{slug}-brand-{brand['version']}.zip"
         with zipfile.ZipFile(archive_path, "w") as archive:

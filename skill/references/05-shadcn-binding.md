@@ -21,7 +21,7 @@ nextjs/
   registry/
     registry.json           the catalog
     theme.json              registry:theme carrying every cssVar
-    font.json               registry:font
+    fonts.json              registry:font
   README.md                 install instructions and the rules that outlive them
 ```
 
@@ -120,8 +120,7 @@ Two things this unlocks beyond convenience:
 
 ## Fonts
 
-`fonts.ts` uses the `geist` npm package for Geist and Geist Mono and
-`next/font/google` for Space Grotesk, so a real Next.js build needs no CDN.
+`fonts.ts` uses `next/font/local` for Geist, Geist Mono, and Space Grotesk. Keep it beside the exported kit's `fonts/` tree so a Next.js build makes no font-network request.
 
 The generated README carries the warning that matters: never fetch fonts at
 build time inside a sandbox. `fonts.gstatic.com` is blocked by the egress proxy
