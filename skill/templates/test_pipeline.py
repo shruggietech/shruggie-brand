@@ -154,6 +154,9 @@ class PipelineTests(unittest.TestCase):
                 sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
                 with mock.patch.dict(sys.modules, {"PIL": None, "PIL.Image": None}):
                     self.assertEqual(gen_logo.main(), 0)
+                sys.argv = ["qc_images.py", str(kit)]
+                with mock.patch.dict(sys.modules, {"PIL": None, "PIL.Image": None}):
+                    self.assertEqual(qc_images.main(), 0)
             finally:
                 sys.argv = old_argv
             capabilities = load_capabilities(str(kit))

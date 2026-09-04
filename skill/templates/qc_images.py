@@ -16,7 +16,6 @@ agent opens.
 """
 import argparse, functools, glob, http.server, os, shutil, subprocess, sys, tempfile, threading
 from urllib.parse import quote
-from PIL import Image, ImageDraw
 from capabilities import load_capabilities
 from process_utils import hidden_process_kwargs
 
@@ -24,6 +23,7 @@ NODE = os.environ.get("GP_NODE") or shutil.which("node")
 RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__file__), "rsvg-convert.js")
 
 def rsvg(src, w):
+    from PIL import Image
     out = os.path.join(tempfile.gettempdir(), "_qc_%d.png" % abs(hash(src + str(w))))
     native = shutil.which("rsvg-convert")
     if native:
@@ -41,6 +41,7 @@ def rsvg(src, w):
     return Image.open(out).convert("RGBA")
 
 def logo_sheet(kit, out, dark, light):
+    from PIL import Image, ImageDraw
     svgs = sorted(glob.glob(os.path.join(kit, "logos", "svg", "*.svg")))
     if not svgs: return None
     horiz = [s for s in svgs if "horizontal" in s and s.endswith(("color.svg", "light.svg"))]
@@ -78,6 +79,7 @@ def logo_sheet(kit, out, dark, light):
     sh.save(out); return out
 
 def page_shots(kit, outdir):
+    from PIL import Image, ImageDraw
     from playwright.sync_api import sync_playwright
     pages = [p for p in glob.glob(os.path.join(kit, "**", "*.html"), recursive=True)
              if "node_modules" not in p and "/build/" not in p.replace(os.sep, "/")]
@@ -151,7 +153,8 @@ def main():
         except Exception as e:
             errors.append("logo sheet failed after raster capability passed: %s" % e)
     else:
-        print("SKIP logo sheet: SVG rasterizer unavailable at core tier")
+        print("SKIP logo sheet: %s at core tier"
+              % capabilities.get("raster_reason", "required raster capability unavailable"))
     if capabilities["tier"] == "full":
         try:
             made += page_shots(a.kit, out)

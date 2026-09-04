@@ -23,6 +23,7 @@
 - Made pipeline regression fixtures runnable on Python 3.8.
 - Included Pillow compositing in the raster capability gate and cleared stale QC sheets before regeneration or skips.
 - Made image-backed core SVG masters independent of Pillow and cleared stale PDF QC evidence before tier routing.
+- Deferred image-QC Pillow imports until a measured raster or full path runs.
 
 ## 1.1.1 - 2026-09-03
 

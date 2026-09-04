@@ -41,6 +41,7 @@ No unreleased changes.
 - Cleared stale generated QC sheets before full-tier capture or lower-tier skips.
 - Recolored image-backed SVG master masks through a standard-library PNG path so core-tier generation does not import Pillow.
 - Cleared stale PDF contact sheets and extracted pages before lower-tier skips or replacement attempts.
+- Deferred Pillow imports in image QC so core-tier named skips execute on hosts without Pillow.
 
 ## [1.1.1] - 2026-09-03
 
