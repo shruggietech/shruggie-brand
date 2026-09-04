@@ -2,5 +2,6 @@ coloraide==6.0
 fonttools==4.59.2
 pillow==11.3.0
 pikepdf==9.11.0
-playwright==1.62.0
+playwright==1.48.0; python_version < "3.10"
+playwright==1.62.0; python_version >= "3.10"
 svgelements==1.9.6
