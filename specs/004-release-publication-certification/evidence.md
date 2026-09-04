@@ -49,6 +49,8 @@
 | Issue #73 | https://github.com/shruggietech/shruggie-brand/issues/73 | Open pending publication |
 | Pull request | Pending | Pending |
 
+Pre-merge acceptance comments: [#63](https://github.com/shruggietech/shruggie-brand/issues/63#issuecomment-5536081006), [#72](https://github.com/shruggietech/shruggie-brand/issues/72#issuecomment-5536081269), [#73](https://github.com/shruggietech/shruggie-brand/issues/73#issuecomment-5536081492), and [#90](https://github.com/shruggietech/shruggie-brand/issues/90#issuecomment-5536081710).
+
 ## Codex review ledger
 
 | Round | Trigger | Signal | Actionable comments | Finding issues | State |

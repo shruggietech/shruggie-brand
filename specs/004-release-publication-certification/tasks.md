@@ -39,7 +39,7 @@
 - [X] T009 [US1] Run release-contract tests in Python 3.8 CI and run full notes, package, and archive preflight in `.github/workflows/build.yml`
 - [X] T010 [US1] Replace hardcoded release notes and inline license-only checks with generated notes and the shared verifier in `.github/workflows/release.yml`
 - [X] T011 [US1] Run steps 1 through 5 of `specs/004-release-publication-certification/quickstart.md`, including isolated clean-checkout verification, and record sanitized results in `specs/004-release-publication-certification/evidence.md`
-- [ ] T012 [US1] Add acceptance-specific pre-merge evidence to #63, #72, and #73 while explicitly retaining their open publication-dependent state; record comment links in `specs/004-release-publication-certification/evidence.md`
+- [X] T012 [US1] Add acceptance-specific pre-merge evidence to #63, #72, and #73 while explicitly retaining their open publication-dependent state; record comment links in `specs/004-release-publication-certification/evidence.md`
 
 **Checkpoint**: User Story 1 is independently complete. The release candidate is reproducible, but no tag or release exists.
 
@@ -51,7 +51,7 @@
 
 **Independent Test**: The pull request is open, required checks are green, every review comment is answered and resolved, every negative finding has an issue, exactly one explicit `@Codex` request exists, and no tag or release has been created.
 
-- [ ] T013 [US2] Complete `specs/004-release-publication-certification/evidence.md`, mark finished pre-merge tasks, run `git diff --check` and the full quickstart, and create a Conventional Commit for S004
+- [X] T013 [US2] Complete `specs/004-release-publication-certification/evidence.md`, mark finished pre-merge tasks, run `git diff --check` and the full quickstart, and create a Conventional Commit for S004
 - [ ] T014 [US2] Push `codex/004-release-publication-certification` and open the official pull request with issue traceability, release evidence, explicit post-merge work, and the initial ledger from `specs/004-release-publication-certification/contracts/review-ledger.md`
 - [ ] T015 [US2] Observe automatic Codex round 1, file every negative finding as a GitHub issue, respond to every comment, implement and verify warranted corrections, push them, resolve every addressed thread, and update `specs/004-release-publication-certification/evidence.md` plus the pull-request ledger
 - [ ] T016 [US2] Post exactly one `@Codex` pull-request comment for round 2 and record its immutable URL in `specs/004-release-publication-certification/evidence.md`
