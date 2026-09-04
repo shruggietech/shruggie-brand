@@ -22,6 +22,7 @@
 - Separated favicon ICO verification from the SVG rasterizer capability gate.
 - Made pipeline regression fixtures runnable on Python 3.8.
 - Included Pillow compositing in the raster capability gate and cleared stale QC sheets before regeneration or skips.
+- Made image-backed core SVG masters independent of Pillow and cleared stale PDF QC evidence before tier routing.
 
 ## 1.1.1 - 2026-09-03
 

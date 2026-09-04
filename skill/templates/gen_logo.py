@@ -6,12 +6,14 @@ This runtime copy extends the stock builder with optional rectangular mark
 canvases, filled compound paths and explicit per-colourway role mappings. The
 fallback remains fully compatible with the stock scalar ``logo.grid`` schema.
 """
+import binascii
 import json
 import os
 import shutil
 import struct
 import subprocess
 import sys
+import zlib
 
 from svgelements import Path
 from capabilities import load_capabilities
@@ -37,6 +39,91 @@ def reset_generated_dir(kit, directory):
     if os.path.isdir(target):
         shutil.rmtree(target)
     os.makedirs(target, exist_ok=True)
+
+
+def png_chunk(kind, data):
+    return (struct.pack(">I", len(data)) + kind + data
+            + struct.pack(">I", binascii.crc32(kind + data) & 0xffffffff))
+
+
+def paeth(left, above, upper_left):
+    estimate = left + above - upper_left
+    left_distance = abs(estimate - left)
+    above_distance = abs(estimate - above)
+    upper_left_distance = abs(estimate - upper_left)
+    if left_distance <= above_distance and left_distance <= upper_left_distance:
+        return left
+    return above if above_distance <= upper_left_distance else upper_left
+
+
+def recolour_rgba_png(source, target, colour, luminance_mask):
+    """Recolour an RGBA8 PNG using only the Python standard library."""
+    with open(source, "rb") as handle:
+        payload = handle.read()
+    if not payload.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError("image-backed logo source is not a PNG: %s" % source)
+    position = 8
+    header = None
+    compressed = []
+    while position < len(payload):
+        length = struct.unpack(">I", payload[position:position + 4])[0]
+        kind = payload[position + 4:position + 8]
+        data = payload[position + 8:position + 8 + length]
+        expected = struct.unpack(">I", payload[position + 8 + length:position + 12 + length])[0]
+        if (binascii.crc32(kind + data) & 0xffffffff) != expected:
+            raise ValueError("image-backed logo source has an invalid PNG checksum: %s" % source)
+        if kind == b"IHDR":
+            header = data
+        elif kind == b"IDAT":
+            compressed.append(data)
+        elif kind == b"IEND":
+            break
+        position += 12 + length
+    if header is None or not compressed:
+        raise ValueError("image-backed logo source is incomplete: %s" % source)
+    width, height, depth, colour_type, compression, filtering, interlace = struct.unpack(">IIBBBBB", header)
+    if (depth, colour_type, compression, filtering, interlace) != (8, 6, 0, 0, 0):
+        raise ValueError("image-backed logo source must be a non-interlaced RGBA8 PNG: %s" % source)
+    stride = width * 4
+    raw = zlib.decompress(b"".join(compressed))
+    if len(raw) != height * (stride + 1):
+        raise ValueError("image-backed logo source has an unexpected data length: %s" % source)
+    decoded = []
+    previous = bytearray(stride)
+    offset = 0
+    for _row in range(height):
+        filter_type = raw[offset]
+        scanline = bytearray(raw[offset + 1:offset + stride + 1])
+        offset += stride + 1
+        for index in range(stride):
+            left = scanline[index - 4] if index >= 4 else 0
+            above = previous[index]
+            upper_left = previous[index - 4] if index >= 4 else 0
+            if filter_type == 1:
+                scanline[index] = (scanline[index] + left) & 0xff
+            elif filter_type == 2:
+                scanline[index] = (scanline[index] + above) & 0xff
+            elif filter_type == 3:
+                scanline[index] = (scanline[index] + ((left + above) // 2)) & 0xff
+            elif filter_type == 4:
+                scanline[index] = (scanline[index] + paeth(left, above, upper_left)) & 0xff
+            elif filter_type != 0:
+                raise ValueError("image-backed logo source uses an unknown PNG filter: %s" % source)
+        decoded.append(scanline)
+        previous = scanline
+    rgb = tuple(int(colour[index:index + 2], 16) for index in (1, 3, 5))
+    encoded = bytearray()
+    for scanline in decoded:
+        for index in range(0, stride, 4):
+            if luminance_mask:
+                scanline[index + 3] = round(scanline[index + 3] * max(scanline[index:index + 3]) / 255)
+            scanline[index:index + 3] = bytes(rgb)
+        encoded.append(0)
+        encoded.extend(scanline)
+    output = (b"\x89PNG\r\n\x1a\n" + png_chunk(b"IHDR", header)
+              + png_chunk(b"IDAT", zlib.compress(bytes(encoded), 9)) + png_chunk(b"IEND", b""))
+    with open(target, "wb") as handle:
+        handle.write(output)
 
 
 def raster(args):
@@ -198,22 +285,11 @@ def main():
             handle.write(value)
 
     def raster_mask_file(item, colour):
-        from PIL import Image
         source = os.path.join(kit, item["source"])
-        with Image.open(source) as opened:
-            image = opened.convert("RGBA")
-        pixels = image.load()
-        rgb = tuple(int(colour[i:i + 2], 16) for i in (1, 3, 5))
         luminance_mask = item.get("mask") == "luminance"
-        for y in range(image.height):
-            for x in range(image.width):
-                red, green, blue, alpha = pixels[x, y]
-                if luminance_mask:
-                    alpha = round(alpha * max(red, green, blue) / 255)
-                pixels[x, y] = (rgb[0], rgb[1], rgb[2], alpha)
         stem = os.path.splitext(os.path.basename(source))[0]
         filename = "_%s-mask-%s-%s.png" % (slug, colour.lstrip("#").lower(), stem)
-        image.save(os.path.join(svg_dir, filename), format="PNG", optimize=False)
+        recolour_rgba_png(source, os.path.join(svg_dir, filename), colour, luminance_mask)
         return filename
 
     def render_paths(path_list, roles, indent="  ", asset_prefix=""):

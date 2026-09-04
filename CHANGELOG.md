@@ -39,6 +39,8 @@ No unreleased changes.
 - Made the pipeline regression fixtures Python 3.8-compatible and run them in the minimum-version hosted job.
 - Included Pillow compositing in the measured raster capability instead of allowing a late import failure.
 - Cleared stale generated QC sheets before full-tier capture or lower-tier skips.
+- Recolored image-backed SVG master masks through a standard-library PNG path so core-tier generation does not import Pillow.
+- Cleared stale PDF contact sheets and extracted pages before lower-tier skips or replacement attempts.
 
 ## [1.1.1] - 2026-09-03
 

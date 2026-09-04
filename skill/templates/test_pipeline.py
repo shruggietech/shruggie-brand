@@ -145,14 +145,15 @@ class PipelineTests(unittest.TestCase):
             (False, "Pillow unavailable for required image compositing"),
         )
         with tempfile.TemporaryDirectory() as tmp:
-            kit = Path(tmp) / "example"
-            shutil.copytree(ROOT / "fixtures" / "example-brand", kit)
+            kit = Path(tmp) / "shruggietech"
+            shutil.copytree(ROOT / "brands" / "shruggietech", kit)
             shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
             self.write_probe(kit, renderer=True, pillow=False)
             old_argv = sys.argv
             try:
                 sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
-                self.assertEqual(gen_logo.main(), 0)
+                with mock.patch.dict(sys.modules, {"PIL": None, "PIL.Image": None}):
+                    self.assertEqual(gen_logo.main(), 0)
             finally:
                 sys.argv = old_argv
             capabilities = load_capabilities(str(kit))
@@ -166,6 +167,12 @@ class PipelineTests(unittest.TestCase):
             write_utf8(brand, "{}\n")
             stale_pdf = kit / "brand-guide.pdf"
             stale_pdf.write_bytes(b"stale")
+            stale_contact = kit / "qc" / "contact-sheet.png"
+            stale_page = kit / "qc" / "_pdf-pages" / "p-1.png"
+            stale_contact.parent.mkdir()
+            stale_contact.write_bytes(b"stale")
+            stale_page.parent.mkdir()
+            stale_page.write_bytes(b"stale")
             self.write_probe(kit)
             old_argv = sys.argv
             try:
@@ -173,6 +180,8 @@ class PipelineTests(unittest.TestCase):
                 with mock.patch.object(gen_guide_pdf, "build", return_value="<html></html>"):
                     self.assertEqual(gen_guide_pdf.main(), 0)
                     self.assertFalse(stale_pdf.exists())
+                    self.assertFalse(stale_contact.exists())
+                    self.assertFalse(stale_page.parent.exists())
             finally:
                 sys.argv = old_argv
 

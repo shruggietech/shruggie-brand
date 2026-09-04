@@ -410,13 +410,24 @@ def main():
     with open(a.brand, encoding="utf-8") as handle:
         B = json.load(handle)
     os.makedirs(os.path.join(a.kit, "build"), exist_ok=True)
-    pdf_path = os.path.join(a.kit, "brand-guide.pdf")
-    if os.path.isfile(pdf_path):
-        os.remove(pdf_path)
     hp = os.path.join(a.kit, "build", "brand-guide.print.html")
     with open(hp, "w", encoding="utf-8", newline="\n") as f: f.write(build(B, a.kit))
     print("wrote", hp)
     if a.html_only: return 0
+    pdf_path = os.path.join(a.kit, "brand-guide.pdf")
+    if os.path.isfile(pdf_path):
+        os.remove(pdf_path)
+    contact_sheet = os.path.join(a.kit, "qc", "contact-sheet.png")
+    pdf_pages = os.path.join(a.kit, "qc", "_pdf-pages")
+    if os.path.isfile(contact_sheet):
+        os.remove(contact_sheet)
+    if os.path.isdir(pdf_pages):
+        for name in os.listdir(pdf_pages):
+            page = os.path.join(pdf_pages, name)
+            if name.endswith(".png") and os.path.isfile(page):
+                os.remove(page)
+        if not os.listdir(pdf_pages):
+            os.rmdir(pdf_pages)
     capabilities = load_capabilities(a.kit)
     if capabilities["tier"] != "full":
         print("SKIP brand guide PDF: headless Chromium unavailable at %s tier"
