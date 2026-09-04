@@ -73,7 +73,7 @@ Manual inspection covered all six logo sheets, all eleven desktop and 390-pixel 
 
 | Round | Trigger | Signal | Actionable comments | State |
 |---|---|---|---:|---|
-| 1 | Automatic on pull-request publication | [Review](https://github.com/shruggietech/shruggie-brand/pull/87#pullrequestreview-5109030010) | 1 | Correction verified locally; reply and push pending |
+| 1 | Automatic on pull-request publication | [Review](https://github.com/shruggietech/shruggie-brand/pull/87#pullrequestreview-5109030010) | 1 | Complete: issue filed, regression-first correction verified, comment answered, and thread resolved |
 | 2 | One explicit `@Codex` comment after round 1 | Not requested | Pending | Pending |
 
 Review request ceiling: 2 rounds. No third request is authorized.
@@ -82,7 +82,9 @@ Review request ceiling: 2 rounds. No third request is authorized.
 
 | Finding | Issue | Source thread | Regression | Disposition | Reply | Thread |
 |---|---:|---|---|---|---|---|
-| ICO generation rediscovered a rejected Windows converter | [#88](https://github.com/shruggietech/shruggie-brand/issues/88) | [PR #87](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930735256) | `test_ico_generation_reuses_the_validated_converter_result` | Fixed in S003 | Pending | Unresolved |
+| ICO generation rediscovered a rejected Windows converter | [#88](https://github.com/shruggietech/shruggie-brand/issues/88) | [PR #87](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930735256) | `test_ico_generation_reuses_the_validated_converter_result` | Fixed in S003 | [Reply](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930757408) | Resolved |
+
+Round-1 issue evidence: [#88](https://github.com/shruggietech/shruggie-brand/issues/88#issuecomment-5535459620). The issue remains open until merge because its correction is branch-only.
 
 ## Final Gate
 
