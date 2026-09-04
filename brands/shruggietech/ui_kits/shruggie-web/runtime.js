@@ -23,9 +23,10 @@ const ShruggieTechRuntime = (() => {
     </div>;
   }
 
-  function ShruggieCTA({ href = "#", variant = "primary", children, ...props }) {
-    return <span className="runtime-cta" {...props}>
-      <a href={href}><Button variant={variant}>{children}</Button></a>
+  function ShruggieCTA({ href = "#", variant = "primary", size = "md", className = "", children, ...props }) {
+    const normalizedSize = size === "default" ? "md" : size;
+    return <span className="runtime-cta">
+      <a href={href} className={classNames("sh-button", `sh-button--${variant}`, `sh-button--${normalizedSize}`, className)} {...props}>{children}</a>
       <span className="runtime-cta__tag" aria-hidden="true"><span>¯\_(ツ)_/¯</span> We'll figure it out.</span>
     </span>;
   }
@@ -34,7 +35,7 @@ const ShruggieTechRuntime = (() => {
     const fieldId = id || props.name;
     return <label className="sh-field" htmlFor={fieldId}>
       {label ? <span className="sh-field__label">{label}{required ? <span className="sh-field__required"> *</span> : null}</span> : null}
-      <Element id={fieldId} className={classNames("sh-field__control", className)} aria-invalid={error ? "true" : undefined} {...props}>{children}</Element>
+      <Element id={fieldId} className={classNames("sh-field__control", className)} required={required} aria-invalid={error ? "true" : undefined} {...props}>{children}</Element>
       {error ? <span className="sh-field__error" role="alert">{error}</span> : null}
     </label>;
   }

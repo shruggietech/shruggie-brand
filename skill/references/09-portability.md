@@ -20,7 +20,7 @@ Three capability tiers, and what each can still finish:
 | Tier | What is present | What you get |
 | --- | --- | --- |
 | **Core** | Python 3.8+ and its standard library. Nothing else. | brand.json, all tokens, the Next.js binding, enforcement, the guidelines page, the specimen, the manifest, `verify.py` and the full glyph gate |
-| **Raster** | Core, plus a rasteriser and an ICO writer | Everything above, plus PNG exports, the favicon set and a real multi-entry `.ico` |
+| **Raster** | Core, plus a rasteriser and Pillow for required compositing | Everything above, plus PNG exports and the favicon set; a measured ICO writer adds the multi-entry `.ico` |
 | **Full** | Raster, plus headless Chromium | Everything above, plus the brand guide PDF and the QC contact sheets |
 
 **The Core tier must always succeed.** If a step cannot run at Core, it is

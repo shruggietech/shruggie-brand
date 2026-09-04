@@ -8,11 +8,22 @@
 - Preserved native imported SVG rectangles, strokes, caps, and joins through export.
 - Added lossless raster-mask masters for identities whose authoritative artwork has no vector source.
 - Recorded imported geometry and its reason in verification output.
-- Corrected the generated Next.js font comment to acknowledge the canon-permitted `next/font/google` build-time fetch.
+- Replaced generated font-network imports with deterministic `next/font/local` bindings for all bundled faces.
+- Aligned the `fonts` registry item with its emitted `fonts.json` route.
+- Made full-tier PDF and rendered-page failures fatal while preserving explicit lower-tier skips.
+- Verified the bundled Node rasterizer fallback before advertising it as available.
+- Restored Python 3.8 build discovery and suppressed project-owned Windows console processes.
+- Forwarded native form `required` state and removed nested CTA controls from the ShruggieTech source UI kit.
 - Resolved specimen fonts relative to the staged kit instead of the skill directory.
-- Added ImageMagick as the implemented SVG raster fallback advertised by the capability probe.
+- Added the resvg and Inkscape CLI fallbacks advertised by the capability probe.
 - Made pagination report a recorded skip when Playwright is installed without a matching Chromium binary.
 - Made failed verification, image, PDF, and pagination gates print their diagnostic output in CI.
+- Cleared generated PDFs, raster exports, and favicons before capability-tier downgrade skips.
+- Separated favicon ICO verification from the SVG rasterizer capability gate.
+- Made pipeline regression fixtures runnable on Python 3.8.
+- Included Pillow compositing in the raster capability gate and cleared stale QC sheets before regeneration or skips.
+- Made image-backed core SVG masters independent of Pillow and cleared stale PDF QC evidence before tier routing.
+- Deferred image-QC Pillow imports until a measured raster or full path runs.
 
 ## 1.1.1 - 2026-09-03
 

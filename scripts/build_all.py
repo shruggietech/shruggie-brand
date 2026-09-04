@@ -13,7 +13,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DIST = (ROOT / "dist").resolve()
 FONTS = ROOT / "assets" / "fonts"
-BUILDER = ROOT / "skill" / "templates" / "build_kit.py"
+TEMPLATES = ROOT / "skill" / "templates"
+BUILDER = TEMPLATES / "build_kit.py"
+sys.path.insert(0, str(TEMPLATES))
+from process_utils import hidden_process_kwargs
 
 
 def sources() -> dict[str, Path]:
@@ -23,7 +26,7 @@ def sources() -> dict[str, Path]:
             continue
         for child in sorted(parent.iterdir()):
             if child.is_dir() and (child / "brand.json").is_file():
-                slug = child.name.removesuffix("-brand")
+                slug = child.name[:-6] if child.name.endswith("-brand") else child.name
                 if slug in found:
                     raise ValueError(f"duplicate build slug: {slug}")
                 found[slug] = child
@@ -52,6 +55,7 @@ def build(slug: str, source: Path) -> int:
         [sys.executable, str(BUILDER), str(destination)],
         cwd=ROOT,
         check=False,
+        **hidden_process_kwargs(),
     )
     return completed.returncode
 
@@ -84,4 +88,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

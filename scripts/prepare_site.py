@@ -42,6 +42,8 @@ def validate_registry(source: Path, brand: dict) -> None:
     names = {item["name"] for item in catalog.get("items", [])}
     if "theme" not in names or not (registry_dir / "theme.json").is_file():
         raise ValueError(f"{brand['slug']}: registry theme is missing")
+    if "fonts" not in names or not (registry_dir / "fonts.json").is_file():
+        raise ValueError(f"{brand['slug']}: registry fonts item is missing")
     expected = f"https://brand.shruggie.tech/{brand['slug']}/brand"
     if brand.get("registry_base") != expected:
         raise ValueError(f"{brand['slug']}: registry_base must be {expected}")

@@ -13,6 +13,7 @@ Exit code is the number of problems found, capped at 125.
 """
 import argparse, hashlib, json, os, re, struct, sys, unicodedata
 from coloraide import Color
+from capabilities import load_capabilities
 
 # ------------------------------------------------------------------ utilities
 def R(a, b): return round(Color(a).contrast(b, method="wcag21"), 2)
@@ -353,6 +354,47 @@ def c_manifest(kit, rep):
     rep.bad("manifest-checksums", "; ".join(bad[:8])) if bad else \
         rep.ok("manifest-checksums", "%d files match" % len(man.get("files", [])))
 
+
+def c_capability_artifacts(kit, rep):
+    try:
+        capabilities = load_capabilities(kit)
+    except Exception as error:
+        return rep.bad("capability-tier", str(error))
+    tier = capabilities["tier"]
+    rep.ok("capability-tier", "%s tier recorded by probe.py" % tier)
+
+    logo_png_dir = os.path.join(kit, "logos", "png")
+    pngs = ([os.path.join(logo_png_dir, name) for name in os.listdir(logo_png_dir)
+             if name.lower().endswith(".png")] if os.path.isdir(logo_png_dir) else [])
+    ico = os.path.join(kit, "favicons", "favicon.ico")
+    if capabilities.get("svg_raster"):
+        if not pngs:
+            rep.bad("raster-artifacts", "probe found a rasterizer but PNG exports are missing")
+        else:
+            rep.ok("raster-artifacts", "%d logo PNGs produced" % len(pngs))
+    else:
+        rep.skip("raster-artifacts", "core tier: %s; PNG outputs skipped"
+                 % capabilities.get("raster_reason", "required raster capability unavailable"))
+
+    if not capabilities.get("svg_raster"):
+        rep.skip("ico-artifact", "%s tier: source PNGs unavailable; ICO skipped" % tier)
+    elif capabilities.get("ico_writer"):
+        if os.path.isfile(ico):
+            rep.ok("ico-artifact", "favicon.ico produced after successful writer probe")
+        else:
+            rep.bad("ico-artifact", "ICO writer probe passed but favicon.ico is missing")
+    else:
+        rep.skip("ico-artifact", "%s tier: ImageMagick, convert, and Pillow unavailable; ICO skipped" % tier)
+
+    pdf = os.path.join(kit, "brand-guide.pdf")
+    if tier == "full":
+        if os.path.isfile(pdf):
+            rep.ok("brand-guide-artifact", "PDF produced after successful Chromium probe")
+        else:
+            rep.bad("brand-guide-artifact", "Chromium probe passed but brand-guide.pdf is missing")
+    else:
+        rep.skip("brand-guide-artifact", "%s tier: headless Chromium unavailable; PDF skipped" % tier)
+
 # ---------------------------------------------------------------------- main
 def c_glyph(kit, brand, rep):
     """The measured geometry gate, folded into VERIFY.md.
@@ -504,6 +546,7 @@ def main():
     c_raw_values(kit, rep)
     c_font_weights(kit, canon, rep)
     c_glyph(kit, brand, rep)
+    c_capability_artifacts(kit, rep)
     c_svg(kit, rep)
     c_ico(kit, rep)
     c_pdf(kit, rep)
