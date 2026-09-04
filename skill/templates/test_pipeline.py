@@ -19,6 +19,7 @@ sys.path.insert(0, str(HERE))
 import gen_guide_pdf
 import gen_logo
 import gen_nextjs
+import build_kit
 import probe
 import qc_images
 import verify
@@ -32,6 +33,23 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_manifest_uses_the_declared_kit_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            write_utf8(kit / "brand.json", json.dumps({
+                "slug": "fragcap",
+                "version": "1.1.0",
+                "canon": "1.1.2",
+            }) + "\n")
+            write_utf8(kit / "tokens.css", ":root {}\n")
+
+            build_kit.manifest(str(kit))
+
+            manifest = json.loads((kit / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["name"], "fragcap-brand-kit")
+            self.assertEqual(manifest["version"], "1.1.0")
+            self.assertEqual(manifest["canon"], "1.1.2")
+
     def write_probe(self, kit, tier="core", raster=False, chromium=False, ico=False,
                     renderer=None, pillow=None, raster_reason=None):
         qc = Path(kit) / "qc"

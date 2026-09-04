@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.2 - 2026-09-03
+## 1.1.2 - 2026-09-04
 
 - Scoped identity hue-separation checks to production identities while preserving all fixture contrast checks.
 - Added `logo.geometry_provenance` and a required imported-geometry reason.
@@ -24,6 +24,11 @@
 - Included Pillow compositing in the raster capability gate and cleared stale QC sheets before regeneration or skips.
 - Made image-backed core SVG masters independent of Pillow and cleared stale PDF QC evidence before tier routing.
 - Deferred image-QC Pillow imports until a measured raster or full path runs.
+- Replaced ShruggieTech's inaccessible light-surface green with the measured WCAG AA correction recorded by canon.
+- Aligned SVG-renderer capability reporting with the governed fallback chain and rejected unrelated Windows `convert.exe` utilities.
+- Corrected Glitchpad token prefixes and mobile overflow and corrected ShruggieTech mobile header and contact-control semantics.
+- Added changelog-derived release notes and complete seven-archive release certification.
+- Corrected generated kit manifests to carry each kit's declared version.
 
 ## 1.1.1 - 2026-09-03
 

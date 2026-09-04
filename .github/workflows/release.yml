@@ -25,29 +25,17 @@ jobs:
       - name: Rebuild verified kits and release archives
         run: |
           python skill/templates/test_glyphkit.py
+          python scripts/test_release_contract.py
           python skill/templates/test_pipeline.py
           python scripts/check_markdown.py
           python scripts/build_all.py
           python scripts/package_release.py --version "${GITHUB_REF_NAME#v}"
-      - name: Assert bundle licenses
-        run: |
-          python - <<'PY'
-          import zipfile
-          from pathlib import Path
-          for path in Path("release").iterdir():
-              with zipfile.ZipFile(path) as archive:
-                  missing = {"LICENSE", "NOTICE", "LICENSE-BRAND.md"} - set(archive.namelist())
-                  if missing:
-                      raise SystemExit(f"{path}: missing {sorted(missing)}")
-          PY
+          python scripts/release_contract.py notes --version "${GITHUB_REF_NAME#v}" --output release/release-notes.md
+          python scripts/release_contract.py verify --version "${GITHUB_REF_NAME#v}" --release-dir release --notes release/release-notes.md
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" release/* \
+          gh release create "$GITHUB_REF_NAME" release/*.skill release/*.zip \
             --title "shruggie-brandbuilder ${GITHUB_REF_NAME#v}" \
-            --notes "Skill version: ${GITHUB_REF_NAME#v}
-          Canon version: ${GITHUB_REF_NAME#v}
-          Existing kits need migration: yes, rebuild to record geometry provenance and the accessible parent-green correction.
-
-          See CHANGELOG.md for the complete release history."
+            --notes-file release/release-notes.md

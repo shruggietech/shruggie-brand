@@ -52,13 +52,19 @@ def manifest(kit):
         for f in sorted(fn):
             p = os.path.join(dp, f)
             if os.path.basename(p) in ("manifest.json", "VERIFY.md"): continue
-            b = open(p, "rb").read()
+            with open(p, "rb") as source:
+                b = source.read()
             files.append({"path": os.path.relpath(p, kit).replace(os.sep, "/"),
                           "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()})
     bj = os.path.join(kit, "brand.json")
-    B = json.load(open(bj, encoding="utf-8")) if os.path.exists(bj) else {}
+    if os.path.exists(bj):
+        with open(bj, encoding="utf-8") as source:
+            B = json.load(source)
+    else:
+        B = {}
     with open(os.path.join(kit, "manifest.json"), "w", encoding="utf-8", newline="\n") as f:
-        json.dump({"name": "%s-brand-kit" % B.get("slug", "brand"), "version": "1.0.0",
+        json.dump({"name": "%s-brand-kit" % B.get("slug", "brand"),
+                   "version": B.get("version", "1.0.0"),
                    "parent": "ShruggieTech", "canon": B.get("canon", "1.0.0"),
                    "files": files}, f, indent=2)
         f.write("\n")

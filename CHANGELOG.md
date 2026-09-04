@@ -4,13 +4,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
-### Fixed
-
-- Aligned SVG-renderer capability reporting with the governed librsvg, resvg, Inkscape, and Node resvg chain; removed ImageMagick SVG fallbacks; rejected the unrelated Windows `convert.exe` utility; and made ICO generation reuse the validated ImageMagick or Pillow result.
-- Corrected the Glitchpad fixture's token and class prefixes and added narrow-screen overflow guards.
-- Corrected ShruggieTech's narrow-screen header layout and removed the remaining nested interactive contact control.
-
-## [1.1.2] - 2026-09-03
+## [1.1.2] - 2026-09-04
 
 ### Added
 
@@ -46,6 +40,11 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - Recolored image-backed SVG master masks through a standard-library PNG path so core-tier generation does not import Pillow.
 - Cleared stale PDF contact sheets and extracted pages before lower-tier skips or replacement attempts.
 - Deferred Pillow imports in image QC so core-tier named skips execute on hosts without Pillow.
+- Aligned SVG-renderer capability reporting with the governed librsvg, resvg, Inkscape, and Node resvg chain; removed ImageMagick SVG fallbacks; rejected the unrelated Windows `convert.exe` utility; and made ICO generation reuse the validated ImageMagick or Pillow result.
+- Corrected the Glitchpad fixture's token and class prefixes and added narrow-screen overflow guards.
+- Corrected ShruggieTech's narrow-screen header layout and removed the remaining nested interactive contact control.
+- Generated release notes from the exact versioned changelog section and added a reusable seven-archive metadata, licensing, PDF, and checksum contract.
+- Corrected generated kit manifests to carry each kit's declared version instead of a constant 1.0.0.
 
 ## [1.1.1] - 2026-09-03
 

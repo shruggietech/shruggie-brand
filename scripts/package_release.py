@@ -5,8 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import zipfile
 from pathlib import Path
+
+from release_contract import load_metadata, verify_release_directory
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,7 +47,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", default="1.1.2")
     args = parser.parse_args()
-    OUTPUT.mkdir(exist_ok=True)
+    metadata = load_metadata(ROOT, args.version)
+    resolved_output = OUTPUT.resolve()
+    if resolved_output.parent != ROOT.resolve():
+        raise ValueError("refusing to clean release output outside repository root")
+    if resolved_output.exists():
+        shutil.rmtree(resolved_output)
+    resolved_output.mkdir()
 
     skill_bundle = OUTPUT / f"shruggie-brandbuilder-{args.version}.skill"
     with zipfile.ZipFile(skill_bundle, "w") as archive:
@@ -77,6 +86,7 @@ def main() -> int:
 
     for path in (skill_bundle, portable):
         assert_licenses(path)
+    verify_release_directory(OUTPUT, metadata)
     print("\n".join(path.name for path in sorted(OUTPUT.iterdir()) if path.is_file()))
     return 0
 
