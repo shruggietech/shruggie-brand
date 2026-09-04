@@ -21,6 +21,7 @@ produce a complete document.
     python3 build/gen_guide_pdf.py <brand.json> <kit-dir> [--html-only]
 """
 import argparse, json, os, sys
+from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for
 
@@ -406,12 +407,32 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("brand"); ap.add_argument("kit"); ap.add_argument("--html-only", action="store_true")
     a = ap.parse_args()
-    B = json.load(open(a.brand, encoding="utf-8"))
+    with open(a.brand, encoding="utf-8") as handle:
+        B = json.load(handle)
     os.makedirs(os.path.join(a.kit, "build"), exist_ok=True)
     hp = os.path.join(a.kit, "build", "brand-guide.print.html")
     with open(hp, "w", encoding="utf-8", newline="\n") as f: f.write(build(B, a.kit))
     print("wrote", hp)
     if a.html_only: return 0
+    pdf_path = os.path.join(a.kit, "brand-guide.pdf")
+    if os.path.isfile(pdf_path):
+        os.remove(pdf_path)
+    contact_sheet = os.path.join(a.kit, "qc", "contact-sheet.png")
+    pdf_pages = os.path.join(a.kit, "qc", "_pdf-pages")
+    if os.path.isfile(contact_sheet):
+        os.remove(contact_sheet)
+    if os.path.isdir(pdf_pages):
+        for name in os.listdir(pdf_pages):
+            page = os.path.join(pdf_pages, name)
+            if name.endswith(".png") and os.path.isfile(page):
+                os.remove(page)
+        if not os.listdir(pdf_pages):
+            os.rmdir(pdf_pages)
+    capabilities = load_capabilities(a.kit)
+    if capabilities["tier"] != "full":
+        print("SKIP brand guide PDF: headless Chromium unavailable at %s tier"
+              % capabilities["tier"])
+        return 0
     try:
         from playwright.sync_api import sync_playwright
         import pathlib
@@ -419,13 +440,14 @@ def main():
             b = p.chromium.launch(); pg = b.new_page()
             pg.goto("file://" + str(pathlib.Path(hp).resolve())); pg.wait_for_timeout(1800)
             pg.emulate_media(media="print")
-            pg.pdf(path=os.path.join(a.kit, "brand-guide.pdf"), format="A4", print_background=True,
+            pg.pdf(path=pdf_path, format="A4", print_background=True,
                    margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
             b.close()
-        print("wrote", os.path.join(a.kit, "brand-guide.pdf"))
+        print("wrote", pdf_path)
         print("Now run qc_render.py --expect-ground dark AND OPEN THE CONTACT SHEET.")
     except Exception as e:
-        print("PDF step skipped (%s). The print HTML is written; render it with headless Chromium." % e)
+        print("FAIL brand guide PDF: Chromium was probed successfully but export failed (%s)" % e)
+        return 1
     return 0
 
 if __name__ == "__main__":

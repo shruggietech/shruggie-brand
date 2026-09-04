@@ -24,6 +24,7 @@ Exit code is the number of problems, capped at 125.
 """
 import argparse, os, subprocess, sys, statistics
 from PIL import Image
+from process_utils import hidden_process_kwargs
 
 def render(pdf, dpi, out):
     """Rasterise into a dedicated subdirectory. A flat prefix collides with the
@@ -35,13 +36,15 @@ def render(pdf, dpi, out):
         for f in os.listdir(sub):
             if f.endswith(".png"): os.remove(os.path.join(sub, f))
     os.makedirs(sub, exist_ok=True)
-    subprocess.run(["pdftoppm", "-r", str(dpi), "-png", pdf, os.path.join(sub, "p")], check=True)
+    subprocess.run(["pdftoppm", "-r", str(dpi), "-png", pdf, os.path.join(sub, "p")],
+                   check=True, **hidden_process_kwargs())
     return sorted(os.path.join(sub, x) for x in os.listdir(sub) if x.endswith(".png"))
 
 def page_text(pdf, n):
     try:
         return subprocess.run(["pdftotext", "-f", str(n), "-l", str(n), pdf, "-"],
-                              capture_output=True, text=True, check=True).stdout
+                              capture_output=True, text=True, check=True,
+                              **hidden_process_kwargs()).stdout
     except Exception:
         return ""
 

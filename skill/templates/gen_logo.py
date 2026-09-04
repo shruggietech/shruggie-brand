@@ -6,14 +6,18 @@ This runtime copy extends the stock builder with optional rectangular mark
 canvases, filled compound paths and explicit per-colourway role mappings. The
 fallback remains fully compatible with the stock scalar ``logo.grid`` schema.
 """
+import binascii
 import json
 import os
 import shutil
 import struct
 import subprocess
 import sys
+import zlib
 
 from svgelements import Path
+from capabilities import load_capabilities
+from process_utils import hidden_process_kwargs
 
 NODE = os.environ.get("GP_NODE") or shutil.which("node")
 RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__file__), "rsvg-convert.js")
@@ -23,17 +27,126 @@ def need(tool):
     return shutil.which(tool) is not None
 
 
+def reset_generated_dir(kit, directory):
+    root = os.path.abspath(kit)
+    target = os.path.abspath(directory)
+    allowed = {
+        os.path.join(root, "logos", "png"),
+        os.path.join(root, "favicons"),
+    }
+    if target not in allowed:
+        raise ValueError("refusing to clear non-generated directory %s" % target)
+    if os.path.isdir(target):
+        shutil.rmtree(target)
+    os.makedirs(target, exist_ok=True)
+
+
+def png_chunk(kind, data):
+    return (struct.pack(">I", len(data)) + kind + data
+            + struct.pack(">I", binascii.crc32(kind + data) & 0xffffffff))
+
+
+def paeth(left, above, upper_left):
+    estimate = left + above - upper_left
+    left_distance = abs(estimate - left)
+    above_distance = abs(estimate - above)
+    upper_left_distance = abs(estimate - upper_left)
+    if left_distance <= above_distance and left_distance <= upper_left_distance:
+        return left
+    return above if above_distance <= upper_left_distance else upper_left
+
+
+def recolour_rgba_png(source, target, colour, luminance_mask):
+    """Recolour an RGBA8 PNG using only the Python standard library."""
+    with open(source, "rb") as handle:
+        payload = handle.read()
+    if not payload.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError("image-backed logo source is not a PNG: %s" % source)
+    position = 8
+    header = None
+    compressed = []
+    while position < len(payload):
+        length = struct.unpack(">I", payload[position:position + 4])[0]
+        kind = payload[position + 4:position + 8]
+        data = payload[position + 8:position + 8 + length]
+        expected = struct.unpack(">I", payload[position + 8 + length:position + 12 + length])[0]
+        if (binascii.crc32(kind + data) & 0xffffffff) != expected:
+            raise ValueError("image-backed logo source has an invalid PNG checksum: %s" % source)
+        if kind == b"IHDR":
+            header = data
+        elif kind == b"IDAT":
+            compressed.append(data)
+        elif kind == b"IEND":
+            break
+        position += 12 + length
+    if header is None or not compressed:
+        raise ValueError("image-backed logo source is incomplete: %s" % source)
+    width, height, depth, colour_type, compression, filtering, interlace = struct.unpack(">IIBBBBB", header)
+    if (depth, colour_type, compression, filtering, interlace) != (8, 6, 0, 0, 0):
+        raise ValueError("image-backed logo source must be a non-interlaced RGBA8 PNG: %s" % source)
+    stride = width * 4
+    raw = zlib.decompress(b"".join(compressed))
+    if len(raw) != height * (stride + 1):
+        raise ValueError("image-backed logo source has an unexpected data length: %s" % source)
+    decoded = []
+    previous = bytearray(stride)
+    offset = 0
+    for _row in range(height):
+        filter_type = raw[offset]
+        scanline = bytearray(raw[offset + 1:offset + stride + 1])
+        offset += stride + 1
+        for index in range(stride):
+            left = scanline[index - 4] if index >= 4 else 0
+            above = previous[index]
+            upper_left = previous[index - 4] if index >= 4 else 0
+            if filter_type == 1:
+                scanline[index] = (scanline[index] + left) & 0xff
+            elif filter_type == 2:
+                scanline[index] = (scanline[index] + above) & 0xff
+            elif filter_type == 3:
+                scanline[index] = (scanline[index] + ((left + above) // 2)) & 0xff
+            elif filter_type == 4:
+                scanline[index] = (scanline[index] + paeth(left, above, upper_left)) & 0xff
+            elif filter_type != 0:
+                raise ValueError("image-backed logo source uses an unknown PNG filter: %s" % source)
+        decoded.append(scanline)
+        previous = scanline
+    rgb = tuple(int(colour[index:index + 2], 16) for index in (1, 3, 5))
+    encoded = bytearray()
+    for scanline in decoded:
+        for index in range(0, stride, 4):
+            if luminance_mask:
+                scanline[index + 3] = round(scanline[index + 3] * max(scanline[index:index + 3]) / 255)
+            scanline[index:index + 3] = bytes(rgb)
+        encoded.append(0)
+        encoded.extend(scanline)
+    output = (b"\x89PNG\r\n\x1a\n" + png_chunk(b"IHDR", header)
+              + png_chunk(b"IDAT", zlib.compress(bytes(encoded), 9)) + png_chunk(b"IEND", b""))
+    with open(target, "wb") as handle:
+        handle.write(output)
+
+
 def raster(args):
     raster_cwd = None
+    width = args[args.index("-w") + 1] if "-w" in args else None
+    height = args[args.index("-h") + 1] if "-h" in args else None
+    source = args[-3] if "-o" in args else args[-2]
+    output = args[args.index("-o") + 1]
     native = shutil.which("rsvg-convert")
     if native:
         command = [native] + args
+    elif shutil.which("resvg"):
+        command = [shutil.which("resvg")]
+        if width: command += ["--width", width]
+        if height: command += ["--height", height]
+        command += [source, output]
+    elif shutil.which("inkscape"):
+        command = [shutil.which("inkscape"), source, "--export-type=png",
+                   "--export-filename=" + output]
+        if width: command.append("--export-width=" + width)
+        if height: command.append("--export-height=" + height)
     elif shutil.which("magick"):
-        width = args[args.index("-w") + 1] if "-w" in args else ""
-        height = args[args.index("-h") + 1] if "-h" in args else ""
-        source = args[-3] if "-o" in args else args[-2]
-        output = args[args.index("-o") + 1]
-        geometry = "%sx%s" % (width, height)
+        geometry = "%sx%s" % (width or "", height or "")
         raster_cwd = os.path.dirname(os.path.abspath(source))
         command = [shutil.which("magick"), "-background", "none",
                    os.path.basename(source), "-resize", geometry,
@@ -42,7 +155,7 @@ def raster(args):
         command = [NODE, RESVG] + args
     else:
         raise RuntimeError("SVG rasterizer unavailable. Install rsvg-convert, ImageMagick, or set GP_NODE and GP_RESVG_RENDERER.")
-    subprocess.run(command, check=True, cwd=raster_cwd)
+    subprocess.run(command, check=True, cwd=raster_cwd, **hidden_process_kwargs())
 
 
 def path_bbox(d):
@@ -119,7 +232,8 @@ def wordmark_outline(text, ttf, size=200):
 
 def main():
     spec_path, kit = sys.argv[1], sys.argv[2]
-    brand = json.load(open(spec_path, encoding="utf-8"))
+    with open(spec_path, encoding="utf-8") as handle:
+        brand = json.load(handle)
     logo = brand.get("logo") or {}
     paths = logo.get("paths") or {}
     if not paths.get("full"):
@@ -131,7 +245,7 @@ def main():
     gate = subprocess.run([sys.executable,
                            os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                         "validate_glyph.py"), spec_path],
-                          capture_output=True, text=True)
+                          capture_output=True, text=True, **hidden_process_kwargs())
     sys.stdout.write(gate.stdout)
     if gate.returncode:
         sys.exit("glyph gate failed with %d problem(s). Fix build/mk_paths.py and "
@@ -162,30 +276,20 @@ def main():
     svg_dir = os.path.join(kit, "logos", "svg")
     png_dir = os.path.join(kit, "logos", "png")
     favicon_dir = os.path.join(kit, "favicons")
-    for directory in (svg_dir, png_dir, favicon_dir):
-        os.makedirs(directory, exist_ok=True)
+    os.makedirs(svg_dir, exist_ok=True)
+    reset_generated_dir(kit, png_dir)
+    reset_generated_dir(kit, favicon_dir)
 
     def write(path, value):
         with open(path, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(value)
 
     def raster_mask_file(item, colour):
-        from PIL import Image
         source = os.path.join(kit, item["source"])
-        with Image.open(source) as opened:
-            image = opened.convert("RGBA")
-        pixels = image.load()
-        rgb = tuple(int(colour[i:i + 2], 16) for i in (1, 3, 5))
         luminance_mask = item.get("mask") == "luminance"
-        for y in range(image.height):
-            for x in range(image.width):
-                red, green, blue, alpha = pixels[x, y]
-                if luminance_mask:
-                    alpha = round(alpha * max(red, green, blue) / 255)
-                pixels[x, y] = (rgb[0], rgb[1], rgb[2], alpha)
         stem = os.path.splitext(os.path.basename(source))[0]
         filename = "_%s-mask-%s-%s.png" % (slug, colour.lstrip("#").lower(), stem)
-        image.save(os.path.join(svg_dir, filename), format="PNG", optimize=False)
+        recolour_rgba_png(source, os.path.join(svg_dir, filename), colour, luminance_mask)
         return filename
 
     def render_paths(path_list, roles, indent="  ", asset_prefix=""):
@@ -408,6 +512,13 @@ def main():
         write(os.path.join(svg_dir, filename), svg(preview_width, preview_height, preview))
         written.append(filename)
 
+    capabilities = load_capabilities(kit)
+    if not capabilities.get("svg_raster"):
+        print("SKIP raster exports, favicons and ICO: %s at core tier"
+              % capabilities.get("raster_reason", "required raster capability unavailable"))
+        print("wrote %d vector SVG masters" % len(written))
+        return 0
+
     for filename in written:
         width = 1280 if "social-preview" in filename else 1024
         source = os.path.join(svg_dir, filename)
@@ -461,7 +572,8 @@ def main():
     ico = os.path.join(favicon_dir, "favicon.ico")
     converter = "magick" if need("magick") else ("convert" if need("convert") else None)
     if converter:
-        subprocess.run([converter] + ico_sources + [ico], check=True)
+        subprocess.run([converter] + ico_sources + [ico], check=True,
+                       **hidden_process_kwargs())
     else:
         # Pillow fallback. It is given the per-size PNGs that were already
         # rendered, so the reduced master is still what lands in the entries at
