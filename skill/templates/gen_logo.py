@@ -23,8 +23,14 @@ NODE = os.environ.get("GP_NODE") or shutil.which("node")
 RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__file__), "rsvg-convert.js")
 
 
-def need(tool):
-    return shutil.which(tool) is not None
+def measured_ico_converter(capabilities):
+    """Return only an ImageMagick executable accepted by the capability probe."""
+    cli = capabilities.get("cli") or {}
+    if cli.get("magick"):
+        return "magick"
+    if cli.get("convert"):
+        return "convert"
+    return None
 
 
 def reset_generated_dir(kit, directory):
@@ -570,7 +576,7 @@ def main():
     # host carrying ImageMagick 6 the ICO was silently skipped and verify reported
     # ico-entries as a skip. The legacy `convert` binary does the same job here.
     ico = os.path.join(favicon_dir, "favicon.ico")
-    converter = "magick" if need("magick") else ("convert" if need("convert") else None)
+    converter = measured_ico_converter(capabilities)
     if converter:
         subprocess.run([converter] + ico_sources + [ico], check=True,
                        **hidden_process_kwargs())

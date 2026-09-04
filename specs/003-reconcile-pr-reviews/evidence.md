@@ -5,7 +5,7 @@
 - Verification base: `cbd96487dec1a19d93695910ec4337729acb1325`
 - Base ref: `origin/main`
 - Feature branch: `codex/003-reconcile-pr-reviews`
-- Pull request: pending
+- Pull request: [#87](https://github.com/shruggietech/shruggie-brand/pull/87)
 - Public-content sensitive-data scan: pass across all 19 prospective files; no private path, credential, provider identifier, BOM, CRLF, invalid UTF-8, or mojibake finding
 
 ## Inherited Review Findings
@@ -58,7 +58,7 @@ Parent and program evidence comments: [#6](https://github.com/shruggietech/shrug
 
 | Check | Environment | Result | Evidence |
 |---|---|---|---|
-| Focused pipeline regressions | Local branch | Pass | 16 tests passed |
+| Focused pipeline regressions | Local branch | Pass | 17 tests passed after the round-1 correction |
 | Glyph tests | Local branch | Pass | 31 checks, 0 failures |
 | Capability probe | Local branch | Pass | Full tier; ImageMagick and Chromium measured |
 | Six-kit build and verification | Local branch | Pass | Six kits, 0 verification, image-QC, PDF-QC, or pagination problems |
@@ -73,10 +73,16 @@ Manual inspection covered all six logo sheets, all eleven desktop and 390-pixel 
 
 | Round | Trigger | Signal | Actionable comments | State |
 |---|---|---|---:|---|
-| 1 | Automatic on pull-request publication | Pending | Pending | Pending |
+| 1 | Automatic on pull-request publication | [Review](https://github.com/shruggietech/shruggie-brand/pull/87#pullrequestreview-5109030010) | 1 | Correction verified locally; reply and push pending |
 | 2 | One explicit `@Codex` comment after round 1 | Not requested | Pending | Pending |
 
 Review request ceiling: 2 rounds. No third request is authorized.
+
+### Round 1 Findings
+
+| Finding | Issue | Source thread | Regression | Disposition | Reply | Thread |
+|---|---:|---|---|---|---|---|
+| ICO generation rediscovered a rejected Windows converter | [#88](https://github.com/shruggietech/shruggie-brand/issues/88) | [PR #87](https://github.com/shruggietech/shruggie-brand/pull/87#discussion_r3930735256) | `test_ico_generation_reuses_the_validated_converter_result` | Fixed in S003 | Pending | Unresolved |
 
 ## Final Gate
 

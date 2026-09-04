@@ -183,6 +183,18 @@ class PipelineTests(unittest.TestCase):
         with mock.patch.object(probe.subprocess, "run", return_value=image_result):
             self.assertTrue(probe.imagemagick_convert_ok("convert.exe"))
 
+    def test_ico_generation_reuses_the_validated_converter_result(self):
+        capabilities = {
+            "cli": {"magick": False, "convert": False},
+            "modules": {"PIL": True},
+            "ico_writer": True,
+        }
+        with mock.patch.object(gen_logo.shutil, "which", return_value="convert.exe"):
+            self.assertIsNone(gen_logo.measured_ico_converter(capabilities))
+
+        capabilities["cli"]["convert"] = True
+        self.assertEqual(gen_logo.measured_ico_converter(capabilities), "convert")
+
     def test_image_qc_uses_measured_imagemagick_renderer(self):
         opened = mock.Mock()
         opened.convert.return_value = opened

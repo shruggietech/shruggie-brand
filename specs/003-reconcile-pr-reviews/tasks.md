@@ -93,7 +93,7 @@
 **Independent Test**: The official PR is open, all checks are green, every comment from both permitted rounds is answered and resolved, exactly one explicit `@Codex` request exists, and no merge has occurred.
 
 - [X] T037 [US3] Update `CHANGELOG.md`, complete `specs/003-reconcile-pr-reviews/evidence.md`, run `git diff --check` and the full quickstart, then create a Conventional Commit for S003
-- [ ] T038 [US3] Push `codex/003-reconcile-pr-reviews` and open the official pull request with issue links, exclusions, verification results, and the initial ledger from `specs/003-reconcile-pr-reviews/contracts/review-ledger.md`
+- [X] T038 [US3] Push `codex/003-reconcile-pr-reviews` and open the official pull request with issue links, exclusions, verification results, and the initial ledger from `specs/003-reconcile-pr-reviews/contracts/review-ledger.md`
 - [ ] T039 [US3] Observe automatic Codex review round 1, respond to every comment, implement regression-first corrections where warranted, rerun verification, push changes, resolve every addressed thread, and update the pull-request ledger
 - [ ] T040 [US3] Post exactly one `@Codex` pull-request comment for round 2 and record its immutable comment URL in `specs/003-reconcile-pr-reviews/evidence.md`
 - [ ] T041 [US3] Observe Codex review round 2, respond to every comment, implement regression-first corrections where warranted, rerun verification, push changes, resolve every addressed thread, and update the pull-request ledger without another review request

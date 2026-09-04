@@ -6,7 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
-- Aligned SVG-renderer capability reporting with the ImageMagick fallback used by raster generation and image QC, while rejecting the unrelated Windows `convert.exe` utility.
+- Aligned SVG-renderer capability reporting with the ImageMagick fallback used by raster generation and image QC, rejected the unrelated Windows `convert.exe` utility, and made ICO generation reuse the validated converter result.
 - Corrected the Glitchpad fixture's token and class prefixes and added narrow-screen overflow guards.
 - Corrected ShruggieTech's narrow-screen header layout and removed the remaining nested interactive contact control.
 
