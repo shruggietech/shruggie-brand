@@ -351,5 +351,5 @@
     "specimen_line": "A cross-platform scheduler in Go.",
     "specimen_body": "Readable schedules with timezone, catch-up, and overlap policy stated plainly."
   },
-  "canon": "1.1.2"
+  "canon": "1.2.0"
 }

@@ -21,6 +21,7 @@ jobs:
         run: |
           python -m compileall -q scripts skill/templates
           python scripts/build_all.py --list
+          python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
           python skill/templates/test_brand_contract.py
@@ -53,6 +54,7 @@ jobs:
       - name: Test geometry
         run: |
           python skill/templates/test_glyphkit.py
+          python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
           python skill/templates/test_brand_contract.py
@@ -65,9 +67,10 @@ jobs:
         run: python scripts/build_all.py
       - name: Certify release metadata and archives
         run: |
-          python scripts/package_release.py --version 1.1.2
-          python scripts/release_contract.py notes --version 1.1.2 --output release/release-notes.md
-          python scripts/release_contract.py verify --version 1.1.2 --release-dir release --notes release/release-notes.md
+          VERSION="$(python scripts/release_contract.py current)"
+          python scripts/package_release.py --version "$VERSION"
+          python scripts/release_contract.py notes --version "$VERSION" --output release/release-notes.md
+          python scripts/release_contract.py verify --version "$VERSION" --release-dir release --notes release/release-notes.md
       - name: Check generated agent contract
         run: |
           python skill/templates/sync_agents_md.py skill

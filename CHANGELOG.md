@@ -4,6 +4,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-05
+
 ### Added
 
 - Added one validated route descriptor graph for exact canonical, Open Graph, Twitter, JSON-LD, breadcrumb, sitemap, and route-specific social-preview discovery across every public page.
@@ -95,7 +97,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 - Relicensed the brandbuilder code, templates, and reference documentation from proprietary terms to Apache-2.0 while reserving names and marks.
 
-[Unreleased]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/ShruggieTech/shruggie-brand/releases/tag/v1.1.0

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.2.0 - 2026-09-05
+
 - Added deterministic, categorized web, Android, iOS and iPadOS, macOS, and Windows application-icon suites with native metadata, platform-local instructions, exact manifests, and compatibility aliases.
 - Added adversarial icon verification for dimensions, alpha, visible artwork, safe areas, metadata, ICO and ICNS entries, undeclared files, and alias drift.
 - Added explicit ownership, showcase, parentage, inheritance, endorsement, and service-credit validation with ownership-safe generated output.
