@@ -74,7 +74,7 @@ The first detached-checkout test invocation used plain system Python and stopped
 | S005 slice issue | https://github.com/shruggietech/shruggie-brand/issues/95 | Open pending reviewed current-main evidence |
 | Phase 1 children | #39, #41, #42 | Open pending reviewed current-main evidence |
 | Phase 10 children | #76 through #86 | Open pending reviewed current-main evidence |
-| Pull request | Pending | Not published |
+| Pull request | https://github.com/shruggietech/shruggie-brand/pull/96 | Open pending CI and bounded Codex review |
 
 ## Codex review ledger
 
