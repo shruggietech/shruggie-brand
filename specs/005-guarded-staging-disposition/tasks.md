@@ -81,7 +81,7 @@
 - [x] T027 [US3] Run UTF-8 without BOM, LF, mojibake, secret, provider-identifier, raw-session, backup-location, and private-path scans against every changed public text file.
 - [x] T028 [US3] Run a clean-checkout repetition and record exact sanitized results in `specs/005-guarded-staging-disposition/evidence.md`.
 - [x] T029 [US3] Run the read-only Spec Kit consistency analysis and correct any critical or high-severity cross-artifact defects before publication.
-- [ ] T030 [US3] Mark completed implementation tasks in `specs/005-guarded-staging-disposition/tasks.md`, commit with the S005 Conventional Commit subject, and push the branch.
+- [x] T030 [US3] Mark completed implementation tasks in `specs/005-guarded-staging-disposition/tasks.md`, commit with the S005 Conventional Commit subject, and push the branch.
 - [ ] T031 [US3] Open the official S005 pull request with issue traceability, validation evidence, accessibility/identity/documentation/changelog impact, and the bounded Codex review ledger.
 - [ ] T032 [US3] Process automatic Codex round 1: file every negative finding as a GitHub issue, substantively answer every comment, push warranted corrections, resolve addressed threads, and update the review ledger.
 - [ ] T033 [US3] Post exactly one `@Codex` request and process round 2 with the same issue, correction, reply, resolution, and evidence rules; never request round 3.
