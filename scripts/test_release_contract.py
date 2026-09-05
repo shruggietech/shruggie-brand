@@ -46,30 +46,61 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
 
 
 class ReleaseContractTests(unittest.TestCase):
-    def test_repository_metadata_and_notes_agree_for_1_1_2(self):
-        metadata = release_contract.load_metadata(ROOT, "1.1.2")
+    def test_repository_metadata_and_notes_agree_for_1_2_0(self):
+        metadata = release_contract.load_metadata(ROOT, "1.2.0")
         notes = release_contract.render_notes(metadata)
 
-        self.assertEqual(metadata["skill_version"], "1.1.2")
-        self.assertEqual(metadata["canon_version"], "1.1.2")
-        self.assertIn("Skill version: `1.1.2`", notes)
-        self.assertIn("Canon version: `1.1.2`", notes)
+        self.assertEqual(metadata["skill_version"], "1.2.0")
+        self.assertEqual(metadata["canon_version"], "1.2.0")
+        self.assertEqual(release_contract.current_version(ROOT), "1.2.0")
+        self.assertIn("Skill version: `1.2.0`", notes)
+        self.assertIn("Canon version: `1.2.0`", notes)
         self.assertIn("Existing kits need migration: **yes**", notes)
-        self.assertIn("Aligned SVG-renderer capability reporting", notes)
+        self.assertIn("native application-icon suites", notes)
+        self.assertIn("ownership-safe third-party inputs", notes)
         self.assertNotIn("## [Unreleased]", notes)
 
     def test_expected_assets_are_exact_and_use_embedded_brand_versions(self):
-        metadata = release_contract.load_metadata(ROOT, "1.1.2")
+        metadata = release_contract.load_metadata(ROOT, "1.2.0")
 
         self.assertEqual(set(release_contract.expected_assets(metadata)), {
-            "shruggie-brandbuilder-1.1.2.skill",
-            "shruggie-brandbuilder-1.1.2-portable.zip",
+            "shruggie-brandbuilder-1.2.0.skill",
+            "shruggie-brandbuilder-1.2.0-portable.zip",
             "shruggietech-brand-1.0.0.zip",
             "fragcap-brand-1.1.0.zip",
             "go-schedule-brand-1.0.0.zip",
             "glitchpad-brand-1.0.0.zip",
             "covarity-brand-1.0.0.zip",
         })
+        self.assertEqual(
+            {slug: values["version"] for slug, values in metadata["brands"].items()},
+            {
+                "shruggietech": "1.0.0",
+                "fragcap": "1.1.0",
+                "go-schedule": "1.0.0",
+                "glitchpad": "1.0.0",
+                "covarity": "1.0.0",
+            },
+        )
+
+    def test_requested_release_dates_must_agree(self):
+        root = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        skill = (ROOT / "skill" / "CHANGELOG.md").read_text(encoding="utf-8")
+
+        with self.assertRaisesRegex(ValueError, "root and skill 1.2.0 release dates disagree"):
+            release_contract.require_history(
+                root,
+                skill.replace("## 1.2.0 - 2026-09-05", "## 1.2.0 - 2026-09-06"),
+                "1.2.0",
+            )
+
+    def test_build_workflow_discovers_current_release_version(self):
+        workflow = (ROOT / ".github" / "workflows" / "build.yml").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("python scripts/release_contract.py current", workflow)
+        self.assertNotIn("--version 1.1.2", workflow)
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -81,7 +112,7 @@ class ReleaseContractTests(unittest.TestCase):
 
     def test_portable_bundle_requires_agents_and_omits_skill(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "shruggie-brandbuilder-1.1.2-portable.zip"
+            path = Path(tmp) / "shruggie-brandbuilder-1.2.0-portable.zip"
             entries = {name: name.encode("utf-8") for name in LICENSES}
             entries.update({"AGENTS.md": b"agents", "CHANGELOG.md": b"history",
                             "README.md": b"portable", "SKILL.md": b"forbidden"})
@@ -162,7 +193,7 @@ class ReleaseContractTests(unittest.TestCase):
     def test_release_directory_rejects_unexpected_assets(self):
         with tempfile.TemporaryDirectory() as tmp:
             release_dir = Path(tmp)
-            metadata = {"version": "1.1.2", "brands": {}}
+            metadata = {"version": "1.2.0", "brands": {}}
             (release_dir / "unexpected.zip").write_bytes(b"stale")
 
             with self.assertRaisesRegex(ValueError, "unexpected release assets"):

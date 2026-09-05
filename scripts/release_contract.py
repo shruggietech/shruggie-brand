@@ -19,11 +19,13 @@ REQUIRED_HISTORY = {
     "1.1.0": ("glyph construction", "portability tiers", "chart", "generators", "Apache-2.0"),
     "1.1.1": ("WCAG", "AA floor"),
     "1.1.2": ("geometry_provenance", "ShruggieTech", "Python 3.8", "Windows", "stale"),
+    "1.2.0": ("third-party", "application-icon", "Fumadocs", "route descriptor"),
 }
 MIGRATION = (
-    "Existing kits need migration: **yes**. Rebuild existing kits to record geometry "
-    "provenance, the accessible parent-green correction, and the release-critical review "
-    "remediations included in this version."
+    "Existing kits need migration: **yes**. Rebuild existing kits with v1.2.0 to receive "
+    "ownership-safe third-party inputs, authoritative supplied-mark and fixed-font handling, "
+    "native application-icon suites, and the current canon. Rebuild the site from those "
+    "verified kits to publish the current portfolio, documentation, and discovery output."
 )
 
 
@@ -67,7 +69,7 @@ def skill_metadata(path: Path) -> Dict[str, str]:
     return values
 
 
-def require_history(root_changelog: str, skill_changelog: str) -> None:
+def require_history(root_changelog: str, skill_changelog: str, release_version: str) -> None:
     for version, phrases in REQUIRED_HISTORY.items():
         root_section = changelog_section(root_changelog, version, bracketed=True)
         skill_section = changelog_section(skill_changelog, version, bracketed=False)
@@ -75,10 +77,10 @@ def require_history(root_changelog: str, skill_changelog: str) -> None:
         missing = [phrase for phrase in phrases if phrase.lower() not in combined.lower()]
         if missing:
             raise ValueError("version %s history lacks: %s" % (version, ", ".join(missing)))
-    root_release = changelog_section(root_changelog, "1.1.2", bracketed=True)
-    skill_release = changelog_section(skill_changelog, "1.1.2", bracketed=False)
+    root_release = changelog_section(root_changelog, release_version, bracketed=True)
+    skill_release = changelog_section(skill_changelog, release_version, bracketed=False)
     if root_release["date"] != skill_release["date"]:
-        raise ValueError("root and skill 1.1.2 release dates disagree")
+        raise ValueError("root and skill %s release dates disagree" % release_version)
 
 
 def load_metadata(root: Path, version: str) -> Dict[str, object]:
@@ -87,7 +89,7 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
     canon = json.loads(read_text(root / "skill" / "references" / "01-canon.json"))
     root_changelog = read_text(root / "CHANGELOG.md")
     skill_changelog = read_text(root / "skill" / "CHANGELOG.md")
-    require_history(root_changelog, skill_changelog)
+    require_history(root_changelog, skill_changelog, version)
     release = changelog_section(root_changelog, version, bracketed=True)
 
     if skill["version"] != version:
@@ -117,6 +119,17 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
         "release_changes": release["body"],
         "brands": brands,
     }
+
+
+def current_version(root: Path) -> str:
+    root = root.resolve()
+    skill = skill_metadata(root / "skill" / "SKILL.md")
+    canon = json.loads(read_text(root / "skill" / "references" / "01-canon.json"))
+    version = skill["version"]
+    if skill["canon"] != version or canon.get("version") != version:
+        raise ValueError("skill and canon current versions disagree")
+    load_metadata(root, version)
+    return version
 
 
 def render_notes(metadata: Mapping[str, object]) -> str:
@@ -311,6 +324,7 @@ def write_notes(path: Path, value: str) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers.add_parser("current", help="print the validated current release version")
     notes_parser = subparsers.add_parser("notes", help="generate validated release notes")
     notes_parser.add_argument("--version", required=True)
     notes_parser.add_argument("--output", type=Path, required=True)
@@ -319,6 +333,10 @@ def main() -> int:
     verify_parser.add_argument("--release-dir", type=Path, required=True)
     verify_parser.add_argument("--notes", type=Path, required=True)
     args = parser.parse_args()
+
+    if args.command == "current":
+        print(current_version(ROOT))
+        return 0
 
     metadata = load_metadata(ROOT, args.version)
     if args.command == "notes":

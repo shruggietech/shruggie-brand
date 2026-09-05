@@ -218,5 +218,5 @@
     "written_form": "<span class=\"m\">Covarity</span> in title case in prose. <span class=\"m\">covarity</span> in lowercase for technical identifiers, repositories and package names. <span class=\"m\">covarity.ai</span> in a URL, and anywhere an unrelated company of the same name could be confused with this one. Never set <span class=\"m\">Covarity.ai</span> in a wordmark or a headline: a top-level domain is an address, and it dates a mark.",
     "named": "18 March 2026"
   },
-  "canon": "1.1.2"
+  "canon": "1.2.0"
 }
