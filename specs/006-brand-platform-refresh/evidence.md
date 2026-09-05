@@ -41,7 +41,11 @@
 
 ## Pull request and review
 
-- Commit `49f7d72` was pushed to `codex/006-brand-platform-refresh`.
 - Official pull request: https://github.com/shruggietech/shruggie-brand/pull/107
 - The pull request contains closing references for #100, #101, #102, and #103.
-- Automatic CI and first-round external review are pending.
+- Automatic CI was green before the final-review corrections.
+- The automatic first Codex review produced five findings: Python 3.8 writer compatibility, invalid directory download links, weakened registry-file validation, silent missing-guide omission, and source/JSON slug inconsistency. Every finding was corrected, answered with evidence, and resolved.
+- The one authorized explicit second and final Codex review produced three findings: generated guideline pages missing from SEO and browser route inventories, stale generated public brand trees, and an obsolete focused-test count. Commit `66906bc` corrects all three. Every finding was answered with local validation evidence and resolved.
+- The expanded guideline-page audit also exposed and corrected missing image alternatives, mobile image overflow, a non-company-aligned page title, and retired public attribution wording in generated guides.
+- Exactly two Codex review rounds were used. No third review was requested or will be requested.
+- Hosted CI for the final corrective commit is pending.
