@@ -29,6 +29,11 @@ DOC_DESCRIPTIONS = {
 }
 
 
+def write_utf8(path: Path, content: str) -> None:
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(content)
+
+
 def production_slugs(root: Path = ROOT) -> set[str]:
     return {path.parent.name for path in (root / "brands").glob("*/brand.json")}
 
@@ -178,7 +183,7 @@ def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DO
         title, body = derive_public_markdown(path.read_text(encoding="utf-8"))
         description = descriptions.get(path.stem, f"ShruggieTech guidance for {title.lower()}.")
         frontmatter = f"---\ntitle: {json.dumps(title)}\ndescription: {json.dumps(description)}\n---\n\n"
-        (output / f"{path.stem}.mdx").write_text(frontmatter + body, encoding="utf-8", newline="\n")
+        write_utf8(output / f"{path.stem}.mdx", frontmatter + body)
         records.append({"slug": path.stem, "title": title, "description": description})
         pages.append(path.stem)
     index = """---
@@ -190,8 +195,8 @@ We turn strategy into a complete identity, then package the standards, assets, a
 
 [Download the ShruggieTech brand skill](https://github.com/ShruggieTech/shruggie-brand/releases/latest) or explore each part of the system below.
 """
-    (output / "index.mdx").write_text(index, encoding="utf-8", newline="\n")
-    (output / "meta.json").write_text(json.dumps({"title": "How we build brands", "pages": pages}, indent=2) + "\n", encoding="utf-8", newline="\n")
+    write_utf8(output / "index.mdx", index)
+    write_utf8(output / "meta.json", json.dumps({"title": "How we build brands", "pages": pages}, indent=2) + "\n")
     return records
 
 
@@ -225,7 +230,7 @@ def copy_site_identity(source: Path) -> None:
             raise ValueError(f"required site identity asset is missing: {candidates}")
         shutil.copy2(origin, destination)
     manifest = {"name": "Brands | ShruggieTech", "short_name": "ShruggieTech Brands", "start_url": "/", "display": "standalone", "background_color": "#080B0D", "theme_color": "#080B0D", "icons": [{"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png"}, {"src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png"}]}
-    (PUBLIC / "site.webmanifest").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+    write_utf8(PUBLIC / "site.webmanifest", json.dumps(manifest, indent=2) + "\n")
 
 
 def main() -> int:
@@ -240,13 +245,13 @@ def main() -> int:
         brands.append(copy_kit(source, brand))
     parent = DIST / "shruggietech"
     parent_css = "\n".join((parent / "tokens" / name).read_text(encoding="utf-8") for name in ("colors.css", "spacing.css", "typography.css", "base.css"))
-    (GENERATED / "parent.css").write_text(parent_css, encoding="utf-8", newline="\n")
-    (GENERATED / "registry-theme.css").write_text(install_registry_theme(parent), encoding="utf-8", newline="\n")
+    write_utf8(GENERATED / "parent.css", parent_css)
+    write_utf8(GENERATED / "registry-theme.css", install_registry_theme(parent))
     generated_fonts = GENERATED / "fonts"
     if generated_fonts.exists():
         shutil.rmtree(generated_fonts)
     shutil.copytree(ROOT / "assets" / "fonts" / "woff2", generated_fonts)
-    (GENERATED / "brands.json").write_text(json.dumps(brands, indent=2) + "\n", encoding="utf-8", newline="\n")
+    write_utf8(GENERATED / "brands.json", json.dumps(brands, indent=2) + "\n")
     docs = write_docs(REFERENCES, GENERATED / "docs")
     copy_site_identity(parent)
     print(f"prepared {len(brands)} kits and {len(docs)} reference documents")
