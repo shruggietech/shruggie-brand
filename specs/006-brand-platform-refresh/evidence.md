@@ -9,7 +9,7 @@
 
 ## Focused and repository validation
 
-- `python scripts/test_prepare_site.py`: 5 tests passed.
+- `python scripts/test_prepare_site.py`: 8 tests passed.
 - `python skill/templates/test_pipeline.py`: 19 tests passed.
 - `python scripts/test_release_contract.py`: 9 tests passed.
 - `python scripts/check_markdown.py`: passed.
@@ -31,7 +31,7 @@
 - `pnpm --dir site install --frozen-lockfile`: passed with the committed lockfile.
 - `pnpm --dir site lint`: generated the derived Fumadocs content and passed strict TypeScript validation.
 - `pnpm --dir site build`: exported 26 static pages and route artifacts successfully.
-- `pnpm --dir site test`: verified 21 HTML routes at 360-pixel and 1280-pixel widths with zero WCAG 2.1 AA violations, zero horizontal page overflow, complete metadata, generated card coverage, semantic tables, search, icons, manifest, robots, and sitemap output.
+- `pnpm --dir site test`: verified 26 HTML routes at 360-pixel and 1280-pixel widths with zero WCAG 2.1 AA violations, zero horizontal page overflow, complete company-aligned titles and metadata, generated card coverage, semantic tables, search, icons, manifest, robots, and sitemap output. The route inventory includes all five generated guideline pages.
 
 ## Hygiene
 

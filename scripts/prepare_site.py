@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+from html import escape
 from pathlib import Path
 from typing import Optional, Set
 
@@ -92,6 +93,45 @@ def validate_source_identity(source: Path, brand: dict, seen: set[str]) -> None:
     seen.add(slug)
 
 
+def remove_stale_public_brands(public: Path, expected: set[str]) -> list[str]:
+    removed = []
+    for child in public.iterdir():
+        generated = (child / "brand" / "r" / "registry.json").is_file() and (child / "downloads" / "files").is_dir()
+        if child.is_dir() and child.name not in expected and generated:
+            resolved = child.resolve()
+            try:
+                resolved.relative_to(public.resolve())
+            except ValueError as error:
+                raise ValueError(f"refusing to remove path outside site/public: {resolved}") from error
+            shutil.rmtree(child)
+            removed.append(child.name)
+    return removed
+
+
+def add_guideline_metadata(path: Path, brand: dict) -> None:
+    canonical = f"https://brand.shruggie.tech/{brand['slug']}/guidelines/"
+    title = f"{brand['title']} guidelines | ShruggieTech"
+    description = brand["descriptor"]
+    preview = "https://brand.shruggie.tech/social-preview.png"
+    tags = (
+        f'<meta name="description" content="{escape(description, quote=True)}">'
+        f'<link rel="canonical" href="{canonical}">'
+        f'<link rel="icon" href="/favicon.svg" type="image/svg+xml">'
+        f'<meta property="og:type" content="website"><meta property="og:title" content="{escape(title, quote=True)}">'
+        f'<meta property="og:description" content="{escape(description, quote=True)}"><meta property="og:url" content="{canonical}">'
+        f'<meta property="og:image" content="{preview}"><meta name="twitter:card" content="summary_large_image">'
+        f'<meta name="twitter:title" content="{escape(title, quote=True)}"><meta name="twitter:description" content="{escape(description, quote=True)}">'
+        f'<meta name="twitter:image" content="{preview}">'
+    )
+    content = path.read_text(encoding="utf-8")
+    if "<head>" not in content:
+        raise ValueError(f"guideline page lacks a head element: {path}")
+    content, title_count = re.subn(r"<title>.*?</title>", f"<title>{escape(title)}</title>", content, count=1, flags=re.DOTALL)
+    if title_count != 1:
+        raise ValueError(f"guideline page lacks exactly one title element: {path}")
+    write_utf8(path, content.replace("<head>", "<head>" + tags, 1))
+
+
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
     guide = source / "brand-guide.pdf"
@@ -102,6 +142,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
         shutil.rmtree(target)
     target.mkdir(parents=True)
     replace_tree(source / "guidelines", target / "guidelines")
+    add_guideline_metadata(target / "guidelines" / "index.html", brand)
     replace_tree(source / "nextjs" / "registry", target / "brand" / "r")
     downloads = target / "downloads" / "files"
     downloads.mkdir(parents=True)
@@ -134,6 +175,7 @@ def derive_public_markdown(content: str) -> tuple[str, str]:
     fenced = False
     output: list[str] = []
     pattern = re.compile(r"\bcanon\b", re.IGNORECASE)
+    retired_endorsement = re.compile(r"a shruggietech project", re.IGNORECASE)
     for line in lines:
         if not removed_heading and line.startswith("# "):
             removed_heading = True
@@ -148,6 +190,7 @@ def derive_public_markdown(content: str) -> tuple[str, str]:
         parts = re.split(r"(`[^`]*`)", line)
         for index in range(0, len(parts), 2):
             parts[index] = pattern.sub(lambda match: "Brand system" if match.group(0)[0].isupper() else "brand system", parts[index])
+            parts[index] = retired_endorsement.sub("Brand system by ShruggieTech", parts[index])
         output.append("".join(parts))
     normalized: list[str] = []
     index = 0
@@ -250,7 +293,9 @@ def main() -> int:
     GENERATED.mkdir(parents=True, exist_ok=True)
     brands = []
     seen: set[str] = set()
-    for source in source_dirs():
+    sources = source_dirs()
+    remove_stale_public_brands(PUBLIC, {source.name for source in sources})
+    for source in sources:
         brand = load_brand(source)
         validate_source_identity(source, brand, seen)
         validate_registry(source, brand)

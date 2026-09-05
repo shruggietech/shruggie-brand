@@ -45,11 +45,13 @@ try {
       await page.setViewportSize({ width, height: 900 });
       const response = await page.goto(base + route);
       check(response?.status() === 200, `${route} returned ${response?.status()}`);
+      check((await page.title()).endsWith('| ShruggieTech'), `${route} lacks a company-aligned page title`);
       check(await page.locator('meta[name="description"]').count() === 1, `${route} lacks a meta description`);
       check(await page.locator('link[rel="canonical"]').count() === 1, `${route} lacks a canonical URL`);
       check(await page.locator('meta[property="og:title"]').count() === 1, `${route} lacks Open Graph metadata`);
       check(await page.locator('meta[name="twitter:card"]').count() === 1, `${route} lacks Twitter card metadata`);
       check(await page.locator('link[rel="icon"]').count() >= 1, `${route} lacks a favicon`);
+      check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains retired project wording`);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       if (overflow > 1) {
         const offenders = await page.evaluate(() => [...document.querySelectorAll('*')].filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 5).map((element) => `${element.tagName}.${element.className}`));

@@ -1,7 +1,7 @@
 import brands from '../generated/brands.json' with { type: 'json' };
 import meta from '../generated/docs/meta.json' with { type: 'json' };
 
-export const brandRoutes = brands.flatMap((brand) => [`/${brand.slug}/`, `/${brand.slug}/downloads/`]);
+export const brandRoutes = brands.flatMap((brand) => [`/${brand.slug}/`, `/${brand.slug}/downloads/`, `/${brand.slug}/guidelines/`]);
 export const docRoutes = meta.pages.map((page) => page === 'index' ? '/docs/' : `/docs/${page}/`);
 export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolchain', '05-shadcn-binding', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability'].map((slug) => `/docs/${slug}/`);
 export const htmlRoutes = ['/', ...brandRoutes, ...docRoutes];

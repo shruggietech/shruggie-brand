@@ -37,13 +37,38 @@ class PrepareSiteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate"):
             prepare_site.validate_source_identity(source, {"slug": "alpha"}, seen)
 
+    def test_stale_generated_public_brand_is_removed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            public = Path(tmp)
+            stale = public / "stale"
+            (stale / "brand" / "r").mkdir(parents=True)
+            (stale / "downloads" / "files").mkdir(parents=True)
+            (stale / "brand" / "r" / "registry.json").write_text("{}\n", encoding="utf-8")
+            unrelated = public / "unrelated"
+            unrelated.mkdir()
+            self.assertEqual(prepare_site.remove_stale_public_brands(public, {"alpha"}), ["stale"])
+            self.assertFalse(stale.exists())
+            self.assertTrue(unrelated.exists())
+
+    def test_guideline_metadata_is_complete_and_absolute(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "index.html"
+            page.write_text("<html><head><title>Guide</title></head><body></body></html>", encoding="utf-8")
+            prepare_site.add_guideline_metadata(page, {"slug": "alpha", "title": "Alpha", "descriptor": "One & only."})
+            content = page.read_text(encoding="utf-8")
+            self.assertIn("<title>Alpha guidelines | ShruggieTech</title>", content)
+            self.assertIn('rel="canonical" href="https://brand.shruggie.tech/alpha/guidelines/"', content)
+            self.assertIn('property="og:title"', content)
+            self.assertIn('name="twitter:card"', content)
+            self.assertIn("One &amp; only.", content)
+
     def test_public_markdown_rewrites_prose_and_preserves_literal_code(self):
-        source = "# Canon contract\n\nThe canon guides decisions.\n\n`canon` stays literal.\n\n```json\n{\"canon\": \"1.1.2\"}\n```\n"
+        source = "# Canon contract\n\nThe canon guides decisions for A ShruggieTech project.\n\n`canon` and `A ShruggieTech project` stay literal.\n\n```json\n{\"canon\": \"1.1.2\", \"endorsement\": \"A ShruggieTech project\"}\n```\n"
         title, body = prepare_site.derive_public_markdown(source)
         self.assertEqual(title, "Brand system contract")
-        self.assertIn("The brand system guides decisions.", body)
-        self.assertIn("`canon` stays literal.", body)
-        self.assertIn('{"canon": "1.1.2"}', body)
+        self.assertIn("The brand system guides decisions for Brand system by ShruggieTech.", body)
+        self.assertIn("`canon` and `A ShruggieTech project` stay literal.", body)
+        self.assertIn('{"canon": "1.1.2", "endorsement": "A ShruggieTech project"}', body)
 
     def test_write_docs_derives_frontmatter_navigation_and_source_body(self):
         with tempfile.TemporaryDirectory() as tmp:
