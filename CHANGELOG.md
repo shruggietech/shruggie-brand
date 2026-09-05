@@ -6,6 +6,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added one validated route descriptor graph for exact canonical, Open Graph, Twitter, JSON-LD, breadcrumb, sitemap, and route-specific social-preview discovery across every public page.
+- Added deterministic documentation notice transformation and browser verification for code copying, syntax distinction, strict canonical paths, both themes, responsive layouts, and route metadata parity.
 - Added generated web, Android, iOS and iPadOS, macOS, and Windows application-icon suites with exact manifests, native integration metadata, and human-navigable packaging.
 - Added emitted-site favicon integrity checks and direct categorized icon-suite downloads for every generated brand.
 - Added fail-closed affiliation, showcase, inheritance, authoritative-input, palette-approval, and fixed-font contracts for owned and third-party brand work.
@@ -16,6 +18,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- Applied the generated ShruggieTech theme and existing light and dark lockups to the documentation shell with compact type hierarchy, branded orientation states, and responsive navigation.
 - Migrated all five production brands to explicit house inheritance and typography while making generated wording, semantic tokens, framework bindings, guides, and site metadata contract-driven.
 - Aligned the brand site with ShruggieTech's visual system and approved public message, including the headline "We build comprehensive brands".
 - Restricted normal build and publication discovery to the five production sources under `brands/`.
@@ -23,6 +26,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Restored native Fumadocs code panels and copy controls, preserved syntax colors and overflow behavior, rendered explicit source notices as semantic callouts, and removed the duplicate documentation navigation link.
 - Rebuilt the mislabeled Space Grotesk Medium and Bold WOFF2 files from their authoritative local TTF faces so internal family and weight metadata match their declarations.
 - Made generated wrappers self-contained so authoritative raster marks remain visible in PNG, favicon, social-preview, and contact-sheet exports, with empty raster output now rejected.
 
