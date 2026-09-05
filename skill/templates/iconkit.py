@@ -12,6 +12,7 @@ import struct
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from xml.sax.saxutils import escape, quoteattr
 
 from brand_contract import application_icon_profile
 
@@ -391,7 +392,9 @@ def _write_windows(writer, full_mark, reduced_mark):
     readme = root / "README.md"
     writer.text(readme, _suite_readme(
         "Windows icons", "Use `classic/app.ico` for Win32 and the `msix` directory for packaged Windows applications.",
-        (("classic/app.ico", "Classic application icon"), ("msix/Assets", "MSIX scale, target-size, and store assets"), ("msix/Package.appxmanifest.fragment.xml", "Visual-elements integration fragment")),
+        (("classic/app.ico", "Classic application icon"), ("msix/Assets", "MSIX scale, target-size, and store assets"),
+         ("msix/ApplicationVisualElements.fragment.xml", "Merge into Applications/Application"),
+         ("msix/PackageProperties.fragment.xml", "Merge into Package for the Store logo")),
     ), "windows", "instructions")
     ico_images = {}
     for size in ICO_SIZES:
@@ -408,21 +411,32 @@ def _write_windows(writer, full_mark, reduced_mark):
                        "windows", "msix-scale", alpha="opaque", destination="MSIX Assets")
     for size in WINDOWS_TARGETS:
         mark = reduced_mark if size <= writer.profile["reduced_below_px"] else full_mark
-        writer.png(assets / ("AppList.targetsize-%d.png" % size), _plated(mark, size, background, 0.72),
+        writer.png(assets / ("Square44x44Logo.targetsize-%d.png" % size), _plated(mark, size, background, 0.72),
                    "windows", "target-size", alpha="opaque", source_variant="reduced" if mark is reduced_mark else "full", destination="MSIX Assets")
-        writer.png(assets / ("AppList.targetsize-%d_altform-unplated.png" % size), _contain(mark, size, 0.72),
+        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-unplated.png" % size), _contain(mark, size, 0.72),
                    "windows", "target-size", "dark-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
-        writer.png(assets / ("AppList.targetsize-%d_altform-lightunplated.png" % size), _contain(mark, size, 0.72),
+        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size), _contain(mark, size, 0.72),
                    "windows", "target-size", "light-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
     for scale in (100, 200, 400):
         pixels = 50 * scale // 100
         writer.png(assets / ("StoreLogo.scale-%d.png" % scale), _plated(full_mark, pixels, background, 0.72),
                    "windows", "store-logo", alpha="opaque", destination="MSIX Assets")
-    fragment = ('<?xml version="1.0" encoding="utf-8"?>\n'
-                '<ApplicationVisualElements xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" '
-                'Square44x44Logo="Assets\\Square44x44Logo.png" Square150x150Logo="Assets\\Square150x150Logo.png">'
-                '<uap:DefaultTile/><uap:VisualElements AppListEntry="default"/></ApplicationVisualElements>\n')
-    writer.text(root / "msix" / "Package.appxmanifest.fragment.xml", fragment, "windows", "manifest-fragment", "xml", "Merge into Package.appxmanifest")
+    title = str(writer.brand["title"])
+    visual_elements = ('<?xml version="1.0" encoding="utf-8"?>\n'
+                       '<uap:VisualElements xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" '
+                       'DisplayName=%s Description=%s BackgroundColor=%s '
+                       'Square44x44Logo="Assets\\Square44x44Logo.png" '
+                       'Square150x150Logo="Assets\\Square150x150Logo.png" AppListEntry="default"/>\n'
+                       % (quoteattr(title), quoteattr("%s application" % title), quoteattr(background)))
+    writer.text(root / "msix" / "ApplicationVisualElements.fragment.xml", visual_elements,
+                "windows", "manifest-fragment", "xml", "Merge into Applications/Application")
+    properties = ('<?xml version="1.0" encoding="utf-8"?>\n'
+                  '<Properties xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10">'
+                  '<DisplayName>%s</DisplayName><PublisherDisplayName>%s</PublisherDisplayName>'
+                  '<Description>%s</Description><Logo>Assets\\StoreLogo.png</Logo></Properties>\n'
+                  % (escape(title), escape(title), escape("%s application" % title)))
+    writer.text(root / "msix" / "PackageProperties.fragment.xml", properties,
+                "windows", "manifest-fragment", "xml", "Merge into Package")
     entries = writer.artifacts[start:]
     manifest = writer.platform_manifest(root, "windows", entries)
     writer.suites.append({"id": "windows", "root": "icons/windows", "readme": writer.relative(readme),

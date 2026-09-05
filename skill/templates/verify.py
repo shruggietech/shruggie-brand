@@ -404,7 +404,8 @@ def _expected_icon_paths(raster):
         "icons/apple/macos/Assets.xcassets/AppIcon.appiconset/Contents.json",
         "icons/apple/macos/AppIcon.icns",
         "icons/windows/classic/app.ico",
-        "icons/windows/msix/Package.appxmanifest.fragment.xml",
+        "icons/windows/msix/ApplicationVisualElements.fragment.xml",
+        "icons/windows/msix/PackageProperties.fragment.xml",
     })
     for density in ANDROID_DENSITIES:
         required.add("icons/android/app/src/main/res/mipmap-%s/ic_launcher.png" % density)
@@ -418,9 +419,9 @@ def _expected_icon_paths(raster):
         required.add("icons/windows/msix/Assets/Square150x150Logo.scale-%d.png" % scale)
         required.add("icons/windows/msix/Assets/StoreLogo.scale-%d.png" % scale)
     for size in WINDOWS_TARGETS:
-        required.add("icons/windows/msix/Assets/AppList.targetsize-%d.png" % size)
-        required.add("icons/windows/msix/Assets/AppList.targetsize-%d_altform-unplated.png" % size)
-        required.add("icons/windows/msix/Assets/AppList.targetsize-%d_altform-lightunplated.png" % size)
+        required.add("icons/windows/msix/Assets/Square44x44Logo.targetsize-%d.png" % size)
+        required.add("icons/windows/msix/Assets/Square44x44Logo.targetsize-%d_altform-unplated.png" % size)
+        required.add("icons/windows/msix/Assets/Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size)
     return required
 
 
@@ -455,6 +456,42 @@ def _validate_apple_catalogs(kit, problems):
                         problems.append("%s catalog entry %s has dimensions that disagree with its size and scale" % (label, row["filename"]))
         except Exception as error:
             problems.append("%s Contents.json cannot be validated: %s" % (label, error))
+
+
+def _validate_windows_manifest_fragments(kit, brand, profile, problems):
+    msix = os.path.join(kit, "icons", "windows", "msix")
+    visual_path = os.path.join(msix, "ApplicationVisualElements.fragment.xml")
+    properties_path = os.path.join(msix, "PackageProperties.fragment.xml")
+    title = str(brand.get("title", ""))
+    try:
+        visual = ET.parse(visual_path).getroot()
+        expected_tag = "{http://schemas.microsoft.com/appx/manifest/uap/windows10}VisualElements"
+        expected_attributes = {
+            "DisplayName": title,
+            "Description": "%s application" % title,
+            "BackgroundColor": profile["background"],
+            "Square44x44Logo": "Assets\\Square44x44Logo.png",
+            "Square150x150Logo": "Assets\\Square150x150Logo.png",
+            "AppListEntry": "default",
+        }
+        if visual.tag != expected_tag or visual.attrib != expected_attributes or list(visual):
+            problems.append("ApplicationVisualElements.fragment.xml does not match the required uap:VisualElements schema relationship")
+    except Exception as error:
+        problems.append("ApplicationVisualElements.fragment.xml cannot be validated: %s" % error)
+    try:
+        properties = ET.parse(properties_path).getroot()
+        namespace = "{http://schemas.microsoft.com/appx/manifest/foundation/windows10}"
+        expected_children = [
+            (namespace + "DisplayName", title),
+            (namespace + "PublisherDisplayName", title),
+            (namespace + "Description", "%s application" % title),
+            (namespace + "Logo", "Assets\\StoreLogo.png"),
+        ]
+        actual_children = [(child.tag, child.text) for child in properties]
+        if properties.tag != namespace + "Properties" or properties.attrib or actual_children != expected_children:
+            problems.append("PackageProperties.fragment.xml does not match the required Properties and StoreLogo schema relationship")
+    except Exception as error:
+        problems.append("PackageProperties.fragment.xml cannot be validated: %s" % error)
 
 
 def c_icon_suites(kit, brand, rep):
@@ -600,6 +637,12 @@ def c_icon_suites(kit, brand, rep):
     if not isinstance(aliases, dict):
         problems.append("manifest aliases must be an object")
         aliases = {}
+    expected_aliases = {}
+    for path in _expected_icon_paths(raster):
+        if path.startswith("icons/web/") and path.count("/") == 2 and os.path.basename(path) not in {"README.md", "manifest.json"}:
+            expected_aliases["favicons/%s" % os.path.basename(path)] = path
+    if aliases != expected_aliases:
+        problems.append("required favicon aliases do not match the authoritative web suite")
     actual_aliases = set()
     legacy_root = os.path.join(kit, "favicons")
     if os.path.isdir(legacy_root):
@@ -644,6 +687,7 @@ def c_icon_suites(kit, brand, rep):
         if os.path.isfile(play) and os.path.getsize(play) > 1024 * 1024:
             problems.append("Google Play artwork exceeds 1,024 KB")
         _validate_apple_catalogs(kit, problems)
+        _validate_windows_manifest_fragments(kit, brand, expected_profile, problems)
     if problems:
         rep.bad("icon-suites", "; ".join(problems[:30]))
     else:

@@ -40,10 +40,11 @@ The `icons/windows/` directory contains:
 - `classic/app.ico` with 16, 24, 32, 48, 64, 128, and 256 pixel entries
 - `msix/Assets/Square44x44Logo.scale-{100,200,400}.png`
 - `msix/Assets/Square150x150Logo.scale-{100,200,400}.png`
-- `msix/Assets/AppList.targetsize-{16,20,24,30,32,36,40,48,60,64,72,80,96,256}.png`
+- `msix/Assets/Square44x44Logo.targetsize-{16,20,24,30,32,36,40,48,60,64,72,80,96,256}.png`
 - Dark and light unplated counterparts for every target-size asset
 - `msix/Assets/StoreLogo.scale-{100,200,400}.png`
-- `msix/Package.appxmanifest.fragment.xml`
+- `msix/ApplicationVisualElements.fragment.xml`, a schema-shaped `uap:VisualElements` element that references the `Square44x44Logo` and `Square150x150Logo` logical resource basenames
+- `msix/PackageProperties.fragment.xml`, a foundation `Properties` element that references the `StoreLogo` logical resource basename
 - README and platform manifest
 
 ## Compatibility

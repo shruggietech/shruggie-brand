@@ -196,10 +196,17 @@ class IconKitTests(unittest.TestCase):
                 self.assertEqual((pixels, pixels), inspect_png(assets / ("Square44x44Logo.scale-%d.png" % scale))["size"])
             targets = (16, 20, 24, 30, 32, 36, 40, 48, 60, 64, 72, 80, 96, 256)
             for size in targets:
-                self.assertTrue((assets / ("AppList.targetsize-%d.png" % size)).is_file())
-                self.assertTrue((assets / ("AppList.targetsize-%d_altform-unplated.png" % size)).is_file())
-                self.assertTrue((assets / ("AppList.targetsize-%d_altform-lightunplated.png" % size)).is_file())
-            ET.parse(kit / "icons" / "windows" / "msix" / "Package.appxmanifest.fragment.xml")
+                self.assertTrue((assets / ("Square44x44Logo.targetsize-%d.png" % size)).is_file())
+                self.assertTrue((assets / ("Square44x44Logo.targetsize-%d_altform-unplated.png" % size)).is_file())
+                self.assertTrue((assets / ("Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size)).is_file())
+            msix = kit / "icons" / "windows" / "msix"
+            visual = ET.parse(msix / "ApplicationVisualElements.fragment.xml").getroot()
+            self.assertEqual("{http://schemas.microsoft.com/appx/manifest/uap/windows10}VisualElements", visual.tag)
+            self.assertEqual("Assets\\Square44x44Logo.png", visual.attrib["Square44x44Logo"])
+            properties = ET.parse(msix / "PackageProperties.fragment.xml").getroot()
+            namespace = "{http://schemas.microsoft.com/appx/manifest/foundation/windows10}"
+            self.assertEqual(namespace + "Properties", properties.tag)
+            self.assertEqual("Assets\\StoreLogo.png", properties.find(namespace + "Logo").text)
 
     def test_generation_removes_stale_outputs_and_core_records_skips(self):
         with tempfile.TemporaryDirectory() as temporary:

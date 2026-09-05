@@ -513,6 +513,8 @@ class PipelineTests(unittest.TestCase):
             ios_contents = json.loads(ios_contents_path.read_text(encoding="utf-8"))
             ios_contents["images"][0]["filename"] = "missing.png"
             write_utf8(ios_contents_path, json.dumps(ios_contents, indent=2) + "\n")
+            visual_fragment = kit / "icons" / "windows" / "msix" / "ApplicationVisualElements.fragment.xml"
+            write_utf8(visual_fragment, '<?xml version="1.0" encoding="utf-8"?>\n<ApplicationVisualElements/>\n')
             write_utf8(manifest_path, json.dumps(manifest, indent=2) + "\n")
             (kit / "icons" / "undeclared.bin").write_bytes(b"stale")
             (kit / "favicons" / "favicon.svg").write_text("drift\n", encoding="utf-8")
@@ -532,6 +534,17 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("lacks an sRGB declaration", detail)
             self.assertIn("required platform artifacts are absent", detail)
             self.assertIn("iOS Contents.json does not match", detail)
+            self.assertIn("ApplicationVisualElements.fragment.xml does not match", detail)
+
+            generate_icon_suites(brand, kit, full, reduced, render, capabilities)
+            self.write_probe(kit, tier="full", raster=True, chromium=True, ico=True)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["aliases"] = {}
+            write_utf8(manifest_path, json.dumps(manifest, indent=2) + "\n")
+            shutil.rmtree(kit / "favicons")
+            alias_report = verify.Report()
+            verify.c_icon_suites(str(kit), brand, alias_report)
+            self.assertIn("required favicon aliases", "\n".join(alias_report.problems))
 
     def test_shruggietech_runtime_uses_native_form_and_link_semantics(self):
         kit = ROOT / "brands" / "shruggietech" / "ui_kits" / "shruggie-web"
