@@ -3,7 +3,7 @@
 ## Contract and focused regressions
 
 - `test_brand_contract.py`: 13 tests passed, including fail-closed affiliation, independent semantic colors, third-party output scanning, deterministic raster evidence, stale approvals, passive-SVG restrictions, path and role collisions, imported-image transformation approval, complete fixed-font metadata failures, variable and corrupt font rejection, and atomic ingestion boundaries.
-- `test_pipeline.py`: 20 tests passed, including the isolated third-party fixed-font full pipeline, no false ownership, no inherited house orange, no font-network access, supplied SVG wordmark preservation, renderer failure handling, and hidden Windows processes.
+- `test_pipeline.py`: 21 tests passed, including the isolated third-party fixed-font full pipeline, no false ownership, no inherited house orange, no font-network access, supplied SVG wordmark preservation, optional pagination dependency handling, renderer failure handling, and hidden Windows processes.
 - `test_prepare_site.py`: 9 tests passed, including explicit public/private showcase behavior, stale-public cleanup, and fail-closed missing output.
 - `test_release_contract.py`: 9 tests passed.
 - `check_markdown.py`: passed.

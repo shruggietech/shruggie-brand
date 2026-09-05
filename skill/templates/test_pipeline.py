@@ -343,6 +343,19 @@ class PipelineTests(unittest.TestCase):
             finally:
                 sys.argv = old_argv
 
+    def test_pagination_skips_when_playwright_is_unavailable(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            html = Path(temporary) / "guide.html"
+            write_utf8(html, "<!doctype html><title>Guide</title><p>Body</p>\n")
+            completed = subprocess.run(
+                [sys.executable, "-S", str(HERE / "qc_paginate.py"), str(html)],
+                capture_output=True,
+                text=True,
+                **hidden_process_kwargs()
+            )
+            self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+            self.assertIn("pagination: SKIP, headless Chromium unavailable", completed.stdout)
+
     def test_pdf_failure_after_full_probe_is_fatal(self):
         class BrokenChromium:
             def launch(self):
