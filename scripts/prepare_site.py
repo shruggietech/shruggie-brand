@@ -74,7 +74,7 @@ def validate_registry(source: Path, brand: dict) -> None:
     if catalog.get("$schema") != "https://ui.shadcn.com/schema/registry.json":
         raise ValueError(f"{brand['slug']}: registry schema is missing")
     names = {item["name"] for item in catalog.get("items", [])}
-    if not {"theme", "fonts"}.issubset(names):
+    if not {"theme", "fonts"}.issubset(names) or not (registry_dir / "theme.json").is_file() or not (registry_dir / "fonts.json").is_file():
         raise ValueError(f"{brand['slug']}: registry theme or fonts item is missing")
     expected = f"https://brand.shruggie.tech/{brand['slug']}/brand"
     if brand.get("registry_base") != expected:
@@ -83,8 +83,20 @@ def validate_registry(source: Path, brand: dict) -> None:
         json.loads(path.read_text(encoding="utf-8"))
 
 
+def validate_source_identity(source: Path, brand: dict, seen: set[str]) -> None:
+    slug = brand.get("slug")
+    if slug != source.name:
+        raise ValueError(f"brand slug {slug!r} must match source directory {source.name!r}")
+    if slug in seen:
+        raise ValueError(f"duplicate brand slug: {slug}")
+    seen.add(slug)
+
+
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
+    guide = source / "brand-guide.pdf"
+    if not guide.is_file():
+        raise ValueError(f"{slug}: verified public brand guide is missing")
     target = PUBLIC / slug
     if target.exists():
         shutil.rmtree(target)
@@ -93,9 +105,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
     replace_tree(source / "nextjs" / "registry", target / "brand" / "r")
     downloads = target / "downloads" / "files"
     downloads.mkdir(parents=True)
-    guide = source / "brand-guide.pdf"
-    if guide.is_file():
-        shutil.copy2(guide, downloads / f"{slug}-brand-guide.pdf")
+    shutil.copy2(guide, downloads / f"{slug}-brand-guide.pdf")
     for name in ("logos", "favicons", "specimens"):
         replace_tree(source / name, downloads / name)
     specimen_name = next((source / "specimens").glob("*.svg")).name
@@ -239,8 +249,10 @@ def main() -> int:
     PUBLIC.mkdir(parents=True, exist_ok=True)
     GENERATED.mkdir(parents=True, exist_ok=True)
     brands = []
+    seen: set[str] = set()
     for source in source_dirs():
         brand = load_brand(source)
+        validate_source_identity(source, brand, seen)
         validate_registry(source, brand)
         brands.append(copy_kit(source, brand))
     parent = DIST / "shruggietech"

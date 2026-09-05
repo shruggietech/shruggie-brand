@@ -6,3 +6,4 @@ export const docRoutes = meta.pages.map((page) => page === 'index' ? '/docs/' : 
 export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolchain', '05-shadcn-binding', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability'].map((slug) => `/docs/${slug}/`);
 export const htmlRoutes = ['/', ...brandRoutes, ...docRoutes];
 export const requiredFiles = ['/favicon.svg', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/site.webmanifest', '/social-preview.png', '/robots.txt', '/sitemap.xml', '/static.json'];
+export const downloadFiles = brands.flatMap((brand) => { const root = `/${brand.slug}/downloads/files`; return [`${root}/${brand.slug}-brand-guide.pdf`, `${root}/logos/svg/${brand.slug}-mark-color.svg`, `${root}/logos/svg/${brand.slug}-horizontal-color.svg`, `${root}/favicons/favicon.ico`, brand.specimen, `/${brand.slug}/brand/r/theme.json`]; });

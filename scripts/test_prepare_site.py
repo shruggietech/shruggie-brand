@@ -29,6 +29,14 @@ class PrepareSiteTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "missing.*alpha"):
                 prepare_site.source_dirs(Path(tmp), {"alpha"})
 
+    def test_source_identity_requires_matching_unique_slug(self):
+        source = Path("alpha")
+        with self.assertRaisesRegex(ValueError, "must match"):
+            prepare_site.validate_source_identity(source, {"slug": "beta"}, set())
+        seen = {"alpha"}
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            prepare_site.validate_source_identity(source, {"slug": "alpha"}, seen)
+
     def test_public_markdown_rewrites_prose_and_preserves_literal_code(self):
         source = "# Canon contract\n\nThe canon guides decisions.\n\n`canon` stays literal.\n\n```json\n{\"canon\": \"1.1.2\"}\n```\n"
         title, body = prepare_site.derive_public_markdown(source)
