@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
 from brand_contract import affiliation, application_icon_profile
-from iconkit import ANDROID_DENSITIES, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
+from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 
 # ------------------------------------------------------------------ utilities
 def R(a, b): return round(Color(a).contrast(b, method="wcag21"), 2)
@@ -363,6 +363,100 @@ def _container_sizes(path, kind):
     return sizes
 
 
+def _expected_icon_paths(raster):
+    """Return the independent minimum inventory for the selected capability tier."""
+    required = {
+        "icons/README.md",
+        "icons/%s" % GENERATION_MARKER,
+        "icons/web/README.md",
+        "icons/web/favicon.svg",
+        "icons/web/favicon-full.svg",
+        "icons/web/manifest.json",
+        "icons/android/README.md",
+        "icons/android/manifest.json",
+        "icons/apple/ios/README.md",
+        "icons/apple/ios/manifest.json",
+        "icons/apple/macos/README.md",
+        "icons/apple/macos/manifest.json",
+        "icons/windows/README.md",
+        "icons/windows/manifest.json",
+    }
+    if not raster:
+        return required
+    for size in (16, 24, 32, 48, 64, 128, 180, 192, 256, 512):
+        required.add("icons/web/favicon-%dx%d.png" % (size, size))
+    required.update({
+        "icons/web/apple-touch-icon.png",
+        "icons/web/android-chrome-192x192.png",
+        "icons/web/android-chrome-512x512.png",
+        "icons/web/favicon.ico",
+        "icons/web/site.webmanifest",
+        "icons/android/app/src/main/res/drawable-nodpi/ic_launcher_foreground.png",
+        "icons/android/app/src/main/res/drawable-nodpi/ic_launcher_monochrome.png",
+        "icons/android/app/src/main/res/drawable/ic_launcher_background.xml",
+        "icons/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+        "icons/android/app/src/main/res/values/ic_launcher_colors.xml",
+        "icons/android/play-store/google-play-512.png",
+        "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",
+        "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024-dark.png",
+        "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024-tinted.png",
+        "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/Contents.json",
+        "icons/apple/macos/Assets.xcassets/AppIcon.appiconset/Contents.json",
+        "icons/apple/macos/AppIcon.icns",
+        "icons/windows/classic/app.ico",
+        "icons/windows/msix/Package.appxmanifest.fragment.xml",
+    })
+    for density in ANDROID_DENSITIES:
+        required.add("icons/android/app/src/main/res/mipmap-%s/ic_launcher.png" % density)
+    for points, scale in MAC_ROLES:
+        suffix = "@2x" if scale == 2 else ""
+        name = "icon_%dx%d%s.png" % (points, points, suffix)
+        required.add("icons/apple/macos/Assets.xcassets/AppIcon.appiconset/%s" % name)
+        required.add("icons/apple/macos/AppIcon.iconset/%s" % name)
+    for scale in (100, 200, 400):
+        required.add("icons/windows/msix/Assets/Square44x44Logo.scale-%d.png" % scale)
+        required.add("icons/windows/msix/Assets/Square150x150Logo.scale-%d.png" % scale)
+        required.add("icons/windows/msix/Assets/StoreLogo.scale-%d.png" % scale)
+    for size in WINDOWS_TARGETS:
+        required.add("icons/windows/msix/Assets/AppList.targetsize-%d.png" % size)
+        required.add("icons/windows/msix/Assets/AppList.targetsize-%d_altform-unplated.png" % size)
+        required.add("icons/windows/msix/Assets/AppList.targetsize-%d_altform-lightunplated.png" % size)
+    return required
+
+
+def _validate_apple_catalogs(kit, problems):
+    ios_root = os.path.join(kit, "icons", "apple", "ios", "Assets.xcassets", "AppIcon.appiconset")
+    ios_rows = [
+        {"filename": "AppIcon-1024.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"},
+        {"filename": "AppIcon-1024-dark.png", "idiom": "universal", "platform": "ios", "size": "1024x1024",
+         "appearances": [{"appearance": "luminosity", "value": "dark"}]},
+        {"filename": "AppIcon-1024-tinted.png", "idiom": "universal", "platform": "ios", "size": "1024x1024",
+         "appearances": [{"appearance": "luminosity", "value": "tinted"}]},
+    ]
+    mac_root = os.path.join(kit, "icons", "apple", "macos", "Assets.xcassets", "AppIcon.appiconset")
+    mac_rows = []
+    for points, scale in MAC_ROLES:
+        suffix = "@2x" if scale == 2 else ""
+        mac_rows.append({"filename": "icon_%dx%d%s.png" % (points, points, suffix), "idiom": "mac",
+                         "scale": "%dx" % scale, "size": "%dx%d" % (points, points)})
+    for label, root, rows in (("iOS", ios_root, ios_rows), ("macOS", mac_root, mac_rows)):
+        path = os.path.join(root, "Contents.json")
+        try:
+            with open(path, encoding="utf-8") as handle:
+                catalog = json.load(handle)
+            expected = {"images": rows, "info": {"author": "xcode", "version": 1}}
+            if catalog != expected:
+                problems.append("%s Contents.json does not match the required file, size, scale, platform, and appearance relationships" % label)
+            for row in rows:
+                icon = os.path.join(root, row["filename"])
+                if os.path.isfile(icon):
+                    size = 1024 if label == "iOS" else int(row["size"].split("x")[0]) * int(row["scale"][0])
+                    if inspect_png(icon)["size"] != (size, size):
+                        problems.append("%s catalog entry %s has dimensions that disagree with its size and scale" % (label, row["filename"]))
+        except Exception as error:
+            problems.append("%s Contents.json cannot be validated: %s" % (label, error))
+
+
 def c_icon_suites(kit, brand, rep):
     manifest_path = os.path.join(kit, "icons", "manifest.json")
     try:
@@ -524,6 +618,9 @@ def c_icon_suites(kit, brand, rep):
         with open(alias_path, "rb") as alias_handle, open(target_path, "rb") as target_handle:
             if alias_handle.read() != target_handle.read():
                 problems.append("compatibility alias differs from authoritative target: %s" % alias)
+    absent = sorted(_expected_icon_paths(raster) - declared)
+    if absent:
+        problems.append("required platform artifacts are absent: %s" % ", ".join(absent[:12]))
     if raster:
         try:
             for relative in ("icons/web/favicon.ico", "icons/windows/classic/app.ico"):
@@ -546,25 +643,7 @@ def c_icon_suites(kit, brand, rep):
         play = os.path.join(kit, "icons", "android", "play-store", "google-play-512.png")
         if os.path.isfile(play) and os.path.getsize(play) > 1024 * 1024:
             problems.append("Google Play artwork exceeds 1,024 KB")
-        required = set()
-        for density in ANDROID_DENSITIES:
-            required.add("icons/android/app/src/main/res/mipmap-%s/ic_launcher.png" % density)
-        required.update({
-            "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",
-            "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024-dark.png",
-            "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024-tinted.png",
-        })
-        for scale in (100, 200, 400):
-            required.add("icons/windows/msix/Assets/Square44x44Logo.scale-%d.png" % scale)
-            required.add("icons/windows/msix/Assets/Square150x150Logo.scale-%d.png" % scale)
-            required.add("icons/windows/msix/Assets/StoreLogo.scale-%d.png" % scale)
-        for size in WINDOWS_TARGETS:
-            required.add("icons/windows/msix/Assets/AppList.targetsize-%d.png" % size)
-            required.add("icons/windows/msix/Assets/AppList.targetsize-%d_altform-unplated.png" % size)
-            required.add("icons/windows/msix/Assets/AppList.targetsize-%d_altform-lightunplated.png" % size)
-        absent = sorted(required - declared)
-        if absent:
-            problems.append("required platform artifacts are absent: %s" % ", ".join(absent[:6]))
+        _validate_apple_catalogs(kit, problems)
     if problems:
         rep.bad("icon-suites", "; ".join(problems[:30]))
     else:

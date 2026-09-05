@@ -502,6 +502,17 @@ class PipelineTests(unittest.TestCase):
             manifest_path = kit / "icons" / "manifest.json"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             manifest["artifacts"][0]["path"] = "../escape.md"
+            missing_mac = "icons/apple/macos/AppIcon.iconset/icon_512x512@2x.png"
+            manifest["artifacts"] = [item for item in manifest["artifacts"] if item["path"] != missing_mac]
+            mac_manifest_path = kit / "icons" / "apple" / "macos" / "manifest.json"
+            mac_manifest = json.loads(mac_manifest_path.read_text(encoding="utf-8"))
+            mac_manifest["artifacts"] = [item for item in mac_manifest["artifacts"] if item["path"] != missing_mac]
+            write_utf8(mac_manifest_path, json.dumps(mac_manifest, indent=2) + "\n")
+            (kit / missing_mac).unlink()
+            ios_contents_path = kit / "icons" / "apple" / "ios" / "Assets.xcassets" / "AppIcon.appiconset" / "Contents.json"
+            ios_contents = json.loads(ios_contents_path.read_text(encoding="utf-8"))
+            ios_contents["images"][0]["filename"] = "missing.png"
+            write_utf8(ios_contents_path, json.dumps(ios_contents, indent=2) + "\n")
             write_utf8(manifest_path, json.dumps(manifest, indent=2) + "\n")
             (kit / "icons" / "undeclared.bin").write_bytes(b"stale")
             (kit / "favicons" / "favicon.svg").write_text("drift\n", encoding="utf-8")
@@ -519,6 +530,8 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("must be opaque", detail)
             self.assertIn("color mode RGB", detail)
             self.assertIn("lacks an sRGB declaration", detail)
+            self.assertIn("required platform artifacts are absent", detail)
+            self.assertIn("iOS Contents.json does not match", detail)
 
     def test_shruggietech_runtime_uses_native_form_and_link_semantics(self):
         kit = ROOT / "brands" / "shruggietech" / "ui_kits" / "shruggie-web"

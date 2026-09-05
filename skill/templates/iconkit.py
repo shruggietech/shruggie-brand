@@ -13,8 +13,6 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from PIL import Image, ImageChops, PngImagePlugin
-
 from brand_contract import application_icon_profile
 
 
@@ -23,6 +21,13 @@ ANDROID_DENSITIES = {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdp
 WINDOWS_TARGETS = (16, 20, 24, 30, 32, 36, 40, 48, 60, 64, 72, 80, 96, 256)
 ICO_SIZES = (16, 24, 32, 48, 64, 128, 256)
 MAC_ROLES = ((16, 1), (16, 2), (32, 1), (32, 2), (128, 1), (128, 2), (256, 1), (256, 2), (512, 1), (512, 2))
+GENERATION_MARKER = ".iconkit-generated.json"
+
+
+def _pillow():
+    """Load Pillow only for raster work so core-tier vector generation remains usable."""
+    from PIL import Image, ImageChops, PngImagePlugin
+    return Image, ImageChops, PngImagePlugin
 
 
 def write_text(path, content):
@@ -48,7 +53,9 @@ def _collect_domain_icons(icons_root):
     icons_root = Path(icons_root)
     if not icons_root.is_dir():
         return []
-    generated = (icons_root / "manifest.json").is_file()
+    generated = ((icons_root / "manifest.json").is_file()
+                 or (icons_root / GENERATION_MARKER).is_file()
+                 or any((icons_root / name).exists() for name in ("web", "android", "apple", "windows")))
     domain_root = icons_root / "domain"
     if generated:
         candidates = [path for path in domain_root.rglob("*") if path.is_file()] if domain_root.is_dir() else []
@@ -58,6 +65,7 @@ def _collect_domain_icons(icons_root):
 
 
 def inspect_png(path, background=None):
+    Image, ImageChops, _ = _pillow()
     path = Path(path)
     with Image.open(str(path)) as source:
         source.verify()
@@ -92,6 +100,7 @@ def _visible_crop(image):
 
 
 def _contain(mark, size, ratio, color=None):
+    Image, _, _ = _pillow()
     source = _visible_crop(mark)
     maximum = max(1, int(round(size * ratio)))
     scale = min(maximum / source.width, maximum / source.height)
@@ -107,6 +116,7 @@ def _contain(mark, size, ratio, color=None):
 
 
 def _plated(mark, size, background, ratio=0.72, color=None):
+    Image, _, _ = _pillow()
     canvas = Image.new("RGBA", (size, size), _hex_rgb(background) + (255,))
     canvas.alpha_composite(_contain(mark, size, ratio, color))
     return canvas
@@ -126,12 +136,14 @@ def _save_png(image, path):
 
 
 def _srgb_metadata():
+    _, _, PngImagePlugin = _pillow()
     metadata = PngImagePlugin.PngInfo()
     metadata.add(b"sRGB", b"\x00")
     return metadata
 
 
 def _write_ico(entries, output):
+    Image, _, _ = _pillow()
     payloads = []
     for size, image in entries:
         payloads.append((size, _png_bytes(image.resize((size, size), Image.Resampling.LANCZOS))))
@@ -228,7 +240,7 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
     root = writer.kit / "icons" / "web"
     start = len(writer.artifacts)
     background = writer.profile["background"]
-    for name, source, variant in (("favicon.svg", full_svg, "full"), ("favicon-reduced.svg", reduced_svg, "reduced")):
+    for name, source, variant in (("favicon.svg", reduced_svg, "reduced"), ("favicon-full.svg", full_svg, "full")):
         path = root / name
         write_text(path, _svg_wrapper(source, background))
         writer.record(path, "web", "favicon", "svg", 512, 512, "default", "opaque", variant, "Web root or document icon link")
@@ -236,7 +248,8 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
     writer.text(readme, _suite_readme(
         "Web icons",
         "Browser, touch, and installable-web assets. `favicon.svg` is preferred; PNG and ICO files are fallbacks.",
-        (("favicon.svg", "Preferred browser favicon"), ("favicon.ico", "Classic multi-size fallback"),
+        (("favicon.svg", "Preferred reduced-mark browser favicon"), ("favicon-full.svg", "Full-mark vector alternative"),
+         ("favicon.ico", "Classic multi-size fallback"),
          ("apple-touch-icon.png", "Apple touch icon"), ("site.webmanifest", "Installable web metadata")),
     ), "web", "instructions")
     if not raster:
@@ -436,6 +449,9 @@ def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabili
     safe_reset(kit, kit / "favicons")
     profile = application_icon_profile(brand)
     writer = Writer(kit, brand, profile, capabilities)
+    marker = kit / "icons" / GENERATION_MARKER
+    writer.text(marker, json.dumps({"generator": "shruggie-iconkit", "schema_version": SCHEMA_VERSION}, indent=2) + "\n",
+                "web", "icon-index", "json", "Generation ownership marker")
     for relative, payload in domain_icons:
         target = kit / "icons" / "domain" / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -453,6 +469,7 @@ def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabili
     raster_capable = bool(capabilities.get("svg_raster"))
     full_mark = reduced_mark = None
     if raster_capable:
+        Image, _, _ = _pillow()
         with tempfile.TemporaryDirectory(prefix="iconkit-", dir=str(kit)) as temporary:
             full_path = Path(temporary) / "full.png"
             reduced_path = Path(temporary) / "reduced.png"

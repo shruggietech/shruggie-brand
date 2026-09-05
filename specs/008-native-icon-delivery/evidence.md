@@ -12,7 +12,7 @@
 - `.venv\\Scripts\\python.exe skill/templates/test_glyphkit.py`: 31 checks passed with zero failures.
 - `.venv\\Scripts\\python.exe scripts/test_prepare_site.py`: 11 tests passed.
 - `.venv\\Scripts\\python.exe skill/templates/test_brand_contract.py`: 17 tests passed.
-- `.venv\\Scripts\\python.exe skill/templates/test_iconkit.py`: 7 tests passed.
+- `.venv\\Scripts\\python.exe skill/templates/test_iconkit.py`: 10 tests passed, including a `python -S` core-tier generation proving the module does not import Pillow until raster work begins.
 - `.venv\\Scripts\\python.exe skill/templates/test_pipeline.py`: 24 tests passed. Existing intentional failure-path diagnostics and pre-existing `_guidekit.py` resource warnings do not fail the suite.
 - `.venv\\Scripts\\python.exe -m compileall -q scripts skill/templates`: passed.
 - `.venv\\Scripts\\python.exe scripts/check_markdown.py`: Markdown prose line policy passed.
@@ -27,9 +27,12 @@
 - `pnpm --dir site lint`: generated content and TypeScript passed.
 - `pnpm --dir site build`: 26 static routes exported successfully.
 - `pnpm --dir site test`: 26 HTML routes passed desktop and mobile verification with zero WCAG 2.1 AA violations; emitted SVG, PNG, ICO, sRGB, alpha, dimension, manifest, and icon-relationship checks passed.
-- Generated kits, archives, site exports, and browser binaries remain ignored and outside the commit. The temporary browser directory will be removed after local validation.
+- Generated kits, archives, site exports, and browser binaries remain ignored and outside the commit. The temporary browser directory was removed after local validation.
 - Final Spec Kit cross-artifact analysis covers all 37 functional requirements and 12 success criteria with 57 completed specification, implementation, verification, and publication tasks. No critical or high-severity ambiguity, duplication, coverage gap, or constitution conflict remains; T058 through T060 intentionally remain open for hosted review convergence and the final merge gate.
 
 ## Hosted CI and review
 
-Pending pull request publication.
+- PR #114 was published from `codex/008-native-icon-delivery`; both build jobs and both Python 3.8 compatibility jobs passed on the initial head.
+- The initial Codex review identified five valid gaps: eager Pillow imports at core tier, insufficient Apple catalog relationship validation, an incomplete independent required-artifact matrix, full-mark selection for the preferred SVG favicon, and interrupted generated output being reclassified as domain source.
+- The corrective implementation uses lazy raster imports, exact iOS and macOS catalog relationship checks, an independent complete matrix for both core and raster tiers, the reduced mark for the preferred favicon, and a durable generation marker plus known generated-root detection. Ten icon tests, 24 pipeline tests, 17 contract tests, 11 site-preparation tests, nine release-contract tests, compile checks, Markdown checks, and all five production kit builds passed after the corrections.
+- Final second-round review and hosted CI convergence remain tracked by T058 through T060.

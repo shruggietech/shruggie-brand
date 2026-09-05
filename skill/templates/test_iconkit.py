@@ -4,7 +4,11 @@
 
 from __future__ import annotations
 
+import base64
 import json
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
@@ -94,6 +98,57 @@ class IconKitTests(unittest.TestCase):
             self.assertIn("icons/domain/capture.svg", {item["path"] for item in manifest["artifacts"]})
             generate_icon_suites(brand_fixture(), kit, full, reduced, fake_render, {"tier": "full", "svg_raster": True})
             self.assertEqual(payload, preserved.read_bytes())
+
+    def test_interrupted_generated_tree_is_not_reclassified_as_domain_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            kit.mkdir()
+            full = kit / "full.svg"
+            reduced = kit / "reduced.svg"
+            full.write_text('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0H1V1Z"/></svg>\n', encoding="utf-8")
+            reduced.write_bytes(full.read_bytes())
+            interrupted = kit / "icons" / "web" / "partial.svg"
+            interrupted.parent.mkdir(parents=True)
+            interrupted.write_text('<svg xmlns="http://www.w3.org/2000/svg"/>\n', encoding="utf-8")
+            generate_icon_suites(brand_fixture(), kit, full, reduced, fake_render, {"tier": "core", "svg_raster": False})
+            self.assertFalse((kit / "icons" / "domain" / "web" / "partial.svg").exists())
+            self.assertTrue((kit / "icons" / ".iconkit-generated.json").is_file())
+
+    def test_preferred_favicon_embeds_the_reduced_mark(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            kit.mkdir()
+            full = kit / "full.svg"
+            reduced = kit / "reduced.svg"
+            full.write_text('<svg xmlns="http://www.w3.org/2000/svg"><path id="full" d="M0 0H1V1Z"/></svg>\n', encoding="utf-8")
+            reduced.write_text('<svg xmlns="http://www.w3.org/2000/svg"><path id="reduced" d="M0 0H1V1Z"/></svg>\n', encoding="utf-8")
+            generate_icon_suites(brand_fixture(), kit, full, reduced, fake_render, {"tier": "core", "svg_raster": False})
+            preferred = (kit / "icons" / "web" / "favicon.svg").read_text(encoding="utf-8")
+            self.assertIn(base64.b64encode(reduced.read_bytes()).decode("ascii"), preferred)
+            self.assertNotIn(base64.b64encode(full.read_bytes()).decode("ascii"), preferred)
+
+    def test_core_vector_generation_does_not_import_pillow(self):
+        module_root = str(Path(__file__).resolve().parent)
+        script = "\n".join((
+            "import sys, tempfile",
+            "from pathlib import Path",
+            "sys.path.insert(0, %s)" % json.dumps(module_root),
+            "from iconkit import generate_icon_suites",
+            "brand = %s" % repr(brand_fixture()),
+            "with tempfile.TemporaryDirectory() as temporary:",
+            "    kit = Path(temporary)",
+            "    full = kit / 'full.svg'",
+            "    reduced = kit / 'reduced.svg'",
+            "    full.write_text('<svg xmlns=\"http://www.w3.org/2000/svg\"/>\\n', encoding='utf-8')",
+            "    reduced.write_bytes(full.read_bytes())",
+            "    generate_icon_suites(brand, kit, full, reduced, lambda *_: (_ for _ in ()).throw(RuntimeError('raster called')), {'tier': 'core', 'svg_raster': False})",
+            "    assert (kit / 'icons' / 'web' / 'favicon.svg').is_file()",
+        ))
+        kwargs = {"stdin": subprocess.DEVNULL, "capture_output": True, "text": True, "check": False}
+        if os.name == "nt":
+            kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+        result = subprocess.run([sys.executable, "-S", "-c", script], **kwargs)
+        self.assertEqual(0, result.returncode, result.stderr)
 
     def test_android_matrix_and_play_artwork(self):
         with tempfile.TemporaryDirectory() as temporary:
