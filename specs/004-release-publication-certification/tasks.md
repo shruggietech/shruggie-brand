@@ -68,13 +68,13 @@
 
 **Independent Test**: The public release targets verified main, exactly seven downloaded assets and its notes pass the shared contract, and GitHub child, parent, and milestone states match their acceptance policies.
 
-- [ ] T019 [US3] After owner merge, fetch and reconcile actual `origin/main`, prove it contains the reviewed S004 tree, and rerun the complete `specs/004-release-publication-certification/quickstart.md` preflight against that revision
-- [ ] T020 [US3] Create and push annotated tag v1.1.2 at the verified main revision, wait for the Release workflow to succeed, and record tag target plus workflow URL in `specs/004-release-publication-certification/evidence.md`
-- [ ] T021 [US3] Download the published release body and all assets into a fresh temporary directory, run `scripts/release_contract.py verify`, and record the release URL, exact seven assets, and zero-failure result in `specs/004-release-publication-certification/evidence.md`
-- [ ] T022 [US3] Attach published acceptance evidence to and close #63, #72, and #73; then close eligible parents #10 and #13 and milestones 15 and 18 only after re-querying their complete child and open-issue sets
-- [ ] T023 [US3] Update #37 and the S004 slice issue with the release outcome and next remaining work, complete `specs/004-release-publication-certification/evidence.md`, and synchronize final S004 task state through a documentation pull request if post-merge evidence changes require committed records
+- [X] T019 [US3] After owner merge, fetch and reconcile actual `origin/main`, prove it contains the reviewed S004 tree, and rerun the complete `specs/004-release-publication-certification/quickstart.md` preflight against that revision
+- [X] T020 [US3] Create and push annotated tag v1.1.2 at the verified main revision, wait for the Release workflow to succeed, and record tag target plus workflow URL in `specs/004-release-publication-certification/evidence.md`
+- [X] T021 [US3] Download the published release body and all assets into a fresh temporary directory, run `scripts/release_contract.py verify`, and record the release URL, exact seven assets, and zero-failure result in `specs/004-release-publication-certification/evidence.md`
+- [X] T022 [US3] Attach published acceptance evidence to and close #63, #72, and #73; then close eligible parents #10 and #13 and milestones 15 and 18 only after re-querying their complete child and open-issue sets
+- [X] T023 [US3] Update #37 and the S004 slice issue with the release outcome and next remaining work, complete `specs/004-release-publication-certification/evidence.md`, and synchronize final S004 task state through a documentation pull request if post-merge evidence changes require committed records
 
-**Checkpoint**: User Story 3 and S004 are complete only after published verification and GitHub housekeeping.
+**Checkpoint**: User Story 3 and S004 completed after published verification and child-first GitHub housekeeping.
 
 ---
 
