@@ -39,7 +39,9 @@
 | Text and public-data hygiene | PASS | 19 changed files passed UTF-8 without BOM, LF, mojibake, private-path, secret, and provider-identifier scans |
 | Clean-checkout repetition | PASS | Detached committed checkout passed 6 release tests, 18 pipeline tests, 31 glyph checks, Markdown policy, full six-kit build, exact seven-archive preflight, site lint, 25-page export, and remained clean |
 
-## GitHub traceability
+## Pre-merge GitHub traceability snapshot
+
+This table records the owner-handoff state before PR #91 merged. The final current state is recorded under Post-merge publication below.
 
 | Record | Link | State |
 | --- | --- | --- |

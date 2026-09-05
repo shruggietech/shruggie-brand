@@ -80,14 +80,14 @@ The first detached-checkout test invocation used plain system Python and stopped
 
 | Round | Trigger | Signal | Actionable comments | Finding issues | State |
 | --- | --- | --- | ---: | --- | --- |
-| 1 | Automatic on PR publication | [Environment unavailable](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548644645) | 0 | None | Complete; [disposition](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548648601) posted |
-| 2 | [One explicit request](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548655596) after round 1 | Pending | Pending | Pending | Active |
+| 1 | Automatic on PR publication | [Terminal environment-unavailable result](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548644645) with zero findings and zero threads | 0 | None | Complete as infrastructure outcome, not successful code review; [disposition](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548648601) posted |
+| 2 | [One explicit request](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548655596) after round 1 | [Completed review](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548679415) of `4e18640` | 3 | #97, #98, and #99 | Corrections pending |
 
 Review request ceiling: 2 rounds. No third request is authorized.
 
 ## Hosted checks
 
-Pending pull-request publication.
+The pull request is published. At the round 2 reviewed commit `4e18640`, both required jobs passed on the [push run](https://github.com/shruggietech/shruggie-brand/actions/runs/33938424873) and [pull-request run](https://github.com/shruggietech/shruggie-brand/actions/runs/33938423269). Any later correction head remains at the owner gate until the live pull-request check rollup again reports successful `python-38-compatibility` and `build` jobs. This committed ledger records immutable completed runs and the governing state transition; the pull request Checks view is the authoritative live status.
 
 ## Post-merge closure
 
