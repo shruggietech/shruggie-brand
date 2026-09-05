@@ -1,17 +1,12 @@
 <!--
 SYNC IMPACT REPORT
-Version change: template -> 1.0.0
-Added principles:
-  - P1. Sources are committed and artifacts are rebuilt
-  - P2. Identity geometry is preserved
-  - P3. Accessibility has no exemption
-  - P4. Verification precedes publication
-  - P5. The site consumes generated kits
-  - P6. Specifications and releases move together
-Added sections:
-  - Technical and documentation constraints
-  - Development workflow
-Removed sections: template placeholders
+Version change: 1.0.0 -> 2.0.0
+Modified principles:
+  - P1. Sources are committed and artifacts are rebuilt: removed the committed synthetic-fixture requirement and required isolated test-time generation instead
+  - P4. Verification precedes publication: limited shippability gates to production kits and kept synthetic test data outside publication
+Modified sections:
+  - Development workflow: replaced the aggregate committed-fixture build with isolated temporary regression input
+Removed sections: none
 Follow-up TODOs: none
 -->
 
@@ -23,7 +18,7 @@ This file is the durable law for the ShruggieTech brand-system repository. Produ
 
 ### P1. Sources are committed and artifacts are rebuilt
 
-Git MUST contain generator source, canon and reference documentation, source-only kit definitions, shared font sources, fixture source, CI, and site source. Generated kits, PDFs, raster images, registries, static exports, and release archives MUST be rebuilt by automation and MUST NOT be committed. Bundled font binaries are the sole binary-source exception.
+Git MUST contain generator source, brand-system standards and reference documentation, source-only production kit definitions, shared font sources, CI, and site source. Generated kits, PDFs, raster images, registries, static exports, release archives, and synthetic brand fixtures MUST be rebuilt or created by automation and MUST NOT be committed. Test-only synthetic brand data MUST be generated in an isolated temporary location and MUST NOT enter production discovery or publication. Bundled font binaries are the sole binary-source exception.
 
 ### P2. Identity geometry is preserved
 
@@ -35,7 +30,7 @@ WCAG 2.1 AA at rendered size is the minimum for every text-bearing and declared 
 
 ### P4. Verification precedes publication
 
-Every production kit and fixture MUST report zero problems from `verify.py` and zero failures from `validate_glyph.py`. CI MUST rebuild all kits whenever generator, canon, kit, fixture, font, or build code changes. PDF and PNG byte identity is not a correctness gate. Missing optional capabilities MUST be recorded as explicit skips.
+Every production kit MUST report zero problems from `verify.py` and zero failures from `validate_glyph.py`. CI MUST rebuild all production kits whenever generator, brand standards, kit, font, or build code changes. Synthetic test data MUST exercise applicable regression paths in isolated temporary storage and MUST remain ineligible for site, registry, archive, or release publication. PDF and PNG byte identity is not a correctness gate. Missing optional capabilities MUST be recorded as explicit skips.
 
 ### P5. The site consumes generated kits
 
@@ -56,10 +51,10 @@ Features, architecture changes, generator changes, migrations, site behavior, CI
 
 ## Development Workflow
 
-Work starts with a numbered specification under `specs/`, proceeds through planning and tasks, and passes cross-artifact analysis before completion. Pull requests include issue traceability, build evidence, accessibility impact, identity impact, documentation impact, and a changelog decision. The aggregate gate rebuilds all production kits and the fixture, validates Spec Kit and generated agent entry points, builds the site, and audits repository hygiene.
+Work starts with a numbered specification under `specs/`, proceeds through planning and tasks, and passes cross-artifact analysis before completion. Pull requests include issue traceability, build evidence, accessibility impact, identity impact, documentation impact, and a changelog decision. The aggregate gate rebuilds all production kits, exercises isolated temporary regression inputs, validates Spec Kit and generated agent entry points, builds the site, and audits repository hygiene.
 
 ## Governance
 
 This constitution supersedes conflicting repository practices. Amendments use the Spec Kit constitution workflow and semantic versioning independent of the brandbuilder version. A major amendment removes or incompatibly redefines a principle, a minor amendment adds or materially expands governance, and a patch clarifies existing law. Temporary exceptions require explicit scope, owner, rationale, and expiry, and no exception may weaken P2, P3, or P4.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-03 | **Last Amended**: 2026-09-03
+**Version**: 2.0.0 | **Ratified**: 2026-09-03 | **Last Amended**: 2026-09-05

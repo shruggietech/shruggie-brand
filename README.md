@@ -33,9 +33,8 @@ Generated output is written to `dist/` and is intentionally ignored by Git.
 
 ## Add a brand
 
-Start from `fixtures/example-brand/`, read `skill/references/00-variance-contract.md`, and add source files only under `brands/<slug>/`. Register the kit in the site and build script, then run the complete validation. New production accents must satisfy the canon hue-separation rule and every text-bearing color must clear WCAG 2.1 AA.
+Read `skill/references/00-variance-contract.md`, then add source files only under `brands/<slug>/`. Register the kit in the site and build script, then run the complete validation. New production accents must satisfy the system hue-separation rule and every text-bearing color must clear WCAG 2.1 AA. Tests that require synthetic brand data must create it in a temporary directory.
 
 ## Licensing
 
 Code, templates, reference documentation, and site source are licensed under [Apache License 2.0](LICENSE). Attribution is in [NOTICE](NOTICE). Names, wordmarks, logos, endorsement lockups, and logo path geometry remain reserved as described in [LICENSE-BRAND.md](LICENSE-BRAND.md). Bundled fonts retain the SIL Open Font License 1.1 terms included with the font sources.
-

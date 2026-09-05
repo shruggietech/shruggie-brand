@@ -13,6 +13,7 @@ surface alongside it.
     python3 build/gen_guidelines.py <brand.json> <kit-dir>
 """
 import argparse, json, os, sys
+from html import escape
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for
 
@@ -40,7 +41,8 @@ def build(B, kit):
     fg = (cb.get("legal_foreground_when_used_as_fill") or {})
     dv = "".join("  --%s: %s;\n" % (k, v) for k, v in D.items())
     lv = "".join("  --%s: %s;\n" % (k, v) for k, v in L.items())
-    def im(b, cls): return "" if not b else '<img class="%s" src="data:image/png;base64,%s">' % (cls, b)
+    def im(b, cls, alt):
+        return "" if not b else '<img class="%s" src="data:image/png;base64,%s" alt="%s">' % (cls, b, escape(alt, quote=True))
 
     return """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -94,7 +96,8 @@ td { padding:8px 12px; border-bottom:1px solid var(--border); }
 .charts div { flex:1; border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
 .endorse { font-family:'Geist Mono'; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
   color:var(--muted-foreground); padding:48px 0 96px; }
-img.logo { height:56px; } img.mark { height:40px; } img.stacked { height:160px; }
+img { max-width:100%%; height:auto; object-fit:contain; }
+img.logo { max-height:56px; } img.mark { max-height:40px; } img.stacked { max-height:160px; }
 code { font-family:'Geist Mono'; font-variant-ligatures:none; }
 @media(prefers-reduced-motion:reduce){ *{ animation-duration:.01ms!important; transition-duration:.01ms!important; } }
 </style></head><body class="dark"><div class="wrap">
@@ -151,11 +154,12 @@ Below %(red)d px the reduced master takes over.</p>
 <p class="lead">The horizontal row records its approved master composition. C is the outlined wordmark cap height used by the stacked lockup. X is the 70-unit G channel. Keep one X clear around every master. Never resize the mark and wordmark independently.</p>
 </section>
 
-<div class="endorse">A ShruggieTech project</div>
+<div class="endorse">Brand system by ShruggieTech</div>
 </div></body></html>""" % {
         "title": title, "faces": faces(kit), "lv": lv, "dv": dv,
-        "logoimg": im(logo, "logo"), "markimg": im(mark, "mark"),
-        "stackedimg": im(stacked, "stacked"),
+        "logoimg": im(logo, "logo", "%s horizontal logo" % title),
+        "markimg": im(mark, "mark", "%s brand mark" % title),
+        "stackedimg": im(stacked, "stacked", "%s stacked logo" % title),
         "idea": copy_for(B, "idea", B.get("brand_idea", title)),
         "descriptor": copy_for(B, "descriptor", B.get("descriptor", "")),
         "sepline": ("Hue %s in OKLCH." % M.get("identity_hue", "?")) + (

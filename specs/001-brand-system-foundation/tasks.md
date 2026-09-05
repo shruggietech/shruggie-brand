@@ -5,7 +5,7 @@
 - [x] Phase 1: Back up migration sources, scaffold the repository, configure GitHub, and initialize Spec Kit 1.0.4 for Codex.
 - [x] Phase 2: Import the brandbuilder and canonical font bytes, then record provenance.
 - [x] Phase 3: Migrate and individually verify ShruggieTech, Fragcap, Go Schedule, Glitchpad, and Covarity.
-- [x] Phase 4: Add and verify the synthetic example-brand fixture.
+- [x] Phase 4: Add and verify the synthetic fixture used during the original foundation work.
 - [x] Phase 5: Add build and release automation, then require the `build` check.
 - [x] Phase 6: Export the Next.js site from generated kit outputs.
 - [x] Phase 7: Configure Cloudflare DNS and GitHub Pages, then verify HTTPS.

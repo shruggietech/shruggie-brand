@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Replaced committed synthetic-fixture dependencies with isolated temporary test inputs derived from a production source.
+- Published the skill references through generated Fumadocs pages while preserving authoritative source files.
+
 ## 1.1.2 - 2026-09-04
 
 - Scoped identity hue-separation checks to production identities while preserving all fixture contrast checks.

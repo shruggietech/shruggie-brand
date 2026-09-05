@@ -3,16 +3,27 @@ dist/
 site/out/
 site/public/generated/
 site/generated/
+site/.source/
 site/public/covarity/
 site/public/fragcap/
 site/public/glitchpad/
 site/public/go-schedule/
 site/public/shruggietech/
-site/public/example-brand/
+site/public/favicon.svg
+site/public/favicon-16x16.png
+site/public/favicon-32x32.png
+site/public/apple-touch-icon.png
+site/public/android-chrome-192x192.png
+site/public/android-chrome-512x512.png
+site/public/shruggietech-logo.svg
+site/public/social-preview.png
+site/public/site.webmanifest
 release/
 
 # Local dependencies and caches
 .venv/
+.playwright/
+.pnpm-store/
 __pycache__/
 *.py[cod]
 *.tsbuildinfo

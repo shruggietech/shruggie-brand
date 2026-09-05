@@ -116,3 +116,11 @@ Manual narrow-screen inspection exposed two fixture defects that the earlier sou
 - Superseded skill copies, generated brand directories and snapshots, the regenerable runtime, and byte-verified provenance originals moved to recoverable deletion staging. Nothing was permanently deleted.
 - The 19-entry public ledger and exact private recovery record are deliberately separate. Public evidence records classification and proof; only the private record contains workstation roots, archive identity, destination paths, and recovery commands.
 - Phase 1, Phase 10, milestone, slice, and program closure remains gated on the reviewed S005 change reaching `main`. Completing the private move transaction does not convert branch-only documentation into current-main evidence.
+
+### S006 brand platform refresh
+
+- Production discovery now comes exclusively from source definitions under `brands/`. Synthetic generator coverage is created inside temporary test directories, so test identities can never appear in public inventories or release archives.
+- The public site derives its portfolio from verified build records and its documentation from authoritative skill references. Derived JSON, MDX, copied identity assets, and static exports remain ignored build artifacts.
+- Public explanatory prose replaces the internal term "canon" while literal machine keys and fenced examples retain it where changing the value would make the documentation inaccurate.
+- The public site uses Fumadocs for navigation and static search, with ShruggieTech-specific home and portfolio surfaces sharing the same generated identity assets and metadata contract.
+- Repository governance advanced to constitution 2.0.0 because deleting the committed synthetic fixture reverses an earlier mandatory source rule. The owner instruction for issue #103 provides the explicit authorization for that breaking governance change.
