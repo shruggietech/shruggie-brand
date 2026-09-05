@@ -70,4 +70,16 @@ The initial pull-request run passed both Python 3.8 compatibility and the full b
 
 ## Post-merge publication
 
-Blocked on the owner merge ritual. No tag, release, issue closure, parent closure, or milestone closure is claimed by pre-merge evidence.
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| Actual merged main | PASS | `a1f778a940d83f6e16bb7dff7a3598c9a4a6f67e` contains the reviewed S004 result |
+| Main revalidation | PASS | Complete S004 preflight passed against the merged revision before tagging |
+| Tag | PASS | Annotated `v1.1.2` targets the verified merged revision |
+| Release workflow | PASS | [GitHub Actions run 33843200434](https://github.com/shruggietech/shruggie-brand/actions/runs/33843200434) completed successfully |
+| Published release | PASS | [v1.1.2](https://github.com/shruggietech/shruggie-brand/releases/tag/v1.1.2) is public, non-draft, and non-prerelease |
+| Downloaded verification | PASS | Fresh download contained exactly seven expected assets; release notes, metadata, licenses, PDFs, bundle shape, complete manifest coverage, and checksums passed |
+| Child closure | PASS | #63, #72, and #73 closed after published acceptance evidence |
+| Parent and milestone closure | PASS | Parents #10 and #13 and milestones 15 and 18 closed only after their child/open-issue sets reached zero |
+| Slice closure | PASS | #90 closed after publication and housekeeping evidence |
+
+S004 is complete. This S005 reconciliation updates the durable repository record without altering the already-published release or requesting another S004 review.

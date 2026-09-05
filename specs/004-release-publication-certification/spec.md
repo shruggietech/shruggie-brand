@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-04
 
-**Status**: In progress
+**Status**: Complete
 
 **Input**: Prepare and certify the v1.1.2 release, preserve complete version history and migration metadata, publish exactly seven licensed assets after owner merge, process at most two Codex review rounds, and close linked GitHub work only after publication evidence exists.
 
