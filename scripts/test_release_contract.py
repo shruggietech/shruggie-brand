@@ -7,6 +7,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest import mock
 
 import release_contract
 
@@ -52,6 +53,7 @@ class ReleaseContractTests(unittest.TestCase):
 
         self.assertEqual(metadata["skill_version"], "1.2.0")
         self.assertEqual(metadata["canon_version"], "1.2.0")
+        self.assertEqual(metadata["site_version"], "1.2.0")
         self.assertEqual(release_contract.current_version(ROOT), "1.2.0")
         self.assertIn("Skill version: `1.2.0`", notes)
         self.assertIn("Canon version: `1.2.0`", notes)
@@ -101,6 +103,22 @@ class ReleaseContractTests(unittest.TestCase):
 
         self.assertIn("python scripts/release_contract.py current", workflow)
         self.assertNotIn("--version 1.1.2", workflow)
+
+    def test_site_package_version_must_match_release(self):
+        original_read_text = release_contract.read_text
+
+        def read_with_stale_site(path):
+            if path == ROOT / "site" / "package.json":
+                return '{"version": "1.1.2"}'
+            return original_read_text(path)
+
+        with mock.patch.object(
+            release_contract, "read_text", side_effect=read_with_stale_site
+        ):
+            with self.assertRaisesRegex(
+                ValueError, "site package version 1.1.2 does not match release 1.2.0"
+            ):
+                release_contract.load_metadata(ROOT, "1.2.0")
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:

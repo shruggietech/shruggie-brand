@@ -61,9 +61,9 @@
 **Independent Test**: The pull request has successful required checks, every Codex comment is dispositioned, there are no unresolved actionable threads, and no more than one explicit review request exists.
 
 - [X] T018 [US2] Update task state and candidate evidence, commit the S010 source revision, and verify the committed tree remains clean on `codex/010-v1-2-release-certification`
-- [ ] T019 [US2] Push the feature branch and open the official S010 pull request with `Closes #117`, `Tracks #116`, `Tracks #118`, and `Tracks #119`
-- [ ] T020 [US2] Process automatic Codex round one, file every negative finding as a linked Phase 12 issue, respond to every comment, implement and verify warranted corrections, resolve addressed threads, and update `specs/010-v1-2-release-certification/evidence.md`
-- [ ] T021 [US2] Post at most one explicit `@Codex review` comment after round one completes and record its immutable URL in `specs/010-v1-2-release-certification/evidence.md`
+- [X] T019 [US2] Push the feature branch and open the official S010 pull request with `Closes #117`, `Tracks #116`, `Tracks #118`, and `Tracks #119`
+- [X] T020 [US2] Process automatic Codex round one, file every negative finding as a linked Phase 12 issue, respond to every comment, implement and verify warranted corrections, resolve addressed threads, and update `specs/010-v1-2-release-certification/evidence.md`
+- [X] T021 [US2] Post at most one explicit `@Codex review` comment after round one completes and record its immutable URL in `specs/010-v1-2-release-certification/evidence.md`
 - [ ] T022 [US2] Process Codex round two without another review request, filing, correcting, responding, resolving, and recording every finding under the same policy
 - [ ] T023 [US2] Wait for every required check to succeed, verify the pull request remains open with no v1.2.0 tag or release, and hand it to the owner for the final review and merge ritual
 

@@ -87,6 +87,7 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
     root = root.resolve()
     skill = skill_metadata(root / "skill" / "SKILL.md")
     canon = json.loads(read_text(root / "skill" / "references" / "01-canon.json"))
+    site = json.loads(read_text(root / "site" / "package.json"))
     root_changelog = read_text(root / "CHANGELOG.md")
     skill_changelog = read_text(root / "skill" / "CHANGELOG.md")
     require_history(root_changelog, skill_changelog, version)
@@ -96,6 +97,9 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
         raise ValueError("skill version %s does not match release %s" % (skill["version"], version))
     if skill["canon"] != version or canon.get("version") != version:
         raise ValueError("canon version does not match release %s" % version)
+    if site.get("version") != version:
+        raise ValueError("site package version %s does not match release %s"
+                         % (site.get("version"), version))
 
     brands = {}
     for slug in PRODUCTION:
@@ -115,6 +119,7 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
         "version": version,
         "skill_version": skill["version"],
         "canon_version": canon["version"],
+        "site_version": site["version"],
         "release_date": release["date"],
         "release_changes": release["body"],
         "brands": brands,
