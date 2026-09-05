@@ -23,6 +23,7 @@ import build_kit
 import probe
 import qc_images
 import verify
+from brand_contract import sha256_file
 from capabilities import load_capabilities
 from process_utils import hidden_process_kwargs
 
@@ -33,6 +34,10 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    @staticmethod
+    def owned_affiliation():
+        return {"ownership": "shruggietech-owned", "showcase": "public", "parent": "ShruggieTech", "inheritance": "shruggietech-house", "endorsement": "shruggietech-project", "service_credit": "none"}
+
     def copy_production_test_input(self, destination):
         """Create an isolated test input from a production source kit."""
         shutil.copytree(ROOT / "brands" / "covarity", destination)
@@ -43,8 +48,10 @@ class PipelineTests(unittest.TestCase):
             kit = Path(tmp)
             write_utf8(kit / "brand.json", json.dumps({
                 "slug": "fragcap",
+                "kind": "sub-brand",
                 "version": "1.1.0",
                 "canon": "1.1.2",
+                "affiliation": self.owned_affiliation(),
             }) + "\n")
             write_utf8(kit / "tokens.css", ":root {}\n")
 
@@ -60,8 +67,10 @@ class PipelineTests(unittest.TestCase):
             kit = Path(tmp)
             write_utf8(kit / "brand.json", json.dumps({
                 "slug": "fragcap",
+                "kind": "sub-brand",
                 "version": "1.1.0",
                 "canon": "1.1.2",
+                "affiliation": self.owned_affiliation(),
             }) + "\n")
             write_utf8(kit / "VERIFY.md", "verified\n")
             (kit / "qc").mkdir()
@@ -126,6 +135,61 @@ class PipelineTests(unittest.TestCase):
                          "GeistMono-Regular.woff2", "SpaceGrotesk-Medium.woff2",
                          "SpaceGrotesk-Bold.woff2"):
                 self.assertIn(name, fonts_ts)
+
+    def test_third_party_fixed_font_pipeline_is_offline_and_ownership_safe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "client-brand"
+            self.copy_production_test_input(kit)
+            for name in ("README.md", "SKILL.md", "NOTES.md"):
+                path = kit / name
+                if path.exists():
+                    path.unlink()
+            shutil.rmtree(kit / "ui_kits")
+            brand_path = kit / "brand.json"
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["slug"] = "client-brand"
+            brand["id"] = "client-brand"
+            brand["title"] = "Client Brand"
+            brand["kind"] = "fixture"
+            brand["affiliation"] = {"ownership": "third-party", "showcase": "private", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "brand-system-by-shruggietech"}
+            brand["semantic_colors"] = {"emphasis": "#C659FF", "action": "#A000EC"}
+            supplied_wordmark = kit / "assets" / "client-wordmark.svg"
+            supplied_wordmark.parent.mkdir(parents=True, exist_ok=True)
+            write_utf8(supplied_wordmark, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 100"><path fill="#F2F5FA" d="M0 0H600V100H0Z"/></svg>\n')
+            supplied_wordmark_bytes = supplied_wordmark.read_bytes()
+            brand["logo"]["paths"]["wordmark"] = [{"element": "image", "source": "assets/client-wordmark.svg", "x": 0, "y": 0, "width": 600, "height": 100}]
+            brand["authoritative_inputs"] = [{"id": "client-wordmark", "role": "wordmark", "path": "assets/client-wordmark.svg", "format": "svg", "sha256": sha256_file(supplied_wordmark), "color_profile": "none", "usage_status": "approved", "license": "Client-approved integration fixture", "approved_transformations": ["embed-unchanged"]}]
+            families = brand["typography"]["families"]
+            filenames = {
+                "display": [("SpaceGrotesk-Medium.ttf", 500), ("SpaceGrotesk-Bold.ttf", 700)],
+                "body": [("Geist-Regular.ttf", 400), ("Geist-Medium.ttf", 500)],
+                "mono": [("GeistMono-Regular.ttf", 400)],
+            }
+            faces = []
+            for role, entries in filenames.items():
+                for filename, weight in entries:
+                    relative = "fonts/ttf/%s" % filename
+                    faces.append({"role": role, "path": relative, "weight": weight, "style": "normal", "format": "ttf", "sha256": sha256_file(kit / relative), "license": "OFL-1.1", "provenance": "Repository licensed integration face", "usage_status": "approved"})
+            brand["typography"] = {"mode": "fixed", "families": families, "faces": faces}
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+            completed = subprocess.run([sys.executable, str(HERE / "build_kit.py"), str(kit)], cwd=ROOT, capture_output=True, text=True, **hidden_process_kwargs())
+            self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+            self.assertEqual(supplied_wordmark_bytes, supplied_wordmark.read_bytes())
+            generated = "\n".join(path.read_text(encoding="utf-8", errors="replace") for path in kit.rglob("*") if path.is_file() and path.suffix.lower() in {".css", ".html", ".js", ".json", ".jsx", ".md", ".mjs", ".svg", ".ts", ".tsx", ".txt"})
+            self.assertNotIn("A ShruggieTech project", generated)
+            self.assertIn("Brand system by ShruggieTech", generated)
+            manifest = json.loads((kit / "manifest.json").read_text(encoding="utf-8"))
+            self.assertIsNone(manifest["parent"])
+            self.assertEqual("third-party", manifest["affiliation"]["ownership"])
+            fonts_ts = (kit / "nextjs" / "fonts.ts").read_text(encoding="utf-8")
+            self.assertNotIn("next/font/google", fonts_ts)
+            self.assertIn("../fonts/ttf/Geist-Regular.ttf", fonts_ts)
+            self.assertIn("data:image/svg+xml;base64,", (kit / "logos" / "svg" / "client-brand-wordmark-color.svg").read_text(encoding="utf-8"))
+            semantic_outputs = "\n".join((kit / relative).read_text(encoding="utf-8") for relative in ("tokens/colors.css", "tokens/brand.tokens.json", "nextjs/globals.css"))
+            self.assertNotIn("#FF5300", semantic_outputs)
+            self.assertNotIn("#C24000", semantic_outputs)
+            self.assertIn("#C659FF", semantic_outputs)
+            self.assertIn("#A000EC", semantic_outputs)
 
     def test_core_logo_generation_keeps_vectors_and_skips_rasters(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -5,7 +5,14 @@
   "title": "Covarity",
   "slug": "covarity",
   "version": "1.0.0",
-  "parent": "ShruggieTech",
+  "affiliation": {
+    "ownership": "shruggietech-owned",
+    "showcase": "public",
+    "parent": "ShruggieTech",
+    "inheritance": "shruggietech-house",
+    "endorsement": "shruggietech-project",
+    "service_credit": "none"
+  },
   "homepage": "https://covarity.ai",
   "registry_base": "https://brand.shruggie.tech/covarity/brand",
   "descriptor": "An evidence-backed knowledge graph and a policy-enforcing context compiler.",
@@ -67,6 +74,7 @@
     "hover": "#1A1824"
   },
   "typography": {
+    "mode": "house",
     "families": {
       "display": {
         "name": "Space Grotesk",

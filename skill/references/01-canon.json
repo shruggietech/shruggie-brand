@@ -1,11 +1,10 @@
 {
-  "$schema": "./canon.schema.json",
   "id": "shruggietech",
   "kind": "canon",
   "version": "1.1.2",
   "generated": "2026-09-03",
   "generator": "shruggie-brandbuilder/gen_canon.py",
-  "summary": "The ShruggieTech inheritance root. Every sub-brand kit is generated against this file. Values marked immutable are copied verbatim and never re-decided. Values marked constrained are chosen per sub-brand but must satisfy the stated rule, which is machine-checkable. Everything else is free. Version 1.1.0 adds the glyph construction layer, the portability tiers, and a per-brand chart rotation escape for accents that sit near the ends of the hue circle.",
+  "summary": "The ShruggieTech brand-system root. Every brand explicitly declares affiliation, inheritance, typography mode, and authoritative inputs. House values are copied only when house inheritance or house typography is selected. Constrained values remain machine-checkable.",
   "provenance": {
     "primary_source": "shruggie-web styles/globals.css, lifted into shruggietech-brand/tokens/*.css",
     "verified_against": [
@@ -24,8 +23,43 @@
     "constrained": "Chosen per sub-brand, must satisfy the attached machine-checkable rule.",
     "free": "Entirely the sub-brand's own."
   },
+  "affiliation": {
+    "required": [
+      "ownership",
+      "showcase",
+      "parent",
+      "inheritance",
+      "endorsement",
+      "service_credit"
+    ],
+    "rule": "Every field is explicit and fail-closed. Ownership, publication permission, parentage, inheritance, endorsement, and service credit are independent facts.",
+    "inheritance": {
+      "shruggietech-house": "Adopts the house semantic orange pair and permits house typography mode.",
+      "independent": "Requires explicit brand-specific emphasis and action colors and does not receive house orange."
+    },
+    "approved_outputs": {
+      "owned_endorsement": "A ShruggieTech project",
+      "neutral_service_credit": "Brand system by ShruggieTech",
+      "none": ""
+    }
+  },
+  "authoritative_inputs": {
+    "rule": "Supplied masters retain exact source bytes and SVG path data. Each record declares role, contained path, format, SHA-256, color-profile status, usage basis, and approved transformations.",
+    "roles": [
+      "mark",
+      "reduced-mark",
+      "wordmark",
+      "reference-art"
+    ],
+    "palette_rule": "Deterministic candidates are evidence only. A human approval must bind the selected candidate to the current source hash before canonical use.",
+    "fixed_font_rule": "Approved fixed faces are ingested separately, stored locally, checked against hash and internal metadata, and never fetched during ordinary generation."
+  },
   "typography": {
-    "tier": "immutable",
+    "tier": "conditional",
+    "modes": {
+      "house": "Use the declared house families and local faces.",
+      "fixed": "Use only explicit approved local faces whose hash and internal metadata match the source contract."
+    },
     "families": {
       "display": {
         "name": "Space Grotesk",
@@ -52,7 +86,7 @@
       }
     },
     "hard_rules": [
-      "Never introduce a fourth family. Domain needs are met with the three above.",
+      "House mode uses exactly the three house families above. Fixed mode declares exactly the display, body, and mono roles without an implicit fallback.",
       "Geist ships 400 and 500 only. Geist Mono ships 400 only. Requesting a weight that does not exist makes the renderer synthesise a faux bold, which prints badly and forces outlined glyphs into PDFs.",
       "In mono contexts carry emphasis with color, never with weight.",
       "Sentence case is the default. Uppercase is reserved for compact labels and table metadata.",
@@ -750,13 +784,16 @@
     }
   },
   "endorsement": {
-    "tier": "immutable",
+    "tier": "conditional",
     "text": "A ShruggieTech project",
-    "typeface": "Geist Mono",
+    "neutral_service_credit": "Brand system by ShruggieTech",
+    "typeface": "the brand's declared mono family",
     "case": "uppercase",
     "tracking": "positive",
     "placement": "footer, About page, repository metadata, title-page colophon, social preview",
     "rules": [
+      "Only an explicitly configured ShruggieTech-owned child may emit the project endorsement.",
+      "A third-party identity may emit the fixed neutral service credit or no credit, never the project endorsement.",
       "Visually subordinate to the product's own mark.",
       "Outside the product logo's clear space.",
       "Never combine the parent mark and the product mark into a single lockup."

@@ -51,7 +51,9 @@ try {
       check(await page.locator('meta[property="og:title"]').count() === 1, `${route} lacks Open Graph metadata`);
       check(await page.locator('meta[name="twitter:card"]').count() === 1, `${route} lacks Twitter card metadata`);
       check(await page.locator('link[rel="icon"]').count() >= 1, `${route} lacks a favicon`);
-      check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains retired project wording`);
+      if (route === '/shruggietech/guidelines/') {
+        check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
+      }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       if (overflow > 1) {
         const offenders = await page.evaluate(() => [...document.querySelectorAll('*')].filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 5).map((element) => `${element.tagName}.${element.className}`));

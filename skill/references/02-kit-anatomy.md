@@ -27,8 +27,9 @@ because that is what the agent's hands already know.
 <brand>-brand/
   SKILL.md                     R    consume-mode entry. SIX-KEY frontmatter only.
   README.md                    R    the full brand system, human and agent
-  brand.json                   R N  canon instance: inherits shruggietech canon,
-                                    declares this brand's constrained choices
+  brand.json                   R N  contract instance: declares affiliation,
+                                    inheritance, typography, supplied inputs,
+                                    approvals, and constrained choices
   manifest.json                R    every file with bytes and sha256
   VERIFY.md                    R    measured numbers, generated, never typed
   styles.css                   R    single CSS entry for non-React surfaces
@@ -144,10 +145,11 @@ here, stop and ask rather than inventing one.
 
 ### `fonts/`
 
-Bundled. Verified practice, both in `shruggie-docs` (six TTFs embedded into
-every emitted docx) and in Anthropic's own `morning` skill. The build path
-never makes a network request; the CDN URLs in the README document where the
-bytes came from so they can be refreshed.
+Bundled and local. House mode copies the approved house faces. Fixed mode copies only declared faces whose bytes, internal family, weight, style, format, license, provenance, and usage status pass validation. Controlled ingestion may place an approved font before a build; generation never makes a font-network request.
+
+### `brand.json` and `qc/authoritative-inputs.json`
+
+`brand.json` is the fail-closed source contract. It separates ownership, showcase permission, parentage, inheritance, endorsement, and service credit, then declares house or fixed typography and any supplied masters. `qc/authoritative-inputs.json` records deterministic measured evidence linked to exact source hashes. Evidence does not grant permission or canonize a palette candidate.
 
 ### `icons/`
 

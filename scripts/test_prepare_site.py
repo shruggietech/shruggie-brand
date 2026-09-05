@@ -12,6 +12,15 @@ import prepare_site
 
 
 class PrepareSiteTests(unittest.TestCase):
+    def test_showcase_permission_is_independent_and_fail_closed(self):
+        brand = {"kind": "sub-brand", "affiliation": {"ownership": "third-party", "showcase": "private", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
+        self.assertFalse(prepare_site.public_showcase(brand))
+        brand["affiliation"]["showcase"] = "public"
+        self.assertTrue(prepare_site.public_showcase(brand))
+        del brand["affiliation"]["showcase"]
+        with self.assertRaisesRegex(ValueError, "exactly"):
+            prepare_site.public_showcase(brand)
+
     def test_source_dirs_require_exact_production_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             dist = Path(tmp)

@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brand.shruggie.tech/schema/canon.schema.json",
+  "title": "ShruggieTech brand definition",
+  "type": "object",
+  "required": ["id", "kind", "version"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "kind": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1},
+    "slug": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "affiliation": {"$ref": "#/$defs/affiliation"},
+    "semantic_colors": {
+      "type": "object",
+      "required": ["emphasis", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "emphasis": {"$ref": "#/$defs/hexColor"},
+        "action": {"$ref": "#/$defs/hexColor"}
+      }
+    },
+    "typography": {"$ref": "#/$defs/typography"},
+    "authoritative_inputs": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/authoritativeInput"},
+      "default": []
+    },
+    "palette_approvals": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/paletteApproval"},
+      "default": []
+    },
+    "accent": {
+      "type": "object",
+      "required": ["bright", "deep", "accessible"],
+      "properties": {
+        "bright": {"$ref": "#/$defs/hexColor"},
+        "deep": {"$ref": "#/$defs/hexColor"},
+        "accessible": {"$ref": "#/$defs/hexColor"}
+      },
+      "additionalProperties": true
+    },
+    "logo": {"type": "object"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"kind": {"not": {"const": "canon"}}}, "required": ["kind"]},
+      "then": {"required": ["title", "slug", "affiliation", "typography", "accent", "logo"]}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "parent-brand"}}, "required": ["kind"]},
+      "then": {
+        "properties": {
+          "affiliation": {
+            "properties": {
+              "ownership": {"const": "shruggietech-owned"},
+              "parent": {"type": "null"},
+              "inheritance": {"const": "shruggietech-house"},
+              "endorsement": {"const": "none"},
+              "service_credit": {"const": "none"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"affiliation": {"properties": {"inheritance": {"const": "independent"}}, "required": ["inheritance"]}}, "required": ["affiliation"]},
+      "then": {"required": ["semantic_colors"]}
+    }
+  ],
+  "$defs": {
+    "hexColor": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "affiliation": {
+      "type": "object",
+      "required": ["ownership", "showcase", "parent", "inheritance", "endorsement", "service_credit"],
+      "additionalProperties": false,
+      "properties": {
+        "ownership": {"enum": ["shruggietech-owned", "third-party"]},
+        "showcase": {"enum": ["public", "private"]},
+        "parent": {"type": ["string", "null"]},
+        "inheritance": {"enum": ["shruggietech-house", "independent"]},
+        "endorsement": {"enum": ["shruggietech-project", "none"]},
+        "service_credit": {"enum": ["brand-system-by-shruggietech", "none"]}
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "ownership": {"const": "shruggietech-owned"},
+            "parent": {"const": "ShruggieTech"},
+            "inheritance": {"const": "shruggietech-house"},
+            "endorsement": {"const": "shruggietech-project"},
+            "service_credit": {"const": "none"}
+          }
+        },
+        {
+          "properties": {
+            "ownership": {"const": "shruggietech-owned"},
+            "parent": {"type": "null"},
+            "inheritance": {"const": "shruggietech-house"},
+            "endorsement": {"const": "none"},
+            "service_credit": {"const": "none"}
+          }
+        },
+        {
+          "properties": {
+            "ownership": {"const": "third-party"},
+            "parent": {"type": "null"},
+            "endorsement": {"const": "none"},
+            "service_credit": {"enum": ["brand-system-by-shruggietech", "none"]}
+          }
+        }
+      ]
+    },
+    "family": {
+      "type": "object",
+      "required": ["name", "weights"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "weights": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 1, "maximum": 1000}}
+      }
+    },
+    "fontFace": {
+      "type": "object",
+      "required": ["role", "path", "weight", "style", "format", "sha256", "license", "provenance", "usage_status"],
+      "additionalProperties": false,
+      "properties": {
+        "role": {"enum": ["display", "body", "mono"]},
+        "path": {"type": "string", "pattern": "^fonts/"},
+        "weight": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "style": {"enum": ["normal", "italic", "oblique"]},
+        "format": {"enum": ["ttf", "otf", "woff2"]},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "license": {"type": "string", "minLength": 1},
+        "provenance": {"type": "string", "minLength": 1},
+        "usage_status": {"const": "approved"}
+      }
+    },
+    "typography": {
+      "type": "object",
+      "required": ["mode", "families"],
+      "properties": {
+        "mode": {"enum": ["house", "fixed"]},
+        "families": {
+          "type": "object",
+          "required": ["display", "body", "mono"],
+          "additionalProperties": false,
+          "properties": {
+            "display": {"$ref": "#/$defs/family"},
+            "body": {"$ref": "#/$defs/family"},
+            "mono": {"$ref": "#/$defs/family"}
+          }
+        },
+        "faces": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/fontFace"}}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {"if": {"properties": {"mode": {"const": "fixed"}}}, "then": {"required": ["faces"]}},
+        {"if": {"properties": {"mode": {"const": "house"}}}, "then": {"not": {"required": ["faces"]}}}
+      ]
+    },
+    "authoritativeInput": {
+      "type": "object",
+      "required": ["id", "role", "path", "format", "sha256", "color_profile", "usage_status", "license", "approved_transformations"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "role": {"enum": ["mark", "reduced-mark", "wordmark", "reference-art"]},
+        "path": {"type": "string", "minLength": 1},
+        "format": {"enum": ["svg", "png", "jpeg", "webp"]},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "color_profile": {"enum": ["srgb", "embedded", "none", "unknown"]},
+        "usage_status": {"enum": ["approved", "reference-only"]},
+        "license": {"type": "string", "minLength": 1},
+        "approved_transformations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["embed-unchanged", "recolor-mask", "palette-analysis"]}
+        }
+      }
+    },
+    "paletteApproval": {
+      "type": "object",
+      "required": ["input_id", "source_sha256", "selected_candidate", "canonical_tokens", "approved_by", "approved_on"],
+      "additionalProperties": false,
+      "properties": {
+        "input_id": {"type": "string", "minLength": 1},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "selected_candidate": {"$ref": "#/$defs/hexColor"},
+        "canonical_tokens": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9_]+(?:\\.[a-z0-9_]+)+$"}},
+        "approved_by": {"type": "string", "minLength": 1},
+        "approved_on": {"type": "string", "format": "date"}
+      }
+    }
+  },
+  "additionalProperties": true
+}

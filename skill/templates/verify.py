@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-verify.py: assert a ShruggieTech sub-brand kit against canon.
+verify.py: assert a contracted brand kit against its selected canon rules.
 
 Every number this emits is measured from the shipped files at run time. Nothing
 is transcribed from a previous run. A check whose inputs are absent is reported
@@ -14,6 +14,7 @@ Exit code is the number of problems found, capped at 125.
 import argparse, hashlib, json, os, re, struct, sys, unicodedata
 from coloraide import Color
 from capabilities import load_capabilities
+from brand_contract import affiliation
 
 # ------------------------------------------------------------------ utilities
 def R(a, b): return round(Color(a).contrast(b, method="wcag21"), 2)
@@ -95,7 +96,8 @@ def c_accent(canon, brand, rep):
     fails = []
     # Fixtures exercise the pipeline and do not claim a sibling identity slot.
     # They still have to pass every contrast and accessibility requirement.
-    if brand.get("kind") != "fixture":
+    inherits_house = affiliation(brand)["inheritance"] == "shruggietech-house"
+    if brand.get("kind") != "fixture" and inherits_house:
         for name, s in sibs.items():
             if name == brand.get("slug"): continue
             g = hue_gap(a, s["hex"])
@@ -115,13 +117,17 @@ def c_accent(canon, brand, rep):
 
 def c_immutables(canon, brand, rep):
     drift = []
+    inherits_house = affiliation(brand)["inheritance"] == "shruggietech-house"
     for k, tok in canon["color"]["immutable"].items():
+        if not inherits_house and k in {"orange", "orange-cta"}:
+            continue
         got = (brand.get("color", {}) or {}).get(k)
         if got and got.get("hex", "").upper() != tok["hex"].upper():
             drift.append("%s: kit has %s, canon has %s" % (k, got["hex"], tok["hex"]))
     ct = canon["typography"]["families"]
-    bt = (brand.get("typography") or {}).get("families")
-    if bt:
+    typography = brand.get("typography") or {}
+    bt = typography.get("families")
+    if bt and typography.get("mode") == "house":
         for role, fam in ct.items():
             if bt.get(role, {}).get("name") and bt[role]["name"] != fam["name"]:
                 drift.append("typography.%s: kit has %s, canon has %s" % (role, bt[role]["name"], fam["name"]))
@@ -230,10 +236,11 @@ def c_raw_values(kit, rep):
     rep.bad("no-raw-values", "; ".join(hits[:8])) if hits else \
         rep.ok("no-raw-values", "%d source files, no raw hex, px or stock palette classes" % scanned)
 
-def c_font_weights(kit, canon, rep):
+def c_font_weights(kit, brand, rep):
     shipped = {}
-    for role, fam in canon["typography"]["families"].items():
+    for role, fam in (brand.get("typography", {}).get("families") or {}).items():
         shipped[fam["name"].lower()] = set(fam["weights"])
+    allowed = set().union(*shipped.values()) if shipped else set()
     hits, scanned = [], 0
     for p in walk(kit):
         if os.path.splitext(p)[1].lower() not in ({".css"} | SRC_EXT): continue
@@ -242,10 +249,10 @@ def c_font_weights(kit, canon, rep):
         t = open(p, encoding="utf-8", errors="replace").read(); scanned += 1
         for m in re.finditer(r"font-weight\s*:\s*(\d{3})", t):
             w = int(m.group(1))
-            if w not in {400, 500, 700}: hits.append("%s: font-weight %d" % (rel, w))
+            if w not in allowed: hits.append("%s: font-weight %d" % (rel, w))
         for m in re.finditer(r"fontWeight\s*:\s*(\d{3})", t):
             w = int(m.group(1))
-            if w not in {400, 500, 700}: hits.append("%s: fontWeight %d" % (rel, w))
+            if w not in allowed: hits.append("%s: fontWeight %d" % (rel, w))
     if not scanned: return rep.skip("font-weights-exist", "no stylesheets or source found")
     rep.bad("font-weights-exist", "; ".join(hits[:8])) if hits else \
         rep.ok("font-weights-exist", "%d files, no weight requested that the faces lack" % scanned)
@@ -486,6 +493,9 @@ def c_aa_floor(kit, canon, brand, rep):
         a = ((canon["color"].get("parent_identity_accent") or {}).get(canon_name) or {}).get("aa")
         if a:
             decl[kit_name] = a
+    if affiliation(brand)["inheritance"] == "independent":
+        decl["emphasis"] = {"as_text_on": "dark", "as_fill": False}
+        decl["action"] = {"as_text_on": "light", "as_fill": True}
 
     fails, checked = [], 0
     for name, spec in colors.items():
@@ -544,7 +554,7 @@ def main():
     c_globals(kit, rep)
     c_rhetoric(kit, rep)
     c_raw_values(kit, rep)
-    c_font_weights(kit, canon, rep)
+    c_font_weights(kit, brand, rep)
     c_glyph(kit, brand, rep)
     c_capability_artifacts(kit, rep)
     c_svg(kit, rep)

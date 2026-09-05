@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import sys
 from html import escape
 from pathlib import Path
 from typing import Optional, Set
@@ -16,6 +17,9 @@ SITE = ROOT / "site"
 PUBLIC = SITE / "public"
 GENERATED = SITE / "generated"
 REFERENCES = ROOT / "skill" / "references"
+TEMPLATES = ROOT / "skill" / "templates"
+sys.path.insert(0, str(TEMPLATES))
+from brand_contract import affiliation, public_showcase
 DOC_DESCRIPTIONS = {
     "00-variance-contract": "The rules that keep every identity distinct while preserving a shared standard.",
     "01-canon": "Machine-readable defaults and constraints used by the brand generator.",
@@ -151,6 +155,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
         replace_tree(source / name, downloads / name)
     specimen_name = next((source / "specimens").glob("*.svg")).name
     logo_root = f"/{slug}/downloads/files/logos/svg"
+    aff = affiliation(brand)
     return {
         "slug": slug,
         "title": brand["title"],
@@ -163,6 +168,12 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "logo": f"{logo_root}/{slug}-horizontal-color.svg",
         "icon": f"{logo_root}/{slug}-mark-color.svg",
         "specimen": f"/{slug}/downloads/files/specimens/{specimen_name}",
+        "ownership": aff["ownership"],
+        "showcase": aff["showcase"],
+        "inheritance": aff["inheritance"],
+        "parent": aff["parent"],
+        "endorsement": aff["endorsement"],
+        "serviceCredit": aff["service_credit"],
     }
 
 
@@ -294,11 +305,15 @@ def main() -> int:
     brands = []
     seen: set[str] = set()
     sources = source_dirs()
-    remove_stale_public_brands(PUBLIC, {source.name for source in sources})
+    loaded = []
     for source in sources:
         brand = load_brand(source)
         validate_source_identity(source, brand, seen)
         validate_registry(source, brand)
+        loaded.append((source, brand))
+    public_sources = [(source, brand) for source, brand in loaded if public_showcase(brand)]
+    remove_stale_public_brands(PUBLIC, {source.name for source, _ in public_sources})
+    for source, brand in public_sources:
         brands.append(copy_kit(source, brand))
     parent = DIST / "shruggietech"
     parent_css = "\n".join((parent / "tokens" / name).read_text(encoding="utf-8") for name in ("colors.css", "spacing.css", "typography.css", "base.css"))

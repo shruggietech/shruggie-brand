@@ -16,13 +16,14 @@ jobs:
         with:
           python-version: "3.8"
       - name: Install minimum-version test dependencies
-        run: python -m pip install coloraide==3.3 fonttools==4.55.8 pillow==10.4.0 svgelements==1.9.6
+        run: python -m pip install brotli==1.1.0 coloraide==3.3 fonttools==4.55.8 pillow==10.4.0 svgelements==1.9.6
       - name: Compile and discover kits on the minimum Python
         run: |
           python -m compileall -q scripts skill/templates
           python scripts/build_all.py --list
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
+          python skill/templates/test_brand_contract.py
           python skill/templates/test_pipeline.py
           python scripts/check_markdown.py
 
@@ -53,6 +54,7 @@ jobs:
           python skill/templates/test_glyphkit.py
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
+          python skill/templates/test_brand_contract.py
           python skill/templates/test_pipeline.py
           python scripts/check_markdown.py
       - name: Probe capabilities

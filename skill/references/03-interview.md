@@ -7,14 +7,13 @@ Assume the operator arrives with almost nothing. No palette, no logo, no
 positioning doc, possibly not even a firm idea of the audience. That is the
 normal case and the flow is built for it.
 
-## The two required inputs
+## The required inputs
 
 1. The brand or product name.
 2. One sentence on what it does.
+3. Explicit affiliation: ownership, showcase permission, parentage, inheritance, endorsement, and service credit.
 
-That is the entire mandatory surface. If the operator supplies only these and
-then approves each gate without edits, the output is a complete, conforming,
-shippable kit.
+These are the mandatory facts. Affiliation and showcase permission cannot be inferred or accepted through silence. If the operator supplies them and then approves each creative gate without edits, the output is a complete, conforming, shippable kit.
 
 ## The standing rule
 
@@ -24,6 +23,14 @@ override. A gate that asks "what colour would you like?" has failed.
 
 The operator is allowed to say "yes to all" at gate 1 and skip straight to
 gate 5.
+
+## Gate 0: Affiliation and authoritative inputs
+
+Record the six affiliation decisions before any creative proposal. A third-party brand has no ShruggieTech parent or owned-project endorsement. Ask separately whether it adopts house inheritance or uses independent semantic colors, whether it may appear in the public showcase, and whether the fixed neutral service credit is approved.
+
+Classify every supplied logo item as either a concept or an authoritative master. A concept informs a new construction. An authoritative master is declared by role, path, format, hash, color-profile status, usage basis, and approved transformations, and its original bytes remain unchanged. Palette extraction creates evidence only and requires a human approval tied to the current source hash before a candidate becomes canonical.
+
+Record typography mode as `house` or `fixed`. Fixed mode requires approved local faces, measured metadata, hashes, license evidence, and provenance. Use controlled ingestion before generation if a required approved face is not present. Ordinary builds never fetch fonts.
 
 ## Gate 1: Name and descriptor
 
@@ -95,7 +102,7 @@ Three ways in. One way out.
 what is load-bearing about it before touching anything; if the operator
 disagrees with the description, the redraw would have been wrong and one
 sentence just saved the step. Extract its palette for reference only, then
-rebuild the geometry from primitives.
+rebuild the geometry from primitives. If the operator declares the file an authoritative master instead, preserve it and follow `06-logo-protocol.md` without reconstruction.
 
 **Path B, the agent ideates.** Generate several directions with image generation
 to explore the concept space together. This is encouraged and it is the right
@@ -150,10 +157,7 @@ brand guide PDF, the manifest with checksums.
 
 ## Handling the unattended case
 
-If the operator is not responding, do not stall on a gate. Take the computed
-default, record the assumption prominently at the top of the output, and
-continue. A complete kit with three stated assumptions beats a half kit waiting
-on a question nobody is reading.
+If the operator is not responding, creative recommendations may use computed defaults after the required affiliation, publication permission, authoritative-input status, palette approval, and typography mode are already explicit. Never infer ownership, permission to publish, source usage rights, approval, or credit language. Stop when any of those decisions is missing.
 
 ## What this is really doing
 

@@ -15,7 +15,8 @@ surface alongside it.
 import argparse, json, os, sys
 from html import escape
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _guidekit import tokens, faces, asset, copy_for
+from _guidekit import tokens, faces, asset, copy_for, type_context
+from brand_contract import affiliation_text
 
 def sw(t, keys):
     return "".join('<div class="sw"><div class="chip" style="background:%s"></div>'
@@ -43,6 +44,8 @@ def build(B, kit):
     lv = "".join("  --%s: %s;\n" % (k, v) for k, v in L.items())
     def im(b, cls, alt):
         return "" if not b else '<img class="%s" src="data:image/png;base64,%s" alt="%s">' % (cls, b, escape(alt, quote=True))
+    type_ = type_context(B)
+    endorsement = affiliation_text(B)
 
     return """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -50,55 +53,56 @@ def build(B, kit):
 %(faces)s
 :root {
 %(lv)s  --radius-sm:6px; --radius-md:8px; --radius-xl:12px;
+  --font-display:'%(display)s'; --font-body:'%(body)s'; --font-mono:'%(mono)s';
 }
 .dark {
 %(dv)s}
 * { box-sizing:border-box; }
 body { margin:0; background:var(--background); color:var(--foreground);
-  font-family:Geist,system-ui,sans-serif; font-size:16px; line-height:1.7;
+  font-family:var(--font-body),system-ui,sans-serif; font-size:16px; line-height:1.7;
   -webkit-font-smoothing:antialiased; }
 .wrap { max-width:1200px; margin:0 auto; padding:0 24px; }
 @media(min-width:768px){ .wrap{ padding:0 48px; } }
 @media(min-width:1024px){ .wrap{ padding:0 80px; } }
 header { padding:96px 0 48px; }
-h1 { font-family:'Space Grotesk'; font-weight:700; font-size:clamp(2.25rem,6vw,3.5rem);
+h1 { font-family:var(--font-display); font-weight:%(display_bold)d; font-size:clamp(2.25rem,6vw,3.5rem);
   line-height:1.1; letter-spacing:-.025em; margin:.2em 0; }
-h2 { font-family:'Space Grotesk'; font-weight:500; font-size:1.75rem; line-height:1.2;
+h2 { font-family:var(--font-display); font-weight:%(display_regular)d; font-size:1.75rem; line-height:1.2;
   letter-spacing:-.015em; margin:0 0 8px; }
-h3 { font-family:'Space Grotesk'; font-weight:500; font-size:1.1rem; margin:32px 0 8px; }
-.eyebrow { font-family:'Geist Mono'; font-size:.75rem; letter-spacing:.12em;
+h3 { font-family:var(--font-display); font-weight:%(display_regular)d; font-size:1.1rem; margin:32px 0 8px; }
+.eyebrow { font-family:var(--font-mono); font-size:.75rem; letter-spacing:.12em;
   text-transform:uppercase; color:var(--primary); }
 section { padding:56px 0; border-top:1px solid var(--border); }
 .lead { color:var(--muted-foreground); max-width:720px; }
 .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); margin-top:24px; }
 .sw .chip { height:64px; border-radius:var(--radius-md); border:1px solid var(--border); }
-.mono { font-family:'Geist Mono'; font-size:.75rem; margin-top:6px; }
+.mono { font-family:var(--font-mono); font-size:.75rem; margin-top:6px; }
 .dim { color:var(--muted-foreground); }
 .card { background:var(--card); border:1px solid var(--border);
   border-radius:var(--radius-xl); padding:24px; }
 .two { display:grid; gap:24px; grid-template-columns:1fr 1fr; }
 @media(max-width:800px){ .two{ grid-template-columns:1fr; } }
 .row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-top:24px; }
-.btn { font-family:Geist; font-weight:500; font-size:.875rem; border-radius:var(--radius-md);
+.btn { font-family:var(--font-body); font-weight:%(body_medium)d; font-size:.875rem; border-radius:var(--radius-md);
   padding:10px 18px; border:1px solid transparent; cursor:pointer; }
 .btn-primary { background:var(--primary); color:var(--primary-foreground); }
 .btn-secondary { background:transparent; color:var(--foreground); border-color:var(--border); }
-.badge { font-family:'Geist Mono'; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase;
+.badge { font-family:var(--font-mono); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase;
   border-radius:999px; padding:4px 12px; border:1px solid currentColor; }
-input { font-family:Geist; font-size:.875rem; background:var(--card); color:var(--foreground);
+input { font-family:var(--font-body); font-size:.875rem; background:var(--card); color:var(--foreground);
   border:1px solid var(--input); border-radius:var(--radius-md); padding:10px 12px; width:100%%; }
 :focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
-table { width:100%%; border-collapse:collapse; font-family:'Geist Mono'; font-size:.8rem; margin-top:16px; }
+table { width:100%%; border-collapse:collapse; font-family:var(--font-mono); font-size:.8rem; margin-top:16px; }
 th { text-align:left; color:var(--muted-foreground); font-weight:400; letter-spacing:.08em;
   text-transform:uppercase; font-size:.7rem; padding:8px 12px; border-bottom:1px solid var(--border); }
 td { padding:8px 12px; border-bottom:1px solid var(--border); }
 .charts { display:flex; gap:8px; align-items:flex-end; height:120px; margin-top:24px; }
 .charts div { flex:1; border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
-.endorse { font-family:'Geist Mono'; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
+.endorse { font-family:var(--font-mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
   color:var(--muted-foreground); padding:48px 0 96px; }
 img { max-width:100%%; height:auto; object-fit:contain; }
 img.logo { max-height:56px; } img.mark { max-height:40px; } img.stacked { max-height:160px; }
-code { font-family:'Geist Mono'; font-variant-ligatures:none; }
+code { font-family:var(--font-mono); font-variant-ligatures:none; }
 @media(prefers-reduced-motion:reduce){ *{ animation-duration:.01ms!important; transition-duration:.01ms!important; } }
 </style></head><body class="dark"><div class="wrap">
 <header>%(logoimg)s
@@ -122,13 +126,12 @@ reading surface and is never text there. The light block substitutes <code>%(AL)
 <div class="charts">%(bars)s</div>
 </section>
 
-<section><div class="eyebrow">Type and components</div><h2>Space Grotesk, Geist, Geist Mono</h2>
+<section><div class="eyebrow">Type and components</div><h2>%(display)s, %(body)s, %(mono)s</h2>
 <div class="two" style="margin-top:24px">
 <div class="card">
-<div style="font-family:'Space Grotesk';font-weight:700;font-size:3rem;letter-spacing:-.025em;line-height:1.1">Display</div>
-<div style="font-family:'Space Grotesk';font-weight:500;font-size:1.6rem;margin-top:12px">Heading</div>
-<p style="margin-top:12px">Body in Geist at 400. Geist ships 400 and 500 only; asking for 700 makes the
-renderer synthesise a faux bold.</p>
+<div style="font-family:var(--font-display);font-weight:%(display_bold)d;font-size:3rem;letter-spacing:-.025em;line-height:1.1">Display</div>
+<div style="font-family:var(--font-display);font-weight:%(display_regular)d;font-size:1.6rem;margin-top:12px">Heading</div>
+<p style="margin-top:12px">Body in %(body)s at %(body_regular)d. Approved weights are display %(display_weights)s, body %(body_weights)s, and mono %(mono_weights)s. Undeclared weights are prohibited.</p>
 <div class="mono" style="font-size:.8rem">0O 1lI 8B 5S 2Z</div></div>
 <div class="card"><div class="eyebrow">Components</div>
 <div class="row"><button class="btn btn-primary">Primary</button>
@@ -154,9 +157,9 @@ Below %(red)d px the reduced master takes over.</p>
 <p class="lead">The horizontal row records its approved master composition. C is the outlined wordmark cap height used by the stacked lockup. X is the 70-unit G channel. Keep one X clear around every master. Never resize the mark and wordmark independently.</p>
 </section>
 
-<div class="endorse">Brand system by ShruggieTech</div>
+%(endorsement)s
 </div></body></html>""" % {
-        "title": title, "faces": faces(kit), "lv": lv, "dv": dv,
+        "title": title, "faces": faces(kit, B), "lv": lv, "dv": dv,
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),
         "markimg": im(mark, "mark", "%s brand mark" % title),
         "stackedimg": im(stacked, "stacked", "%s stacked logo" % title),
@@ -180,6 +183,8 @@ Below %(red)d px the reduced master takes over.</p>
         "cspct": 100.0 * (B.get("logo") or {}).get("clear_space_units", 60)
                  / (B.get("logo") or {}).get("artwork_width", (B.get("logo") or {}).get("grid", 512)),
         "red": (B.get("logo") or {}).get("reduced_below_px", 32),
+        "endorsement": "" if not endorsement else '<div class="endorse">%s</div>' % escape(endorsement),
+        **type_,
     }
 
 def main():

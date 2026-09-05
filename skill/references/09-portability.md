@@ -59,8 +59,7 @@ outcome. "The PDF looks good" from an agent that never rendered it is not.
   checksummed manifest.
 - Install with `pip install --user`, and treat failure as normal rather than
   fatal: drop to a lower tier and record the skip.
-- The only third-party dependency any *token* work has is `coloraide`. Guard the
-  import and say what is unavailable rather than raising a traceback.
+- Color work requires `coloraide`. Font contract validation requires fontTools, and WOFF2 inspection also requires Brotli. Raster palette evidence requires Pillow. Report a missing required contract dependency explicitly; do not substitute or publish partial evidence.
 
 ## Shell and paths
 
@@ -91,16 +90,11 @@ Two specific traps, both of which have cost a run:
 for `magick` reports the ICO step as a skip on every ImageMagick 6 host, and a
 skip reads as "not applicable" rather than "your favicon is broken".
 
-**Google Fonts is a trap, not a tool.** `fonts.googleapis.com` resolves inside
-the sandbox while `fonts.gstatic.com` is blocked, so a CSS fetch appears to
-succeed and the build dies at the binary step with a confusing error. Fonts are
-bundled in the kit. Copy them from a sibling kit; never fetch at build time.
+**Google Fonts is a trap, not a build tool.** Fonts are bundled in the kit and ordinary generation stays offline. When an approved fixed face is absent, use the explicit controlled ingestion command with an authoritative HTTPS or controlled local source, expected hash, license evidence, contained destination, and atomic validation before the build begins.
 
 ## Network
 
-Assume there is none. Nothing in the pipeline may require a network call to
-succeed. Package installs, font fetches and CDN references are all conveniences
-that must degrade to a recorded skip.
+Assume there is none. Nothing in routine generation, verification, documentation, site preparation, or release packaging may require a network call. Controlled font ingestion is a separate operator-invoked preparation action and never runs implicitly.
 
 ## Frontmatter and entry points
 

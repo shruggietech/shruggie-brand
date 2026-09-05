@@ -7,6 +7,7 @@ canvases, filled compound paths and explicit per-colourway role mappings. The
 fallback remains fully compatible with the stock scalar ``logo.grid`` schema.
 """
 import binascii
+import base64
 import json
 import os
 import shutil
@@ -16,6 +17,7 @@ import sys
 import zlib
 
 from svgelements import Path
+from brand_contract import font_face_path, typography_families
 from capabilities import load_capabilities
 from process_utils import hidden_process_kwargs
 
@@ -285,11 +287,19 @@ def main():
 
     def raster_mask_file(item, colour):
         source = os.path.join(kit, item["source"])
+        if os.path.splitext(source)[1].lower() == ".svg":
+            with open(source, "rb") as handle:
+                return "data:image/svg+xml;base64," + base64.b64encode(handle.read()).decode("ascii")
         luminance_mask = item.get("mask") == "luminance"
         stem = os.path.splitext(os.path.basename(source))[0]
         filename = "_%s-mask-%s-%s.png" % (slug, colour.lstrip("#").lower(), stem)
-        recolour_rgba_png(source, os.path.join(svg_dir, filename), colour, luminance_mask)
-        return filename
+        target = os.path.join(svg_dir, filename)
+        recolour_rgba_png(source, target, colour, luminance_mask)
+        try:
+            with open(target, "rb") as handle:
+                return "data:image/png;base64," + base64.b64encode(handle.read()).decode("ascii")
+        finally:
+            os.remove(target)
 
     def render_paths(path_list, roles, indent="  ", asset_prefix=""):
         output = []
@@ -314,7 +324,7 @@ def main():
                 output.append('%s%s%s/>' % (indent, shape, paint))
                 continue
             if kind == "image":
-                source = asset_prefix + raster_mask_file(item, colour)
+                source = raster_mask_file(item, colour)
                 output.append(
                     '%s<image x="%g" y="%g" width="%g" height="%g" '
                     'preserveAspectRatio="xMidYMid meet" href="%s" xlink:href="%s"/>' % (
@@ -343,21 +353,26 @@ def main():
     mark_width = mark_box[2] - mark_box[0]
     mark_height = mark_box[3] - mark_box[1]
 
-    ttf = None
-    for candidate in ("SpaceGrotesk-Bold.ttf", "SpaceGrotesk-Medium.ttf"):
-        path = os.path.join(kit, "fonts", "ttf", candidate)
-        if os.path.exists(path):
-            ttf = path
-            break
+    families = typography_families(brand)
+    ttf_path, _ = font_face_path(brand, kit, "display", max(families["display"]["weights"]), outline=True)
+    ttf = str(ttf_path)
 
     wordmark_d = ""
     wordmark_advance = 0
-    if ttf:
+    supplied_wordmark = paths.get("wordmark") or []
+    if supplied_wordmark:
+        wordmark_box = paths_bbox(supplied_wordmark)
+        wordmark_ink_width_raw = wordmark_box[2] - wordmark_box[0]
+        wordmark_ink_height_raw = wordmark_box[3] - wordmark_box[1]
+        wordmark_cap_raw = max(1.0, wordmark_ink_height_raw)
+        wordmark_advance = wordmark_ink_width_raw
+    elif ttf:
         wordmark_d, wordmark_advance = wordmark_outline(brand.get("wordmark_text", slug), ttf, 200)
         wordmark_box = tuple(float(v) for v in Path(wordmark_d).bbox())
         wordmark_cap_raw = max(1.0, -wordmark_box[1])
         wordmark_ink_width_raw = wordmark_box[2] - wordmark_box[0]
         wordmark_ink_height_raw = wordmark_box[3] - wordmark_box[1]
+    if wordmark_d or supplied_wordmark:
         lockup_specs = logo.get("lockups") or {}
 
         def word_ink(colourway, roles):
@@ -365,12 +380,19 @@ def main():
                 return roles["accent"]
             return "#F2F5FA" if colourway == "color" else "#0A0A0A"
 
+        def word_group(colourway, roles, x, y, scale, indent="  "):
+            if supplied_wordmark:
+                content = render_paths(supplied_wordmark, roles, indent + "  ")
+                return ('%s<g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s</g>'
+                        % (indent, x, y, scale, -wordmark_box[0], -wordmark_box[1], content, indent))
+            return '%s<g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>' % (
+                indent, x, y, scale, wordmark_d, word_ink(colourway, roles))
+
         pad = 12
-        wordmark_width, wordmark_height = wordmark_advance + pad * 2, 260
+        wordmark_width = (wordmark_ink_width_raw if supplied_wordmark else wordmark_advance) + pad * 2
+        wordmark_height = wordmark_ink_height_raw + pad * 2 if supplied_wordmark else 260
         for colourway, roles in role_maps.items():
-            body = '  <g transform="translate(%g,%g)"><path d="%s" fill="%s"/></g>' % (
-                pad, 200, wordmark_d, word_ink(colourway, roles)
-            )
+            body = word_group(colourway, roles, pad, pad if supplied_wordmark else 200, 1.0)
             filename = "%s-wordmark-%s.svg" % (slug, colourway)
             write(os.path.join(svg_dir, filename), svg(wordmark_width, wordmark_height, body))
             written.append(filename)
@@ -389,12 +411,13 @@ def main():
                 "wordmark_baseline_units",
                 horizontal_height / 2.0 + 200.0 * word_scale * 0.36,
             ))
+            word_y = (horizontal_height - wordmark_ink_height_raw * word_scale) / 2.0 if supplied_wordmark else word_baseline
             word_x = lockup_pad + mark_render_width + gap
             lockup_width = mark_render_width + gap + wordmark_advance * word_scale + lockup_pad * 2.0
             mark_group = render_paths(paths["full"], roles, "    ")
             body = (
                 '  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n  </g>\n'
-                '  <g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>'
+                '%s'
                 % (
                     lockup_pad,
                     mark_y,
@@ -402,11 +425,7 @@ def main():
                     -mark_box[0],
                     -mark_box[1],
                     mark_group,
-                    word_x,
-                    word_baseline,
-                    word_scale,
-                    wordmark_d,
-                    word_ink(colourway, roles),
+                    word_group(colourway, roles, word_x, word_y, word_scale),
                 )
             )
             filename = "%s-horizontal-%s.svg" % (slug, colourway)
@@ -431,7 +450,7 @@ def main():
             word_x = (stacked_width - stacked_word_width) / 2
             stacked = (
                 '  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n  </g>\n'
-                '  <g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>'
+                '%s'
                 % (
                     mark_x,
                     stacked_pad,
@@ -439,18 +458,20 @@ def main():
                     -mark_box[0],
                     -mark_box[1],
                     mark_group,
-                    word_x - wordmark_box[0] * stacked_word_scale,
-                    stacked_word_baseline,
-                    stacked_word_scale,
-                    wordmark_d,
-                    word_ink(colourway, roles),
+                    word_group(
+                        colourway,
+                        roles,
+                        word_x if supplied_wordmark else word_x - wordmark_box[0] * stacked_word_scale,
+                        stacked_word_top if supplied_wordmark else stacked_word_baseline,
+                        stacked_word_scale,
+                    ),
                 )
             )
             filename = "%s-stacked-%s.svg" % (slug, colourway)
             write(os.path.join(svg_dir, filename), svg(stacked_width, stacked_height, stacked))
             written.append(filename)
 
-    if wordmark_d:
+    if wordmark_d or supplied_wordmark:
         roles = role_maps["color"]
         preview_width, preview_height = 1280, 640
         preview_lockup_center_y = 245.0
@@ -485,9 +506,9 @@ def main():
             horizontal_baseline - horizontal_height / 2.0
         ) / horizontal_word_scale
         preview_baseline = preview_lockup_center_y + normalized_baseline_offset * preview_word_scale
-        tagline_ttf = os.path.join(kit, "fonts", "ttf", "SpaceGrotesk-Medium.ttf")
-        if not os.path.exists(tagline_ttf):
-            tagline_ttf = ttf
+        preview_word_top = preview_lockup_center_y - preview_word_height / 2.0
+        tagline_ttf, _ = font_face_path(brand, kit, "display", min(families["display"]["weights"]), outline=True)
+        tagline_ttf = str(tagline_ttf)
         tagline_d, _ = wordmark_outline(brand.get("brand_idea", "View your files."), tagline_ttf, 56)
         tagline_box = tuple(float(v) for v in Path(tagline_d).bbox())
         tagline_top = preview_lockup_center_y + preview_mark_height / 2.0 + 38.0
@@ -497,14 +518,20 @@ def main():
         tagline_baseline = tagline_top - tagline_box[1] * tagline_scale
         tagline_x = tagline_left - tagline_box[0] * tagline_scale
         mark_group = render_paths(paths["full"], roles, "      ")
+        preview_word = word_group(
+            "color",
+            roles,
+            preview_x + preview_mark_width + preview_gap if supplied_wordmark else preview_x + preview_mark_width + preview_gap - wordmark_box[0] * preview_word_scale,
+            preview_word_top if supplied_wordmark else preview_baseline,
+            preview_word_scale,
+        )
         preview = (
             '  <rect width="1280" height="640" fill="%s"/>\n'
             '  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n  </g>\n'
-            '  <g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="#F2F5FA"/></g>\n'
+            '%s\n'
             '  <g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>'
             % (base, preview_x, preview_mark_top, mark_scale, -mark_box[0], -mark_box[1], mark_group,
-               preview_x + preview_mark_width + preview_gap - wordmark_box[0] * preview_word_scale,
-               preview_baseline, preview_word_scale, wordmark_d,
+               preview_word,
                tagline_x, tagline_baseline, tagline_scale, tagline_d, roles["neutral"])
         )
         filename = "%s-social-preview.svg" % slug
@@ -518,13 +545,20 @@ def main():
         print("wrote %d vector SVG masters" % len(written))
         return 0
 
+    from PIL import Image
+
+    def assert_visible_raster(path):
+        with Image.open(path) as rendered:
+            alpha = rendered.convert("RGBA").getchannel("A")
+            if alpha.getbbox() is None:
+                raise ValueError("rasterized identity asset has no visible pixels: %s" % path)
+
     for filename in written:
         width = 1280 if "social-preview" in filename else 1024
         source = os.path.join(svg_dir, filename)
         output = os.path.join(png_dir, filename[:-4] + "-%d.png" % width)
         standalone_mark = filename.startswith(slug + "-mark-")
         if standalone_mark:
-            from PIL import Image
             raster(["-h", str(width), source, "-o", output])
             with Image.open(output) as rendered:
                 mark_image = rendered.convert("RGBA")
@@ -538,6 +572,7 @@ def main():
                 assert squared.size == (width, width), "%s is not square" % output
         else:
             raster(["-w", str(width), source, "-o", output])
+        assert_visible_raster(output)
 
     square = max(canvas_width, canvas_height)
     x_offset = (square - canvas_width) / 2
@@ -555,6 +590,7 @@ def main():
         source_name = "favicon-reduced.svg" if size <= reduced_below else "favicon.svg"
         output = os.path.join(favicon_dir, "favicon-%dx%d.png" % (size, size))
         raster(["-w", str(size), "-h", str(size), os.path.join(favicon_dir, source_name), "-o", output])
+        assert_visible_raster(output)
         if size in (16, 24, 32, 48, 64, 128, 256):
             ico_sources.append(output)
 

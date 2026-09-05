@@ -5,7 +5,14 @@
   "title": "Glitchpad",
   "slug": "glitchpad",
   "version": "1.0.0",
-  "parent": "ShruggieTech",
+  "affiliation": {
+    "ownership": "shruggietech-owned",
+    "showcase": "public",
+    "parent": "ShruggieTech",
+    "inheritance": "shruggietech-house",
+    "endorsement": "shruggietech-project",
+    "service_credit": "none"
+  },
   "homepage": "https://glitchpad.com",
   "registry_base": "https://brand.shruggie.tech/glitchpad/brand",
   "descriptor": "A fast, cross-platform viewer and editor for local files.",
@@ -59,6 +66,7 @@
     "hover": "#181A1D"
   },
   "typography": {
+    "mode": "house",
     "families": {
       "display": {
         "name": "Space Grotesk",
