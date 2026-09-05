@@ -91,7 +91,7 @@ specs/003-reconcile-pr-reviews/
 .github/workflows/        # protected build, Pages, and release workflows
 assets/fonts/             # canonical local fonts and OFL notices
 brands/                   # five production source kits and UI provenance
-fixtures/example-brand/   # synthetic sixth build target
+fixtures/<retired>/       # synthetic sixth build target used at that time
 scripts/                  # orchestration, Markdown, packaging, and site preparation
 site/                     # generated-kit consumer and static export
 skill/                    # portable brandbuilder source, templates, tests, and canon

@@ -33,6 +33,11 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def copy_production_test_input(self, destination):
+        """Create an isolated test input from a production source kit."""
+        shutil.copytree(ROOT / "brands" / "covarity", destination)
+        shutil.copytree(ROOT / "assets" / "fonts", destination / "fonts")
+
     def test_manifest_uses_the_declared_kit_version(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp)
@@ -103,9 +108,11 @@ class PipelineTests(unittest.TestCase):
 
     def test_generated_nextjs_binding_uses_local_fonts_and_plural_registry_name(self):
         with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "input"
+            self.copy_production_test_input(kit)
             old_argv = sys.argv
             try:
-                sys.argv = ["gen_nextjs.py", str(ROOT / "fixtures" / "example-brand" / "brand.json"), tmp]
+                sys.argv = ["gen_nextjs.py", str(kit / "brand.json"), tmp]
                 gen_nextjs.main()
             finally:
                 sys.argv = old_argv
@@ -123,8 +130,7 @@ class PipelineTests(unittest.TestCase):
     def test_core_logo_generation_keeps_vectors_and_skips_rasters(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp) / "example"
-            shutil.copytree(ROOT / "fixtures" / "example-brand", kit)
-            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            self.copy_production_test_input(kit)
             stale_png = kit / "logos" / "png" / "stale.png"
             stale_favicon = kit / "favicons" / "stale.png"
             stale_png.parent.mkdir(parents=True)

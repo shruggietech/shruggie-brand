@@ -2,7 +2,7 @@
 
 ## Source and artifact boundary
 
-- Commit brand sources under `brands/`, fixture sources under `fixtures/`, shared fonts under `assets/fonts/`, generator code under `skill/`, and site source under `site/`.
+- Commit brand sources under `brands/`, shared fonts under `assets/fonts/`, generator code under `skill/`, and site source under `site/`. Create synthetic test inputs only in temporary test directories.
 - Never commit generated kits, site exports, release archives, PDFs, raster exports, registries, or other contents of `dist/`.
 - Make generator fixes in `skill/templates/`. Do not patch a generated kit to compensate for a generator defect.
 - Never redraw or normalize shipped logo path data. Imported geometry remains byte-for-byte source data unless the owner explicitly approves an identity change.
@@ -34,4 +34,3 @@
 - Foreground, flashing, and focus-stealing console windows are prohibited.
 - Use non-interactive commands with redirected output. Project-owned child-process launchers must set `CREATE_NO_WINDOW` or an equivalent hidden-process guarantee.
 - Invoke `git` and `gh` directly through the Codex command runner. Do not wrap them in another shell solely for repository operations.
-

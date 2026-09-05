@@ -22,6 +22,7 @@ jobs:
           python -m compileall -q scripts skill/templates
           python scripts/build_all.py --list
           python scripts/test_release_contract.py
+          python scripts/test_prepare_site.py
           python skill/templates/test_pipeline.py
           python scripts/check_markdown.py
 
@@ -51,6 +52,7 @@ jobs:
         run: |
           python skill/templates/test_glyphkit.py
           python scripts/test_release_contract.py
+          python scripts/test_prepare_site.py
           python skill/templates/test_pipeline.py
           python scripts/check_markdown.py
       - name: Probe capabilities
@@ -67,7 +69,7 @@ jobs:
           python skill/templates/sync_agents_md.py skill
           git diff --exit-code -- skill/AGENTS.md
       - name: Type-check and export site
-        run: pnpm --dir site lint && pnpm --dir site build
+        run: pnpm --dir site lint && pnpm --dir site build && pnpm --dir site test
       - uses: actions/upload-artifact@v7
         with:
           name: verified-brand-kits

@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import Link from "next/link";
+import { RootProvider } from 'fumadocs-ui/provider/next';
+import { siteDescription, siteUrl } from '@/lib/metadata';
 import "./globals.css";
 
 const geist = localFont({
@@ -26,27 +27,22 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Shruggie Brand", template: "%s | Shruggie Brand" },
-  description: "Verified brand kits, implementation guidance, and installable registries for ShruggieTech projects.",
+  metadataBase: new URL(siteUrl),
+  title: { default: "Brands | ShruggieTech", template: "%s | ShruggieTech" },
+  description: siteDescription,
+  applicationName: 'ShruggieTech Brands',
+  manifest: '/site.webmanifest',
+  icons: { icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }, { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' }, { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' }], apple: '/apple-touch-icon.png' },
 };
+
+export const viewport: Viewport = { themeColor: '#080B0D' };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`dark ${geist.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`dark ${geist.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}>
       <body>
         <a className="skip-link" href="#content">Skip to content</a>
-        <header className="site-header">
-          <Link className="site-name" href="/">Shruggie Brand</Link>
-          <nav aria-label="Primary navigation">
-            <Link href="/docs/">Documentation</Link>
-            <a href="https://github.com/ShruggieTech/shruggie-brand">GitHub</a>
-          </nav>
-        </header>
-        <main id="content">{children}</main>
-        <footer>
-          <span>A ShruggieTech project</span>
-          <span>Skill 1.1.2 · Canon 1.1.2</span>
-        </footer>
+        <RootProvider theme={{ defaultTheme: 'dark', enableSystem: false }} search={{ options: { type: 'static', api: '/static.json' } }}>{children}</RootProvider>
       </body>
     </html>
   );

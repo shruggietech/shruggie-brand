@@ -4,6 +4,22 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Added
+
+- Added a responsive ShruggieTech brand portfolio with generated identity cards, direct asset access, and a prominent skill download path.
+- Added a searchable Fumadocs documentation experience generated from the authoritative skill references.
+- Added complete route metadata, social previews, favicons, a web manifest, robots policy, sitemap, and browser-level WCAG 2.1 AA verification.
+
+### Changed
+
+- Aligned the brand site with ShruggieTech's visual system and approved public message, including the headline "We build comprehensive brands".
+- Restricted normal build and publication discovery to the five production sources under `brands/`.
+- Amended repository governance to require isolated temporary data for synthetic generator tests.
+
+### Removed
+
+- Removed the committed and publicly listed example brand, its generated route assumptions, and its active test references.
+
 ## [1.1.2] - 2026-09-04
 
 ### Added

@@ -21,7 +21,7 @@ from process_utils import hidden_process_kwargs
 
 def sources() -> dict[str, Path]:
     found: dict[str, Path] = {}
-    for parent in (ROOT / "brands", ROOT / "fixtures"):
+    for parent in (ROOT / "brands",):
         if not parent.exists():
             continue
         for child in sorted(parent.iterdir()):
@@ -77,6 +77,10 @@ def main() -> int:
         parser.error("unknown slug(s): " + ", ".join(unknown))
 
     DIST.mkdir(parents=True, exist_ok=True)
+    if not args.slugs:
+        for stale in DIST.iterdir():
+            if stale.is_dir() and (stale / "brand.json").is_file() and stale.name not in available:
+                clean_destination(stale)
     failures = {slug: build(slug, available[slug]) for slug in selected}
     failed = {slug: code for slug, code in failures.items() if code}
     if failed:

@@ -1,0 +1,7 @@
+import { notFound } from 'next/navigation';
+import { brands, brandBySlug } from '@/lib/brands';
+import { pageMetadata } from '@/lib/metadata';
+
+export function generateStaticParams() { return brands.map(({ slug }) => ({ slug })); }
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) { const brand = brandBySlug((await params).slug); if (!brand) notFound(); return pageMetadata(`${brand.title} downloads`, `Download the ${brand.title} brand guide and asset collections.`, `/${brand.slug}/downloads/`); }
+export default async function Downloads({ params }: { params: Promise<{ slug: string }> }) { const brand = brandBySlug((await params).slug); if (!brand) notFound(); const root = `/${brand.slug}/downloads/files`; return <div className="shell"><p className="eyebrow">Brand assets</p><h1>{brand.title} downloads</h1><p className="lede">Clearly organized source files for design, product, and implementation work.</p><ul className="download-list"><li><a href={`${root}/${brand.slug}-brand-guide.pdf`}><strong>Brand guide</strong><span>PDF standards and usage guidance</span></a></li><li><a href={`${root}/logos/`}><strong>Logos</strong><span>SVG and PNG variants</span></a></li><li><a href={`${root}/favicons/`}><strong>Icons</strong><span>Web and application icon assets</span></a></li><li><a href={`${root}/specimens/`}><strong>Type specimens</strong><span>Typography reference artwork</span></a></li></ul></div>; }
