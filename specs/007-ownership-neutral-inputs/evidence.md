@@ -2,8 +2,8 @@
 
 ## Contract and focused regressions
 
-- `test_brand_contract.py`: 13 tests passed, including fail-closed affiliation, independent semantic colors, third-party output scanning, deterministic raster evidence, stale approvals, passive-SVG restrictions, path and role collisions, imported-image transformation approval, complete fixed-font metadata failures, variable and corrupt font rejection, and atomic ingestion boundaries.
-- `test_pipeline.py`: 21 tests passed, including the isolated third-party fixed-font full pipeline, no false ownership, no inherited house orange, no font-network access, supplied SVG wordmark preservation, optional pagination dependency handling, renderer failure handling, and hidden Windows processes.
+- `test_brand_contract.py`: 14 tests passed, including fail-closed affiliation, independent semantic colors, third-party output scanning, deterministic raster evidence, stale approvals, passive-SVG and stylesheet restrictions, path and role collisions, imported-image transformation approval, per-weight outline-face requirements, complete fixed-font metadata failures, variable and corrupt font rejection, and atomic ingestion boundaries.
+- `test_pipeline.py`: 23 tests passed, including the isolated third-party fixed-font full pipeline, independent semantic logo colors, no false ownership, no inherited house-orange guide prose, JPEG and WebP master recoloring, contract-derived PDF heading weights, no font-network access, supplied SVG wordmark preservation, optional pagination dependency handling, renderer failure handling, and hidden Windows processes.
 - `test_prepare_site.py`: 9 tests passed, including explicit public/private showcase behavior, stale-public cleanup, and fail-closed missing output.
 - `test_release_contract.py`: 9 tests passed.
 - `check_markdown.py`: passed.
@@ -29,3 +29,8 @@
 - The Spec Kit consistency pass found and corrected two material omissions before completion: independent inheritance now requires brand-specific emphasis and action colors, and negative tests now cover every supplied-SVG and fixed-font failure named by the tasks.
 - The site verifier previously rejected the valid owned-child endorsement on every guideline page. It now rejects self-endorsement on the ShruggieTech parent while the third-party pipeline scan enforces the broader client-safety contract.
 - The legacy ShruggieTech marketing UI fixture remains dependent on executable React, ReactDOM, Babel, and Lucide CDN resources and therefore produces a blank offline QC sheet. The fixture is byte-for-byte unchanged from `main`, is not consumed by the public site, and was not executed against local project files during this audit. Converting that unrelated fixture to a self-contained implementation is outside issues #104 and #105 and was not folded into S007.
+
+## Bounded review remediation
+
+- The single authorized second-round Codex review reported six findings against commit `769e558`: stylesheet content in supplied SVGs, house semantic colors in independent logo exports, incomplete outline-weight validation, fixed PDF heading weights, accepted JPEG and WebP masters failing during recoloring, and house-orange prose in independent guides.
+- All six findings were corrected with focused regressions. The complete post-fix quickstart matrix then passed, including a full Chromium-enabled five-brand rebuild, seven-asset release verification, 26-route site verification at desktop and mobile widths, and manual inspection of every regenerated PDF contact sheet.

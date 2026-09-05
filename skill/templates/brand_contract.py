@@ -168,7 +168,9 @@ def font_face_path(brand, kit, role, preferred_weight=None, outline=False):
     allowed_formats = {"ttf", "otf"} if outline else {"woff2", "ttf", "otf"}
     choices = [face for face in font_faces(brand) if face["role"] == role and face["format"] in allowed_formats]
     _require(choices, "no usable %s font face for %s" % ("outline" if outline else "local", role))
-    choices.sort(key=lambda face: (abs(face["weight"] - wanted), 0 if face["format"] == "woff2" and not outline else 1, face["path"]))
+    choices = [face for face in choices if face["weight"] == wanted]
+    _require(choices, "no usable %s font face for %s weight %d" % ("outline" if outline else "local", role, wanted))
+    choices.sort(key=lambda face: (0 if face["format"] == "woff2" and not outline else 1, face["path"]))
     return contained_path(kit, choices[0]["path"]), choices[0]
 
 
@@ -226,6 +228,7 @@ def validate_typography(brand, kit):
         _require(any(face["format"] in {"ttf", "otf"} for face in role_faces), "fixed typography role %s needs an outline-capable ttf or otf face" % role)
         for weight in families[role]["weights"]:
             _require(any(face["weight"] == weight for face in role_faces), "fixed typography role %s lacks weight %d" % (role, weight))
+            _require(any(face["weight"] == weight and face["format"] in {"ttf", "otf"} for face in role_faces), "fixed typography role %s lacks outline-capable weight %d" % (role, weight))
     return faces
 
 
@@ -244,13 +247,15 @@ def _detect_image_format(path):
 
 
 def _validate_svg(path):
+    source = path.read_text(encoding="utf-8-sig", errors="ignore").lower()
+    _require("<?xml-stylesheet" not in source, "supplied SVG contains a prohibited stylesheet processing instruction")
     try:
         root = ET.parse(str(path)).getroot()
     except Exception as error:
         raise ContractError("invalid supplied SVG %s: %s" % (path.name, error)) from error
     for element in root.iter():
         tag = element.tag.rsplit("}", 1)[-1].lower()
-        _require(tag not in {"script", "text", "foreignobject"}, "supplied SVG contains prohibited <%s> content" % tag)
+        _require(tag not in {"script", "style", "text", "foreignobject"}, "supplied SVG contains prohibited <%s> content" % tag)
         for raw_name, raw_value in element.attrib.items():
             name = raw_name.rsplit("}", 1)[-1].lower()
             value = str(raw_value).strip()

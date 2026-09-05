@@ -149,6 +149,7 @@ class AuthoritativeInputTests(unittest.TestCase):
                 "active content": ('<script>alert(1)</script>', "prohibited"),
                 "external reference": ('<image href="https://example.test/mark.png"/>', "external reference"),
                 "live text": ("<text>Mutable wordmark</text>", "prohibited"),
+                "stylesheet import": ('<style>@import url(https://example.test/mark.css)</style>', "prohibited"),
             }
             for label, (content, message) in cases.items():
                 with self.subTest(label=label):
@@ -244,6 +245,21 @@ class FixedFontTests(unittest.TestCase):
         self.assert_fixed_font_error(wrong_weight, "weight mismatch")
         self.assert_fixed_font_error(lambda brand, _kit: self.body_face(brand).__setitem__("style", "italic"), "style mismatch")
         self.assert_fixed_font_error(lambda brand, _kit: self.body_face(brand).__setitem__("sha256", "0" * 64), "hash drift")
+
+    def test_fixed_fonts_require_outline_face_for_every_declared_weight(self):
+        def woff2_only_bold(brand, kit):
+            source = ROOT / "assets" / "fonts" / "woff2" / "SpaceGrotesk-Bold.woff2"
+            target = kit / "fonts" / source.name
+            shutil.copy2(source, target)
+            brand["typography"]["families"]["display"]["weights"].append(700)
+            brand["typography"]["faces"].append({
+                "role": "display", "path": "fonts/%s" % source.name, "weight": 700,
+                "style": "normal", "format": "woff2", "sha256": sha256_file(target),
+                "license": "OFL-1.1", "provenance": "Repository licensed test face",
+                "usage_status": "approved",
+            })
+
+        self.assert_fixed_font_error(woff2_only_bold, "lacks outline-capable weight 700")
 
     def test_fixed_fonts_reject_corrupt_and_variable_binaries(self):
         def corrupt(brand, kit):

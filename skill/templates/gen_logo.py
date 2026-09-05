@@ -17,7 +17,7 @@ import sys
 import zlib
 
 from svgelements import Path
-from brand_contract import font_face_path, typography_families
+from brand_contract import font_face_path, semantic_colors, typography_families
 from capabilities import load_capabilities
 from process_utils import hidden_process_kwargs
 
@@ -134,6 +134,27 @@ def recolour_rgba_png(source, target, colour, luminance_mask):
         handle.write(output)
 
 
+def recolour_raster(source, target, colour, luminance_mask):
+    """Recolour any contract-supported raster master into an RGBA PNG."""
+    with open(source, "rb") as handle:
+        signature = handle.read(8)
+    if signature == b"\x89PNG\r\n\x1a\n":
+        recolour_rgba_png(source, target, colour, luminance_mask)
+        return
+    from PIL import Image
+    rgb = tuple(int(colour[index:index + 2], 16) for index in (1, 3, 5))
+    with Image.open(source) as image:
+        rgba = image.convert("RGBA")
+        pixels = rgba.load()
+        for y in range(rgba.height):
+            for x in range(rgba.width):
+                red, green, blue, alpha = pixels[x, y]
+                if luminance_mask:
+                    alpha = round(alpha * max(red, green, blue) / 255)
+                pixels[x, y] = (rgb[0], rgb[1], rgb[2], alpha)
+        rgba.save(target, format="PNG")
+
+
 def raster(args):
     width = args[args.index("-w") + 1] if "-w" in args else None
     height = args[args.index("-h") + 1] if "-h" in args else None
@@ -235,6 +256,9 @@ def main():
     spec_path, kit = sys.argv[1], sys.argv[2]
     with open(spec_path, encoding="utf-8") as handle:
         brand = json.load(handle)
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, "..", "references", "01-canon.json"), encoding="utf-8") as handle:
+        canon = json.load(handle)
     logo = brand.get("logo") or {}
     paths = logo.get("paths") or {}
     if not paths.get("full"):
@@ -264,15 +288,19 @@ def main():
     accent_light = brand["accent"]["accessible"]
     dim = brand["accent"].get("dim") or brand["accent"]["deep"]
     base = brand.get("surfaces", {}).get("base", "#000000")
+    semantic = semantic_colors(brand, canon)
 
     role_maps = {
-        "color": {"accent": accent, "dim": dim, "neutral": dim, "emphasis": "#FF5300"},
-        "light": {"accent": accent_light, "dim": "#0A0A0A", "neutral": "#0A0A0A", "emphasis": "#C24000"},
+        "color": {"accent": accent, "dim": dim, "neutral": dim, "emphasis": semantic["emphasis"]},
+        "light": {"accent": accent_light, "dim": "#0A0A0A", "neutral": "#0A0A0A", "emphasis": semantic["action"]},
         "white": {"accent": "#FFFFFF", "dim": "#FFFFFF", "neutral": "#FFFFFF", "emphasis": "#FFFFFF"},
         "black": {"accent": "#000000", "dim": "#000000", "neutral": "#000000", "emphasis": "#000000"},
     }
     for colourway, mapping in (logo.get("role_colors") or {}).items():
         role_maps.setdefault(colourway, {}).update(mapping)
+    if brand["affiliation"]["inheritance"] == "independent":
+        role_maps["color"]["emphasis"] = semantic["emphasis"]
+        role_maps["light"]["emphasis"] = semantic["action"]
 
     svg_dir = os.path.join(kit, "logos", "svg")
     png_dir = os.path.join(kit, "logos", "png")
@@ -294,7 +322,7 @@ def main():
         stem = os.path.splitext(os.path.basename(source))[0]
         filename = "_%s-mask-%s-%s.png" % (slug, colour.lstrip("#").lower(), stem)
         target = os.path.join(svg_dir, filename)
-        recolour_rgba_png(source, target, colour, luminance_mask)
+        recolour_raster(source, target, colour, luminance_mask)
         try:
             with open(target, "rb") as handle:
                 return "data:image/png;base64," + base64.b64encode(handle.read()).decode("ascii")

@@ -153,6 +153,8 @@ class PipelineTests(unittest.TestCase):
             brand["kind"] = "fixture"
             brand["affiliation"] = {"ownership": "third-party", "showcase": "private", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "brand-system-by-shruggietech"}
             brand["semantic_colors"] = {"emphasis": "#C659FF", "action": "#A000EC"}
+            brand["guide"].pop("logo", None)
+            brand["guide"].pop("palette", None)
             supplied_wordmark = kit / "assets" / "client-wordmark.svg"
             supplied_wordmark.parent.mkdir(parents=True, exist_ok=True)
             write_utf8(supplied_wordmark, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 100"><path fill="#F2F5FA" d="M0 0H600V100H0Z"/></svg>\n')
@@ -190,6 +192,48 @@ class PipelineTests(unittest.TestCase):
             self.assertNotIn("#C24000", semantic_outputs)
             self.assertIn("#C659FF", semantic_outputs)
             self.assertIn("#A000EC", semantic_outputs)
+            logo_svg = (kit / "logos" / "svg" / "client-brand-mark-color.svg").read_text(encoding="utf-8")
+            guide_html = (kit / "build" / "brand-guide.print.html").read_text(encoding="utf-8")
+            self.assertIn("#C659FF", logo_svg)
+            self.assertNotIn("#FF5300", logo_svg)
+            self.assertNotIn("inherited orange", guide_html.lower())
+            self.assertNotIn("warning orange", guide_html.lower())
+            self.assertNotIn("emphasis orange", guide_html.lower())
+
+    def test_supported_raster_masters_recolour_to_png(self):
+        from PIL import Image
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for extension, image in (
+                    ("jpeg", Image.new("RGB", (2, 2), (240, 240, 240))),
+                    ("webp", Image.new("RGBA", (2, 2), (240, 240, 240, 128)))):
+                with self.subTest(extension=extension):
+                    source = root / ("master." + extension)
+                    target = root / ("recoloured-" + extension + ".png")
+                    image.save(source, format="JPEG" if extension == "jpeg" else "WEBP")
+                    gen_logo.recolour_raster(source, target, "#123456", False)
+                    with Image.open(target) as rendered:
+                        self.assertEqual("PNG", rendered.format)
+                        self.assertEqual((18, 52, 86), rendered.convert("RGBA").getpixel((0, 0))[:3])
+
+    def test_pdf_heading_weights_follow_typography_contract(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "input"
+            self.copy_production_test_input(kit)
+            brand_path = kit / "brand.json"
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_nextjs.py", str(brand_path), str(kit)]
+                gen_nextjs.main()
+            finally:
+                sys.argv = old_argv
+            context = gen_guide_pdf.type_context(brand)
+            context.update({"display_bold": 650, "display_regular": 350})
+            with mock.patch.object(gen_guide_pdf, "type_context", return_value=context):
+                html = gen_guide_pdf.build(brand, kit)
+            self.assertIn("h2 { font-weight:650;", html)
+            self.assertIn("h3 { font-weight:350;", html)
 
     def test_core_logo_generation_keeps_vectors_and_skips_rasters(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -65,16 +65,17 @@ def _sharp_edge(B):
             '<p style="margin:0" class="dim">%s</p></div>' % edge)
 
 def _semantics(B, D, A, OR, FA):
+    emphasis_name = "Orange" if affiliation(B)["inheritance"] == "shruggietech-house" else "Emphasis"
     return ('<div class="two"><div class="card"><div class="ey">Semantic use</div><table>'
             '<tr><th>Colour</th><th>Means</th></tr>'
             '<tr><td style="color:%s">Accent</td><td>Primary value, selection, links, focus</td></tr>'
-            '<tr><td style="color:%s">Orange</td><td>Needs attention, threshold exceeded</td></tr>'
+            '<tr><td style="color:%s">%s</td><td>Needs attention, threshold exceeded</td></tr>'
             '<tr><td style="color:%s">Fault</td><td>Failed or timed out. Always with text.</td></tr>'
             '</table></div><div class="card"><div class="ey">Colour vision</div>'
-            '<p class="dim" style="margin:0">The emphasis orange and the failure red sit close in hue '
-            'and are not reliably separable under deuteranopia. That is acceptable only because state '
+            '<p class="dim" style="margin:0">The emphasis and failure colors may not be reliably separable '
+            'under deuteranopia. That is acceptable only because state '
             'is never carried by colour alone: every state ships a written label.</p></div></div>'
-            % (A, OR, FA))
+            % (A, OR, emphasis_name, FA))
 
 def _scales():
     disp = [("display-xl", 72, "-0.030em"), ("display-lg", 56, "-0.025em"),
@@ -144,7 +145,7 @@ def _charttable(D, L, B):
             '<p class="m dim" style="margin:0">Series order is fixed: chart-1 is always the primary '
             'measurement. Never reorder to make a chart look better. Never introduce a sixth colour; '
             'past five series, switch to a form that does not depend on hue. A series never uses the '
-            'emphasis orange or the failure red, because those carry state.</p></div></div>' % rows)
+            'semantic emphasis or failure colors, because those carry state.</p></div></div>' % rows)
 
 
 def build(B, kit):
@@ -175,6 +176,7 @@ def build(B, kit):
 
     type_ = type_context(B)
     aff = affiliation(B)
+    inherits_house = aff["inheritance"] == "shruggietech-house"
     endorsement = affiliation_text(B)
     F = faces(kit, B)
     css = """
@@ -185,8 +187,8 @@ def build(B, kit):
 html,body { margin:0; padding:0; background:%s; color:%s;
   font-family:var(--font-body),system-ui,sans-serif; font-size:9.2pt; line-height:1.62; }
 h1,h2,h3 { font-family:var(--font-display); margin:0; }
-h2 { font-weight:700; font-size:16pt; letter-spacing:-.02em; line-height:1.12; margin-bottom:4mm; }
-h3 { font-weight:500; font-size:10.6pt; margin:5mm 0 2mm; }
+h2 { font-weight:%d; font-size:16pt; letter-spacing:-.02em; line-height:1.12; margin-bottom:4mm; }
+h3 { font-weight:%d; font-size:10.6pt; margin:5mm 0 2mm; }
 p { margin:0 0 2.6mm; }
 .dim { color:%s; }
 .m { font-family:var(--font-mono); font-size:7.2pt; letter-spacing:.02em; }
@@ -239,7 +241,7 @@ td { padding:1.7mm 2mm; border-bottom:.25mm solid %s; vertical-align:top; }
 .charts div { flex:1; border-radius:1.2mm 1.2mm 0 0; }
 ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
 .sw .m { font-size:6.6pt; }
-""" % (F, type_["display"], type_["body"], type_["mono"], BG, TX, MU, A, BG, LINE, MU, A, type_["display_regular"], MU, MU, CARD, LINE, LINE, MU, LINE, LINE, MU, OR, OR, OR, A, A, A)
+""" % (F, type_["display"], type_["body"], type_["mono"], BG, TX, type_["display_bold"], type_["display_regular"], MU, A, BG, LINE, MU, A, type_["display_regular"], MU, MU, CARD, LINE, LINE, MU, LINE, LINE, MU, OR, OR, OR, A, A, A)
 
     def foot(n):
         return '<div class="foot"><span>%s brand system</span><span>%02d</span></div>' % (slug, n)
@@ -335,8 +337,11 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         'never text there. The light token block substitutes %s at %s:1 automatically. The legal '
         'foreground on an accent fill is %s at %s:1. Every fill token in brand.json carries its '
         'measured foreground.</p></div>' % (
-            copy_for(B, "palette", "Dark and close to monochrome. The accent is the signal; the "
-                                   "inherited orange marks a state needing attention."),
+            copy_for(B, "palette", ("Dark and close to monochrome. The accent is the signal; the "
+                                    "inherited orange marks a state needing attention."
+                                    if inherits_house else
+                                    "Dark and close to monochrome. The accent is the signal; the "
+                                    "brand-specific emphasis color marks a state needing attention.")),
             chips(D, ["primary", "brand-accent-deep", "brand-emphasis", "destructive"]),
             chips(D, ["background", "card", "secondary", "border"]),
             AL, chips(L, ["primary", "background", "muted", "muted-foreground"], True),
@@ -353,7 +358,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         '<p>Chart colors serve data visualization. Brand applications use the identity accent and the neutral surfaces. Each chart color is derived from the identity accent and measured against its surface so every entry clears 4.5:1.</p>'
         '<div class="charts">%s</div><div class="grid5">%s</div>'
         '<div class="callout acc"><div class="ey">Contrast checks</div>'
-        '<p style="margin:0" class="dim">Lightness is calculated separately for dark and light surfaces. Chart hues stay at least 47 degrees from the warning orange and 67 from the failure red, and no two entries sit closer than 55 degrees.</p></div><div class="card lite"><div class="ey" style="color:%s">The same palette on '
+        '<p style="margin:0" class="dim">Lightness is calculated separately for dark and light surfaces. Chart hues preserve the measured separation from semantic emphasis and failure colors, and no two entries sit closer than the declared minimum.</p></div><div class="card lite"><div class="ey" style="color:%s">The same palette on '
         'the light reading surface</div><div class="charts">%s</div><div class="grid5" '
         'style="margin-bottom:0">%s</div></div>' % (
             dark_bars, chips(D, ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"]),
