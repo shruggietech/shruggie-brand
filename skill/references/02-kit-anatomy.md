@@ -69,10 +69,16 @@ because that is what the agent's hands already know.
     stylelint.config.json           the CSS-side equivalent
 
   logos/svg/  logos/png/       R    vector masters and raster exports
-  favicons/                    R    SVG, real multi-entry ICO, PNGs, touch,
-                                    android, webmanifest
-  icons/                       O    bespoke domain icons ONLY. 24 grid, 1.5
-                                    stroke, currentColor. Never a lucide clone.
+  icons/                       R    authoritative, categorized application
+    README.md                       icon delivery and exact manifest
+    web/                            favicons, touch icons, web manifest
+    android/                        legacy, adaptive, monochrome, Play listing
+    apple/ios/                      iOS and iPadOS asset catalog appearances
+    apple/macos/                    macOS catalog, iconset, and ICNS
+    windows/                        classic ICO and complete MSIX assets
+    domain/                    O    source-preserved product interface symbols
+  favicons/                    R    byte-identical compatibility aliases for
+                                    icons/web/, never a second source of truth
   fonts/                       R    woff2 + ttf + OFL licenses. BUNDLED.
     licenses/
   specimens/                   R    type specimen, fully outlined
@@ -151,11 +157,11 @@ Bundled and local. House mode copies the approved house faces. Fixed mode copies
 
 `brand.json` is the fail-closed source contract. It separates ownership, showcase permission, parentage, inheritance, endorsement, and service credit, then declares house or fixed typography and any supplied masters. `qc/authoritative-inputs.json` records deterministic measured evidence linked to exact source hashes. Evidence does not grant permission or canonize a palette candidate.
 
-### `icons/`
+### `icons/` and `favicons/`
 
-Exists only when lucide genuinely lacks a domain symbol. fragcap's six capture
-icons are the model. A kit with an `icons/` directory full of re-drawn lucide
-glyphs has misunderstood the rule.
+`icons/` is the authoritative application-icon tree. Its root README directs humans to web, Android, Apple mobile, macOS, and Windows integration suites, while `manifest.json` declares the exact generated inventory and compatibility aliases. Every native platform has a local README and machine-readable manifest beside its ready-to-integrate files. `favicons/` remains only as a byte-identical mirror of `icons/web/` for compatibility and must never diverge.
+
+Product-specific interface symbols supplied under the source kit's legacy `icons/` location are preserved byte for byte under generated `icons/domain/`, only when Lucide genuinely lacks the domain concept. Fragcap's capture symbols are the model. A kit full of redrawn Lucide glyphs has misunderstood the rule.
 
 ## What gets checked
 

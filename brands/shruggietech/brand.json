@@ -161,6 +161,7 @@
     "canvas_height": 500,
     "clear_space_units": 92,
     "reduced_below_px": 48,
+    "application_icon": {"background": "#FFFFFF"},
     "min_px": {"mark": 48, "horizontal": 180, "stacked": 128, "wordmark": 140},
     "role_colors": {
       "color": {"accent": "#2BCC73"},

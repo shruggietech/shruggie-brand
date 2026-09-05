@@ -94,7 +94,8 @@ def _scales():
 def _ships(kit):
     """Read from the kit that actually exists rather than a hardcoded list."""
     want = [("logos/svg", "Vector masters, every lockup and colourway"),
-            ("favicons", "SVG, multi-entry ICO, touch, android, manifest"),
+            ("icons", "Web, Android, Apple, macOS, and Windows application suites"),
+            ("favicons", "Compatibility aliases for the authoritative web suite"),
             ("fonts/woff2", "Web faces plus OFL licences"),
             ("tokens", "CSS and JSON with measured contrast"),
             ("nextjs", "globals.css, shadcn registry, fonts, provider"),

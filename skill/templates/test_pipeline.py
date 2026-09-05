@@ -12,6 +12,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from PIL import Image
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
@@ -25,6 +27,7 @@ import qc_images
 import verify
 from brand_contract import sha256_file
 from capabilities import load_capabilities
+from iconkit import generate_icon_suites
 from process_utils import hidden_process_kwargs
 
 
@@ -76,6 +79,8 @@ class PipelineTests(unittest.TestCase):
             (kit / "qc").mkdir()
             write_utf8(kit / "qc" / "probe.json", "{}\n")
             (kit / "qc" / "contact-sheet.png").write_bytes(b"png")
+            (kit / "icons").mkdir()
+            write_utf8(kit / "icons" / "manifest.json", "{}\n")
 
             build_kit.manifest(str(kit), complete=True)
 
@@ -84,6 +89,7 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("VERIFY.md", recorded)
             self.assertIn("qc/probe.json", recorded)
             self.assertIn("qc/contact-sheet.png", recorded)
+            self.assertIn("icons/manifest.json", recorded)
             self.assertNotIn("manifest.json", recorded)
 
     def write_probe(self, kit, tier="core", raster=False, chromium=False, ico=False,
@@ -255,7 +261,13 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(result, 0)
             self.assertTrue(any((kit / "logos" / "svg").glob("*.svg")))
             self.assertFalse(any((kit / "logos" / "png").glob("*.png")))
-            self.assertFalse(any((kit / "favicons").iterdir()))
+            self.assertTrue((kit / "icons" / "web" / "favicon.svg").is_file())
+            self.assertTrue((kit / "favicons" / "favicon.svg").is_file())
+            self.assertFalse(any(path.suffix.lower() in {".png", ".ico", ".icns"}
+                                 for path in (kit / "icons").rglob("*")))
+            icon_manifest = json.loads((kit / "icons" / "manifest.json").read_text(encoding="utf-8"))
+            self.assertTrue(all(row["status"] == "skipped" for row in icon_manifest["suites"]
+                                if row["id"] != "web"))
 
     def test_full_tier_page_qc_error_is_fatal(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -447,13 +459,12 @@ class PipelineTests(unittest.TestCase):
             self.write_probe(kit, tier="raster", raster=True, ico=False)
             report = verify.Report()
             verify.c_capability_artifacts(str(kit), report)
-            self.assertFalse(report.problems)
-            self.assertTrue(any(skip.startswith("ico-artifact:") for skip in report.skips))
+            self.assertTrue(any(problem.startswith("ico-artifact:") for problem in report.problems))
 
             ico = kit / "favicons" / "favicon.ico"
             ico.parent.mkdir(parents=True)
             ico.write_bytes(b"ico")
-            self.write_probe(kit, tier="raster", raster=True, ico=True)
+            self.write_probe(kit, tier="raster", raster=True, ico=False)
             report = verify.Report()
             verify.c_capability_artifacts(str(kit), report)
             self.assertFalse(report.problems)
@@ -466,6 +477,48 @@ class PipelineTests(unittest.TestCase):
             verify.c_capability_artifacts(str(kit), report)
             self.assertFalse(report.problems)
             self.assertTrue(any(skip.startswith("ico-artifact:") for skip in report.skips))
+
+    def test_icon_suite_verifier_rejects_corrupt_unsafe_and_stale_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "kit"
+            kit.mkdir()
+            full = kit / "full.svg"
+            reduced = kit / "reduced.svg"
+            full.write_text('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0H1V1Z"/></svg>\n', encoding="utf-8")
+            reduced.write_text(full.read_text(encoding="utf-8"), encoding="utf-8")
+            brand = {"slug": "example", "title": "Example", "surfaces": {"base": "#000000"},
+                     "logo": {"reduced_below_px": 32, "application_icon": {"background": "#FFFFFF"}}}
+
+            def render(_source, target, size):
+                image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+                for y in range(size // 4, size * 3 // 4):
+                    for x in range(size // 4, size * 3 // 4):
+                        image.putpixel((x, y), (43, 204, 115, 255))
+                image.save(target)
+
+            capabilities = {"tier": "full", "svg_raster": True, "ico_writer": True}
+            generate_icon_suites(brand, kit, full, reduced, render, capabilities)
+            self.write_probe(kit, tier="full", raster=True, chromium=True, ico=True)
+            manifest_path = kit / "icons" / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["artifacts"][0]["path"] = "../escape.md"
+            write_utf8(manifest_path, json.dumps(manifest, indent=2) + "\n")
+            (kit / "icons" / "undeclared.bin").write_bytes(b"stale")
+            (kit / "favicons" / "favicon.svg").write_text("drift\n", encoding="utf-8")
+            (kit / "icons" / "windows" / "classic" / "app.ico").write_bytes(b"broken")
+            touch = kit / "icons" / "web" / "apple-touch-icon.png"
+            Image.new("RGBA", (180, 180), (43, 204, 115, 0)).save(touch)
+            Image.new("RGB", (32, 32), (43, 204, 115)).save(kit / "icons" / "web" / "favicon-32x32.png")
+            report = verify.Report()
+            verify.c_icon_suites(str(kit), brand, report)
+            detail = "\n".join(report.problems)
+            self.assertIn("unsafe path", detail)
+            self.assertIn("undeclared icon files", detail)
+            self.assertIn("compatibility alias differs", detail)
+            self.assertIn("native icon container is invalid", detail)
+            self.assertIn("must be opaque", detail)
+            self.assertIn("color mode RGB", detail)
+            self.assertIn("lacks an sRGB declaration", detail)
 
     def test_shruggietech_runtime_uses_native_form_and_link_semantics(self):
         kit = ROOT / "brands" / "shruggietech" / "ui_kits" / "shruggie-web"

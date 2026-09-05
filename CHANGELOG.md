@@ -6,6 +6,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added generated web, Android, iOS and iPadOS, macOS, and Windows application-icon suites with exact manifests, native integration metadata, and human-navigable packaging.
+- Added emitted-site favicon integrity checks and direct categorized icon-suite downloads for every generated brand.
 - Added fail-closed affiliation, showcase, inheritance, authoritative-input, palette-approval, and fixed-font contracts for owned and third-party brand work.
 - Added deterministic source evidence, controlled atomic font ingestion, and complete third-party ownership-safety regression coverage.
 - Added a responsive ShruggieTech brand portfolio with generated identity cards, direct asset access, and a prominent skill download path.

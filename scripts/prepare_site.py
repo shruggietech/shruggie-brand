@@ -151,7 +151,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
     downloads = target / "downloads" / "files"
     downloads.mkdir(parents=True)
     shutil.copy2(guide, downloads / f"{slug}-brand-guide.pdf")
-    for name in ("logos", "favicons", "specimens"):
+    for name in ("logos", "favicons", "icons", "specimens"):
         replace_tree(source / name, downloads / name)
     specimen_name = next((source / "specimens").glob("*.svg")).name
     logo_root = f"/{slug}/downloads/files/logos/svg"
@@ -276,25 +276,28 @@ def install_registry_theme(source: Path) -> str:
     return "/* Installed from the generated ShruggieTech shadcn registry theme. */\n" + "\n".join(sections) + "\n"
 
 
-def copy_site_identity(source: Path) -> None:
-    source_assets = ROOT / "brands" / "shruggietech" / "assets"
+def copy_site_identity(source: Path, public: Path = PUBLIC) -> None:
+    web = source / "icons" / "web"
+    source_manifest = web / "site.webmanifest"
     files = {
-        PUBLIC / "favicon.svg": [source / "favicons" / "favicon.svg", source / "logos" / "svg" / "shruggietech-mark-reduced-color.svg"],
-        PUBLIC / "favicon-16x16.png": [source / "favicons" / "favicon-16x16.png", source_assets / "logo-icon-only-green.png"],
-        PUBLIC / "favicon-32x32.png": [source / "favicons" / "favicon-32x32.png", source_assets / "logo-icon-only-green.png"],
-        PUBLIC / "apple-touch-icon.png": [source / "favicons" / "apple-touch-icon.png", source_assets / "logo-icon-only-green.png"],
-        PUBLIC / "android-chrome-192x192.png": [source / "favicons" / "android-chrome-192x192.png", source_assets / "logo-icon-only-green.png"],
-        PUBLIC / "android-chrome-512x512.png": [source / "favicons" / "android-chrome-512x512.png", source_assets / "logo-icon-only-green.png"],
-        PUBLIC / "shruggietech-logo.svg": [source / "logos" / "svg" / "shruggietech-horizontal-white.svg"],
-        PUBLIC / "social-preview.png": [source / "logos" / "png" / "shruggietech-social-preview-1280.png", source_assets / "socialmedia_logo.png"],
+        public / "favicon.svg": web / "favicon.svg",
+        public / "favicon-16x16.png": web / "favicon-16x16.png",
+        public / "favicon-32x32.png": web / "favicon-32x32.png",
+        public / "favicon.ico": web / "favicon.ico",
+        public / "apple-touch-icon.png": web / "apple-touch-icon.png",
+        public / "android-chrome-192x192.png": web / "android-chrome-192x192.png",
+        public / "android-chrome-512x512.png": web / "android-chrome-512x512.png",
+        public / "shruggietech-logo.svg": source / "logos" / "svg" / "shruggietech-horizontal-white.svg",
+        public / "social-preview.png": source / "logos" / "png" / "shruggietech-social-preview-1280.png",
     }
-    for destination, candidates in files.items():
-        origin = next((candidate for candidate in candidates if candidate.is_file()), None)
-        if origin is None:
-            raise ValueError(f"required site identity asset is missing: {candidates}")
+    missing = [origin for origin in [*files.values(), source_manifest] if not origin.is_file()]
+    if missing:
+        raise ValueError(f"required generated site identity asset is missing: {missing[0]}")
+    manifest = json.loads(source_manifest.read_text(encoding="utf-8"))
+    for destination, origin in files.items():
         shutil.copy2(origin, destination)
-    manifest = {"name": "Brands | ShruggieTech", "short_name": "ShruggieTech Brands", "start_url": "/", "display": "standalone", "background_color": "#080B0D", "theme_color": "#080B0D", "icons": [{"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png"}, {"src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png"}]}
-    write_utf8(PUBLIC / "site.webmanifest", json.dumps(manifest, indent=2) + "\n")
+    manifest.update({"name": "Brands | ShruggieTech", "short_name": "ShruggieTech Brands", "start_url": "/"})
+    write_utf8(public / "site.webmanifest", json.dumps(manifest, indent=2) + "\n")
 
 
 def main() -> int:

@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, scan_affiliation_output, sha256_file, validate_brand
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, scan_affiliation_output, sha256_file, validate_brand
 from ingest_font import ingest_font
 
 
@@ -90,6 +90,40 @@ class AffiliationTests(unittest.TestCase):
             brand["semantic_colors"] = {"emphasis": "#6750A4", "action": "#5B3F98"}
             (kit / "README.md").write_text("A ShruggieTech project\n", encoding="utf-8")
             self.assertEqual(1, len(scan_affiliation_output(brand, kit)))
+
+
+class ApplicationIconProfileTests(unittest.TestCase):
+    def test_profile_uses_declared_background_and_reduced_threshold(self):
+        brand = owned_brand()
+        brand["surfaces"] = {"base": "#080B0D"}
+        brand["logo"]["reduced_below_px"] = 32
+        brand["logo"]["application_icon"] = {"background": "#FFFFFF"}
+        self.assertEqual(
+            {"background": "#FFFFFF", "reduced_below_px": 32},
+            application_icon_profile(brand),
+        )
+
+    def test_profile_falls_back_to_canonical_base(self):
+        brand = owned_brand()
+        brand["surfaces"] = {"base": "#080B0D"}
+        self.assertEqual("#080B0D", application_icon_profile(brand)["background"])
+
+    def test_profile_rejects_invalid_background_and_threshold(self):
+        brand = owned_brand()
+        brand["surfaces"] = {"base": "#080B0D"}
+        brand["logo"]["application_icon"] = {"background": "white"}
+        with self.assertRaisesRegex(ContractError, "application icon background"):
+            application_icon_profile(brand)
+        brand["logo"]["application_icon"] = {"background": "#FFFFFF", "extra": True}
+        with self.assertRaisesRegex(ContractError, "exactly"):
+            application_icon_profile(brand)
+        brand["logo"]["application_icon"] = {}
+        with self.assertRaisesRegex(ContractError, "exactly"):
+            application_icon_profile(brand)
+        del brand["logo"]["application_icon"]
+        brand["logo"]["reduced_below_px"] = 0
+        with self.assertRaisesRegex(ContractError, "reduced mark threshold"):
+            application_icon_profile(brand)
             (kit / "README.md").write_text("Brand system by ShruggieTech\n", encoding="utf-8")
             self.assertEqual(1, len(scan_affiliation_output(brand, kit)))
 
