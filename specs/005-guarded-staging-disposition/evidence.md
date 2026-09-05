@@ -81,13 +81,13 @@ The first detached-checkout test invocation used plain system Python and stopped
 | Round | Trigger | Signal | Actionable comments | Finding issues | State |
 | --- | --- | --- | ---: | --- | --- |
 | 1 | Automatic on PR publication | [Terminal environment-unavailable result](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548644645) with zero findings and zero threads | 0 | None | Complete as infrastructure outcome, not successful code review; [disposition](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548648601) posted |
-| 2 | [One explicit request](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548655596) after round 1 | [Completed review](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548679415) of `4e18640` | 3 | #97, #98, and #99 | Corrections pending |
+| 2 | [One explicit request](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548655596) after round 1 | [Completed review](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548679415) of `4e18640` | 3 | #97, #98, and #99 | Fixed in `939cb75`; [#97 reply](https://github.com/shruggietech/shruggie-brand/pull/96#discussion_r3939126724), [#98 reply](https://github.com/shruggietech/shruggie-brand/pull/96#discussion_r3939127006), and [#99 reply](https://github.com/shruggietech/shruggie-brand/pull/96#discussion_r3939127259) posted; all three threads resolved |
 
 Review request ceiling: 2 rounds. No third request is authorized.
 
 ## Hosted checks
 
-The pull request is published. At the round 2 reviewed commit `4e18640`, both required jobs passed on the [push run](https://github.com/shruggietech/shruggie-brand/actions/runs/33938424873) and [pull-request run](https://github.com/shruggietech/shruggie-brand/actions/runs/33938423269). Any later correction head remains at the owner gate until the live pull-request check rollup again reports successful `python-38-compatibility` and `build` jobs. This committed ledger records immutable completed runs and the governing state transition; the pull request Checks view is the authoritative live status.
+The pull request is published. At the round 2 reviewed commit `4e18640`, both required jobs passed on the [push run](https://github.com/shruggietech/shruggie-brand/actions/runs/33938424873) and [pull-request run](https://github.com/shruggietech/shruggie-brand/actions/runs/33938423269). The correction commit `939cb75` then passed both required jobs on its [push run](https://github.com/shruggietech/shruggie-brand/actions/runs/33938736853) and [pull-request run](https://github.com/shruggietech/shruggie-brand/actions/runs/33938734878). Any later ledger-only head remains at the owner gate until the live pull-request check rollup again reports successful `python-38-compatibility` and `build` jobs. This committed ledger records immutable completed runs and the governing state transition; the pull request Checks view is the authoritative live status.
 
 ## Post-merge closure
 
