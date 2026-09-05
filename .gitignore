@@ -17,8 +17,12 @@ site/public/apple-touch-icon.png
 site/public/android-chrome-192x192.png
 site/public/android-chrome-512x512.png
 site/public/shruggietech-logo.svg
+site/public/shruggietech-logo-dark.svg
+site/public/shruggietech-logo-light.svg
 site/public/social-preview.png
+site/public/social/
 site/public/site.webmanifest
+site/test-results/
 release/
 
 # Local dependencies and caches

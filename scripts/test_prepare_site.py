@@ -65,12 +65,18 @@ class PrepareSiteTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp) / "index.html"
             page.write_text("<html><head><title>Guide</title></head><body></body></html>", encoding="utf-8")
-            prepare_site.add_guideline_metadata(page, {"slug": "alpha", "title": "Alpha", "descriptor": "One & only."})
+            brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "One & only.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
+            route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "guidelines")
+            prepare_site.add_guideline_metadata(page, route)
             content = page.read_text(encoding="utf-8")
             self.assertIn("<title>Alpha guidelines | ShruggieTech</title>", content)
             self.assertIn('rel="canonical" href="https://brand.shruggie.tech/alpha/guidelines/"', content)
             self.assertIn('property="og:title"', content)
+            self.assertIn('property="og:image:width" content="1280"', content)
+            self.assertIn('property="og:image:alt" content="Alpha guidelines page preview on Brands | ShruggieTech"', content)
             self.assertIn('name="twitter:card"', content)
+            self.assertIn('type="application/ld+json"', content)
+            self.assertIn('"BreadcrumbList"', content)
             self.assertIn("One &amp; only.", content)
 
     def test_public_markdown_rewrites_prose_and_preserves_literal_code(self):
@@ -80,6 +86,40 @@ class PrepareSiteTests(unittest.TestCase):
         self.assertIn("The brand system guides decisions for Brand system by ShruggieTech.", body)
         self.assertIn("`canon` and `A ShruggieTech project` stay literal.", body)
         self.assertIn('{"canon": "1.1.2", "endorsement": "A ShruggieTech project"}', body)
+
+    def test_public_markdown_promotes_explicit_alerts_only(self):
+        source = """# Alerts
+
+> [!NOTE]
+> Probe before selecting a renderer.
+
+> [!WARNING]
+> Missing capabilities must remain visible.
+
+> [!CAUTION]
+> Never ship generated concept artwork.
+
+> An ordinary blockquote stays a blockquote.
+
+```markdown
+> [!WARNING]
+> Literal sample.
+```
+"""
+        _, body = prepare_site.derive_public_markdown(source)
+        self.assertIn('<Callout type="info">\nProbe before selecting a renderer.\n</Callout>', body)
+        self.assertIn('<Callout type="warn">\nMissing capabilities must remain visible.\n</Callout>', body)
+        self.assertIn('<Callout type="error">\nNever ship generated concept artwork.\n</Callout>', body)
+        self.assertIn("> An ordinary blockquote stays a blockquote.", body)
+        self.assertIn("> [!WARNING]\n> Literal sample.", body)
+
+    def test_public_markdown_rejects_unsupported_alert_marker(self):
+        with self.assertRaisesRegex(ValueError, "unsupported documentation alert"):
+            prepare_site.derive_public_markdown("# Alerts\n\n> [!IMPORTANT]\n> Unsupported.\n")
+
+    def test_public_markdown_promotes_multiline_alert(self):
+        _, body = prepare_site.derive_public_markdown("# Alerts\n\n> [!NOTE]\n> First line.\n>\n> Second line.\n")
+        self.assertIn('<Callout type="info">\nFirst line.\n\nSecond line.\n</Callout>', body)
 
     def test_write_docs_derives_frontmatter_navigation_and_source_body(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -99,6 +139,66 @@ class PrepareSiteTests(unittest.TestCase):
             self.assertNotIn("# Start here", page)
             meta = json.loads((output / "meta.json").read_text(encoding="utf-8"))
             self.assertEqual(meta["pages"], ["index", "00-start"])
+
+    def test_route_contract_is_complete_canonical_and_page_aware(self):
+        brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
+        docs = [{"slug": "04-toolchain", "title": "Toolchain", "description": "Tools and gates."}]
+        routes = prepare_site.build_routes(brands, docs)
+        self.assertEqual(6, len(routes))
+        self.assertEqual(6, len({route["key"] for route in routes}))
+        self.assertEqual(6, len({route["canonical"] for route in routes}))
+        for route in routes:
+            self.assertTrue(route["pathname"].startswith("/"))
+            self.assertTrue(route["pathname"].endswith("/"))
+            self.assertEqual(f"https://brand.shruggie.tech{route['pathname']}", route["canonical"])
+            self.assertEqual(route["canonical"], route["structuredData"]["@graph"][2]["url"])
+            self.assertNotEqual("ShruggieTech brand portfolio", route["social"]["alt"])
+        doc = next(route for route in routes if route["kind"] == "docs-page")
+        self.assertEqual(["Brands", "How we build brands", "Toolchain"], [item["name"] for item in doc["breadcrumbs"]])
+        self.assertEqual("TechArticle", doc["structuredData"]["@graph"][2]["@type"])
+        brand = next(route for route in routes if route["kind"] == "brand")
+        graph_text = json.dumps(brand["structuredData"])
+        self.assertIn('"@type": "Brand"', graph_text)
+        self.assertNotIn("owner", graph_text.lower())
+
+    def test_route_contract_rejects_unsafe_or_duplicate_records(self):
+        route = {"key": "duplicate", "kind": "home", "pathname": "/", "canonical": "https://brand.shruggie.tech/", "title": "Brands", "documentTitle": "Brands | ShruggieTech", "description": "Description", "social": {"path": "/social/duplicate.png", "url": "https://brand.shruggie.tech/social/duplicate.png", "width": 1280, "height": 640, "type": "image/png", "alt": "Preview", "eyebrow": "Portfolio"}, "breadcrumbs": [], "brandSlug": None, "docsSlug": None}
+        with self.assertRaisesRegex(ValueError, "duplicate route key"):
+            prepare_site.validate_routes([route, dict(route)])
+        bad = dict(route, key="unsafe", pathname="/../escape/", canonical="https://brand.shruggie.tech/../escape/")
+        with self.assertRaisesRegex(ValueError, "unsafe route pathname"):
+            prepare_site.validate_routes([bad])
+        external = dict(route, key="external", canonical="https://example.com/")
+        with self.assertRaisesRegex(ValueError, "canonical URL"):
+            prepare_site.validate_routes([external])
+        unsafe_key = dict(route, key="../preview")
+        with self.assertRaisesRegex(ValueError, "unsafe route key"):
+            prepare_site.validate_routes([unsafe_key])
+        unsafe_preview = dict(route, key="unsafe-preview", social=dict(route["social"], path="/social/../escape.png"))
+        with self.assertRaisesRegex(ValueError, "unsafe social preview path"):
+            prepare_site.validate_routes([unsafe_preview])
+        wrong_dimensions = dict(route, key="wrong-dimensions", social=dict(route["social"], path="/social/wrong-dimensions.png", url="https://brand.shruggie.tech/social/wrong-dimensions.png", width=1200))
+        with self.assertRaisesRegex(ValueError, "invalid social preview contract"):
+            prepare_site.validate_routes([wrong_dimensions])
+
+    def test_social_previews_are_rebuilt_with_exact_dimensions(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            public = root / "public"
+            stale = public / "social" / "stale.png"
+            stale.parent.mkdir(parents=True)
+            Image.new("RGBA", (1, 1), (0, 0, 0, 0)).save(stale)
+            mark = root / "mark.png"
+            Image.new("RGBA", (200, 120), (43, 204, 115, 255)).save(mark)
+            display_font = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "ttf" / "SpaceGrotesk-Bold.ttf"
+            body_font = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "ttf" / "Geist-Medium.ttf"
+            route = prepare_site.build_routes([], [])[0]
+            prepare_site.generate_social_previews([route], public, mark, display_font, body_font)
+            preview = public / route["social"]["path"].lstrip("/")
+            self.assertFalse(stale.exists())
+            with Image.open(preview) as image:
+                self.assertEqual((1280, 640), image.size)
+                self.assertEqual("RGBA", image.mode)
 
     def test_active_source_paths_do_not_reference_retired_fixture(self):
         root = Path(__file__).resolve().parents[1]
@@ -144,12 +244,15 @@ class PrepareSiteTests(unittest.TestCase):
                 "icons": [{"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png"}],
             }) + "\n", encoding="utf-8")
             (logos / "shruggietech-horizontal-white.svg").write_text("<svg/>\n", encoding="utf-8")
+            (logos / "shruggietech-horizontal-black.svg").write_text("<svg><path/></svg>\n", encoding="utf-8")
             Image.new("RGB", (1200, 630), (0, 0, 0)).save(logo_png / "shruggietech-social-preview-1280.png")
 
             prepare_site.copy_site_identity(source, public)
 
             self.assertEqual((web / "favicon.svg").read_bytes(), (public / "favicon.svg").read_bytes())
             self.assertEqual((web / "favicon.ico").read_bytes(), (public / "favicon.ico").read_bytes())
+            self.assertEqual((logos / "shruggietech-horizontal-white.svg").read_bytes(), (public / "shruggietech-logo-dark.svg").read_bytes())
+            self.assertEqual((logos / "shruggietech-horizontal-black.svg").read_bytes(), (public / "shruggietech-logo-light.svg").read_bytes())
             manifest = json.loads((public / "site.webmanifest").read_text(encoding="utf-8"))
             self.assertEqual("Brands | ShruggieTech", manifest["name"])
             self.assertEqual("#FFFFFF", manifest["background_color"])

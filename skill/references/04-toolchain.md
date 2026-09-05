@@ -1,7 +1,8 @@
 # Toolchain
 
-**Probe first, then pick. Never assume a tool is present and never fail
-silently when it is missing.**
+> [!NOTE]
+> **Probe first, then pick. Never assume a tool is present and never fail
+> silently when it is missing.**
 
 Every tool below is open source and installable from a standard package
 manager. The agent's job at the start of a build is to find out what it
@@ -102,16 +103,18 @@ whatever agent is running the skill to explore logo directions, mood, and
 visual language with the operator. It is genuinely good at opening up a concept
 space quickly, and it beats describing shapes in prose.
 
-**Never for shipped artwork.** Every mark that ships is hand-authored vector on
-a declared grid. The generated images are conversation, and the SVG is the
-deliverable.
+> [!CAUTION]
+> **Never for shipped artwork.** Every mark that ships is hand-authored vector on
+> a declared grid. The generated images are conversation, and the SVG is the
+> deliverable.
 
 ## When a tool is missing
 
-Say which asset is affected, name the fallback being used, and note any quality
-difference. If no fallback exists, produce everything else, list the gap
-explicitly in `VERIFY.md`, and do not quietly ship a worse substitute as though
-it were the real thing.
+> [!WARNING]
+> Say which asset is affected, name the fallback being used, and note any quality
+> difference. If no fallback exists, produce everything else, list the gap
+> explicitly in `VERIFY.md`, and do not quietly ship a worse substitute as though
+> it were the real thing.
 
 A build that silently degrades reads as complete when it is not, and that is
 the failure mode this whole system exists to prevent.
