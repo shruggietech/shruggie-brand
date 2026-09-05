@@ -5,7 +5,14 @@
   "title": "go-schedule",
   "slug": "go-schedule",
   "version": "1.0.0",
-  "parent": "ShruggieTech",
+  "affiliation": {
+    "ownership": "shruggietech-owned",
+    "showcase": "public",
+    "parent": "ShruggieTech",
+    "inheritance": "shruggietech-house",
+    "endorsement": "shruggietech-project",
+    "service_credit": "none"
+  },
   "homepage": "https://github.com/ShruggieTech/go-schedule",
   "registry_base": "https://brand.shruggie.tech/go-schedule/brand",
   "descriptor": "A cross-platform scheduler in Go.",
@@ -69,6 +76,7 @@
     "hover": "#1A2D36"
   },
   "typography": {
+    "mode": "house",
     "families": {
       "display": {
         "name": "Space Grotesk",

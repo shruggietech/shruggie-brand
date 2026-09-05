@@ -17,6 +17,7 @@ from pathlib import Path
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
+from brand_contract import font_face_path, typography_families
 
 def outlined_text(text, font_path, size, x, baseline, fill):
     font = TTFont(font_path)
@@ -91,10 +92,10 @@ def main():
     out = kit / "specimens"
     out.mkdir(parents=True, exist_ok=True)
 
-    ttf = kit / "fonts" / "ttf"
-    display, body, mono = (ttf / "SpaceGrotesk-Bold.ttf",
-                           ttf / "Geist-Regular.ttf",
-                           ttf / "GeistMono-Regular.ttf")
+    families = typography_families(B)
+    display, _ = font_face_path(B, kit, "display", max(families["display"]["weights"]), outline=True)
+    body, _ = font_face_path(B, kit, "body", min(families["body"]["weights"]), outline=True)
+    mono, _ = font_face_path(B, kit, "mono", min(families["mono"]["weights"]), outline=True)
 
     surf = B.get("surfaces", {})
     base = surf.get("base", "#000000")
@@ -105,7 +106,7 @@ def main():
     guide = B.get("guide") or {}
     idea = guide.get("idea") or B.get("brand_idea", title)
     descriptor = guide.get("descriptor") or B.get("descriptor", "")
-    fams = B["typography"]["families"]
+    fams = families
 
     parts = [
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1600 1000">',

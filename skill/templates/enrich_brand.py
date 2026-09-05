@@ -14,6 +14,7 @@ Everything written here is measured. Nothing is transcribed.
 """
 import argparse, json, os, sys
 from coloraide import Color
+from brand_contract import affiliation, semantic_colors
 
 def OK(h):
     c = Color(h).convert("oklch")
@@ -44,6 +45,8 @@ def main():
     dark = B.get("surfaces", {}).get("base", "#000000")
     light = "#F8F8F6"
     acc = B["accent"]
+    aff = affiliation(B)
+    semantic = semantic_colors(B, canon)
 
     color = {}
     color["accent-bright"] = tok(acc["bright"], "identity accent, links, focus", dark, light)
@@ -51,9 +54,17 @@ def main():
     color["accent-accessible"] = tok(acc["accessible"], "the accent on light surfaces", dark, light,
         "The bright accent measures %s:1 on the light base and is never text there."
         % R(acc["bright"], light))
+    inherited = {"fault", "fault-deep"}
+    if aff["inheritance"] == "shruggietech-house":
+        inherited.update({"orange", "orange-cta"})
     for k, t in canon["color"]["immutable"].items():
+        if k not in inherited:
+            continue
         color[k] = tok(t["hex"], t["role"], dark, light,
                        "inherited verbatim from canon %s" % canon["version"])
+    if aff["inheritance"] == "independent":
+        color["emphasis"] = tok(semantic["emphasis"], "brand-specific emphasis", dark, light)
+        color["action"] = tok(semantic["action"], "brand-specific action fill", dark, light)
     for k, hx in (B.get("surfaces") or {}).items():
         color["surface-" + k] = tok(hx, "dark surface: %s" % k, dark, light)
 
@@ -65,8 +76,9 @@ def main():
         x, y = HUE(acc["bright"]), HUE(s["hex"])
         if x is not None and y is not None:
             dd = abs(x - y); sep[name] = round(min(dd, 360 - dd), 1)
-    x, y = HUE(acc["bright"]), HUE(canon["color"]["immutable"]["orange"]["hex"])
-    sep["inherited-orange"] = round(min(abs(x - y), 360 - abs(x - y)), 1)
+    if aff["inheritance"] == "shruggietech-house":
+        x, y = HUE(acc["bright"]), HUE(canon["color"]["immutable"]["orange"]["hex"])
+        sep["inherited-orange"] = round(min(abs(x - y), 360 - abs(x - y)), 1)
 
     B["canon"] = canon["version"]
     B["measured"] = {

@@ -20,9 +20,7 @@ can proceed without it.
 
 ---
 
-Builds brand kits for ShruggieTech sub-brands. The kits are consistent because
-almost nothing is left to decide, and correct because almost nothing is left to
-judgement.
+Builds brand kits for ShruggieTech-owned and third-party identities. Every kit declares ownership, public showcase permission, parentage, inheritance, endorsement, service credit, typography mode, and any authoritative supplied inputs explicitly before generation.
 
 ## Start here
 
@@ -34,10 +32,7 @@ questions and nothing else up front:
 1. What is the brand or product called?
 2. What does it do, in one sentence?
 
-Then follow `references/03-interview.md`. Every gate after those two arrives
-with a computed default, so an operator who approves everything still gets a
-complete kit. **Propose before asking.** A gate that presents an empty question
-has failed.
+Then follow `references/03-interview.md`. Ownership, showcase permission, inheritance, usage rights, and palette approval have no inferred default. Every creative gate after the required contract arrives with a computed proposal, so an operator who approves everything still gets a complete kit. **Propose before asking.** A gate that presents an empty creative question has failed.
 
 Offer two optional extras in the same breath, both defaulting to no: an existing
 logo concept to consider, and any existing material at all.
@@ -47,6 +42,9 @@ logo concept to consider, and any existing material at all.
 | The operator wants | Read, in order |
 | --- | --- |
 | A new sub-brand kit | `03-interview.md`, `00-variance-contract.md`, `02-kit-anatomy.md`, then generate |
+| A third-party or client brand | `03-interview.md` affiliation gate, `00-variance-contract.md`, `07-voice.md`, then generate |
+| A supplied mark or wordmark | `06-logo-protocol.md` authoritative-input path, then `03-interview.md` palette approval gate |
+| A fixed font requirement | `03-interview.md` typography gate, `09-portability.md`, then run `templates/ingest_font.py` explicitly |
 | To pick a colour | `01-canon.json` `color.constrained_rules`, then propose candidates with measured numbers |
 | A logo | `08-glyph-construction.md` first, then `06-logo-protocol.md`. Do not draw before reading it |
 | Next.js or shadcn wiring | `05-shadcn-binding.md`, then run `templates/gen_nextjs.py` |
@@ -58,10 +56,9 @@ logo concept to consider, and any existing material at all.
 
 ## The rules that matter most
 
-**One colour decision and one logo decision.** Under the variance contract
-everything else is inherited or derived. If you find yourself deciding a radius,
-a font, a spacing step, or an icon set, you have gone wrong. Read
-`00-variance-contract.md`.
+**Declare affiliation before creative work.** Ownership, showcase permission, parentage, inheritance, endorsement, and neutral service credit are separate fields. Missing state stops generation. A third-party brand has no ShruggieTech parent or owned-project endorsement. Neutral credit is optional and fixed. House inheritance explicitly adopts ShruggieTech semantic orange. Independent inheritance requires brand-specific emphasis and action colors.
+
+**One colour decision and one logo decision in house mode.** Under the ordinary owned-brand variance contract, everything else is inherited or derived. Authoritative supplied marks and fixed font requirements are explicit exceptions. They require hashes, provenance, usage or license evidence, and approval before generated use.
 
 **Never type path data.** The mark is composed in `<kit>/build/mk_paths.py` from
 `templates/glyphkit.py` primitives, in absolute M/L/C/Z only, and proved by
@@ -96,10 +93,9 @@ matrix and the fallback chain. A missing tool gets named in `VERIFY.md` with the
 tool that was missing; it never gets silently substituted, and a skip must never
 read as "not applicable".
 
-**Bundle fonts. Never fetch them at build time.** `fonts.gstatic.com` is blocked
-by the egress proxy in sandboxed environments while `fonts.googleapis.com`
-resolves, so the fetch appears to succeed and dies at the binary step. Copy the
-five faces and their OFL licences from a sibling kit.
+**Bundle fonts. Never fetch them at build time.** House mode uses the approved local faces. Fixed mode uses only declared local faces whose hash, family, weight, style, format, license, provenance, and usage status pass validation. Network retrieval happens only through the explicitly invoked `templates/ingest_font.py` command and completes atomically before a build begins.
+
+**Preserve authoritative supplied identity files.** A supplied master stays byte-identical. Declare its role, path, format, SHA-256, color-profile status, usage basis, and approved transformations. Palette analysis produces evidence only. A human approval must bind a selected candidate to the current source hash before that color can be canonical.
 
 **The brand guide is full-bleed dark on every sheet, and it describes the brand.**
 House standard, set by fragcap 1.1.0 and enforced by `qc_render.py
@@ -122,11 +118,12 @@ One command runs the whole pipeline and reports every gate:
 
     python3 templates/build_kit.py <kit-dir>
 
-It probes first, runs the glyph gate second and stops there if the mark is
-wrong, then builds. Individually:
+It validates the explicit contract first, then probes, runs the glyph gate, and stops before publishable output on any failure. Individually:
 
+    python3 templates/validate_brand.py <brand.json>          # affiliation, inputs, type
     python3 templates/probe.py          <kit>                 # capability tier
     python3 templates/validate_glyph.py <brand.json>          # the mark, measured
+    python3 templates/analyze_inputs.py <brand.json> <kit>    # generated evidence
     python3 templates/enrich_brand.py   <brand.json>          # measured values written back
     python3 templates/build_specimen.py <brand.json>          # outlined type specimen
     python3 templates/gen_vanilla.py    <brand.json> <kit>    # tokens, styles.css, components
@@ -136,6 +133,7 @@ wrong, then builds. Individually:
     python3 templates/gen_guidelines.py <brand.json> <kit>    # the guidelines page
     python3 templates/gen_guide_pdf.py  <brand.json> <kit>    # the brand guide, full-bleed dark
     python3 templates/verify.py         <kit>                 # measured VERIFY.md
+    python3 templates/scan_affiliation.py <brand.json> <kit>  # false claims
     python3 templates/qc_images.py      <kit>                 # logo and page contact sheets
     python3 templates/qc_render.py      <kit>/brand-guide.pdf --expect-ground dark
     python3 templates/qc_paginate.py    <kit>/build/*.print.html
@@ -145,6 +143,8 @@ wrong, then builds. Individually:
 paths into `brand.json`, and the generator produces every colourway, the
 outlined wordmark, the lockups, all rasters, the favicon set and a real
 multi-entry ICO.
+
+When an approved master already exists, do not route through reconstruction. Declare it under `authoritative_inputs`, preserve its bytes, authorize only the needed transformations, and let validation connect each imported logo image to its source record. Use `templates/ingest_font.py --help` for the separate fixed-font ingestion contract. Ordinary generation must stay offline.
 
 `examples/shruggietech/` is a real generated instance. Read it when unsure what
 correct output looks like.
@@ -177,6 +177,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `NOTICE` | Apache attribution notice, plus the bundled font licences |
 | `references/00-variance-contract.md` | immutable, constrained, free. Start here for any scope question |
 | `references/01-canon.json` | machine-readable inheritance root. Generators read this |
+| `references/canon.schema.json` | authoring schema for explicit affiliation, inheritance, typography, supplied inputs, and approvals |
 | `references/02-kit-anatomy.md` | what a complete kit contains, file by file |
 | `references/03-interview.md` | the five gates and how each default is computed |
 | `references/04-toolchain.md` | probe script and the asset-to-tool matrix |
@@ -186,6 +187,11 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `references/08-glyph-construction.md` | how to produce a mark that is not wrong |
 | `references/09-portability.md` | capability tiers and the cross-provider rules |
 | `templates/probe.py` | what this machine can do, as JSON the pipeline reads |
+| `templates/brand_contract.py` | shared fail-closed affiliation, supplied-input, palette, and typography contract |
+| `templates/validate_brand.py` | first-step runtime contract validation |
+| `templates/analyze_inputs.py` | deterministic generated audit and palette evidence |
+| `templates/ingest_font.py` | explicit bounded and atomic local or HTTPS font ingestion |
+| `templates/scan_affiliation.py` | generated-output scan for false third-party ownership claims |
 | `templates/glyphkit.py` | mark primitives, exact bbox, optical centring. Standard library only |
 | `templates/validate_glyph.py` | the measured geometry gate. No renderer, no vision |
 | `templates/mk_paths.example.py` | copy to `<kit>/build/mk_paths.py` and edit the parameters |

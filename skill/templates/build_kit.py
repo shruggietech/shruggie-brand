@@ -14,17 +14,19 @@ automated gate in this kit can pass on a document that looks wrong.
 """
 import json, os, subprocess, sys
 
+from brand_contract import affiliation
 from process_utils import hidden_process_kwargs
 
-# probe.py runs first so every later step routes off measured capability, and
-# the glyph gate runs before anything is exported so a broken mark fails in one
-# line rather than after twenty colourways. Both are cheap and both are the
-# steps that most often save a run. See references/09-portability.md.
+# Contract validation runs before any publishable output. The capability probe
+# then routes later work, and the glyph gate stops broken constructed marks
+# before export. See references/09-portability.md.
 PRE = [
+    ("validate explicit brand contract",            ["validate_brand.py", "{brand}"]),
     ("probe the toolchain",                     ["probe.py", "{kit}"]),
     ("glyph geometry gate",                     ["validate_glyph.py", "{brand}"]),
 ]
 STEPS = [
+    ("authoritative input evidence",            ["analyze_inputs.py", "{brand}", "{kit}"]),
     ("enrich brand.json with measured values", ["enrich_brand.py", "{brand}"]),
     ("outlined type specimen",                      ["build_specimen.py", "{brand}"]),
     ("vanilla tokens, styles.css, components",     ["gen_vanilla.py", "{brand}", "{kit}"]),
@@ -36,6 +38,7 @@ STEPS = [
 ]
 POST = [
     ("verify",   ["verify.py", "{kit}", "--out", "{kit}/VERIFY.md"]),
+    ("affiliation output scan", ["scan_affiliation.py", "{brand}", "{kit}"]),
     ("image QC", ["qc_images.py", "{kit}"]),
 ]
 
@@ -66,10 +69,12 @@ def manifest(kit, complete=False):
             B = json.load(source)
     else:
         B = {}
+    aff = affiliation(B) if B else {}
     with open(os.path.join(kit, "manifest.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump({"name": "%s-brand-kit" % B.get("slug", "brand"),
                    "version": B.get("version", "1.0.0"),
-                   "parent": "ShruggieTech", "canon": B.get("canon", "1.0.0"),
+                   "parent": aff.get("parent"), "affiliation": aff,
+                   "canon": B.get("canon", "1.0.0"),
                    "files": files}, f, indent=2)
         f.write("\n")
     return len(files)
@@ -91,7 +96,10 @@ def main():
         if rc:
             fail += rc
             print(out)
-            if script == "validate_glyph.py":
+            if script in {"validate_brand.py", "validate_glyph.py"}:
+                if script == "validate_brand.py":
+                    print("\nThe brand contract is invalid. Correct brand.json or its declared local inputs before generating anything.")
+                    return min(fail, 125)
                 print("\nThe mark is wrong. Fix build/mk_paths.py and regenerate "
                       "logo.paths before building anything else.")
                 return min(fail, 125)
@@ -133,9 +141,13 @@ def main():
     print("%-5s %-42s %d files" % ("ok", "final release manifest",
                                           manifest(kit, complete=True)))
     print("\n%s" % ("BUILD CLEAN" if not fail else "BUILD HAS %d PROBLEMS" % fail))
+    try:
+        display_kit = os.path.relpath(kit)
+    except ValueError:
+        display_kit = kit
     print("Not finished. Open every sheet in %s and look at it. The gates above "
           "measure correctness; none can tell you it looks right."
-          % os.path.join(os.path.relpath(kit), "qc"))
+          % os.path.join(display_kit, "qc"))
     return min(fail, 125)
 
 if __name__ == "__main__":

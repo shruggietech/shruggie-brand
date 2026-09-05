@@ -6,15 +6,23 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added fail-closed affiliation, showcase, inheritance, authoritative-input, palette-approval, and fixed-font contracts for owned and third-party brand work.
+- Added deterministic source evidence, controlled atomic font ingestion, and complete third-party ownership-safety regression coverage.
 - Added a responsive ShruggieTech brand portfolio with generated identity cards, direct asset access, and a prominent skill download path.
 - Added a searchable Fumadocs documentation experience generated from the authoritative skill references.
 - Added complete route metadata, social previews, favicons, a web manifest, robots policy, sitemap, and browser-level WCAG 2.1 AA verification.
 
 ### Changed
 
+- Migrated all five production brands to explicit house inheritance and typography while making generated wording, semantic tokens, framework bindings, guides, and site metadata contract-driven.
 - Aligned the brand site with ShruggieTech's visual system and approved public message, including the headline "We build comprehensive brands".
 - Restricted normal build and publication discovery to the five production sources under `brands/`.
 - Amended repository governance to require isolated temporary data for synthetic generator tests.
+
+### Fixed
+
+- Rebuilt the mislabeled Space Grotesk Medium and Bold WOFF2 files from their authoritative local TTF faces so internal family and weight metadata match their declarations.
+- Made generated wrappers self-contained so authoritative raster marks remain visible in PNG, favicon, social-preview, and contact-sheet exports, with empty raster output now rejected.
 
 ### Removed
 

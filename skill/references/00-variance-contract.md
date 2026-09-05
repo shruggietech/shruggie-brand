@@ -2,8 +2,7 @@
 
 **Version 1.0.0 · 2026-08-22**
 
-This document answers one question: when we spin up a new ShruggieTech
-sub-brand, what is that sub-brand actually allowed to decide?
+This document answers one question: when we build a ShruggieTech-owned or third-party brand, what may that identity decide and what may it inherit?
 
 The machine-readable form of everything here lives in `01-canon.json`, and
 `verify` reads that file to check a kit. This document explains the reasoning.
@@ -35,13 +34,17 @@ The contract is item one.
 The default answer to "can we change this?" is no. Constrained axes are
 deliberately few.
 
+## Required affiliation gate
+
+Every brand explicitly declares ownership, showcase permission, parentage, inheritance, endorsement, and service credit before creative work. These facts are independent. Third-party ownership does not imply public showcase permission, ShruggieTech parentage, house inheritance, or a service credit.
+
+`shruggietech-house` inheritance adopts the house semantic orange and the house typography option. `independent` inheritance requires brand-specific emphasis and action colors. A fixed-font requirement is selected through the separate typography contract. Missing or contradictory declarations stop generation.
+
 ## Immutable
 
 ### Typography
 
-Space Grotesk (display, 500/700), Geist (body, 400/500), Geist Mono (400).
-Never a fourth family. The full display and body scales, the tracking values,
-and the casing rules come along unchanged.
+House mode uses Space Grotesk (display, 500/700), Geist (body, 400/500), Geist Mono (400). Fixed mode uses only the explicitly approved local families, faces, weights, and styles declared in the brand contract. Both modes retain the scale, tracking, and casing rules.
 
 Geist ships 400 and 500 only. Geist Mono ships 400 only. Asking for a weight
 that does not exist makes the renderer synthesise a faux bold, which prints
@@ -82,11 +85,7 @@ nothing. Two ShruggieTech products must not read as two companies.
 
 ### The inherited orange
 
-`#FF5300` and its CTA-safe form `#C24000`, carried by every sub-brand even when
-it shares no other color with the parent. fragcap kept this exact value while
-sharing zero else, and that is a smarter lineage thread than sharing green
-would have been. Orange says ShruggieTech without the sub-brand having to look
-like ShruggieTech.
+`#FF5300` and its CTA-safe form `#C24000` are carried by brands that explicitly select `shruggietech-house` inheritance. An independently themed third-party identity declares its own emphasis and action colors and does not receive this pair.
 
 `#C24000` is fill-only. As text on the dark base it measures 4.03:1 and fails
 AA for normal text. With white text on top of it, 5.21:1.
@@ -128,9 +127,7 @@ text on a light surface, in the kit and downstream on shruggie.tech.
 
 ### The endorsement
 
-"A ShruggieTech project", set in Geist Mono, uppercase, positive tracking,
-visually subordinate, outside the product logo's clear space. Never a combined
-parent-product lockup.
+An owned child may explicitly select "A ShruggieTech project", set in its declared mono family, uppercase, positive tracking, visually subordinate, and outside the product logo's clear space. A third-party identity cannot use this ownership endorsement. It may explicitly select the fixed neutral service credit "Brand system by ShruggieTech" or no credit.
 
 ### Kit shape
 
@@ -173,7 +170,7 @@ The one real decision a sub-brand makes. Five checks, all machine-checkable:
 | Check | Rule |
 | --- | --- |
 | Hue separation | At least 30° in OKLCH from every existing sibling **identity** accent |
-| Orange distance | At least 30° from the inherited orange at 38.3° |
+| Orange distance | At least 30° from house orange at 38.3° when house inheritance is selected |
 | Dark contrast | At least 4.5:1 on the dark base |
 | Light variant | A separate accessible variant clearing 4.5:1 on the light base must exist |
 | Foreground pairing | The legal text color on the accent fill is measured and recorded |

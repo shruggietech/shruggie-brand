@@ -23,7 +23,8 @@ produce a complete document.
 import argparse, json, os, sys
 from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _guidekit import tokens, faces, asset, copy_for
+from _guidekit import tokens, faces, asset, copy_for, type_context
+from brand_contract import affiliation, affiliation_text
 
 def chips(t, keys, light=False):
     o = ""
@@ -64,16 +65,17 @@ def _sharp_edge(B):
             '<p style="margin:0" class="dim">%s</p></div>' % edge)
 
 def _semantics(B, D, A, OR, FA):
+    emphasis_name = "Orange" if affiliation(B)["inheritance"] == "shruggietech-house" else "Emphasis"
     return ('<div class="two"><div class="card"><div class="ey">Semantic use</div><table>'
             '<tr><th>Colour</th><th>Means</th></tr>'
             '<tr><td style="color:%s">Accent</td><td>Primary value, selection, links, focus</td></tr>'
-            '<tr><td style="color:%s">Orange</td><td>Needs attention, threshold exceeded</td></tr>'
+            '<tr><td style="color:%s">%s</td><td>Needs attention, threshold exceeded</td></tr>'
             '<tr><td style="color:%s">Fault</td><td>Failed or timed out. Always with text.</td></tr>'
             '</table></div><div class="card"><div class="ey">Colour vision</div>'
-            '<p class="dim" style="margin:0">The emphasis orange and the failure red sit close in hue '
-            'and are not reliably separable under deuteranopia. That is acceptable only because state '
+            '<p class="dim" style="margin:0">The emphasis and failure colors may not be reliably separable '
+            'under deuteranopia. That is acceptable only because state '
             'is never carried by colour alone: every state ships a written label.</p></div></div>'
-            % (A, OR, FA))
+            % (A, OR, emphasis_name, FA))
 
 def _scales():
     disp = [("display-xl", 72, "-0.030em"), ("display-lg", 56, "-0.025em"),
@@ -143,7 +145,7 @@ def _charttable(D, L, B):
             '<p class="m dim" style="margin:0">Series order is fixed: chart-1 is always the primary '
             'measurement. Never reorder to make a chart look better. Never introduce a sixth colour; '
             'past five series, switch to a form that does not depend on hue. A series never uses the '
-            'emphasis orange or the failure red, because those carry state.</p></div></div>' % rows)
+            'semantic emphasis or failure colors, because those carry state.</p></div></div>' % rows)
 
 
 def build(B, kit):
@@ -172,20 +174,25 @@ def build(B, kit):
     def img(b, cls="", st=""):
         return '' if not b else '<img class="%s" style="%s" src="data:image/png;base64,%s">' % (cls, st, b)
 
-    F = faces(kit)
+    type_ = type_context(B)
+    aff = affiliation(B)
+    inherits_house = aff["inheritance"] == "shruggietech-house"
+    endorsement = affiliation_text(B)
+    F = faces(kit, B)
     css = """
 %s
+:root { --font-display:'%s'; --font-body:'%s'; --font-mono:'%s'; }
 @page { size:A4; margin:0; }
 * { box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 html,body { margin:0; padding:0; background:%s; color:%s;
-  font-family:Geist,system-ui,sans-serif; font-size:9.2pt; line-height:1.62; }
-h1,h2,h3 { font-family:'Space Grotesk'; margin:0; }
-h2 { font-weight:700; font-size:16pt; letter-spacing:-.02em; line-height:1.12; margin-bottom:4mm; }
-h3 { font-weight:500; font-size:10.6pt; margin:5mm 0 2mm; }
+  font-family:var(--font-body),system-ui,sans-serif; font-size:9.2pt; line-height:1.62; }
+h1,h2,h3 { font-family:var(--font-display); margin:0; }
+h2 { font-weight:%d; font-size:16pt; letter-spacing:-.02em; line-height:1.12; margin-bottom:4mm; }
+h3 { font-weight:%d; font-size:10.6pt; margin:5mm 0 2mm; }
 p { margin:0 0 2.6mm; }
 .dim { color:%s; }
-.m { font-family:'Geist Mono'; font-size:7.2pt; letter-spacing:.02em; }
-.ey { font-family:'Geist Mono'; font-size:7pt; letter-spacing:.16em; text-transform:uppercase;
+.m { font-family:var(--font-mono); font-size:7.2pt; letter-spacing:.02em; }
+.ey { font-family:var(--font-mono); font-size:7pt; letter-spacing:.16em; text-transform:uppercase;
   color:%s; margin-bottom:2mm; }
 .pg { position:relative; width:210mm; height:297mm; background:%s;
   padding:16mm 16mm 18mm 16mm; overflow:hidden; break-after:page; }
@@ -193,18 +200,18 @@ p { margin:0 0 2.6mm; }
 .pg::after { content:""; position:absolute; left:16mm; right:16mm; bottom:11mm;
   height:.25mm; background:%s; }
 .foot { position:absolute; left:16mm; right:16mm; bottom:6mm; display:flex;
-  justify-content:space-between; font-family:'Geist Mono'; font-size:6.6pt;
+  justify-content:space-between; font-family:var(--font-mono); font-size:6.6pt;
   letter-spacing:.14em; text-transform:uppercase; color:%s; }
 .cover { padding:0; }
 .cover .inner { position:absolute; inset:0; padding:24mm 20mm 20mm 20mm; }
 .cover img.lockup { display:block; width:160mm; height:auto; margin-top:12mm; }
-.cover .sys { margin:0; font-family:'Geist Mono'; font-size:7pt;
+.cover .sys { margin:0; font-family:var(--font-mono); font-size:7pt;
   letter-spacing:.16em; text-transform:uppercase; color:%s; }
 .cover .message { margin-top:20mm; padding:1mm 0 1mm 7mm; border-left:1mm solid; }
-.cover .tag { margin:0; font-family:'Space Grotesk'; font-weight:600; font-size:23pt;
+.cover .tag { margin:0; font-family:var(--font-display); font-weight:%d; font-size:23pt;
   letter-spacing:-.025em; line-height:1.08; max-width:145mm; }
 .cover .idea { margin-top:4mm; font-size:11.5pt; color:%s; max-width:152mm; }
-.cover .base { position:absolute; left:20mm; bottom:18mm; font-family:'Geist Mono';
+.cover .base { position:absolute; left:20mm; bottom:18mm; font-family:var(--font-mono);
   font-size:6.6pt; letter-spacing:.14em; text-transform:uppercase; color:%s; }
 .two { display:grid; grid-template-columns:1fr 1fr; gap:7mm; }
 .three { display:grid; grid-template-columns:1fr 1fr 1fr; gap:5mm; }
@@ -216,25 +223,25 @@ p { margin:0 0 2.6mm; }
 .card.lite { background:#FFFFFF; border-color:#D6DAE2; color:#0A0A0A; }
 .card.lite .dim { color:#6B6B6B; }
 .rule { height:.25mm; background:%s; margin:4.5mm 0; }
-table { width:100%%; border-collapse:collapse; font-family:'Geist Mono'; font-size:7.2pt; }
+table { width:100%%; border-collapse:collapse; font-family:var(--font-mono); font-size:7.2pt; }
 th { text-align:left; font-weight:400; text-transform:uppercase; letter-spacing:.13em;
   font-size:6.6pt; color:%s; padding:1.7mm 2mm; border-bottom:.25mm solid %s; }
 td { padding:1.7mm 2mm; border-bottom:.25mm solid %s; vertical-align:top; }
 .kv { display:grid; grid-template-columns:30mm 1fr; gap:1.4mm 4mm; }
-.kv .k { font-family:'Geist Mono'; font-size:6.8pt; text-transform:uppercase;
+.kv .k { font-family:var(--font-mono); font-size:6.8pt; text-transform:uppercase;
   letter-spacing:.13em; color:%s; padding-top:.5mm; }
 .callout { border:.25mm solid %s; border-left:1mm solid %s; border-radius:1.6mm;
   padding:3.4mm 4mm; margin:4mm 0; background:#160C06; }
 .callout .ey { color:%s; }
 .callout.acc { border-color:%s; border-left-color:%s; background:#0E0C1E; }
 .callout.acc .ey { color:%s; }
-.badge { font-family:'Geist Mono'; font-size:6.5pt; letter-spacing:.1em; text-transform:uppercase;
+.badge { font-family:var(--font-mono); font-size:6.5pt; letter-spacing:.1em; text-transform:uppercase;
   border:.25mm solid currentColor; border-radius:9mm; padding:.5mm 2mm; }
 .charts { display:flex; gap:1.6mm; align-items:flex-end; height:22mm; margin:3mm 0 1mm; }
 .charts div { flex:1; border-radius:1.2mm 1.2mm 0 0; }
 ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
 .sw .m { font-size:6.6pt; }
-""" % (F, BG, TX, MU, A, BG, LINE, MU, A, MU, MU, CARD, LINE, LINE, MU, LINE, LINE, MU, OR, OR, OR, A, A, A)
+""" % (F, type_["display"], type_["body"], type_["mono"], BG, TX, type_["display_bold"], type_["display_regular"], MU, A, BG, LINE, MU, A, type_["display_regular"], MU, MU, CARD, LINE, LINE, MU, LINE, LINE, MU, OR, OR, OR, A, A, A)
 
     def foot(n):
         return '<div class="foot"><span>%s brand system</span><span>%02d</span></div>' % (slug, n)
@@ -250,11 +257,12 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
     pages.append('<div class="pg cover"><div class="inner">'
                  '<div class="sys">Brand &amp; design system</div>%s'
                  '<div class="message" style="border-color:%s"><div class="tag">%s</div><div class="idea">%s</div></div>'
-                 '<div class="base">A ShruggieTech project &nbsp;·&nbsp; Version %s &nbsp;·&nbsp; '
+                 '<div class="base">%sVersion %s &nbsp;·&nbsp; '
                  'Canon %s &nbsp;·&nbsp; %s</div></div></div>'
                  % (img(mono_logo, "lockup"), A,
                     copy_for(B, "idea", B.get("brand_idea", B["title"])),
                     copy_for(B, "descriptor", B.get("descriptor", "")),
+                    ((endorsement + " &nbsp;·&nbsp; ") if endorsement else ""),
                     B.get("version", "1.0.0"), B.get("canon", "1.0.0"),
                     B.get("homepage", "").replace("https://", "")))
 
@@ -273,20 +281,19 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         + '<div class="callout acc"><div class="ey">Written form</div>'
           '<p style="margin:0" class="dim">%s</p></div>'
           '<div class="kv" style="margin-top:5mm">%s</div>'
-          '<h3>Product principle</h3><p style="font-family:\'Space Grotesk\';font-weight:500;'
+          '<h3>Product principle</h3><p style="font-family:var(--font-display);font-weight:%d;'
           'font-size:12.5pt;color:%s">%s</p>%s' % (
             written,
             "".join('<div class="k">%s</div><div>%s</div>' % (k, v) for k, v in [
                 ("Named", (B.get("guide") or {}).get("named", "")),
-                ("Parent", "ShruggieTech, shared typography and dark-first discipline, "
-                           "independent identity"),
+                ("Parent", aff["parent"] or "None"),
                 ("Register", B.get("register", "precise-dry")),
                 ("Flourish", "Declined" if not B.get("shruggie_flourish")
                              else "Permitted, once per view"),
                 ("Casing", "The product name is lowercase in prose and technical identifiers."
                  if B.get("wordmark_text", title).islower()
                  else "Title case in prose, lowercase in identifiers"),
-            ] if v), A, B.get("brand_idea", title), _personality(B)), 2))
+            ] if v), type_["display_regular"], A, B.get("brand_idea", title), _personality(B)), 2))
 
     pages.append(pg("Logo system", "Marks and lockups",
         '<p>%s</p><div class="card" style="text-align:center;padding:9mm 4mm;margin:4mm 0">%s</div>'
@@ -305,8 +312,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         'Keep one X clear around every master and never resize the mark and wordmark independently.</p>'
         '<div class="callout"><div class="ey">Prohibited</div><p style="margin:0" class="dim">'
         'No rotation, skew, stretch, outline, bevel or glow. Never recolour individual elements. '
-        'Never set the wordmark in live text or a substitute typeface. Never combine the %s and '
-        'ShruggieTech marks into one lockup.</p></div>' % (
+        'Never set the wordmark in live text or a substitute typeface. %s</p></div>' % (
             copy_for(B, "logo", "The mark is built on a declared grid and ships as filled outlines, "
                                 "never live text."),
             img(mono_logo, "", "height:17mm"), cs, canvas_width, canvas_height, 100.0 * cs / artwork_width,
@@ -316,7 +322,10 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             float(horizontal_lockup.get("mark_height_units", 160.0)),
             float(horizontal_lockup.get("gap_units", 34.0)),
             float(stacked_lockup.get("mark_height_c", 1.8)),
-            float(stacked_lockup.get("gap_c", 0.45)), slug) + _variants(kit, slug, img), 3))
+            float(stacked_lockup.get("gap_c", 0.45)),
+            ("Never combine the %s and ShruggieTech marks into one lockup." % slug)
+            if aff["parent"] else "Never combine this mark with another organization’s mark into one lockup.")
+        + _variants(kit, slug, img), 3))
 
     pages.append(pg("Colour", "Palette",
         '<p>%s</p><h3 style="margin-top:4mm">Accents on dark surfaces</h3><div class="grid4">%s</div>'
@@ -328,8 +337,11 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         'never text there. The light token block substitutes %s at %s:1 automatically. The legal '
         'foreground on an accent fill is %s at %s:1. Every fill token in brand.json carries its '
         'measured foreground.</p></div>' % (
-            copy_for(B, "palette", "Dark and close to monochrome. The accent is the signal; the "
-                                   "inherited orange marks a state needing attention."),
+            copy_for(B, "palette", ("Dark and close to monochrome. The accent is the signal; the "
+                                    "inherited orange marks a state needing attention."
+                                    if inherits_house else
+                                    "Dark and close to monochrome. The accent is the signal; the "
+                                    "brand-specific emphasis color marks a state needing attention.")),
             chips(D, ["primary", "brand-accent-deep", "brand-emphasis", "destructive"]),
             chips(D, ["background", "card", "secondary", "border"]),
             AL, chips(L, ["primary", "background", "muted", "muted-foreground"], True),
@@ -346,7 +358,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         '<p>Chart colors serve data visualization. Brand applications use the identity accent and the neutral surfaces. Each chart color is derived from the identity accent and measured against its surface so every entry clears 4.5:1.</p>'
         '<div class="charts">%s</div><div class="grid5">%s</div>'
         '<div class="callout acc"><div class="ey">Contrast checks</div>'
-        '<p style="margin:0" class="dim">Lightness is calculated separately for dark and light surfaces. Chart hues stay at least 47 degrees from the warning orange and 67 from the failure red, and no two entries sit closer than 55 degrees.</p></div><div class="card lite"><div class="ey" style="color:%s">The same palette on '
+        '<p style="margin:0" class="dim">Lightness is calculated separately for dark and light surfaces. Chart hues preserve the measured separation from semantic emphasis and failure colors, and no two entries sit closer than the declared minimum.</p></div><div class="card lite"><div class="ey" style="color:%s">The same palette on '
         'the light reading surface</div><div class="charts">%s</div><div class="grid5" '
         'style="margin-bottom:0">%s</div></div>' % (
             dark_bars, chips(D, ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"]),
@@ -354,38 +366,38 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         + _charttable(D, L, B), 5))
 
     pages.append(pg("Typography", "Display, interface, data",
-        '<p>%s uses three type families. Space Grotesk handles display text, Geist handles '
-        'interface and reading text, and Geist Mono handles identifiers, offsets, and data.</p>'
-        '<div class="card" style="margin:4mm 0"><div style="font-family:\'Space Grotesk\';'
-        'font-weight:700;font-size:22pt;letter-spacing:-.025em;line-height:1.08">%s</div>'
+        '<p>%s uses three approved type families. %s handles display text, %s handles '
+        'interface and reading text, and %s handles identifiers, offsets, and data.</p>'
+        '<div class="card" style="margin:4mm 0"><div style="font-family:var(--font-display);'
+        'font-weight:%d;font-size:22pt;letter-spacing:-.025em;line-height:1.08">%s</div>'
         '<div class="dim" style="margin-top:2mm">%s</div><div class="ey" style="margin-top:5mm">'
         'Key readability test</div><div class="m" style="font-size:8pt;line-height:1.8">'
         '0O 1lI 8B 5S 2Z &nbsp; {{ }} [ ] ( )</div></div>'
         '<div class="two"><div class="card"><div class="ey">Roles</div><table>'
         '<tr><th>Function</th><th>Typeface</th><th>Weights</th></tr>'
-        '<tr><td>Display, headings</td><td>Space Grotesk</td><td>500, 700</td></tr>'
-        '<tr><td>Body, interface</td><td>Geist</td><td>400, 500</td></tr>'
-        '<tr><td>Telemetry, code</td><td>Geist Mono</td><td>400</td></tr></table></div>'
+        '<tr><td>Display, headings</td><td>%s</td><td>%s</td></tr>'
+        '<tr><td>Body, interface</td><td>%s</td><td>%s</td></tr>'
+        '<tr><td>Telemetry, code</td><td>%s</td><td>%s</td></tr></table></div>'
         '<div class="card"><div class="ey">Geometry</div><table>'
         '<tr><th>Axis</th><th>Value</th></tr>'
         '<tr><td>Radii</td><td>6 / 8 / 12 / 16 / pill</td></tr>'
         '<tr><td>Spacing</td><td>4 8 12 16 24 32 48 64 96 120</td></tr>'
         '<tr><td>Focus</td><td>2px ring at 2px offset</td></tr></table></div></div>'
         '<div class="callout"><div class="ey">Available weights</div><p style="margin:0" class="dim">'
-        'Geist ships 400 and 500. Geist Mono ships 400 only. Space Grotesk ships 500 and 700. Any other '
-        'weight makes the renderer synthesise a faux bold, which prints badly and forces outlined glyphs '
-        'into exported PDFs. In mono, carry emphasis with colour.</p></div>' % (
-            title,
+        'Only the listed local faces are approved. Any other weight makes the renderer synthesise a faux bold, which prints badly and forces outlined glyphs into exported PDFs. In mono, carry emphasis with colour.</p></div>' % (
+            title, type_["display"], type_["body"], type_["mono"], type_["display_bold"],
             copy_for(B, "idea", B.get("brand_idea", title)),
-            copy_for(B, "descriptor", B.get("descriptor", ""))) + _scales(), 6))
+            copy_for(B, "descriptor", B.get("descriptor", "")),
+            type_["display"], type_["display_weights"], type_["body"], type_["body_weights"], type_["mono"], type_["mono_weights"]) + _scales(), 6))
 
-    pages.append(pg("Parent", "A ShruggieTech project",
+    if aff["parent"]:
+        pages.append(pg("Parent", endorsement,
         '<p>%s uses the ShruggieTech type families, dark product surfaces, and the inherited orange '
         'warning color <span class="m" style="color:%s">%s</span>. The mark geometry and the identity '
         'accent are this sub-brand\'s own and are never borrowed by a sibling.%s</p>'
         '<div class="card" style="text-align:center;padding:7mm;margin:4mm 0"><div class="m" '
-        'style="letter-spacing:.2em;text-transform:uppercase;color:%s">A ShruggieTech project</div></div>'
-        '<p class="dim">Geist Mono, uppercase, positive tracking. Visually subordinate and outside the '
+        'style="letter-spacing:.2em;text-transform:uppercase;color:%s">%s</div></div>'
+        '<p class="dim">The approved mono family, uppercase, positive tracking. Visually subordinate and outside the '
         'logo clear space. Never a combined parent-product lockup.</p><div class="rule"></div>'
         '<h3>Load the system</h3><div class="card"><div class="m" style="line-height:2">'
         'npx shadcn@latest registry add @%s=%s/r/{name}.json<br>'
@@ -394,9 +406,19 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             title, OR, OR,
             ("" if near is None else
              " The identity accent sits %.1f degrees from its nearest sibling." % near),
-            MU, slug, B.get("registry_base", B.get("homepage", "https://shruggie.tech").rstrip("/") + "/brand"), slug, slug,
+            MU, endorsement, slug, B.get("registry_base", B.get("homepage", "https://shruggie.tech").rstrip("/") + "/brand"), slug, slug,
             _ships(kit) + '<div style="position:absolute;left:16mm;bottom:20mm">%s</div>'
             % img(mono_logo, "", "height:8mm")), 7))
+    else:
+        pages.append(pg("Affiliation", "Independent identity",
+            '<p>This brand has no ShruggieTech parent or ownership endorsement.</p>%s'
+            '<div class="rule"></div><h3>Load the system</h3><div class="card"><div class="m" style="line-height:2">'
+            'npx shadcn@latest registry add @%s=%s/r/{name}.json<br>'
+            'npx shadcn@latest add @%s/theme @%s/fonts<br>npm i next-themes</div></div>%s' % (
+                (('<div class="card" style="text-align:center;padding:7mm;margin:4mm 0"><div class="m" '
+                  'style="letter-spacing:.2em;text-transform:uppercase;color:%s">%s</div></div>' % (MU, endorsement)) if endorsement else ""),
+                slug, B.get("registry_base", B.get("homepage", "").rstrip("/") + "/brand"), slug, slug,
+                _ships(kit)), 7))
 
     html = ("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>%s brand guide"
             "</title><style>%s</style></head><body>%s</body></html>"

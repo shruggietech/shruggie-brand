@@ -5,7 +5,14 @@
   "title": "ShruggieTech",
   "slug": "shruggietech",
   "version": "1.0.0",
-  "parent": "ShruggieTech",
+  "affiliation": {
+    "ownership": "shruggietech-owned",
+    "showcase": "public",
+    "parent": null,
+    "inheritance": "shruggietech-house",
+    "endorsement": "none",
+    "service_credit": "none"
+  },
   "homepage": "https://shruggie.tech",
   "registry_base": "https://brand.shruggie.tech/shruggietech/brand",
   "descriptor": "A modern technical studio building digital systems, software, and AI-driven experiences.",
@@ -28,6 +35,70 @@
     "Bright green remains the signature identity color on dark surfaces. Accessible green replaces it for text and links on light surfaces.",
     "The textual shruggie flourish is accepted for one restrained moment per view."
   ],
+  "authoritative_inputs": [
+    {
+      "id": "full-mark-master",
+      "role": "mark",
+      "path": "assets/logo-icon-only-green.png",
+      "format": "png",
+      "sha256": "d500c3eadf049d36ce094bf7e35e37902a4ab49a66bcd6a9b40696961208a5c8",
+      "color_profile": "srgb",
+      "usage_status": "approved",
+      "license": "ShruggieTech-owned paid artwork",
+      "approved_transformations": ["embed-unchanged", "recolor-mask", "palette-analysis"]
+    },
+    {
+      "id": "reduced-mark-master",
+      "role": "reduced-mark",
+      "path": "assets/socialmedia_logo.png",
+      "format": "png",
+      "sha256": "dc84170f164277ee4289240405aec1b35170937da0d4afe8f096ecd6d893c324",
+      "color_profile": "unknown",
+      "usage_status": "approved",
+      "license": "ShruggieTech-owned paid artwork",
+      "approved_transformations": ["embed-unchanged", "recolor-mask", "palette-analysis"]
+    },
+    {
+      "id": "horizontal-dark-master",
+      "role": "reference-art",
+      "path": "assets/logo-darkbg.png",
+      "format": "png",
+      "sha256": "969687b1ceafcb0cef296d1f68bc8767748752c21ab4394bcee6a541f529a18a",
+      "color_profile": "unknown",
+      "usage_status": "reference-only",
+      "license": "ShruggieTech-owned paid artwork",
+      "approved_transformations": ["palette-analysis"]
+    },
+    {
+      "id": "horizontal-light-master",
+      "role": "reference-art",
+      "path": "assets/logo-lightbg.png",
+      "format": "png",
+      "sha256": "514b911167c364fe40535f6cae8866e60c793bee3af46447787e5f273a3f6973",
+      "color_profile": "unknown",
+      "usage_status": "reference-only",
+      "license": "ShruggieTech-owned paid artwork",
+      "approved_transformations": ["palette-analysis"]
+    }
+  ],
+  "palette_approvals": [
+    {
+      "input_id": "horizontal-dark-master",
+      "source_sha256": "969687b1ceafcb0cef296d1f68bc8767748752c21ab4394bcee6a541f529a18a",
+      "selected_candidate": "#2BCC73",
+      "canonical_tokens": ["accent.bright"],
+      "approved_by": "Repository owner via finalized brand definition",
+      "approved_on": "2026-09-03"
+    },
+    {
+      "input_id": "full-mark-master",
+      "source_sha256": "d500c3eadf049d36ce094bf7e35e37902a4ab49a66bcd6a9b40696961208a5c8",
+      "selected_candidate": "#00AB21",
+      "canonical_tokens": ["accent.deep"],
+      "approved_by": "Repository owner via finalized brand definition",
+      "approved_on": "2026-09-03"
+    }
+  ],
   "accent": {
     "bright": "#2BCC73",
     "deep": "#00AB21",
@@ -47,6 +118,7 @@
     "hover": "#1A1A1A"
   },
   "typography": {
+    "mode": "house",
     "families": {
       "display": {"name": "Space Grotesk", "weights": [500, 700]},
       "body": {"name": "Geist", "weights": [400, 500]},

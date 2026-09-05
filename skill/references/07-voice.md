@@ -110,9 +110,7 @@ A brand guide that opens with a product summary, an in-scope list and a roadmap
 is a specification with the wrong cover on it. It goes stale the first time the
 spec moves, and it answers a question nobody opened a brand book to ask.
 
-What belongs: the name and where it came from, how to write it, the register,
-the personality and the promises, the mark, the palette, the type, the parent
-endorsement, and the one place the brand could mislead somebody.
+What belongs: the name and where it came from, how to write it, the register, the personality and the promises, the mark, the palette, the type, the declared affiliation line when one exists, and the one place the brand could mislead somebody.
 
 What does not: what the product does today, what is in scope this quarter, the
 architecture, and anything with a version number attached to it.
@@ -128,9 +126,7 @@ network traffic should not wink at you.
 
 ## The endorsement
 
-"A ShruggieTech project", Geist Mono, uppercase, positive tracking, visually
-subordinate, outside the product logo's clear space. Footer, About, repository
-metadata, title-page colophon, social preview.
+An owned child may explicitly select "A ShruggieTech project", set in its declared mono family, uppercase, positive tracking, visually subordinate, and outside the product logo's clear space. A third-party identity cannot use that phrase. It may explicitly select "Brand system by ShruggieTech" as a neutral service credit or select no credit. Generated copy must never invent an affiliation line.
 
 ## Landing-page register
 

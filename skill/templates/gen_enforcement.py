@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-gen_enforcement.py: emit the teeth for a ShruggieTech sub-brand kit.
+gen_enforcement.py: emit the enforcement layer for a contracted brand kit.
 
 Writes:
     enforcement/AGENTS.md              the agent contract, read before any UI work
@@ -17,6 +17,7 @@ Usage:  python3 gen_enforcement.py <brand-spec.json> <output-dir>
 """
 import json, os, sys
 from coloraide import Color
+from brand_contract import affiliation, affiliation_text, semantic_colors, typography_families
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -51,8 +52,11 @@ def legal_fg(f):
     return "#000000" if b >= w else "#FFFFFF"
 
 def eslint_rules(canon, brand, components):
-    fams = canon["typography"]["families"]
+    fams = typography_families(brand)
     allowed = "|".join(f["name"] for f in fams.values())
+    allowed_weights = sorted({weight for family in fams.values() for weight in family["weights"]})
+    forbidden_weights = [weight for weight in range(100, 1000, 100) if weight not in allowed_weights]
+    weight_message = "Weight not shipped. Approved weights are %s. Anything else synthesises or substitutes a face." % ", ".join(str(weight) for weight in allowed_weights)
     syn = [
         {"selector": r"Literal[value=/#[0-9a-fA-F]{3,8}\b/]",
          "message": "Raw hex colour. Use a design-system token: var(--primary), "
@@ -66,9 +70,8 @@ def eslint_rules(canon, brand, components):
         {"selector": r"Literal[value=/font-family\s*:\s*(?!['\"]?(?:%s))/i]" % allowed,
          "message": "Font outside the system. Available: %s. Never a fourth family."
                     % ", ".join(f["name"] for f in fams.values())},
-        {"selector": r"Literal[value=/font-weight\s*:\s*(?:100|200|300|600|800|900)/]",
-         "message": "Weight not shipped. Geist has 400/500, Geist Mono has 400, "
-                    "Space Grotesk has 500/700. Anything else synthesises a faux bold."},
+        {"selector": r"Literal[value=/font-weight\s*:\s*(?:%s)\b/]" % ("|".join(str(weight) for weight in forbidden_weights) or "(?!)"),
+         "message": weight_message},
         # JSX / JS style-object form: { fontFamily: "...", fontWeight: 800 }
         {"selector": r"Property[key.name='fontFamily'] > Literal[value=/^(?!['\"]?(?:%s))/i]" % allowed,
          "message": "Font outside the system. Available: %s. Never a fourth family."
@@ -76,10 +79,9 @@ def eslint_rules(canon, brand, components):
         # numeric literals need exact matches: esquery does not regex-match numbers
         {"selector": ", ".join(
             "Property[key.name='fontWeight'] > Literal[value=%s]" % w
-            for w in (100, 200, 300, 600, 800, 900)) +
-            ", Property[key.name='fontWeight'] > Literal[value=/^(100|200|300|600|800|900)$/]",
-         "message": "Weight not shipped. Geist has 400/500, Geist Mono has 400, "
-                    "Space Grotesk has 500/700. Anything else synthesises a faux bold."},
+            for w in forbidden_weights) +
+            (", Property[key.name='fontWeight'] > Literal[value=/^(%s)$/]" % "|".join(str(weight) for weight in forbidden_weights) if forbidden_weights else ""),
+         "message": weight_message},
         {"selector": r"JSXAttribute[name.name='className'] Literal[value=/\b(?:bg|text|border)-(?:slate|gray|zinc|neutral|stone|red|green|blue|emerald|cyan|violet)-\d{2,3}\b/]",
          "message": "Stock Tailwind palette class. Use the semantic slots: "
                     "bg-background, bg-card, text-foreground, text-muted-foreground, "
@@ -176,7 +178,14 @@ def copy_block(brand):
 def agents_md(canon, brand):
     a = brand["accent"]["bright"]; al = brand["accent"]["accessible"]
     imm = canon["color"]["immutable"]
-    g = canon["geometry"]; fams = canon["typography"]["families"]
+    g = canon["geometry"]; fams = typography_families(brand)
+    aff = affiliation(brand)
+    semantic = semantic_colors(brand, canon)
+    claim = affiliation_text(brand)
+    affiliation_rule = ("This is a ShruggieTech-owned child brand. The only approved ownership endorsement is `%s`. Keep it outside the logo clear space." % claim
+                        if aff["parent"] else
+                        (("This is a third-party identity. It has no ShruggieTech parent or ownership endorsement. The only approved service credit is `%s`." % claim)
+                         if claim else "This identity has no ShruggieTech parent, ownership endorsement, or service credit. Do not add one."))
     return """# Agent Contract: {title}
 
 **Read this before writing any UI. It takes a minute and it is binding.**
@@ -214,7 +223,7 @@ hex, an `rgb()`, or `bg-slate-900`.
 2. **The bright accent as text on a light surface.** `{acc}` measures {lr}:1
    on `#F8F8F6`. The light block already substitutes `{accl}`. Never override it.
 3. **`{cta}` as text.** It measures {ctar}:1 on the dark base. It is a fill.
-   White on it measures {ctaw}:1.
+   Its legal foreground is `{ctafg}` at {ctafgr}:1.
 
 ## Spacing and radius
 
@@ -228,12 +237,14 @@ Layout: content {cw}, narrow {nw}. Gutters {gut}. Section rhythm {sec}.
 
 ## Type
 
-{disp} for display at 500/700. {body} for body at 400/500. {mono} for labels,
-code, and metadata.
+{disp} for display at {disp_weights}. {body} for body at {body_weights}. {mono} for labels,
+code, and metadata at {mono_weights}.
 
-**Geist has no 700 and Geist Mono has no bold.** Asking for a weight that does
-not exist makes the renderer synthesise a faux bold, which prints badly and
-forces outlined glyphs into PDFs. In mono, carry emphasis with colour.
+Asking for an undeclared weight makes the renderer synthesise or substitute a face, which prints badly and forces outlined glyphs into PDFs. In mono, carry emphasis with colour.
+
+## Affiliation
+
+{affiliation_rule}
 
 ## Density
 
@@ -277,14 +288,19 @@ A build that fails any of these is not finished, whatever it looks like.
         card=brand.get("surfaces", {}).get("card", "#0D0F12"),
         acc=a, accl=al, fault=imm["fault"]["hex"], faultd=imm["fault-deep"]["hex"],
         wr=ratio("#FFFFFF", a), fg=legal_fg(a), fgr=ratio(legal_fg(a), a),
-        lr=ratio(a, "#F8F8F6"), cta=imm["orange-cta"]["hex"],
-        ctar=ratio(imm["orange-cta"]["hex"], "#000000"),
-        ctaw=ratio("#FFFFFF", imm["orange-cta"]["hex"]),
+        lr=ratio(a, "#F8F8F6"), cta=semantic["action"],
+        ctar=ratio(semantic["action"], "#000000"),
+        ctafg=legal_fg(semantic["action"]),
+        ctafgr=ratio(legal_fg(semantic["action"]), semantic["action"]),
         scale="/".join(str(x) for x in g["spacing"]["scale_px"]),
         cw=g["layout"]["content_max"], nw=g["layout"]["narrow_max"],
         gut=" then ".join(g["layout"]["gutter"].values()),
         sec=" then ".join(g["layout"]["section_gap"].values()),
         disp=fams["display"]["name"], body=fams["body"]["name"], mono=fams["mono"]["name"],
+        disp_weights="/".join(str(weight) for weight in fams["display"]["weights"]),
+        body_weights="/".join(str(weight) for weight in fams["body"]["weights"]),
+        mono_weights="/".join(str(weight) for weight in fams["mono"]["weights"]),
+        affiliation_rule=affiliation_rule,
         copy=copy_block(brand))
 
 def main():

@@ -22,7 +22,6 @@ def main():
     ap.add_argument("html"); ap.add_argument("--page-height-mm", type=float, default=297.0)
     ap.add_argument("--selector", default=DEFAULT_SEL)
     a = ap.parse_args()
-    from playwright.sync_api import sync_playwright
     u = "file://" + str(pathlib.Path(a.html).resolve())
     js = """(sel) => {
       const MM = 96/25.4, PH = %f * MM;
@@ -43,6 +42,7 @@ def main():
       return out;
     }""" % a.page_height_mm
     try:
+        from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
             b = p.chromium.launch(); pg = b.new_page(viewport={"width": 794, "height": 1123})
             pg.goto(u); pg.wait_for_timeout(1400)

@@ -50,12 +50,14 @@ Asset on the left, first choice first. Later entries are the fallback chain.
 | Multi-resolution `.ico` | `magick` | `convert`, then Pillow from the per-size PNGs | **Probe for BOTH `magick` and `convert`.** ImageMagick 6 ships only `convert`, and a probe that tests only for `magick` reports the ICO as a skip on every ImageMagick 6 host, which reads as "not applicable" rather than "your favicon is broken". Assert the entry count afterwards. Never hand Pillow one large PNG and a sizes list: it would resample the full mark down and defeat the reduced master. |
 | Raster compositing, social previews | ImageMagick | Pillow | |
 | Palette extraction from a supplied logo | `magick in.png -colors 8 -format %c histogram:info:` | Pillow + k-means | Reference only. The accent still has to pass every canon check. |
+| Deterministic authoritative-input evidence | `templates/analyze_inputs.py` | none | Reads validated local inputs, ignores fully transparent pixels, and writes hash-linked candidates under `qc/`. |
 | Raster concept to vector | `potrace` | `autotrace`, Inkscape trace | **Ideation input only.** Output is never shipped. |
 | PNG optimisation | `oxipng -o4 --strip safe` | `zopflipng`, `pngquant` | pngquant is lossy. Use it only for previews. |
 | WebP / AVIF | `cwebp` / `avifenc` | Pillow | |
 | SVG cleanup | `svgo` | manual | Never let it collapse a viewBox or drop `currentColor`. |
 | Font subsetting, ttf to woff2 | `pyftsubset` (fonttools) | `woff2_compress` | |
 | Font QA | `fontbakery`, `ttx` | fonttools inspection | Confirms the weights a face actually contains before a stylesheet asks for one. |
+| Controlled font ingestion | `templates/ingest_font.py` | none | Explicit operator action only. Requires an authoritative HTTPS or controlled local source, expected hash, license evidence, contained destination, measured metadata, and atomic placement. |
 | Colour math, OKLCH, contrast | `coloraide` (Python) | none | Never hand-roll a contrast ratio. Canon's numbers came from here. This is the only hard dependency beyond the standard library, and without it no colour work can proceed. |
 | Mark geometry and its gate | `templates/glyphkit.py` and `templates/validate_glyph.py` | none needed | Standard library only, by design. No renderer, no Pillow, no browser, no vision. See `08-glyph-construction.md`. |
 | Brand guide PDF | headless Chromium via Playwright, print-to-PDF | Typst, then Pandoc plus LaTeX | The HTML-to-PDF route keeps the guide rendered from the live system. |
@@ -83,6 +85,10 @@ and loses fidelity on the way. Call librsvg directly.
 `fonts.gstatic.com` is blocked by the egress proxy in the Claude sandbox while
 `fonts.googleapis.com` resolves, so the fetch appears to work and then dies at
 the binary step. Fonts are bundled. See `01-canon.json` typography.sourcing.
+
+## S007 contract commands
+
+Run `templates/validate_brand.py` before any renderer. It rejects incomplete affiliation, inheritance, typography, supplied-input, palette-approval, path, hash, SVG-safety, license, and font metadata. Run `templates/analyze_inputs.py` only after validation, and run `templates/scan_affiliation.py` after generation to reject false ownership claims. `templates/ingest_font.py` is the only network-capable font path and is never called by an ordinary build.
 
 ## Image generation
 

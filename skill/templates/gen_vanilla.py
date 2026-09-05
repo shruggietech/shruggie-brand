@@ -13,6 +13,7 @@ uses.
 """
 import json, os, sys
 from coloraide import Color
+from brand_contract import affiliation, semantic_colors, typography_families
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -63,7 +64,7 @@ def emit_components(kit, P, brand, w):
         ".{p}-badge {{ align-items: center; border: var(--{p}-stroke-hairline) solid var(--{p}-border); border-radius: var(--{p}-radius-pill); display: inline-flex; font-family: var(--{p}-font-mono); font-size: var(--{p}-body-xs); gap: var(--{p}-space-1); line-height: 1; padding: var(--{p}-space-1) var(--{p}-space-2); }}",
         '.{p}-badge::before {{ background: currentColor; border-radius: 50%; content: ""; height: .375rem; width: .375rem; }}',
         ".{p}-badge--accent {{ background: var(--{p}-accent-10); border-color: var(--{p}-accent-20); color: var(--{p}-accent); }}",
-        ".{p}-badge--emphasis {{ background: var(--{p}-orange-12); color: var(--{p}-warning); }}",
+        ".{p}-badge--emphasis {{ background: var(--{p}-emphasis-12); color: var(--{p}-warning); }}",
         ".{p}-badge--neutral {{ color: var(--{p}-fg-muted); }}",
         ".{p}-badge--danger {{ background: var(--{p}-fault-12); color: var(--{p}-danger); }}",
         ".{p}-card {{ background: var(--{p}-panel); border: var(--{p}-stroke-hairline) solid var(--{p}-border); border-radius: var(--{p}-radius-xl); padding: var(--{p}-space-5); }}",
@@ -139,7 +140,9 @@ def main():
     imm = canon["color"]["immutable"]
     ramp = canon["color"]["neutral_ramp"]
     g = canon["geometry"]
-    fams = canon["typography"]["families"]
+    fams = typography_families(B)
+    aff = affiliation(B)
+    semantic = semantic_colors(B, canon)
 
     P = B["slug"][:2].lower()
     A = B["accent"]
@@ -162,8 +165,8 @@ def main():
   --{p}-accent-deep: {deep};
   --{p}-accent-accessible: {accessible};
   --{p}-dim: {dim};
-  --{p}-orange: {orange};
-  --{p}-orange-cta: {orange_cta};
+  --{p}-emphasis: {emphasis};
+  --{p}-action: {action};
   --{p}-fault: {fault};
   --{p}-fault-deep: {faultd};
   --{p}-void: {base};
@@ -181,7 +184,7 @@ def main():
   --{p}-light-line: {gray200};
   --{p}-accent-10: rgb({acc_rgb} / 10%);
   --{p}-accent-20: rgb({acc_rgb} / 20%);
-  --{p}-orange-12: rgb({or_rgb} / 12%);
+  --{p}-emphasis-12: rgb({emphasis_rgb} / 12%);
   --{p}-fault-12: rgb({fa_rgb} / 12%);
   --{p}-bg: var(--{p}-void);
   --{p}-panel: var(--{p}-surface);
@@ -192,7 +195,7 @@ def main():
   --{p}-fg-muted: var(--{p}-text-muted);
   --{p}-link: var(--{p}-accent);
   --{p}-focus: var(--{p}-accent);
-  --{p}-warning: var(--{p}-orange);
+  --{p}-warning: var(--{p}-emphasis);
   --{p}-danger: var(--{p}-fault);
   --{p}-primary-foreground: {fgacc};
 }}
@@ -209,31 +212,34 @@ def main():
   --{p}-accent-deep: var(--{p}-accent-accessible);
   --{p}-link: var(--{p}-accent-accessible);
   --{p}-focus: var(--{p}-accent-accessible);
-  --{p}-warning: var(--{p}-orange-cta);
+  --{p}-warning: var(--{p}-action);
   --{p}-danger: var(--{p}-fault-deep);
   --{p}-primary-foreground: #FFFFFF;
 }}
 """.format(title=title, p=P, acc=A["bright"], deep=A["deep"], accessible=A["accessible"],
-           dim=A.get("dim", ramp["gray-400"]["hex"]), orange=imm["orange"]["hex"],
-           orange_cta=imm["orange-cta"]["hex"], fault=imm["fault"]["hex"],
+           dim=A.get("dim", ramp["gray-400"]["hex"]), emphasis=semantic["emphasis"],
+           action=semantic["action"], fault=imm["fault"]["hex"],
            faultd=imm["fault-deep"]["hex"], base=S.get("base", "#000000"),
            card=S.get("card", ramp["gray-950"]["hex"]), popover=S.get("popover", ramp["gray-950"]["hex"]),
            secondary=S.get("secondary", ramp["gray-900"]["hex"]), hover=S.get("hover", ramp["gray-800"]["hex"]),
            border=ramp["border-dark"]["hex"], muted_dark=ramp["gray-400"]["hex"],
            light=ramp["light-base"]["hex"], gray950=ramp["gray-950"]["hex"],
            muted_light=ramp["gray-600"]["hex"], gray200=ramp["gray-200"]["hex"],
-           acc_rgb=rgb_parts(A["bright"]), or_rgb=rgb_parts(imm["orange"]["hex"]),
+           acc_rgb=rgb_parts(A["bright"]), emphasis_rgb=rgb_parts(semantic["emphasis"]),
            fa_rgb=rgb_parts(imm["fault"]["hex"]), fgacc=fg_on_accent)
     w("tokens/colors.css", colors)
 
     # ---- tokens/typography.css
     ts = canon["typography"]["scale"]
     lines = [":root {"]
-    for role, key in (("display", "display"), ("body", "body"), ("mono", "mono")):
-        lines.append("  --%s-font-%s: %s;" % (P, role, fams[key]["stack"]))
-    lines += ["  --%s-weight-regular: 400;" % P,
-              "  --%s-weight-medium: 500;" % P,
-              "  --%s-weight-bold: 700;" % P]
+    for role in ("display", "body", "mono"):
+        generic = "ui-monospace, monospace" if role == "mono" else "system-ui, sans-serif"
+        lines.append("  --%s-font-%s: \"%s\", %s;" % (P, role, fams[role]["name"], generic))
+    body_weights = fams["body"]["weights"]
+    display_weights = fams["display"]["weights"]
+    lines += ["  --%s-weight-regular: %d;" % (P, min(body_weights)),
+              "  --%s-weight-medium: %d;" % (P, max(body_weights)),
+              "  --%s-weight-bold: %d;" % (P, max(display_weights))]
     for step, val in ts.get("display", {}).items():
         lines.append("  --%s-display-%s: %s;" % (P, step, val["size"]))
     for step, val in ts.get("body", {}).items():
@@ -300,7 +306,7 @@ a:hover {{ text-decoration: underline; }}
     dtcg = {
         "$schema": "https://design-tokens.github.io/community-group/format/",
         "meta": {"name": title, "version": B.get("version", "1.0.0"),
-                 "parent": "ShruggieTech", "mode": "dark-first"},
+                 "parent": aff["parent"], "affiliation": aff, "mode": "dark-first"},
         "color": {"$type": "color",
                   "identity": {"$value": A["bright"]},
                   "identityDeep": {"$value": A["deep"]},
@@ -312,7 +318,8 @@ a:hover {{ text-decoration: underline; }}
                   "border": {"$value": ramp["border-dark"]["hex"]},
                   "text": {"$value": "#FFFFFF"},
                   "textMuted": {"$value": ramp["gray-400"]["hex"]},
-                  "emphasis": {"$value": imm["orange"]["hex"]},
+                  "emphasis": {"$value": semantic["emphasis"]},
+                  "action": {"$value": semantic["action"]},
                   "fault": {"$value": imm["fault"]["hex"]}},
         "fontFamily": {"$type": "fontFamily",
                        "display": {"$value": fams["display"]["name"]},

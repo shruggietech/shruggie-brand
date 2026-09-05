@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added explicit ownership, showcase, parentage, inheritance, endorsement, and service-credit validation with ownership-safe generated output.
+- Added authoritative supplied-mark preservation, deterministic palette evidence with human approval linkage, and controlled atomic fixed-font ingestion.
+- Added dynamic house or fixed typography across tokens, Next.js bindings, logos, specimens, guides, and enforcement rules.
+- Added independent semantic-color inheritance so third-party work can exclude ShruggieTech house orange.
+- Rebuilt the mislabeled Space Grotesk WOFF2 faces from the authoritative local TTF files and added measured WOFF2 ingestion coverage.
+- Embedded approved supplied raster and SVG masters into generated wrappers without rewriting their source bytes, added supplied-wordmark lockup support, and reject invisible raster exports.
 - Replaced committed synthetic-fixture dependencies with isolated temporary test inputs derived from a production source.
 - Published the skill references through generated Fumadocs pages while preserving authoritative source files.
 

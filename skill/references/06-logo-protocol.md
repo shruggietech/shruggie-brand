@@ -134,6 +134,12 @@ When the operator brings a logo idea:
 4. Show the rebuild next to the original at three sizes and ask whether the
    character survived.
 
+## Handling an authoritative supplied master
+
+An approved master is not a concept. Declare its identity role, contained source path, media format, SHA-256, color-profile status, license or usage status, and approved transformations before generation. Preserve the original bytes and SVG path data exactly. Do not trace, normalize, reconstruct, or silently replace it. A supplied mark and supplied wordmark are separate roles, so either may remain authoritative while the missing component follows the construction workflow.
+
+Palette analysis of an authoritative master produces review evidence only. A color becomes canonical only after a human approval record binds the exact source hash and selected candidate, followed by the ordinary accessibility gates. Any hash drift makes the approval stale.
+
 ## What verify asserts
 
 | Check | Fails when |

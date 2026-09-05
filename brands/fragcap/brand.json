@@ -5,7 +5,14 @@
   "title": "fragcap",
   "slug": "fragcap",
   "version": "1.1.0",
-  "parent": "ShruggieTech",
+  "affiliation": {
+    "ownership": "shruggietech-owned",
+    "showcase": "public",
+    "parent": "ShruggieTech",
+    "inheritance": "shruggietech-house",
+    "endorsement": "shruggietech-project",
+    "service_credit": "none"
+  },
   "homepage": "https://fragcap.com",
   "registry_base": "https://brand.shruggie.tech/fragcap/brand",
   "descriptor": "Passive process-attributed network capture for games.",
@@ -47,6 +54,7 @@
     "hover": "#16242C"
   },
   "typography": {
+    "mode": "house",
     "families": {
       "display": {"name": "Space Grotesk", "weights": [500, 700]},
       "body": {"name": "Geist", "weights": [400, 500]},

@@ -2,6 +2,7 @@
 """Shared helpers for the two document generators. Both read the SAME tokens the
 product ships, so a kit's documents and its interface cannot drift apart."""
 import base64, json, os, re
+from brand_contract import affiliation_text, font_faces, typography_families
 
 def tokens(kit):
     css = open(os.path.join(kit, "nextjs", "globals.css"), encoding="utf-8").read()
@@ -15,18 +16,38 @@ def tokens(kit):
 def b64(p):
     return base64.b64encode(open(p, "rb").read()).decode()
 
-def faces(kit):
-    out, d = "", os.path.join(kit, "fonts", "woff2")
-    for fam, fn, w in [("Space Grotesk", "SpaceGrotesk-Medium.woff2", 500),
-                       ("Space Grotesk", "SpaceGrotesk-Bold.woff2", 700),
-                       ("Geist", "Geist-Regular.woff2", 400),
-                       ("Geist", "Geist-Medium.woff2", 500),
-                       ("Geist Mono", "GeistMono-Regular.woff2", 400)]:
-        p = os.path.join(d, fn)
+def faces(kit, brand):
+    out, families, selected = "", typography_families(brand), {}
+    for face in font_faces(brand):
+        key = (face["role"], face["weight"], face["style"])
+        if key not in selected or face["format"] == "woff2":
+            selected[key] = face
+    for key in sorted(selected):
+        face = selected[key]
+        p = os.path.join(kit, face["path"].replace("/", os.sep))
         if os.path.exists(p):
-            out += ("@font-face{font-family:'%s';font-weight:%d;font-display:block;"
-                    "src:url(data:font/woff2;base64,%s) format('woff2')}\n" % (fam, w, b64(p)))
+            mime = "font/woff2" if face["format"] == "woff2" else "font/%s" % face["format"]
+            fmt = {"woff2": "woff2", "ttf": "truetype", "otf": "opentype"}[face["format"]]
+            out += ("@font-face{font-family:'%s';font-weight:%d;font-style:%s;font-display:block;"
+                    "src:url(data:%s;base64,%s) format('%s')}\n" % (
+                        families[face["role"]]["name"], face["weight"], face["style"], mime, b64(p), fmt))
     return out
+
+
+def type_context(brand):
+    families = typography_families(brand)
+    return {
+        "display": families["display"]["name"],
+        "body": families["body"]["name"],
+        "mono": families["mono"]["name"],
+        "display_weights": ", ".join(str(value) for value in families["display"]["weights"]),
+        "body_weights": ", ".join(str(value) for value in families["body"]["weights"]),
+        "mono_weights": ", ".join(str(value) for value in families["mono"]["weights"]),
+        "display_bold": max(families["display"]["weights"]),
+        "display_regular": min(families["display"]["weights"]),
+        "body_regular": min(families["body"]["weights"]),
+        "body_medium": max(families["body"]["weights"]),
+    }
 
 def asset(kit, *cands):
     for c in cands:
