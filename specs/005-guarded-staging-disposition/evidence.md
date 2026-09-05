@@ -80,7 +80,7 @@ The first detached-checkout test invocation used plain system Python and stopped
 
 | Round | Trigger | Signal | Actionable comments | Finding issues | State |
 | --- | --- | --- | ---: | --- | --- |
-| 1 | Automatic on PR publication | Pending | Pending | Pending | Pending |
+| 1 | Automatic on PR publication | [Environment unavailable](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548644645) | 0 | None | Complete; [disposition](https://github.com/shruggietech/shruggie-brand/pull/96#issuecomment-5548648601) posted |
 | 2 | One explicit request after round 1 | Not requested | Pending | Pending | Pending |
 
 Review request ceiling: 2 rounds. No third request is authorized.
