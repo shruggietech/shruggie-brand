@@ -109,10 +109,10 @@
 
 ## Phase 6: Pull Request and Bounded Review Ritual
 
-- [ ] T036 Commit S007 with a Conventional Commit subject, push `codex/007-ownership-neutral-inputs`, and open an official PR that closes #104 and #105 only.
-- [ ] T037 Wait for the automatic Codex review round and CI, investigate every negative finding, make and verify warranted changes, reply to every comment, and resolve every completed thread.
-- [ ] T038 Request exactly one second round with `@Codex review`, then investigate, correct, reply to, and resolve every resulting negative finding without requesting a third round.
-- [ ] T039 Wait for final hosted CI to become green, confirm all review threads are resolved and #104, #105, and #106 remain open before merge, then halt and ask the owner for the final review and merge ritual.
+- [x] T036 Commit S007 with a Conventional Commit subject, push `codex/007-ownership-neutral-inputs`, and open an official PR that closes #104 and #105 only.
+- [x] T037 Wait for the automatic Codex review round and CI, investigate every negative finding, make and verify warranted changes, reply to every comment, and resolve every completed thread.
+- [x] T038 Request exactly one second round with `@Codex review`, then investigate, correct, reply to, and resolve every resulting negative finding without requesting a third round.
+- [x] T039 Wait for final hosted CI to become green, confirm all review threads are resolved and #104, #105, and #106 remain open before merge, then halt and ask the owner for the final review and merge ritual.
 
 ## Dependencies and Execution Order
 
