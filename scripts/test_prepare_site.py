@@ -8,6 +8,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from PIL import Image
+
 import prepare_site
 
 
@@ -117,6 +119,50 @@ class PrepareSiteTests(unittest.TestCase):
                     if needle in path.read_text(encoding="utf-8"):
                         found.append(str(path.relative_to(root)))
         self.assertEqual(found, [])
+
+    def test_site_identity_requires_and_copies_generated_web_suite(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "kit"
+            public = root / "public"
+            web = source / "icons" / "web"
+            logos = source / "logos" / "svg"
+            logo_png = source / "logos" / "png"
+            web.mkdir(parents=True)
+            logos.mkdir(parents=True)
+            logo_png.mkdir(parents=True)
+            public.mkdir()
+            (web / "favicon.svg").write_text('<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1"/></svg>\n', encoding="utf-8")
+            for name, size in (("favicon-16x16.png", 16), ("favicon-32x32.png", 32),
+                               ("apple-touch-icon.png", 180), ("android-chrome-192x192.png", 192),
+                               ("android-chrome-512x512.png", 512)):
+                Image.new("RGBA", (size, size), (255, 255, 255, 255)).save(web / name)
+            (web / "favicon.ico").write_bytes(b"\x00\x00\x01\x00test")
+            (web / "site.webmanifest").write_text(json.dumps({
+                "name": "ShruggieTech", "short_name": "ShruggieTech", "display": "standalone",
+                "background_color": "#FFFFFF", "theme_color": "#FFFFFF",
+                "icons": [{"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png"}],
+            }) + "\n", encoding="utf-8")
+            (logos / "shruggietech-horizontal-white.svg").write_text("<svg/>\n", encoding="utf-8")
+            Image.new("RGB", (1200, 630), (0, 0, 0)).save(logo_png / "shruggietech-social-preview-1280.png")
+
+            prepare_site.copy_site_identity(source, public)
+
+            self.assertEqual((web / "favicon.svg").read_bytes(), (public / "favicon.svg").read_bytes())
+            self.assertEqual((web / "favicon.ico").read_bytes(), (public / "favicon.ico").read_bytes())
+            manifest = json.loads((public / "site.webmanifest").read_text(encoding="utf-8"))
+            self.assertEqual("Brands | ShruggieTech", manifest["name"])
+            self.assertEqual("#FFFFFF", manifest["background_color"])
+
+    def test_site_identity_does_not_mask_missing_generated_assets(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "kit"
+            public = root / "public"
+            source.mkdir()
+            public.mkdir()
+            with self.assertRaisesRegex(ValueError, "generated site identity asset"):
+                prepare_site.copy_site_identity(source, public)
 
 
 if __name__ == "__main__":

@@ -12,9 +12,11 @@ as SKIP with the reason, never silently passed.
 Exit code is the number of problems found, capped at 125.
 """
 import argparse, hashlib, json, os, re, struct, sys, unicodedata
+import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
-from brand_contract import affiliation
+from brand_contract import affiliation, application_icon_profile
+from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 
 # ------------------------------------------------------------------ utilities
 def R(a, b): return round(Color(a).contrast(b, method="wcag21"), 2)
@@ -35,7 +37,7 @@ class Report:
         self.rows.append((cid, "skip", why)); self.skips.append("%s: %s" % (cid, why))
 
 TEXT_EXT = {".md", ".json", ".css", ".js", ".jsx", ".ts", ".tsx", ".mjs",
-            ".html", ".svg", ".txt", ".py", ".webmanifest", ".snippet"}
+            ".html", ".svg", ".xml", ".txt", ".py", ".webmanifest", ".snippet"}
 SRC_EXT  = {".js", ".jsx", ".ts", ".tsx", ".mjs"}
 
 def walk(root):
@@ -320,6 +322,379 @@ def c_ico(kit, rep):
         else: rep.ok("ico-entries", "%s: %d entries (%s)" % (os.path.relpath(p, kit), n, ",".join(sizes)))
     if out: rep.bad("ico-entries", "; ".join(out))
 
+
+def _container_sizes(path, kind):
+    with open(path, "rb") as handle:
+        payload = handle.read()
+    if kind == "ico":
+        if len(payload) < 6 or payload[:4] != b"\x00\x00\x01\x00":
+            raise ValueError("not a valid ICO")
+        count = struct.unpack("<H", payload[4:6])[0]
+        if len(payload) < 6 + count * 16:
+            raise ValueError("truncated ICO directory")
+        sizes = []
+        for index in range(count):
+            offset = 6 + index * 16
+            width = payload[offset] or 256
+            height = payload[offset + 1] or 256
+            length, start = struct.unpack("<II", payload[offset + 8:offset + 16])
+            if width != height or start + length > len(payload):
+                raise ValueError("invalid ICO entry %d" % index)
+            sizes.append(width)
+        return sizes
+    if len(payload) < 8 or payload[:4] != b"icns":
+        raise ValueError("not a valid ICNS")
+    declared = struct.unpack(">I", payload[4:8])[0]
+    if declared != len(payload):
+        raise ValueError("ICNS length mismatch")
+    mapping = {b"icp4": 16, b"icp5": 32, b"icp6": 64, b"ic07": 128,
+               b"ic08": 256, b"ic09": 512, b"ic10": 1024}
+    sizes, offset = [], 8
+    while offset < len(payload):
+        if offset + 8 > len(payload):
+            raise ValueError("truncated ICNS entry")
+        code = payload[offset:offset + 4]
+        length = struct.unpack(">I", payload[offset + 4:offset + 8])[0]
+        if length < 8 or offset + length > len(payload):
+            raise ValueError("invalid ICNS entry length")
+        if code in mapping:
+            sizes.append(mapping[code])
+        offset += length
+    return sizes
+
+
+def _expected_icon_paths(raster):
+    """Return the independent minimum inventory for the selected capability tier."""
+    required = {
+        "icons/README.md",
+        "icons/%s" % GENERATION_MARKER,
+        "icons/web/README.md",
+        "icons/web/favicon.svg",
+        "icons/web/favicon-full.svg",
+        "icons/web/manifest.json",
+        "icons/android/README.md",
+        "icons/android/manifest.json",
+        "icons/apple/ios/README.md",
+        "icons/apple/ios/manifest.json",
+        "icons/apple/macos/README.md",
+        "icons/apple/macos/manifest.json",
+        "icons/windows/README.md",
+        "icons/windows/manifest.json",
+    }
+    if not raster:
+        return required
+    for size in (16, 24, 32, 48, 64, 128, 180, 192, 256, 512):
+        required.add("icons/web/favicon-%dx%d.png" % (size, size))
+    required.update({
+        "icons/web/apple-touch-icon.png",
+        "icons/web/android-chrome-192x192.png",
+        "icons/web/android-chrome-512x512.png",
+        "icons/web/favicon.ico",
+        "icons/web/site.webmanifest",
+        "icons/android/app/src/main/res/drawable-nodpi/ic_launcher_foreground.png",
+        "icons/android/app/src/main/res/drawable-nodpi/ic_launcher_monochrome.png",
+        "icons/android/app/src/main/res/drawable/ic_launcher_background.xml",
+        "icons/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+        "icons/android/app/src/main/res/values/ic_launcher_colors.xml",
+        "icons/android/play-store/google-play-512.png",
+        "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",
+        "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024-dark.png",
+        "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024-tinted.png",
+        "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/Contents.json",
+        "icons/apple/macos/Assets.xcassets/AppIcon.appiconset/Contents.json",
+        "icons/apple/macos/AppIcon.icns",
+        "icons/windows/classic/app.ico",
+        "icons/windows/msix/ApplicationVisualElements.fragment.xml",
+        "icons/windows/msix/PackageProperties.fragment.xml",
+    })
+    for density in ANDROID_DENSITIES:
+        required.add("icons/android/app/src/main/res/mipmap-%s/ic_launcher.png" % density)
+    for points, scale in MAC_ROLES:
+        suffix = "@2x" if scale == 2 else ""
+        name = "icon_%dx%d%s.png" % (points, points, suffix)
+        required.add("icons/apple/macos/Assets.xcassets/AppIcon.appiconset/%s" % name)
+        required.add("icons/apple/macos/AppIcon.iconset/%s" % name)
+    for scale in (100, 200, 400):
+        required.add("icons/windows/msix/Assets/Square44x44Logo.scale-%d.png" % scale)
+        required.add("icons/windows/msix/Assets/Square150x150Logo.scale-%d.png" % scale)
+        required.add("icons/windows/msix/Assets/StoreLogo.scale-%d.png" % scale)
+    for size in WINDOWS_TARGETS:
+        required.add("icons/windows/msix/Assets/Square44x44Logo.targetsize-%d.png" % size)
+        required.add("icons/windows/msix/Assets/Square44x44Logo.targetsize-%d_altform-unplated.png" % size)
+        required.add("icons/windows/msix/Assets/Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size)
+    return required
+
+
+def _validate_apple_catalogs(kit, problems):
+    ios_root = os.path.join(kit, "icons", "apple", "ios", "Assets.xcassets", "AppIcon.appiconset")
+    ios_rows = [
+        {"filename": "AppIcon-1024.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"},
+        {"filename": "AppIcon-1024-dark.png", "idiom": "universal", "platform": "ios", "size": "1024x1024",
+         "appearances": [{"appearance": "luminosity", "value": "dark"}]},
+        {"filename": "AppIcon-1024-tinted.png", "idiom": "universal", "platform": "ios", "size": "1024x1024",
+         "appearances": [{"appearance": "luminosity", "value": "tinted"}]},
+    ]
+    mac_root = os.path.join(kit, "icons", "apple", "macos", "Assets.xcassets", "AppIcon.appiconset")
+    mac_rows = []
+    for points, scale in MAC_ROLES:
+        suffix = "@2x" if scale == 2 else ""
+        mac_rows.append({"filename": "icon_%dx%d%s.png" % (points, points, suffix), "idiom": "mac",
+                         "scale": "%dx" % scale, "size": "%dx%d" % (points, points)})
+    for label, root, rows in (("iOS", ios_root, ios_rows), ("macOS", mac_root, mac_rows)):
+        path = os.path.join(root, "Contents.json")
+        try:
+            with open(path, encoding="utf-8") as handle:
+                catalog = json.load(handle)
+            expected = {"images": rows, "info": {"author": "xcode", "version": 1}}
+            if catalog != expected:
+                problems.append("%s Contents.json does not match the required file, size, scale, platform, and appearance relationships" % label)
+            for row in rows:
+                icon = os.path.join(root, row["filename"])
+                if os.path.isfile(icon):
+                    size = 1024 if label == "iOS" else int(row["size"].split("x")[0]) * int(row["scale"][0])
+                    if inspect_png(icon)["size"] != (size, size):
+                        problems.append("%s catalog entry %s has dimensions that disagree with its size and scale" % (label, row["filename"]))
+        except Exception as error:
+            problems.append("%s Contents.json cannot be validated: %s" % (label, error))
+
+
+def _validate_windows_manifest_fragments(kit, brand, profile, problems):
+    msix = os.path.join(kit, "icons", "windows", "msix")
+    visual_path = os.path.join(msix, "ApplicationVisualElements.fragment.xml")
+    properties_path = os.path.join(msix, "PackageProperties.fragment.xml")
+    title = str(brand.get("title", ""))
+    try:
+        visual = ET.parse(visual_path).getroot()
+        expected_tag = "{http://schemas.microsoft.com/appx/manifest/uap/windows10}VisualElements"
+        expected_attributes = {
+            "DisplayName": title,
+            "Description": "%s application" % title,
+            "BackgroundColor": profile["background"],
+            "Square44x44Logo": "Assets\\Square44x44Logo.png",
+            "Square150x150Logo": "Assets\\Square150x150Logo.png",
+            "AppListEntry": "default",
+        }
+        if visual.tag != expected_tag or visual.attrib != expected_attributes or list(visual):
+            problems.append("ApplicationVisualElements.fragment.xml does not match the required uap:VisualElements schema relationship")
+    except Exception as error:
+        problems.append("ApplicationVisualElements.fragment.xml cannot be validated: %s" % error)
+    try:
+        properties = ET.parse(properties_path).getroot()
+        namespace = "{http://schemas.microsoft.com/appx/manifest/foundation/windows10}"
+        expected_children = [
+            (namespace + "DisplayName", title),
+            (namespace + "PublisherDisplayName", title),
+            (namespace + "Description", "%s application" % title),
+            (namespace + "Logo", "Assets\\StoreLogo.png"),
+        ]
+        actual_children = [(child.tag, child.text) for child in properties]
+        if properties.tag != namespace + "Properties" or properties.attrib or actual_children != expected_children:
+            problems.append("PackageProperties.fragment.xml does not match the required Properties and StoreLogo schema relationship")
+    except Exception as error:
+        problems.append("PackageProperties.fragment.xml cannot be validated: %s" % error)
+
+
+def c_icon_suites(kit, brand, rep):
+    manifest_path = os.path.join(kit, "icons", "manifest.json")
+    try:
+        capabilities = load_capabilities(kit)
+    except Exception as error:
+        return rep.bad("icon-suites", "capability record unavailable: %s" % error)
+    if not os.path.isfile(manifest_path):
+        return rep.bad("icon-suites", "icons/manifest.json is missing")
+    problems = []
+    try:
+        with open(manifest_path, encoding="utf-8") as handle:
+            manifest = json.load(handle)
+    except Exception as error:
+        return rep.bad("icon-suites", "icons/manifest.json cannot be parsed: %s" % error)
+    if manifest.get("schema_version") != "1.0.0":
+        problems.append("manifest schema_version must be 1.0.0")
+    if manifest.get("brand") != brand.get("slug"):
+        problems.append("manifest brand does not match brand.json")
+    expected_profile = application_icon_profile(brand)
+    if manifest.get("profile") != expected_profile:
+        problems.append("manifest profile does not match the effective brand contract")
+    expected_suites = {"web", "android", "apple-ios", "apple-macos", "windows"}
+    suites = manifest.get("suites")
+    if not isinstance(suites, list) or {row.get("id") for row in suites if isinstance(row, dict)} != expected_suites:
+        problems.append("manifest must declare exactly the five platform suites")
+        suites = []
+    raster = bool(capabilities.get("svg_raster"))
+    for suite in suites:
+        if raster and suite.get("status") != "generated":
+            problems.append("%s suite is not generated at raster tier" % suite.get("id"))
+        if not raster and suite.get("id") != "web" and suite.get("status") != "skipped":
+            problems.append("%s suite must record a core-tier skip" % suite.get("id"))
+        for field in ("root", "readme", "manifest"):
+            value = suite.get(field)
+            if not isinstance(value, str) or not value:
+                problems.append("%s suite lacks %s" % (suite.get("id"), field))
+            elif not os.path.isfile(os.path.join(kit, value.replace("/", os.sep))) and field != "root":
+                problems.append("%s suite %s is missing: %s" % (suite.get("id"), field, value))
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list):
+        problems.append("manifest artifacts must be a list")
+        artifacts = []
+    seen = set()
+    declared = set()
+    for index, item in enumerate(artifacts):
+        if not isinstance(item, dict):
+            problems.append("artifact %d is not an object" % index)
+            continue
+        relative = item.get("path")
+        if not isinstance(relative, str) or not relative or "\\" in relative or os.path.isabs(relative):
+            problems.append("artifact %d has an unsafe path" % index)
+            continue
+        normalized = os.path.normpath(relative).replace("\\", "/")
+        if normalized.startswith("../") or normalized != relative or not relative.startswith("icons/"):
+            problems.append("artifact has an unsafe path or non-normalized path: %s" % relative)
+            continue
+        if relative in seen:
+            problems.append("duplicate artifact path: %s" % relative)
+            continue
+        seen.add(relative)
+        declared.add(relative)
+        path = os.path.join(kit, relative.replace("/", os.sep))
+        if not os.path.isfile(path):
+            problems.append("missing artifact: %s" % relative)
+            continue
+        fmt = item.get("format")
+        if fmt == "png":
+            try:
+                info = inspect_png(path)
+                expected = (item.get("width"), item.get("height"))
+                if info["size"] != expected:
+                    problems.append("%s dimensions %s, expected %s" % (relative, info["size"], expected))
+                if info["mode"] != "RGBA":
+                    problems.append("%s color mode %s, expected RGBA" % (relative, info["mode"]))
+                if not info["srgb"]:
+                    problems.append("%s lacks an sRGB declaration" % relative)
+                if info["visible_bbox"] is None:
+                    problems.append("%s has no visible pixels" % relative)
+                if item.get("alpha") == "opaque" and info["has_transparency"]:
+                    problems.append("%s must be opaque" % relative)
+                if item.get("alpha") == "transparent" and not info["has_transparency"]:
+                    problems.append("%s must preserve transparency" % relative)
+                plated_roles = {"favicon", "apple-touch", "installable", "legacy-launcher", "play-store", "app-icon", "asset-catalog-icon", "iconset-icon", "msix-scale", "store-logo"}
+                if item.get("role") == "target-size" and item.get("appearance") == "default":
+                    plated_roles.add("target-size")
+                if item.get("role") in plated_roles and item.get("alpha") == "opaque":
+                    plate = "#000000" if item.get("appearance") == "dark" else "#FFFFFF" if item.get("appearance") == "tinted" else expected_profile["background"]
+                    content = inspect_png(path, plate)["content_bbox"]
+                    ratio = 0.75 if item.get("role") == "play-store" else 0.72
+                    inset = max(0, int(item.get("width") * (1.0 - ratio) / 2.0) - 2)
+                    if content is None or content[0] < inset or content[1] < inset or content[2] > item.get("width") - inset or content[3] > item.get("height") - inset:
+                        problems.append("%s artwork exceeds its declared safe area: %s" % (relative, content))
+            except Exception as error:
+                problems.append("%s cannot be decoded as PNG: %s" % (relative, error))
+        elif fmt == "json":
+            try:
+                with open(path, encoding="utf-8") as handle:
+                    json.load(handle)
+            except Exception as error:
+                problems.append("%s cannot be parsed as JSON: %s" % (relative, error))
+        elif fmt == "xml":
+            try:
+                ET.parse(path)
+            except Exception as error:
+                problems.append("%s cannot be parsed as XML: %s" % (relative, error))
+        elif fmt == "svg":
+            try:
+                with open(path, encoding="utf-8") as handle:
+                    text = handle.read()
+                ET.fromstring(text)
+                for reference in re.findall(r'(?:href|xlink:href)=["\']([^"\']+)', text):
+                    if not reference.startswith("data:") and not reference.startswith("#"):
+                        problems.append("%s has a non-contained SVG dependency: %s" % (relative, reference))
+            except Exception as error:
+                problems.append("%s cannot be parsed as SVG: %s" % (relative, error))
+    for suite in suites:
+        suite_id = suite.get("id")
+        platform_path = os.path.join(kit, str(suite.get("manifest", "")).replace("/", os.sep))
+        try:
+            with open(platform_path, encoding="utf-8") as handle:
+                platform_manifest = json.load(handle)
+            expected_entries = [item for item in artifacts if item.get("platform") == suite_id and item.get("role") not in {"icon-index", "platform-manifest"}]
+            if platform_manifest.get("schema_version") != manifest.get("schema_version") or platform_manifest.get("brand") != manifest.get("brand") or platform_manifest.get("platform") != suite_id or platform_manifest.get("status") != suite.get("status") or platform_manifest.get("reason") != suite.get("reason") or platform_manifest.get("artifacts") != expected_entries:
+                problems.append("%s does not agree with the top-level icon manifest" % suite.get("manifest"))
+        except Exception as error:
+            problems.append("%s cannot be validated against the top-level manifest: %s" % (suite.get("manifest"), error))
+    actual = set()
+    icons_root = os.path.join(kit, "icons")
+    for path in walk(icons_root):
+        relative = os.path.relpath(path, kit).replace(os.sep, "/")
+        if relative != "icons/manifest.json":
+            actual.add(relative)
+    if declared != actual:
+        missing = sorted(declared - actual)
+        extra = sorted(actual - declared)
+        if missing:
+            problems.append("manifest declares missing icon files: %s" % ", ".join(missing[:6]))
+        if extra:
+            problems.append("undeclared icon files: %s" % ", ".join(extra[:6]))
+    aliases = manifest.get("aliases")
+    if not isinstance(aliases, dict):
+        problems.append("manifest aliases must be an object")
+        aliases = {}
+    expected_aliases = {}
+    for path in _expected_icon_paths(raster):
+        if path.startswith("icons/web/") and path.count("/") == 2 and os.path.basename(path) not in {"README.md", "manifest.json"}:
+            expected_aliases["favicons/%s" % os.path.basename(path)] = path
+    if aliases != expected_aliases:
+        problems.append("required favicon aliases do not match the authoritative web suite")
+    actual_aliases = set()
+    legacy_root = os.path.join(kit, "favicons")
+    if os.path.isdir(legacy_root):
+        actual_aliases = {os.path.relpath(path, kit).replace(os.sep, "/") for path in walk(legacy_root)}
+    if actual_aliases != set(aliases):
+        problems.append("favicons compatibility inventory does not match aliases")
+    for alias, target in aliases.items():
+        if not alias.startswith("favicons/") or target not in declared:
+            problems.append("unsafe or unknown alias mapping: %s -> %s" % (alias, target))
+            continue
+        alias_path = os.path.join(kit, alias.replace("/", os.sep))
+        target_path = os.path.join(kit, target.replace("/", os.sep))
+        if not os.path.isfile(alias_path):
+            problems.append("compatibility alias differs from authoritative target: %s" % alias)
+            continue
+        with open(alias_path, "rb") as alias_handle, open(target_path, "rb") as target_handle:
+            if alias_handle.read() != target_handle.read():
+                problems.append("compatibility alias differs from authoritative target: %s" % alias)
+    absent = sorted(_expected_icon_paths(raster) - declared)
+    if absent:
+        problems.append("required platform artifacts are absent: %s" % ", ".join(absent[:12]))
+    if raster:
+        try:
+            for relative in ("icons/web/favicon.ico", "icons/windows/classic/app.ico"):
+                sizes = _container_sizes(os.path.join(kit, relative.replace("/", os.sep)), "ico")
+                if sizes != list(ICO_SIZES):
+                    problems.append("%s entries %s, expected %s" % (relative, sizes, list(ICO_SIZES)))
+            icns_sizes = _container_sizes(os.path.join(kit, "icons", "apple", "macos", "AppIcon.icns"), "icns")
+            expected_icns = sorted({points * scale for points, scale in MAC_ROLES})
+            if icns_sizes != expected_icns:
+                problems.append("AppIcon.icns entries %s, expected %s" % (icns_sizes, expected_icns))
+        except Exception as error:
+            problems.append("native icon container is invalid: %s" % error)
+        foreground = os.path.join(kit, "icons", "android", "app", "src", "main", "res", "drawable-nodpi", "ic_launcher_foreground.png")
+        try:
+            box = inspect_png(foreground)["visible_bbox"]
+            if box is None or box[0] < 83 or box[1] < 83 or box[2] > 349 or box[3] > 349:
+                problems.append("Android adaptive foreground exceeds the central 66-unit safe zone: %s" % (box,))
+        except Exception as error:
+            problems.append("Android adaptive foreground cannot be inspected: %s" % error)
+        play = os.path.join(kit, "icons", "android", "play-store", "google-play-512.png")
+        if os.path.isfile(play) and os.path.getsize(play) > 1024 * 1024:
+            problems.append("Google Play artwork exceeds 1,024 KB")
+        _validate_apple_catalogs(kit, problems)
+        _validate_windows_manifest_fragments(kit, brand, expected_profile, problems)
+    if problems:
+        rep.bad("icon-suites", "; ".join(problems[:30]))
+    else:
+        generated = sum(1 for suite in suites if suite.get("status") == "generated")
+        rep.ok("icon-suites", "%d platform suites, %d declared artifacts, %d compatibility aliases" %
+               (generated, len(artifacts), len(aliases)))
+
 def c_pdf(kit, rep):
     pdfs = [p for p in walk(kit) if p.lower().endswith(".pdf")]
     if not pdfs: return rep.skip("pdf-fonts-embedded", "no PDF in kit")
@@ -385,13 +760,10 @@ def c_capability_artifacts(kit, rep):
 
     if not capabilities.get("svg_raster"):
         rep.skip("ico-artifact", "%s tier: source PNGs unavailable; ICO skipped" % tier)
-    elif capabilities.get("ico_writer"):
-        if os.path.isfile(ico):
-            rep.ok("ico-artifact", "favicon.ico produced after successful writer probe")
-        else:
-            rep.bad("ico-artifact", "ICO writer probe passed but favicon.ico is missing")
+    elif os.path.isfile(ico):
+        rep.ok("ico-artifact", "favicon.ico produced by the deterministic icon writer")
     else:
-        rep.skip("ico-artifact", "%s tier: ImageMagick, convert, and Pillow unavailable; ICO skipped" % tier)
+        rep.bad("ico-artifact", "raster capability is available but favicon.ico is missing")
 
     pdf = os.path.join(kit, "brand-guide.pdf")
     if tier == "full":
@@ -557,6 +929,7 @@ def main():
     c_font_weights(kit, brand, rep)
     c_glyph(kit, brand, rep)
     c_capability_artifacts(kit, rep)
+    c_icon_suites(kit, brand, rep)
     c_svg(kit, rep)
     c_ico(kit, rep)
     c_pdf(kit, rep)

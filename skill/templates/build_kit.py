@@ -32,7 +32,7 @@ STEPS = [
     ("vanilla tokens, styles.css, components",     ["gen_vanilla.py", "{brand}", "{kit}"]),
     ("tokens, shadcn registry, fonts, provider", ["gen_nextjs.py", "{brand}", "{kit}"]),
     ("agent contract and lint configs",         ["gen_enforcement.py", "{brand}", "{kit}"]),
-    ("logo colourways, lockups, favicons, ICO", ["gen_logo.py", "{brand}", "{kit}"]),
+    ("logo colourways, lockups, categorized application icons", ["gen_logo.py", "{brand}", "{kit}"]),
     ("guidelines page",                         ["gen_guidelines.py", "{brand}", "{kit}"]),
     ("brand guide PDF",                         ["gen_guide_pdf.py", "{brand}", "{kit}"]),
 ]
@@ -57,11 +57,12 @@ def manifest(kit, complete=False):
         dn[:] = sorted(d for d in dn if d not in excluded)
         for f in sorted(fn):
             p = os.path.join(dp, f)
+            relative = os.path.relpath(p, kit).replace(os.sep, "/")
             omitted = {"manifest.json"} if complete else {"manifest.json", "VERIFY.md"}
-            if os.path.basename(p) in omitted: continue
+            if relative in omitted: continue
             with open(p, "rb") as source:
                 b = source.read()
-            files.append({"path": os.path.relpath(p, kit).replace(os.sep, "/"),
+            files.append({"path": relative,
                           "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()})
     bj = os.path.join(kit, "brand.json")
     if os.path.exists(bj):
