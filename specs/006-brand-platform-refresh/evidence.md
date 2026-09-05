@@ -48,4 +48,4 @@
 - The one authorized explicit second and final Codex review produced three findings: generated guideline pages missing from SEO and browser route inventories, stale generated public brand trees, and an obsolete focused-test count. Commit `66906bc` corrects all three. Every finding was answered with local validation evidence and resolved.
 - The expanded guideline-page audit also exposed and corrected missing image alternatives, mobile image overflow, a non-company-aligned page title, and retired public attribution wording in generated guides.
 - Exactly two Codex review rounds were used. No third review was requested or will be requested.
-- Hosted CI for the final corrective commit is pending.
+- Hosted CI for the final corrective commit completed in both duplicate workflows. Both full build jobs and both Python 3.8 compatibility jobs passed.

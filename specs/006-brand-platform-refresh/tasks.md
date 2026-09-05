@@ -109,7 +109,7 @@
 - [x] T031 [US5] Commit, push `codex/006-brand-platform-refresh`, and open the official pull request with `Closes #100`, `Closes #101`, `Closes #102`, and `Closes #103`
 - [x] T032 [US5] Process the automatic Codex review and every CI result, push warranted corrections, respond substantively, and resolve threads only after evidence exists
 - [x] T033 [US5] Request at most one explicit second Codex review when useful, process it completely, and record the bounded review outcome in `specs/006-brand-platform-refresh/evidence.md`
-- [ ] T034 [US5] Confirm all required checks and authorized reviews are satisfied, leave the pull request open, and ask the owner for the final review and merge ritual
+- [x] T034 [US5] Confirm all required checks and authorized reviews are satisfied, leave the pull request open, and ask the owner for the final review and merge ritual
 
 ## Dependencies and execution order
 
