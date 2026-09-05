@@ -41,4 +41,7 @@
 
 ## Pull request and review
 
-Pending publication and bounded external review.
+- Commit `49f7d72` was pushed to `codex/006-brand-platform-refresh`.
+- Official pull request: https://github.com/shruggietech/shruggie-brand/pull/107
+- The pull request contains closing references for #100, #101, #102, and #103.
+- Automatic CI and first-round external review are pending.

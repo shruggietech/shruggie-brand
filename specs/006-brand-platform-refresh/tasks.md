@@ -106,7 +106,7 @@
 - [x] T028 [US5] Update current repository guidance, release descriptions, changelog additions, and architecture decisions in `README.md`, `CHANGELOG.md`, `docs/decisions.md`, and `skill/CHANGELOG.md` without rewriting accurate historical records
 - [x] T029 [US5] Run every command in `specs/006-brand-platform-refresh/quickstart.md` and record exact local evidence in `specs/006-brand-platform-refresh/evidence.md`
 - [x] T030 [US5] Validate UTF-8 without BOM, LF endings, mojibake absence, generated-artifact boundaries, and full task completion across the S006 change set
-- [ ] T031 [US5] Commit, push `codex/006-brand-platform-refresh`, and open the official pull request with `Closes #100`, `Closes #101`, `Closes #102`, and `Closes #103`
+- [x] T031 [US5] Commit, push `codex/006-brand-platform-refresh`, and open the official pull request with `Closes #100`, `Closes #101`, `Closes #102`, and `Closes #103`
 - [ ] T032 [US5] Process the automatic Codex review and every CI result, push warranted corrections, respond substantively, and resolve threads only after evidence exists
 - [ ] T033 [US5] Request at most one explicit second Codex review when useful, process it completely, and record the bounded review outcome in `specs/006-brand-platform-refresh/evidence.md`
 - [ ] T034 [US5] Confirm all required checks and authorized reviews are satisfied, leave the pull request open, and ask the owner for the final review and merge ritual
