@@ -8,7 +8,7 @@
     "build": "pnpm prepare:content && next build",
     "dev": "pnpm prepare:content && next dev",
     "lint": "pnpm prepare:content && tsc --noEmit",
-    "test": "node --test tests/production-origin.test.mjs && node scripts/verify-site.mjs"
+    "test": "node --test tests/production-origin.test.mjs tests/payload-contract.test.mjs && node scripts/verify-site.mjs"
   },
   "dependencies": {
     "fumadocs-core": "16.14.3",

@@ -5,13 +5,14 @@ import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { inflateSync } from 'node:zlib';
 import { downloadFiles, htmlRoutes, iconFiles, iconRoutes, requiredFiles, routeRecords, tableRoutes, visualRoutes, visualThemes, visualWidths } from '../tests/site.test.mjs';
+import { payloadFailures } from './payload-contract.mjs';
 import { isCanonicalRedirect, selectVerificationOrigin } from './verification-origin.mjs';
 
 const root = resolve(import.meta.dirname, '..', 'out');
 const visualRoot = resolve(import.meta.dirname, '..', 'test-results', 'visual');
 mkdirSync(visualRoot, { recursive: true });
 const routeByPath = new Map(routeRecords.map((route) => [route.pathname, route]));
-const types = { '.css': 'text/css', '.html': 'text/html', '.ico': 'image/x-icon', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.woff2': 'font/woff2' };
+const types = { '.css': 'text/css', '.html': 'text/html', '.ico': 'image/x-icon', '.json': 'application/json', '.pdf': 'application/pdf', '.png': 'image/png', '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.woff2': 'font/woff2' };
 function diskPath(url) {
   const pathname = decodeURIComponent(new URL(url, 'http://local').pathname);
   const safe = normalize(pathname).replace(/^([/\\])+/, '');
@@ -230,7 +231,13 @@ try {
   for (const route of tableRoutes) { await page.goto(base + route); check(await page.locator('table').count() > 0, `${route} does not render its Markdown table semantically`); }
   await page.goto(base + '/');
   for (const card of await page.locator('.brand-card').all()) { const box = await card.boundingBox(); check(Boolean(box && box.width >= 44 && box.height >= 44), 'portfolio card target is smaller than 44 by 44 CSS pixels'); }
-  for (const file of [...requiredFiles, ...downloadFiles]) { const response = await page.request.get(base + file); check(response.ok(), `${file} is missing from the export`); }
+  for (const file of [...requiredFiles, ...downloadFiles]) {
+    const response = await page.request.get(base + file);
+    check(response.ok(), `${file} is missing from the export`);
+    if (!response.ok()) continue;
+    const body = Buffer.from(await response.body());
+    for (const failure of payloadFailures(file, response.headers()['content-type'], body)) failures.push(`${file} ${failure}`);
+  }
   const expectedPngs = new Map([['/favicon-16x16.png', 16], ['/favicon-32x32.png', 32], ['/apple-touch-icon.png', 180], ['/android-chrome-192x192.png', 192], ['/android-chrome-512x512.png', 512]]);
   for (const file of iconFiles) {
     const response = await page.request.get(base + file); check(response.ok(), `${file} cannot be fetched for icon validation`); if (!response.ok()) continue;

@@ -6,7 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
-- Added fail-closed production-origin verification that reuses the complete local route, resource, metadata, responsive, theme, and accessibility contract while recognizing safe permanent redirects from GitHub Pages.
+- Added fail-closed production-origin verification that reuses the complete local route, resource, payload, metadata, responsive, theme, and accessibility contract, validates downloadable formats and media types, and recognizes safe permanent redirects from GitHub Pages.
 
 ## [1.2.0] - 2026-09-05
 

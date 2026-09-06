@@ -46,7 +46,7 @@
 
 - Pages workflow: [run 33990452789](https://github.com/shruggietech/shruggie-brand/actions/runs/33990452789), successful for exact merged main `39b65b5daf9ea74c317132d26347566a9e4959d5`
 - Pages configuration: workflow-based, public custom domain `brand.shruggie.tech`, enforced HTTPS, approved certificate
-- Origin guard: seven regression tests passed for local fallback, exact HTTPS production selection, malformed origin rejection, host restriction, and safe canonical redirects
+- Origin and payload guards: 11 regression tests passed for local fallback, exact HTTPS production selection, malformed origin rejection, host restriction, safe canonical redirects, non-empty bodies, expected media types, and format-specific payload validation
 - Local site contract: 26 HTML routes at 360px and 1280px, zero WCAG 2.1 AA violations, zero failures
 - Production site contract: 26 HTML routes at 360px and 1280px, zero WCAG 2.1 AA violations, zero failures
 - Production redirect observation: GitHub Pages returns permanent HTTP 301 where the local server returns HTTP 308. The verifier accepts only 301 or 308 to the exact same-origin trailing-slash destination and rejects temporary, cross-origin, or incorrect redirects.
@@ -56,7 +56,7 @@
 
 ## Repository gates
 
-- Regression-first proof: production-origin tests failed because the module did not exist, then seven tests passed after implementation
+- Regression-first proof: production-origin and payload tests failed because their modules did not exist, then 11 tests passed after implementation
 - Python geometry and release suites: 113 tests and checks passed across glyph construction, packaging, release contract, site preparation, brand contract, icon generation, and pipeline behavior
 - Site lint and generated content: passed
 - Static site build: 26 pages generated successfully with webpack
@@ -79,5 +79,10 @@
 - Round-one correction: changed the quickstart screenshot count from four to eight so it agrees with the actual two-route, two-width, two-theme matrix
 - Round-one response: [discussion reply 3942524157](https://github.com/shruggietech/shruggie-brand/pull/130#discussion_r3942524157)
 - Round-one unresolved threads: 0
-- Explicit review requests posted: 0
-- Round-two status: pending
+- Explicit review requests posted: 1, [the only authorized request](https://github.com/shruggietech/shruggie-brand/pull/130#issuecomment-5555862620)
+- Codex round two: completed with one P1 finding at [discussion 3942531180](https://github.com/shruggietech/shruggie-brand/pull/130#discussion_r3942531180)
+- Filed review issue: [#132](https://github.com/shruggietech/shruggie-brand/issues/132)
+- Round-two correction: every required and downloadable file now requires a non-empty payload, expected media type, and format-specific PDF, PNG, ICO, SVG, JSON, web manifest, XML, or robots-text validation
+- Corrected local and production contracts: 26 routes at both widths, zero failures and zero WCAG 2.1 AA violations
+- Round-two unresolved threads: 1, pending corrected-head push and response
+- Further review requests authorized: 0
