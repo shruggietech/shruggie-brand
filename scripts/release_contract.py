@@ -20,13 +20,22 @@ REQUIRED_HISTORY = {
     "1.1.1": ("WCAG", "AA floor"),
     "1.1.2": ("geometry_provenance", "ShruggieTech", "Python 3.8", "Windows", "stale"),
     "1.2.0": ("third-party", "application-icon", "Fumadocs", "route descriptor"),
+    "1.2.1": ("black-background", "Brotli"),
 }
-MIGRATION = (
-    "Existing kits need migration: **yes**. Rebuild existing kits with v1.2.0 to receive "
-    "ownership-safe third-party inputs, authoritative supplied-mark and fixed-font handling, "
-    "native application-icon suites, and the current canon. Rebuild the site from those "
-    "verified kits to publish the current portfolio, documentation, and discovery output."
-)
+MIGRATIONS = {
+    "1.2.0": (
+        "Existing kits need migration: **yes**. Rebuild existing kits with v1.2.0 to receive "
+        "ownership-safe third-party inputs, authoritative supplied-mark and fixed-font handling, "
+        "native application-icon suites, and the current canon. Rebuild the site from those "
+        "verified kits to publish the current portfolio, documentation, and discovery output."
+    ),
+    "1.2.1": (
+        "Existing kits need migration: **conditional**. Rebuild the ShruggieTech kit and brand "
+        "site with v1.2.1 to receive the approved black-background browser icon suite and current "
+        "presentation. Other production kits do not require an asset migration unless consumers "
+        "need their embedded canon metadata to match v1.2.1."
+    ),
+}
 
 
 def read_text(path: Path) -> str:
@@ -139,6 +148,8 @@ def current_version(root: Path) -> str:
 
 def render_notes(metadata: Mapping[str, object]) -> str:
     version = str(metadata["version"])
+    if version not in MIGRATIONS:
+        raise ValueError("release %s lacks migration guidance" % version)
     return (
         "# shruggie-brandbuilder v%s\n\n"
         "Skill version: `%s`\n\n"
@@ -146,7 +157,7 @@ def render_notes(metadata: Mapping[str, object]) -> str:
         "%s\n\n"
         "## Release changes\n\n%s\n"
         % (version, metadata["skill_version"], metadata["canon_version"],
-           MIGRATION, metadata["release_changes"])
+           MIGRATIONS[version], metadata["release_changes"])
     )
 
 
