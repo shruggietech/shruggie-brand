@@ -6,7 +6,13 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-05, made the canonical ShruggieTech brand record the source of the black-background browser icon suite and selected the existing colored horizontal lockups for light and dark site chrome without changing logo geometry.
+- Standardized the public documentation root as "Documentation" and its first numbered page as "Variance Contract", reduced landing navigation to viewport-specific approved destinations, and applied the generated orange and green roles to actions, links, code strings, list markers, and pagination affordances.
 - Added fail-closed production-origin verification that reuses the complete local route, resource, payload, metadata, responsive, theme, and accessibility contract, validates downloadable formats and media types, and recognizes safe permanent redirects from GitHub Pages.
+
+### Fixed
+
+- Added fail-closed pixel and ICO-frame checks for canonical black favicons, a 12-cell visual regression matrix, minimum mobile navigation targets, reduced-motion link behavior, persistent documentation pagination affordances, and non-overlapping documentation footer spacing.
 
 ## [1.2.0] - 2026-09-05
 
