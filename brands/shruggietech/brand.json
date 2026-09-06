@@ -161,6 +161,7 @@
     "canvas_height": 500,
     "clear_space_units": 92,
     "reduced_below_px": 48,
+    "application_icon": {"background": "#000000"},
     "min_px": {"mark": 48, "horizontal": 180, "stacked": 128, "wordmark": 140},
     "role_colors": {
       "color": {"accent": "#2BCC73"},
@@ -224,5 +225,5 @@
     "specimen_line": "Smart, practical, confidently scrappy.",
     "specimen_body": "You have a business to run. We handle the technology that makes it grow."
   },
-  "canon": "1.1.2"
+  "canon": "1.2.0"
 }

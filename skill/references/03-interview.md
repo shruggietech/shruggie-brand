@@ -161,7 +161,7 @@ If the operator is not responding, creative recommendations may use computed def
 
 ## What this is really doing
 
-A sub-brand under the variance contract has, in the normal case, exactly two
+A sub-brand under this variance contract has, in the normal case, exactly two
 decisions: one colour and one mark. The interview exists to make those two
 decisions well and to keep the operator from being asked about the forty things
 that were never theirs to decide.

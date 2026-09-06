@@ -4,8 +4,8 @@ description: Build or audit a complete brand kit for a ShruggieTech-owned or thi
 license: Apache-2.0. The code, templates and reference documentation are licensed under the Apache License 2.0. Apache-2.0 section 6 grants no trademark rights, and the ShruggieTech and sub-brand names, wordmarks and logo geometry are additionally reserved: see LICENSE-BRAND.md. Bundled fonts keep their own SIL Open Font License 1.1.
 compatibility: Python 3.8 or newer. `coloraide` is required for color work, fontTools is required for generated and fixed typography, Pillow is required when raster supplied inputs request palette evidence, and Brotli lets fontTools inspect WOFF2 metadata. Render-only capabilities still degrade to named skips. Run `templates/probe.py` first and route off its report.
 metadata:
-  version: 1.1.2
-  canon: 1.1.2
+  version: 1.2.0
+  canon: 1.2.0
   parent: ShruggieTech
 allowed-tools:
   - Read
@@ -127,7 +127,7 @@ It validates the explicit contract first, then probes, runs the glyph gate, and 
     python3 templates/gen_vanilla.py    <brand.json> <kit>    # tokens, styles.css, components
     python3 templates/gen_nextjs.py     <brand.json> <kit>    # globals.css, registry, fonts, provider
     python3 templates/gen_enforcement.py <brand.json> <kit>   # AGENTS.md, oxlint, stylelint
-    python3 templates/gen_logo.py       <brand.json> <kit>    # colourways, lockups, favicons, ICO
+    python3 templates/gen_logo.py       <brand.json> <kit>    # colourways, lockups, native icon suites
     python3 templates/gen_guidelines.py <brand.json> <kit>    # the guidelines page
     python3 templates/gen_guide_pdf.py  <brand.json> <kit>    # the brand guide, full-bleed dark
     python3 templates/verify.py         <kit>                 # measured VERIFY.md
@@ -136,11 +136,7 @@ It validates the explicit contract first, then probes, runs the glyph gate, and 
     python3 templates/qc_render.py      <kit>/brand-guide.pdf --expect-ground dark
     python3 templates/qc_paginate.py    <kit>/build/*.print.html
 
-`gen_logo.py` does not invent geometry. Copy `templates/mk_paths.example.py` to
-`<kit>/build/mk_paths.py`, edit the parameter block, run the gate, write the
-paths into `brand.json`, and the generator produces every colourway, the
-outlined wordmark, the lockups, all rasters, the favicon set and a real
-multi-entry ICO.
+`gen_logo.py` does not invent geometry. Copy `templates/mk_paths.example.py` to `<kit>/build/mk_paths.py`, edit the parameter block, run the gate, write the paths into `brand.json`, and the generator produces every colourway, the outlined wordmark, the lockups, all rasters, and categorized application-icon suites for web, Android, iOS and iPadOS, macOS, and Windows. `icons/manifest.json` is authoritative; `favicons/` is a byte-identical web compatibility mirror.
 
 When an approved master already exists, do not route through reconstruction. Declare it under `authoritative_inputs`, preserve its bytes, authorize only the needed transformations, and let validation connect each imported logo image to its source record. Use `templates/ingest_font.py --help` for the separate fixed-font ingestion contract. Ordinary generation must stay offline.
 
@@ -196,7 +192,8 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/gen_vanilla.py` | tokens, styles.css and components, generated rather than hand-written |
 | `templates/gen_nextjs.py` | the whole `nextjs/` layer |
 | `templates/gen_enforcement.py` | `AGENTS.md`, oxlint and stylelint configs |
-| `templates/gen_logo.py` | colourways, outlined wordmark, lockups, rasters, favicons, ICO |
+| `templates/gen_logo.py` | colourways, outlined wordmark, lockups, rasters, categorized application icons |
+| `templates/iconkit.py` | platform matrices, composition, native containers, manifests, and compatibility aliases |
 | `templates/gen_guidelines.py` | the guidelines page, rendered from the tokens the product ships |
 | `templates/gen_guide_pdf.py` | the brand guide PDF, full-bleed dark to the house standard |
 | `templates/build_specimen.py` | the outlined type specimen, driven by brand.json |

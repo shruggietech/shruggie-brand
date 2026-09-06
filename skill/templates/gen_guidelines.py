@@ -157,6 +157,10 @@ Below %(red)d px the reduced master takes over.</p>
 <p class="lead">The horizontal row records its approved master composition. C is the outlined wordmark cap height used by the stacked lockup. X is the 70-unit G channel. Keep one X clear around every master. Never resize the mark and wordmark independently.</p>
 </section>
 
+<section><div class="eyebrow">Delivery</div><h2>Application icon suites</h2>
+<p class="lead">Start at <code>icons/README.md</code>. The kit includes ready-to-integrate web, Android, iOS and iPadOS, macOS, and Windows suites with platform-local instructions and manifests. <code>icons/manifest.json</code> is the exact inventory; <code>favicons/</code> contains compatibility aliases only.</p>
+</section>
+
 %(endorsement)s
 </div></body></html>""" % {
         "title": title, "faces": faces(kit, B), "lv": lv, "dv": dv,

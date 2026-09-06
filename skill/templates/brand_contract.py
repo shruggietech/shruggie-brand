@@ -121,6 +121,27 @@ def semantic_colors(brand, canon):
     return colors
 
 
+def application_icon_profile(brand):
+    """Resolve the explicit application-icon presentation contract."""
+    logo = brand.get("logo") or {}
+    configured = logo.get("application_icon")
+    if configured is None:
+        configured = {}
+    else:
+        _require(isinstance(configured, dict), "logo.application_icon must be an object")
+        _require(set(configured) == {"background"},
+                 "logo.application_icon must contain exactly the supported background field")
+    surfaces = brand.get("surfaces") or {}
+    background = configured.get("background", surfaces.get("base", "#000000"))
+    _require(isinstance(background, str) and HEX.fullmatch(background),
+             "application icon background must be a six-digit hex color")
+    threshold = logo.get("reduced_below_px", 32)
+    _require(isinstance(threshold, int) and not isinstance(threshold, bool)
+             and 1 <= threshold <= 1024,
+             "reduced mark threshold must be an integer from 1 through 1024")
+    return {"background": background.upper(), "reduced_below_px": threshold}
+
+
 def affiliation_text(brand):
     value = affiliation(brand)
     if value["endorsement"] == "shruggietech-project":
@@ -421,6 +442,7 @@ def validate_brand(brand, kit):
         _require(isinstance(colors, dict) and set(colors) == {"emphasis", "action"}, "independent inheritance requires semantic_colors.emphasis and semantic_colors.action")
         _require(all(isinstance(value, str) and HEX.fullmatch(value) for value in colors.values()), "independent semantic colors must be six-digit hex values")
     validate_typography(brand, kit)
+    application_icon_profile(brand)
     evidence = analyze_authoritative_inputs(brand, kit)
     validate_palette_approvals(brand, evidence)
     return evidence

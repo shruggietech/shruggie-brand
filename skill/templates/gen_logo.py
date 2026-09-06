@@ -19,6 +19,7 @@ import zlib
 from svgelements import Path
 from brand_contract import font_face_path, semantic_colors, typography_families
 from capabilities import load_capabilities
+from iconkit import generate_icon_suites
 from process_utils import hidden_process_kwargs
 
 NODE = os.environ.get("GP_NODE") or shutil.which("node")
@@ -567,10 +568,36 @@ def main():
         written.append(filename)
 
     capabilities = load_capabilities(kit)
+    icon_full_svg = os.path.join(svg_dir, "%s-mark-color.svg" % slug)
+    icon_reduced_svg = os.path.join(svg_dir, "%s-mark-reduced-color.svg" % slug)
+
+    def render_icon_source(source, output, size):
+        from PIL import Image
+        temporary = output.with_name(output.stem + "-rendered.png")
+        if canvas_width >= canvas_height:
+            raster(["-w", str(size), str(source), "-o", str(temporary)])
+        else:
+            raster(["-h", str(size), str(source), "-o", str(temporary)])
+        try:
+            with Image.open(str(temporary)) as rendered:
+                rgba = rendered.convert("RGBA")
+                rgba.thumbnail((size, size), Image.Resampling.LANCZOS)
+                square_image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+                square_image.alpha_composite(
+                    rgba,
+                    ((size - rgba.width) // 2, (size - rgba.height) // 2),
+                )
+                square_image.save(str(output), format="PNG")
+        finally:
+            if temporary.exists():
+                temporary.unlink()
+
     if not capabilities.get("svg_raster"):
-        print("SKIP raster exports, favicons and ICO: %s at core tier"
+        generate_icon_suites(brand, kit, icon_full_svg, icon_reduced_svg,
+                             render_icon_source, capabilities)
+        print("SKIP raster exports and native icon binaries: %s at core tier"
               % capabilities.get("raster_reason", "required raster capability unavailable"))
-        print("wrote %d vector SVG masters" % len(written))
+        print("wrote %d vector SVG masters and a vector-only icon index" % len(written))
         return 0
 
     from PIL import Image
@@ -602,86 +629,13 @@ def main():
             raster(["-w", str(width), source, "-o", output])
         assert_visible_raster(output)
 
-    square = max(canvas_width, canvas_height)
-    x_offset = (square - canvas_width) / 2
-    for name, path_list in (("favicon", paths["full"]), ("favicon-reduced", paths.get("reduced") or paths["full"])):
-        body = (
-            '  <rect width="%g" height="%g" fill="%s"/>\n'
-            '  <g transform="translate(%g,0)">\n%s\n  </g>'
-            % (square, square, base, x_offset,
-               render_paths(path_list, role_maps["color"], "    ", "../logos/svg/"))
-        )
-        write(os.path.join(favicon_dir, name + ".svg"), svg(square, square, body))
-
-    ico_sources = []
-    for size in (16, 24, 32, 48, 64, 128, 180, 192, 256, 512):
-        source_name = "favicon-reduced.svg" if size <= reduced_below else "favicon.svg"
-        output = os.path.join(favicon_dir, "favicon-%dx%d.png" % (size, size))
-        raster(["-w", str(size), "-h", str(size), os.path.join(favicon_dir, source_name), "-o", output])
-        assert_visible_raster(output)
-        if size in (16, 24, 32, 48, 64, 128, 256):
-            ico_sources.append(output)
-
-    os.replace(os.path.join(favicon_dir, "favicon-180x180.png"), os.path.join(favicon_dir, "apple-touch-icon.png"))
-    for size in (192, 512):
-        shutil.copy(
-            os.path.join(favicon_dir, "favicon-%dx%d.png" % (size, size)),
-            os.path.join(favicon_dir, "android-chrome-%dx%d.png" % (size, size)),
-        )
-
-    # DEVIATION: the source kit probed only for ImageMagick 7's `magick`, so on a
-    # host carrying ImageMagick 6 the ICO was silently skipped and verify reported
-    # ico-entries as a skip. The legacy `convert` binary does the same job here.
-    ico = os.path.join(favicon_dir, "favicon.ico")
-    converter = measured_ico_converter(capabilities)
-    if converter:
-        subprocess.run([converter] + ico_sources + [ico], check=True,
-                       **hidden_process_kwargs())
-    else:
-        # Pillow fallback. It is given the per-size PNGs that were already
-        # rendered, so the reduced master is still what lands in the entries at
-        # and below the threshold. Never hand Pillow one big PNG and a sizes
-        # list: it would resample the full mark down and undo the whole point of
-        # having a reduced master.
-        try:
-            from PIL import Image
-        except ImportError:
-            print("WARNING no ImageMagick and no Pillow: favicon.ico not built")
-            ico = None
-        else:
-            frames = [Image.open(p).convert("RGBA") for p in ico_sources]
-            frames[0].save(ico, format="ICO",
-                           sizes=[im.size for im in frames],
-                           append_images=frames[1:])
-    if ico and os.path.exists(ico):
-        count = struct.unpack("<H", open(ico, "rb").read()[4:6])[0]
-        assert count == len(ico_sources), \
-            "ICO carries %d entries, expected %d" % (count, len(ico_sources))
-        print("ICO: %d entries via %s" % (count, converter or "Pillow"))
-
-    write(
-        os.path.join(favicon_dir, "site.webmanifest"),
-        json.dumps(
-            {
-                "name": brand["title"],
-                "short_name": brand["title"],
-                "icons": [
-                    {"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png"},
-                    {"src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png"},
-                ],
-                "theme_color": base,
-                "background_color": base,
-                "display": "standalone",
-            },
-            indent=2,
-        )
-        + "\n",
-    )
+    generate_icon_suites(brand, kit, icon_full_svg, icon_reduced_svg,
+                         render_icon_source, capabilities)
 
     print("canvas %g x %g; artwork width %g" % (canvas_width, canvas_height, artwork_width))
     print("clear space %d units = %.1f%% of artwork width" % (clear_space, 100.0 * clear_space / artwork_width))
     print("mark bbox %s inside canvas" % (tuple(round(v, 1) for v in mark_box),))
-    print("wrote %d SVGs, rasters, favicons and manifest" % len(written))
+    print("wrote %d SVGs, rasters, and categorized platform icon suites" % len(written))
     return 0
 
 

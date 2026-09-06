@@ -1,7 +1,8 @@
 # Toolchain
 
-**Probe first, then pick. Never assume a tool is present and never fail
-silently when it is missing.**
+> [!NOTE]
+> **Probe first, then pick. Never assume a tool is present and never fail
+> silently when it is missing.**
 
 Every tool below is open source and installable from a standard package
 manager. The agent's job at the start of a build is to find out what it
@@ -47,7 +48,8 @@ Asset on the left, first choice first. Later entries are the fallback chain.
 | Logo and icon vector masters | hand-authored SVG | none | The agent writes path data on a declared grid. There is no tool shortcut and no tracing. |
 | Outline live text in an SVG | `inkscape --export-text-to-path` | `fonttools` glyph extraction | Mandatory before any SVG ships. A shipped SVG must never depend on an installed font. |
 | SVG to PNG at N sizes | `rsvg-convert` | `resvg`, then `inkscape --export-type=png` | ImageMagick's SVG delegate shells out to rsvg anyway and does it worse. Do not use `magick` for this. |
-| Multi-resolution `.ico` | `magick` | `convert`, then Pillow from the per-size PNGs | **Probe for BOTH `magick` and `convert`.** ImageMagick 6 ships only `convert`, and a probe that tests only for `magick` reports the ICO as a skip on every ImageMagick 6 host, which reads as "not applicable" rather than "your favicon is broken". Assert the entry count afterwards. Never hand Pillow one large PNG and a sizes list: it would resample the full mark down and defeat the reduced master. |
+| Application-icon composition | `templates/iconkit.py` plus Pillow | vector-only web index at core tier | Composes every platform from the canonical full and reduced SVG masters, the declared background, and measured raster capability. Native suites are required whenever raster output is available and record explicit skips otherwise. |
+| Multi-resolution `.ico` and `.icns` | deterministic writers in `templates/iconkit.py` | none after raster composition | The writers assemble validated per-size PNGs directly, so output does not depend on platform-specific ImageMagick behavior. Assert the exact entry matrix afterwards. Never resample one large mark for every small target. |
 | Raster compositing, social previews | ImageMagick | Pillow | |
 | Palette extraction from a supplied logo | `magick in.png -colors 8 -format %c histogram:info:` | Pillow + k-means | Reference only. The accent still has to pass every canon check. |
 | Deterministic authoritative-input evidence | `templates/analyze_inputs.py` | none | Reads validated local inputs, ignores fully transparent pixels, and writes hash-linked candidates under `qc/`. |
@@ -90,6 +92,10 @@ the binary step. Fonts are bundled. See `01-canon.json` typography.sourcing.
 
 Run `templates/validate_brand.py` before any renderer. It rejects incomplete affiliation, inheritance, typography, supplied-input, palette-approval, path, hash, SVG-safety, license, and font metadata. Run `templates/analyze_inputs.py` only after validation, and run `templates/scan_affiliation.py` after generation to reject false ownership claims. `templates/ingest_font.py` is the only network-capable font path and is never called by an ordinary build.
 
+## S008 icon delivery
+
+`templates/gen_logo.py` calls `templates/iconkit.py` only after canonical full and reduced SVG masters exist. A raster-capable build must produce the complete web, Android, iOS and iPadOS, macOS, and Windows suites under `icons/`; a core build produces the self-contained web SVG index and records why binary suites were skipped. `verify.py` decodes the images, parses native metadata, checks platform matrices and safe areas, inspects ICO and ICNS entries, rejects undeclared files, and proves every legacy `favicons/` alias is byte-identical to its authoritative web target.
+
 ## Image generation
 
 **Encouraged, for ideation.** Use the frontier image generation available in
@@ -97,16 +103,18 @@ whatever agent is running the skill to explore logo directions, mood, and
 visual language with the operator. It is genuinely good at opening up a concept
 space quickly, and it beats describing shapes in prose.
 
-**Never for shipped artwork.** Every mark that ships is hand-authored vector on
-a declared grid. The generated images are conversation, and the SVG is the
-deliverable.
+> [!CAUTION]
+> **Never for shipped artwork.** Every mark that ships is hand-authored vector on
+> a declared grid. The generated images are conversation, and the SVG is the
+> deliverable.
 
 ## When a tool is missing
 
-Say which asset is affected, name the fallback being used, and note any quality
-difference. If no fallback exists, produce everything else, list the gap
-explicitly in `VERIFY.md`, and do not quietly ship a worse substitute as though
-it were the real thing.
+> [!WARNING]
+> Say which asset is affected, name the fallback being used, and note any quality
+> difference. If no fallback exists, produce everything else, list the gap
+> explicitly in `VERIFY.md`, and do not quietly ship a worse substitute as though
+> it were the real thing.
 
 A build that silently degrades reads as complete when it is not, and that is
 the failure mode this whole system exists to prevent.

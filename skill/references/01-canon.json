@@ -1,7 +1,7 @@
 {
   "id": "shruggietech",
   "kind": "canon",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "generated": "2026-09-03",
   "generator": "shruggie-brandbuilder/gen_canon.py",
   "summary": "The ShruggieTech brand-system root. Every brand explicitly declares affiliation, inheritance, typography mode, and authoritative inputs. House values are copied only when house inheritance or house typography is selected. Constrained values remain machine-checkable.",

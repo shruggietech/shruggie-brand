@@ -9,7 +9,7 @@ import shutil
 import zipfile
 from pathlib import Path
 
-from release_contract import load_metadata, verify_release_directory
+from release_contract import current_version, load_metadata, verify_release_directory
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,11 +43,16 @@ def assert_licenses(path: Path) -> None:
         raise ValueError(f"{path.name} lacks {', '.join(missing)}")
 
 
+def resolve_version(root: Path, requested: str | None) -> str:
+    return requested if requested is not None else current_version(root)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", default="1.1.2")
+    parser.add_argument("--version")
     args = parser.parse_args()
-    metadata = load_metadata(ROOT, args.version)
+    version = resolve_version(ROOT, args.version)
+    metadata = load_metadata(ROOT, version)
     resolved_output = OUTPUT.resolve()
     if resolved_output.parent != ROOT.resolve():
         raise ValueError("refusing to clean release output outside repository root")
@@ -55,11 +60,11 @@ def main() -> int:
         shutil.rmtree(resolved_output)
     resolved_output.mkdir()
 
-    skill_bundle = OUTPUT / f"shruggie-brandbuilder-{args.version}.skill"
+    skill_bundle = OUTPUT / f"shruggie-brandbuilder-{version}.skill"
     with zipfile.ZipFile(skill_bundle, "w") as archive:
         add_tree(archive, SKILL)
 
-    portable = OUTPUT / f"shruggie-brandbuilder-{args.version}-portable.zip"
+    portable = OUTPUT / f"shruggie-brandbuilder-{version}-portable.zip"
     with zipfile.ZipFile(portable, "w") as archive:
         add_tree(archive, SKILL, omit={"SKILL.md"})
         add_bytes(

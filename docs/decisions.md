@@ -124,3 +124,11 @@ Manual narrow-screen inspection exposed two fixture defects that the earlier sou
 - Public explanatory prose replaces the internal term "canon" while literal machine keys and fenced examples retain it where changing the value would make the documentation inaccurate.
 - The public site uses Fumadocs for navigation and static search, with ShruggieTech-specific home and portfolio surfaces sharing the same generated identity assets and metadata contract.
 - Repository governance advanced to constitution 2.0.0 because deleting the committed synthetic fixture reverses an earlier mandatory source rule. The owner instruction for issue #103 provides the explicit authorization for that breaking governance change.
+
+### S009 route graph and visual evidence
+
+- Every public route is now described once during site preparation. Next metadata, guideline HTML metadata, JSON-LD, breadcrumbs, social previews, the sitemap, and browser inventories consume that generated descriptor instead of maintaining separate URL lists.
+- The authoritative organization identity remains `https://shruggie.tech`, while the brand collection uses `https://brand.shruggie.tech/#website`. Brand structured data names public work without asserting that ShruggieTech owns third-party identities.
+- Social previews are deterministic 1280 by 640 PNG files generated from local fonts and existing ShruggieTech mark geometry. They remain ignored because they are reproducible build outputs.
+- Documentation screenshots for the index and toolchain reference cover light and dark themes at 360 and 1280 CSS pixels. They remain under ignored `site/test-results/visual/` as run evidence rather than brittle committed baselines.
+- The Windows host denied Turbopack's pooled worker launcher during local verification. The supported webpack build path supplied local production-build evidence, while hosted Linux CI retains the standard repository command and therefore verifies the normal Turbopack path.

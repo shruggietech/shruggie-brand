@@ -1,6 +1,6 @@
 {
   "name": "shruggie-brand-site",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "private": true,
   "packageManager": "pnpm@10.28.2",
   "scripts": {
@@ -8,7 +8,7 @@
     "build": "pnpm prepare:content && next build",
     "dev": "pnpm prepare:content && next dev",
     "lint": "pnpm prepare:content && tsc --noEmit",
-    "test": "node scripts/verify-site.mjs"
+    "test": "node --test tests/production-origin.test.mjs tests/payload-contract.test.mjs && node scripts/verify-site.mjs"
   },
   "dependencies": {
     "fumadocs-core": "16.14.3",

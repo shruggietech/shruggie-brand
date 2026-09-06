@@ -1,0 +1,91 @@
+# Evidence: S011 v1.2.0 Publication and Production Certification
+
+## Baseline
+
+- Owner-merged main revision: `39b65b5daf9ea74c317132d26347566a9e4959d5`
+- S010 pull request: [#127](https://github.com/shruggietech/shruggie-brand/pull/127)
+- Merged-main Build workflow: [run 33990452781](https://github.com/shruggietech/shruggie-brand/actions/runs/33990452781), successful
+- Merged-main Pages workflow: [run 33990452789](https://github.com/shruggietech/shruggie-brand/actions/runs/33990452789), successful
+- Parent: [#116](https://github.com/shruggietech/shruggie-brand/issues/116)
+- Publication: [#118](https://github.com/shruggietech/shruggie-brand/issues/118)
+- Production: [#119](https://github.com/shruggietech/shruggie-brand/issues/119)
+- S011 tracking: [#129](https://github.com/shruggietech/shruggie-brand/issues/129)
+- Initial v1.2.0 tag and release state: absent
+
+## Specification convergence
+
+- Specification checklist: PASS
+- Clarifications required: none
+- Constitution pre-design and post-design checks: PASS
+- Cross-artifact analysis: PASS. Every functional requirement maps to at least one task, all user stories have independent tests, task ordering respects publication and review gates, terminology is consistent, and the visual matrix was corrected to eight screenshots.
+
+## Candidate revalidation
+
+- Reviewed S010 head: `4e8a75f0f152ca09ed3fef682947f3af6840e97b`
+- Owner-merged main: `39b65b5daf9ea74c317132d26347566a9e4959d5`
+- Tree for both revisions: `8eeb12a546336083167dfc8f23396a8d56482f22`, exact match
+- Current release discovery: `1.2.0`
+- Local Python tests: 31 passed
+- Local production build: five kits, zero reported problems, zero glyph failures, and zero `verify.py` problems. The local host ran at the supported core capability tier because no native SVG rasterizer was installed, so it did not substitute for full release packaging.
+- Authoritative full candidate gate: [Build run 33990452781](https://github.com/shruggietech/shruggie-brand/actions/runs/33990452781), successful on exact merged main. Its jobs passed Python 3.8 compatibility, full native-renderer kit generation, release metadata and archive certification, generated agent synchronization, type checking, static export, browser checks, and WCAG verification.
+- Generated agent synchronization: unchanged
+- Markdown policy: passed
+
+## Public release
+
+- Annotated tag: `v1.2.0`, resolving to exact merged main `39b65b5daf9ea74c317132d26347566a9e4959d5`
+- Tag conflict guard: no prior local tag, remote tag, or GitHub release existed
+- Release workflow: [run 34001058553](https://github.com/shruggietech/shruggie-brand/actions/runs/34001058553), successful
+- Public release: [shruggie-brandbuilder 1.2.0](https://github.com/shruggietech/shruggie-brand/releases/tag/v1.2.0), non-draft and non-prerelease
+- Public inventory: exactly seven expected assets, two skill distributions and five production-kit archives
+- Fresh public download contract: seven of seven assets and generated notes verified with zero failures
+- Public notes comparison: exact after line-ending normalization, SHA-256 `5f5c52eb0619b6fa8a0e143e1452a6798b2794d74f3b89466a93022f84f8cc45`
+- Issue evidence: [#118 comment](https://github.com/shruggietech/shruggie-brand/issues/118#issuecomment-5555803920)
+
+## Production deployment
+
+- Pages workflow: [run 33990452789](https://github.com/shruggietech/shruggie-brand/actions/runs/33990452789), successful for exact merged main `39b65b5daf9ea74c317132d26347566a9e4959d5`
+- Pages configuration: workflow-based, public custom domain `brand.shruggie.tech`, enforced HTTPS, approved certificate
+- Origin and payload guards: 11 regression tests passed for local fallback, exact HTTPS production selection, malformed origin rejection, host restriction, safe canonical redirects, non-empty bodies, expected media types, and format-specific payload validation
+- Local site contract: 26 HTML routes at 360px and 1280px, zero WCAG 2.1 AA violations, zero failures
+- Production site contract: 26 HTML routes at 360px and 1280px, zero WCAG 2.1 AA violations, zero failures
+- Production redirect observation: GitHub Pages returns permanent HTTP 301 where the local server returns HTTP 308. The verifier accepts only 301 or 308 to the exact same-origin trailing-slash destination and rejects temporary, cross-origin, or incorrect redirects.
+- Visual inspection: all eight screenshots across the documentation index and toolchain route, both widths, and both themes showed no new clipping, overlap, broken rendering, theme failure, or material regression
+- Known future improvements: Phase 13 issues #120 through #126 remain open and do not contradict a v1.2.0 certification gate
+- Issue evidence: [#119 comment](https://github.com/shruggietech/shruggie-brand/issues/119#issuecomment-5555804005)
+
+## Repository gates
+
+- Regression-first proof: production-origin and payload tests failed because their modules did not exist, then 11 tests passed after implementation
+- Python geometry and release suites: 113 tests and checks passed across glyph construction, packaging, release contract, site preparation, brand contract, icon generation, and pipeline behavior
+- Site lint and generated content: passed
+- Static site build: 26 pages generated successfully with webpack
+- Local browser contract: 26 routes at both widths, zero failures and zero WCAG 2.1 AA violations
+- Production browser contract: 26 routes at both widths, zero failures and zero WCAG 2.1 AA violations
+- Markdown prose policy: passed
+- Generated agent synchronization: unchanged
+- Git diff whitespace check: passed
+- UTF-8 without BOM and LF-only scan: 16 changed text files passed
+- Mojibake, private-path, and common secret-marker scan: passed
+- Generated output and dependency directories: ignored and absent from the change set
+
+## Pull request and reviews
+
+- Pull request: [#130](https://github.com/shruggietech/shruggie-brand/pull/130)
+- Initial head: `22cc2642f37813b49768507f12a98187715fb77d`
+- Initial CI: both push and pull-request Build jobs plus both Python 3.8 compatibility jobs passed
+- Codex round one: completed with one P2 finding at [discussion 3942515617](https://github.com/shruggietech/shruggie-brand/pull/130#discussion_r3942515617)
+- Filed review issue: [#131](https://github.com/shruggietech/shruggie-brand/issues/131)
+- Round-one correction: changed the quickstart screenshot count from four to eight so it agrees with the actual two-route, two-width, two-theme matrix
+- Round-one response: [discussion reply 3942524157](https://github.com/shruggietech/shruggie-brand/pull/130#discussion_r3942524157)
+- Round-one unresolved threads: 0
+- Explicit review requests posted: 1, [the only authorized request](https://github.com/shruggietech/shruggie-brand/pull/130#issuecomment-5555862620)
+- Codex round two: completed with one P1 finding at [discussion 3942531180](https://github.com/shruggietech/shruggie-brand/pull/130#discussion_r3942531180)
+- Filed review issue: [#132](https://github.com/shruggietech/shruggie-brand/issues/132)
+- Round-two correction: every required and downloadable file now requires a non-empty payload, expected media type, and format-specific PDF, PNG, ICO, SVG, JSON, web manifest, XML, or robots-text validation
+- Corrected local and production contracts: 26 routes at both widths, zero failures and zero WCAG 2.1 AA violations
+- Round-two response: [discussion reply 3942556123](https://github.com/shruggietech/shruggie-brand/pull/130#discussion_r3942556123)
+- Round-two corrected head: `f6b15158666af2ac7850fe100dca682aa12d2f39`
+- Corrected-head CI: [pull-request run 34002692885](https://github.com/shruggietech/shruggie-brand/actions/runs/34002692885) and [push run 34002694208](https://github.com/shruggietech/shruggie-brand/actions/runs/34002694208), all build and Python 3.8 compatibility jobs successful
+- Round-two unresolved threads: 0
+- Further review requests authorized and posted: 0

@@ -42,7 +42,13 @@
       },
       "additionalProperties": true
     },
-    "logo": {"type": "object"}
+    "logo": {
+      "type": "object",
+      "properties": {
+        "application_icon": {"$ref": "#/$defs/applicationIcon"}
+      },
+      "additionalProperties": true
+    }
   },
   "allOf": [
     {
@@ -72,6 +78,14 @@
   ],
   "$defs": {
     "hexColor": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+    "applicationIcon": {
+      "type": "object",
+      "required": ["background"],
+      "additionalProperties": false,
+      "properties": {
+        "background": {"$ref": "#/$defs/hexColor"}
+      }
+    },
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "affiliation": {
       "type": "object",

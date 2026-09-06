@@ -4,8 +4,24 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Changed
+
+- On 2026-09-05, made the canonical ShruggieTech brand record the source of the black-background browser icon suite and selected the existing colored horizontal lockups for light and dark site chrome without changing logo geometry.
+- Standardized the public documentation root as "Documentation" and its first numbered page as "Variance Contract", reduced landing navigation to viewport-specific approved destinations, and applied the generated orange and green roles to actions, links, code strings, list markers, and pagination affordances.
+- Added fail-closed production-origin verification that reuses the complete local route, resource, payload, metadata, responsive, theme, and accessibility contract, validates downloadable formats and media types, and recognizes safe permanent redirects from GitHub Pages.
+
+### Fixed
+
+- Added fail-closed pixel and ICO-frame checks for canonical black favicons, a 12-cell visual regression matrix, minimum mobile navigation targets, reduced-motion link behavior, persistent documentation pagination affordances, and non-overlapping documentation footer spacing.
+
+## [1.2.0] - 2026-09-05
+
 ### Added
 
+- Added one validated route descriptor graph for exact canonical, Open Graph, Twitter, JSON-LD, breadcrumb, sitemap, and route-specific social-preview discovery across every public page.
+- Added deterministic documentation notice transformation and browser verification for code copying, syntax distinction, strict canonical paths, both themes, responsive layouts, and route metadata parity.
+- Added generated web, Android, iOS and iPadOS, macOS, and Windows application-icon suites with exact manifests, native integration metadata, and human-navigable packaging.
+- Added emitted-site favicon integrity checks and direct categorized icon-suite downloads for every generated brand.
 - Added fail-closed affiliation, showcase, inheritance, authoritative-input, palette-approval, and fixed-font contracts for owned and third-party brand work.
 - Added deterministic source evidence, controlled atomic font ingestion, and complete third-party ownership-safety regression coverage.
 - Added a responsive ShruggieTech brand portfolio with generated identity cards, direct asset access, and a prominent skill download path.
@@ -14,6 +30,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- Applied the generated ShruggieTech theme and existing light and dark lockups to the documentation shell with compact type hierarchy, branded orientation states, and responsive navigation.
 - Migrated all five production brands to explicit house inheritance and typography while making generated wording, semantic tokens, framework bindings, guides, and site metadata contract-driven.
 - Aligned the brand site with ShruggieTech's visual system and approved public message, including the headline "We build comprehensive brands".
 - Restricted normal build and publication discovery to the five production sources under `brands/`.
@@ -21,6 +38,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Restored native Fumadocs code panels and copy controls, preserved syntax colors and overflow behavior, rendered explicit source notices as semantic callouts, and removed the duplicate documentation navigation link.
 - Rebuilt the mislabeled Space Grotesk Medium and Bold WOFF2 files from their authoritative local TTF faces so internal family and weight metadata match their declarations.
 - Made generated wrappers self-contained so authoritative raster marks remain visible in PNG, favicon, social-preview, and contact-sheet exports, with empty raster output now rejected.
 
@@ -89,7 +107,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 - Relicensed the brandbuilder code, templates, and reference documentation from proprietary terms to Apache-2.0 while reserving names and marks.
 
-[Unreleased]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/ShruggieTech/shruggie-brand/releases/tag/v1.1.0
