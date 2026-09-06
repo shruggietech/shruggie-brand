@@ -47,27 +47,27 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
 
 
 class ReleaseContractTests(unittest.TestCase):
-    def test_repository_metadata_and_notes_agree_for_1_2_0(self):
-        metadata = release_contract.load_metadata(ROOT, "1.2.0")
+    def test_repository_metadata_and_notes_agree_for_1_2_1(self):
+        metadata = release_contract.load_metadata(ROOT, "1.2.1")
         notes = release_contract.render_notes(metadata)
 
-        self.assertEqual(metadata["skill_version"], "1.2.0")
-        self.assertEqual(metadata["canon_version"], "1.2.0")
-        self.assertEqual(metadata["site_version"], "1.2.0")
-        self.assertEqual(release_contract.current_version(ROOT), "1.2.0")
-        self.assertIn("Skill version: `1.2.0`", notes)
-        self.assertIn("Canon version: `1.2.0`", notes)
-        self.assertIn("Existing kits need migration: **yes**", notes)
-        self.assertIn("native application-icon suites", notes)
-        self.assertIn("ownership-safe third-party inputs", notes)
+        self.assertEqual(metadata["skill_version"], "1.2.1")
+        self.assertEqual(metadata["canon_version"], "1.2.1")
+        self.assertEqual(metadata["site_version"], "1.2.1")
+        self.assertEqual(release_contract.current_version(ROOT), "1.2.1")
+        self.assertIn("Skill version: `1.2.1`", notes)
+        self.assertIn("Canon version: `1.2.1`", notes)
+        self.assertIn("Existing kits need migration: **conditional**", notes)
+        self.assertIn("ShruggieTech kit and brand site", notes)
+        self.assertIn("Other production kits do not require", notes)
         self.assertNotIn("## [Unreleased]", notes)
 
     def test_expected_assets_are_exact_and_use_embedded_brand_versions(self):
-        metadata = release_contract.load_metadata(ROOT, "1.2.0")
+        metadata = release_contract.load_metadata(ROOT, "1.2.1")
 
         self.assertEqual(set(release_contract.expected_assets(metadata)), {
-            "shruggie-brandbuilder-1.2.0.skill",
-            "shruggie-brandbuilder-1.2.0-portable.zip",
+            "shruggie-brandbuilder-1.2.1.skill",
+            "shruggie-brandbuilder-1.2.1-portable.zip",
             "shruggietech-brand-1.0.0.zip",
             "fragcap-brand-1.1.0.zip",
             "go-schedule-brand-1.0.0.zip",
@@ -89,11 +89,11 @@ class ReleaseContractTests(unittest.TestCase):
         root = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         skill = (ROOT / "skill" / "CHANGELOG.md").read_text(encoding="utf-8")
 
-        with self.assertRaisesRegex(ValueError, "root and skill 1.2.0 release dates disagree"):
+        with self.assertRaisesRegex(ValueError, "root and skill 1.2.1 release dates disagree"):
             release_contract.require_history(
                 root,
-                skill.replace("## 1.2.0 - 2026-09-05", "## 1.2.0 - 2026-09-06"),
-                "1.2.0",
+                skill.replace("## 1.2.1 - 2026-09-06", "## 1.2.1 - 2026-09-07"),
+                "1.2.1",
             )
 
     def test_build_workflow_discovers_current_release_version(self):
@@ -116,9 +116,9 @@ class ReleaseContractTests(unittest.TestCase):
             release_contract, "read_text", side_effect=read_with_stale_site
         ):
             with self.assertRaisesRegex(
-                ValueError, "site package version 1.1.2 does not match release 1.2.0"
+                ValueError, "site package version 1.1.2 does not match release 1.2.1"
             ):
-                release_contract.load_metadata(ROOT, "1.2.0")
+                release_contract.load_metadata(ROOT, "1.2.1")
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -130,7 +130,7 @@ class ReleaseContractTests(unittest.TestCase):
 
     def test_portable_bundle_requires_agents_and_omits_skill(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "shruggie-brandbuilder-1.2.0-portable.zip"
+            path = Path(tmp) / "shruggie-brandbuilder-1.2.1-portable.zip"
             entries = {name: name.encode("utf-8") for name in LICENSES}
             entries.update({"AGENTS.md": b"agents", "CHANGELOG.md": b"history",
                             "README.md": b"portable", "SKILL.md": b"forbidden"})

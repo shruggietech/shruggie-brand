@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.2.1 - 2026-09-06
+
+- Made the canonical ShruggieTech brand source generate the approved black-background browser icon suite without changing logo geometry.
+- Standardized the public documentation labels for the Documentation root and Variance Contract while preserving their stable routes.
+
 ## 1.2.0 - 2026-09-05
 
 - Added deterministic, categorized web, Android, iOS and iPadOS, macOS, and Windows application-icon suites with native metadata, platform-local instructions, exact manifests, and compatibility aliases.
