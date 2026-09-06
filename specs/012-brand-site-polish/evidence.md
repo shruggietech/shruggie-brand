@@ -32,8 +32,11 @@
 
 ## Pull request and reviews
 
-- Pull request: Pending
-- Automatic Codex round one: Pending
+- Pull request: [#134](https://github.com/shruggietech/shruggie-brand/pull/134)
+- Automatic Codex round one: Completed on `a4b7f0ff42c487f66dac6614ac4e84ef52608dd2` with two warranted findings
+- Round-one issue [#135](https://github.com/shruggietech/shruggie-brand/issues/135): primary-action hover and focus contrast. Corrected by darkening the generated CTA role on interaction and adding explicit hover-only and focus-only Axe contrast checks in both themes.
+- Round-one issue [#136](https://github.com/shruggietech/shruggie-brand/issues/136): background-only favicon outputs. Corrected by measuring a minimum amount of non-black artwork in every PNG, manifest icon, and ICO frame while retaining exact black, alpha, dimension, sRGB, and route-inheritance checks.
+- Round-one correction gate: Site lint, 26-route webpack production build, 11 Node contract tests, and the complete browser, responsive, icon, visual, reduced-motion, and WCAG matrix passed.
 - Explicit review requests posted: 0
 - Codex round two: Not requested
-- Unresolved threads: Pending
+- Unresolved threads: 0 after substantive responses and resolution on the corrected head

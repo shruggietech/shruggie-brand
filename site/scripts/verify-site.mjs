@@ -64,7 +64,7 @@ function pngInfo(buffer) {
     if (kind === 'IEND') break;
   }
   if (!width || !height || depth !== 8 || colorType !== 6) throw new Error(`unsupported PNG ${width}x${height} depth ${depth} color ${colorType}`);
-  const raw = inflateSync(Buffer.concat(compressed)); const stride = width * 4; let cursor = 0; let previous = Buffer.alloc(stride); let minAlpha = 255; let visible = 0; const corners = [];
+  const raw = inflateSync(Buffer.concat(compressed)); const stride = width * 4; let cursor = 0; let previous = Buffer.alloc(stride); let minAlpha = 255; let visible = 0; let artwork = 0; const corners = [];
   for (let y = 0; y < height; y += 1) {
     const filter = raw[cursor]; const row = Buffer.from(raw.subarray(cursor + 1, cursor + 1 + stride)); cursor += stride + 1;
     for (let i = 0; i < stride; i += 1) {
@@ -75,11 +75,11 @@ function pngInfo(buffer) {
       else if (filter === 4) row[i] = (row[i] + paeth(left, above, upperLeft)) & 255;
       else if (filter !== 0) throw new Error(`unsupported PNG filter ${filter}`);
     }
-    for (let i = 3; i < stride; i += 4) { minAlpha = Math.min(minAlpha, row[i]); if (row[i] > 0) visible += 1; }
+    for (let i = 3; i < stride; i += 4) { minAlpha = Math.min(minAlpha, row[i]); if (row[i] > 0) visible += 1; if (row[i] > 0 && (row[i - 3] !== 0 || row[i - 2] !== 0 || row[i - 1] !== 0)) artwork += 1; }
     if (y === 0 || y === height - 1) for (const x of [0, width - 1]) corners.push([...row.subarray(x * 4, x * 4 + 4)]);
     previous = row;
   }
-  return { width, height, opaque: minAlpha === 255, srgb, visible, corners };
+  return { width, height, opaque: minAlpha === 255, srgb, visible, artwork, corners };
 }
 function icoEntries(buffer) {
   if (buffer.length < 6 || !buffer.subarray(0, 4).equals(Buffer.from([0, 0, 1, 0]))) throw new Error('invalid ICO signature');
@@ -88,6 +88,7 @@ function icoEntries(buffer) {
   return entries;
 }
 const hasCanonicalBlackCorners = (info) => info.corners.length === 4 && info.corners.every((pixel) => JSON.stringify(pixel) === JSON.stringify([0, 0, 0, 255]));
+const hasVisibleArtwork = (info) => info.artwork >= Math.max(1, Math.ceil(info.width * info.height * 0.005));
 const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
@@ -269,6 +270,18 @@ try {
   check(actionStyle.background === actionStyle.cta, `primary landing action does not use the generated CTA token (${JSON.stringify(actionStyle)})`);
   check(actionStyle.color === 'rgb(255, 255, 255)', 'primary landing action must use white text');
   check(Number.parseFloat(actionStyle.transitionDuration) >= 0.12 && Number.parseFloat(actionStyle.transitionDuration) <= 0.3, 'interactive motion must remain within the 120-300ms contract');
+  for (const theme of visualThemes) {
+    await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
+    await page.reload({ waitUntil: 'networkidle' });
+    const themedPrimary = page.locator('.hero .button.primary');
+    await themedPrimary.hover();
+    let contrast = await new AxeBuilder({ page }).include('.hero .button.primary').withRules(['color-contrast']).analyze();
+    check(contrast.violations.length === 0, `primary landing action hover state fails WCAG contrast in ${theme} theme`);
+    await page.mouse.move(0, 899);
+    await themedPrimary.focus();
+    contrast = await new AxeBuilder({ page }).include('.hero .button.primary').withRules(['color-contrast']).analyze();
+    check(contrast.violations.length === 0, `primary landing action focus state fails WCAG contrast in ${theme} theme`);
+  }
   const secondaryActionColor = await page.locator('.hero .button:not(.primary)').evaluate((element) => getComputedStyle(element).color);
   const primaryTokenColor = await page.evaluate(() => { const probe = document.createElement('i'); probe.style.color = 'var(--primary)'; document.body.append(probe); const color = getComputedStyle(probe).color; probe.remove(); return color; });
   check(secondaryActionColor === primaryTokenColor, `secondary landing action does not use the generated accessible green token (${secondaryActionColor} != ${primaryTokenColor})`);
@@ -294,15 +307,15 @@ try {
     const response = await page.request.get(base + file); check(response.ok(), `${file} cannot be fetched for icon validation`); if (!response.ok()) continue;
     const buffer = Buffer.from(await response.body());
     try {
-      if (file.endsWith('.png')) { const info = pngInfo(buffer); const size = expectedPngs.get(file); check(info.width === size && info.height === size, `${file} is ${info.width}x${info.height}, expected ${size}x${size}`); check(info.srgb, `${file} lacks an sRGB declaration`); check(info.visible > 0, `${file} has no visible pixels`); check(info.opaque, `${file} must have an opaque platform background`); check(hasCanonicalBlackCorners(info), `${file} does not use canonical #000000 corner pixels`); }
-      else if (file.endsWith('.ico')) { const entries = icoEntries(buffer); check(JSON.stringify(entries.map((entry) => entry.size)) === JSON.stringify([16, 24, 32, 48, 64, 128, 256]), `${file} lacks the required ICO entries`); for (const entry of entries) check(hasCanonicalBlackCorners(pngInfo(entry.payload)), `${file} ${entry.size}px frame does not use canonical #000000 corner pixels`); }
+      if (file.endsWith('.png')) { const info = pngInfo(buffer); const size = expectedPngs.get(file); check(info.width === size && info.height === size, `${file} is ${info.width}x${info.height}, expected ${size}x${size}`); check(info.srgb, `${file} lacks an sRGB declaration`); check(info.visible > 0, `${file} has no visible pixels`); check(hasVisibleArtwork(info), `${file} contains only its black background and no measurable ShruggieTech artwork`); check(info.opaque, `${file} must have an opaque platform background`); check(hasCanonicalBlackCorners(info), `${file} does not use canonical #000000 corner pixels`); }
+      else if (file.endsWith('.ico')) { const entries = icoEntries(buffer); check(JSON.stringify(entries.map((entry) => entry.size)) === JSON.stringify([16, 24, 32, 48, 64, 128, 256]), `${file} lacks the required ICO entries`); for (const entry of entries) { const info = pngInfo(entry.payload); check(hasCanonicalBlackCorners(info), `${file} ${entry.size}px frame does not use canonical #000000 corner pixels`); check(hasVisibleArtwork(info), `${file} ${entry.size}px frame contains only its black background and no measurable ShruggieTech artwork`); } }
       else if (file.endsWith('.svg')) { const text = buffer.toString('utf8'); check(text.includes('<svg') && text.includes('<image'), `${file} lacks SVG artwork`); check(/<rect[^>]+fill=["']#000000["']/i.test(text), `${file} does not declare the canonical #000000 background`); const references = [...text.matchAll(/(?:href|xlink:href)=["']([^"']+)/g)].map((match) => match[1]); check(references.every((reference) => reference.startsWith('data:') || reference.startsWith('#')), `${file} has an unresolved nested dependency`); }
     } catch (error) { failures.push(`${file} does not decode: ${error.message}`); }
   }
   const manifestResponse = await page.request.get(base + '/site.webmanifest');
   if (manifestResponse.ok()) {
     const manifest = await manifestResponse.json(); check(Array.isArray(manifest.icons) && manifest.icons.length >= 2, 'site.webmanifest lacks installable icons'); check(manifest.background_color === '#000000' && manifest.theme_color === '#000000', 'site.webmanifest must declare canonical #000000 background and theme colors');
-    for (const icon of manifest.icons ?? []) { const match = /^(\d+)x(\d+)$/.exec(icon.sizes ?? ''); check(Boolean(match), `manifest icon ${icon.src} has an invalid size declaration`); if (!match) continue; const response = await page.request.get(new URL(icon.src, base).href); check(response.ok(), `manifest icon ${icon.src} is missing`); if (!response.ok()) continue; try { const info = pngInfo(Buffer.from(await response.body())); check(info.width === Number(match[1]) && info.height === Number(match[2]), `manifest icon ${icon.src} dimensions disagree with ${icon.sizes}`); check(info.srgb, `manifest icon ${icon.src} lacks an sRGB declaration`); check(info.opaque, `manifest icon ${icon.src} must be opaque`); check(hasCanonicalBlackCorners(info), `manifest icon ${icon.src} does not use canonical #000000 corner pixels`); } catch (error) { failures.push(`manifest icon ${icon.src} does not decode: ${error.message}`); } }
+    for (const icon of manifest.icons ?? []) { const match = /^(\d+)x(\d+)$/.exec(icon.sizes ?? ''); check(Boolean(match), `manifest icon ${icon.src} has an invalid size declaration`); if (!match) continue; const response = await page.request.get(new URL(icon.src, base).href); check(response.ok(), `manifest icon ${icon.src} is missing`); if (!response.ok()) continue; try { const info = pngInfo(Buffer.from(await response.body())); check(info.width === Number(match[1]) && info.height === Number(match[2]), `manifest icon ${icon.src} dimensions disagree with ${icon.sizes}`); check(info.srgb, `manifest icon ${icon.src} lacks an sRGB declaration`); check(info.opaque, `manifest icon ${icon.src} must be opaque`); check(hasCanonicalBlackCorners(info), `manifest icon ${icon.src} does not use canonical #000000 corner pixels`); check(hasVisibleArtwork(info), `manifest icon ${icon.src} contains only its black background and no measurable ShruggieTech artwork`); } catch (error) { failures.push(`manifest icon ${icon.src} does not decode: ${error.message}`); } }
   }
   for (const route of iconRoutes) {
     await page.goto(base + route); const icons = await page.locator('link[rel="icon"]').evaluateAll((links) => links.map((link) => new URL(link.href).pathname));

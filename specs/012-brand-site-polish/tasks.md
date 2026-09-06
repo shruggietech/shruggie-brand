@@ -55,8 +55,8 @@
 
 - [X] T022 Update the Unreleased changelog with the S012 feature and dated source-driven presentation decision in `CHANGELOG.md`
 - [X] T023 Run the complete Python 3.8-compatible test set, full production build where capabilities permit, site lint, static export, browser verifier, Markdown, encoding, sensitive-data, artifact-boundary, whitespace, and git-status gates and record results in `specs/012-brand-site-polish/evidence.md`
-- [ ] T024 Commit, push, and open the official S012 pull request with closure links for #120 through #126 and #133
-- [ ] T025 Process automatic Codex round one, file every negative finding as an issue, respond to every comment, correct warranted findings, resolve addressed threads, and update `specs/012-brand-site-polish/contracts/review-ledger.md`
+- [X] T024 Commit, push, and open the official S012 pull request with closure links for #120 through #126 and #133
+- [X] T025 Process automatic Codex round one, file every negative finding as an issue, respond to every comment, correct warranted findings, resolve addressed threads, and update `specs/012-brand-site-polish/contracts/review-ledger.md`
 - [ ] T026 Post at most one explicit `@Codex review` request after round one completes, process round two without another trigger, file and disposition every finding, resolve every thread, wait for green final-head checks, and update `specs/012-brand-site-polish/evidence.md`
 - [ ] T027 Stop with the pull request open and ask the owner for the final review and merge ritual
 
