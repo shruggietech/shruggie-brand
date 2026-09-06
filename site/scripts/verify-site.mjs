@@ -5,6 +5,7 @@ import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { inflateSync } from 'node:zlib';
 import { downloadFiles, htmlRoutes, iconFiles, iconRoutes, requiredFiles, routeRecords, tableRoutes, visualRoutes, visualThemes, visualWidths } from '../tests/site.test.mjs';
+import { isCanonicalRedirect, selectVerificationOrigin } from './verification-origin.mjs';
 
 const root = resolve(import.meta.dirname, '..', 'out');
 const visualRoot = resolve(import.meta.dirname, '..', 'test-results', 'visual');
@@ -21,22 +22,27 @@ function diskPath(url) {
   if (!resolve(path).startsWith(root)) throw new Error('unsafe request path');
   return path;
 }
-const server = createServer((request, response) => {
-  try {
-    const requestUrl = new URL(request.url ?? '/', 'http://local');
-    if (requestUrl.pathname !== '/' && !requestUrl.pathname.endsWith('/') && !extname(requestUrl.pathname)) {
-      const canonicalPath = diskPath(`${requestUrl.pathname}/`);
-      if (existsSync(canonicalPath) && statSync(canonicalPath).isFile()) { response.writeHead(308, { location: `${requestUrl.pathname}/${requestUrl.search}` }).end(); return; }
-    }
-    const path = diskPath(request.url ?? '/');
-    if (!existsSync(path) || !statSync(path).isFile()) { response.writeHead(404).end('not found'); return; }
-    response.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' });
-    createReadStream(path).pipe(response);
-  } catch { response.writeHead(400).end('bad request'); }
-});
-await new Promise((accept) => server.listen(0, '127.0.0.1', accept));
-const address = server.address();
-const base = `http://127.0.0.1:${address.port}`;
+const selectedOrigin = selectVerificationOrigin(process.env.SITE_VERIFY_BASE_URL);
+let server;
+let base = selectedOrigin.base;
+if (selectedOrigin.kind === 'local') {
+  server = createServer((request, response) => {
+    try {
+      const requestUrl = new URL(request.url ?? '/', 'http://local');
+      if (requestUrl.pathname !== '/' && !requestUrl.pathname.endsWith('/') && !extname(requestUrl.pathname)) {
+        const canonicalPath = diskPath(`${requestUrl.pathname}/`);
+        if (existsSync(canonicalPath) && statSync(canonicalPath).isFile()) { response.writeHead(308, { location: `${requestUrl.pathname}/${requestUrl.search}` }).end(); return; }
+      }
+      const path = diskPath(request.url ?? '/');
+      if (!existsSync(path) || !statSync(path).isFile()) { response.writeHead(404).end('not found'); return; }
+      response.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' });
+      createReadStream(path).pipe(response);
+    } catch { response.writeHead(400).end('bad request'); }
+  });
+  await new Promise((accept) => server.listen(0, '127.0.0.1', accept));
+  const address = server.address();
+  base = `http://127.0.0.1:${address.port}`;
+}
 const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
 function paeth(left, above, upperLeft) {
@@ -159,7 +165,7 @@ try {
     if (route.pathname !== '/') {
       const withoutSlash = route.pathname.slice(0, -1);
       const redirect = await page.request.get(base + withoutSlash, { maxRedirects: 0 });
-      check(redirect.status() === 308 && redirect.headers().location === `${withoutSlash}/`, `${withoutSlash} must redirect once to its canonical trailing-slash path`);
+      check(isCanonicalRedirect(redirect.status(), redirect.headers().location, base, withoutSlash), `${withoutSlash} must permanently redirect once to its canonical same-origin trailing-slash path`);
     }
   }
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -247,7 +253,7 @@ try {
   }
 } finally {
   await browser.close();
-  server.close();
+  server?.close();
 }
 if (failures.length) { console.error(failures.map((failure) => `FAIL ${failure}`).join('\n')); process.exit(1); }
 console.log(`verified ${htmlRoutes.length} HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations`);
