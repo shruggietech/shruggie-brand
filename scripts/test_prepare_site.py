@@ -138,7 +138,11 @@ class PrepareSiteTests(unittest.TestCase):
             self.assertIn("| one | two |", page)
             self.assertNotIn("# Start here", page)
             meta = json.loads((output / "meta.json").read_text(encoding="utf-8"))
+            self.assertEqual("Documentation", meta["title"])
             self.assertEqual(meta["pages"], ["index", "00-start"])
+            index = (output / "index.mdx").read_text(encoding="utf-8")
+            self.assertIn('title: "Documentation"', index)
+            self.assertNotRegex(index, r"(?i)how we build(?: brands)?")
 
     def test_route_contract_is_complete_canonical_and_page_aware(self):
         brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
@@ -154,7 +158,9 @@ class PrepareSiteTests(unittest.TestCase):
             self.assertEqual(route["canonical"], route["structuredData"]["@graph"][2]["url"])
             self.assertNotEqual("ShruggieTech brand portfolio", route["social"]["alt"])
         doc = next(route for route in routes if route["kind"] == "docs-page")
-        self.assertEqual(["Brands", "How we build brands", "Toolchain"], [item["name"] for item in doc["breadcrumbs"]])
+        self.assertEqual(["Brands", "Documentation", "Toolchain"], [item["name"] for item in doc["breadcrumbs"]])
+        docs_root = next(route for route in routes if route["kind"] == "docs-index")
+        self.assertEqual("Documentation | ShruggieTech", docs_root["documentTitle"])
         self.assertEqual("TechArticle", doc["structuredData"]["@graph"][2]["@type"])
         brand = next(route for route in routes if route["kind"] == "brand")
         graph_text = json.dumps(brand["structuredData"])
@@ -236,26 +242,26 @@ class PrepareSiteTests(unittest.TestCase):
             for name, size in (("favicon-16x16.png", 16), ("favicon-32x32.png", 32),
                                ("apple-touch-icon.png", 180), ("android-chrome-192x192.png", 192),
                                ("android-chrome-512x512.png", 512)):
-                Image.new("RGBA", (size, size), (255, 255, 255, 255)).save(web / name)
+                Image.new("RGBA", (size, size), (0, 0, 0, 255)).save(web / name)
             (web / "favicon.ico").write_bytes(b"\x00\x00\x01\x00test")
             (web / "site.webmanifest").write_text(json.dumps({
                 "name": "ShruggieTech", "short_name": "ShruggieTech", "display": "standalone",
-                "background_color": "#FFFFFF", "theme_color": "#FFFFFF",
+                "background_color": "#000000", "theme_color": "#000000",
                 "icons": [{"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png"}],
             }) + "\n", encoding="utf-8")
-            (logos / "shruggietech-horizontal-white.svg").write_text("<svg/>\n", encoding="utf-8")
-            (logos / "shruggietech-horizontal-black.svg").write_text("<svg><path/></svg>\n", encoding="utf-8")
+            (logos / "shruggietech-horizontal-color.svg").write_text('<svg data-appearance="colored-dark"/>\n', encoding="utf-8")
+            (logos / "shruggietech-horizontal-light.svg").write_text('<svg data-appearance="colored-light"><path/></svg>\n', encoding="utf-8")
             Image.new("RGB", (1200, 630), (0, 0, 0)).save(logo_png / "shruggietech-social-preview-1280.png")
 
             prepare_site.copy_site_identity(source, public)
 
             self.assertEqual((web / "favicon.svg").read_bytes(), (public / "favicon.svg").read_bytes())
             self.assertEqual((web / "favicon.ico").read_bytes(), (public / "favicon.ico").read_bytes())
-            self.assertEqual((logos / "shruggietech-horizontal-white.svg").read_bytes(), (public / "shruggietech-logo-dark.svg").read_bytes())
-            self.assertEqual((logos / "shruggietech-horizontal-black.svg").read_bytes(), (public / "shruggietech-logo-light.svg").read_bytes())
+            self.assertEqual((logos / "shruggietech-horizontal-color.svg").read_bytes(), (public / "shruggietech-logo-dark.svg").read_bytes())
+            self.assertEqual((logos / "shruggietech-horizontal-light.svg").read_bytes(), (public / "shruggietech-logo-light.svg").read_bytes())
             manifest = json.loads((public / "site.webmanifest").read_text(encoding="utf-8"))
             self.assertEqual("Brands | ShruggieTech", manifest["name"])
-            self.assertEqual("#FFFFFF", manifest["background_color"])
+            self.assertEqual("#000000", manifest["background_color"])
 
     def test_site_identity_does_not_mask_missing_generated_assets(self):
         with tempfile.TemporaryDirectory() as temporary:

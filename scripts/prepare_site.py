@@ -212,7 +212,7 @@ def structured_data(route: dict[str, Any], routes: list[dict[str, Any]], brands:
 
 def build_routes(brands: list[dict], docs: list[dict[str, str]]) -> list[dict[str, Any]]:
     home = {"name": "Brands", "url": f"{SITE_URL}/"}
-    docs_root = {"name": "How we build brands", "url": f"{SITE_URL}/docs/"}
+    docs_root = {"name": "Documentation", "url": f"{SITE_URL}/docs/"}
     routes = [make_route("home", "home", "/", "Brands", SITE_DESCRIPTION, "Brand portfolio", [])]
     for brand in sorted(brands, key=lambda item: item["slug"]):
         slug = brand["slug"]
@@ -223,7 +223,7 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]]) -> list[dict[st
             make_route(f"downloads-{slug}", "downloads", f"/{slug}/downloads/", f"{brand['title']} downloads", f"Download the {brand['title']} brand guide and asset collections.", "Brand assets", [home, brand_crumb, {"name": "Downloads", "url": f"{SITE_URL}/{slug}/downloads/"}], brand_slug=slug),
             make_route(f"guidelines-{slug}", "guidelines", f"/{slug}/guidelines/", f"{brand['title']} guidelines", brand["descriptor"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}], brand_slug=slug),
         ])
-    routes.append(make_route("docs", "docs-index", "/docs/", "How we build brands", "The repeatable ShruggieTech system for building complete, usable brand identities.", "Documentation", [home, docs_root]))
+    routes.append(make_route("docs", "docs-index", "/docs/", "Documentation", "The repeatable ShruggieTech system for building complete, usable brand identities.", "Documentation", [home, docs_root]))
     for doc in sorted(docs, key=lambda item: item["slug"]):
         pathname = f"/docs/{doc['slug']}/"
         routes.append(make_route(f"docs-{doc['slug']}", "docs-page", pathname, doc["title"], doc["description"], "Documentation", [home, docs_root, {"name": doc["title"], "url": f"{SITE_URL}{pathname}"}], docs_slug=doc["slug"]))
@@ -460,7 +460,7 @@ def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DO
         records.append({"slug": path.stem, "title": title, "description": description})
         pages.append(path.stem)
     index = """---
-title: "How we build brands"
+title: "Documentation"
 description: "The repeatable ShruggieTech system for building complete, usable brand identities."
 ---
 
@@ -469,7 +469,7 @@ We turn strategy into a complete identity, then package the standards, assets, a
 [Download the ShruggieTech brand skill](https://github.com/ShruggieTech/shruggie-brand/releases/latest) or explore each part of the system below.
 """
     write_utf8(output / "index.mdx", index)
-    write_utf8(output / "meta.json", json.dumps({"title": "How we build brands", "pages": pages}, indent=2) + "\n")
+    write_utf8(output / "meta.json", json.dumps({"title": "Documentation", "pages": pages}, indent=2) + "\n")
     return records
 
 
@@ -496,9 +496,9 @@ def copy_site_identity(source: Path, public: Path = PUBLIC) -> None:
         public / "apple-touch-icon.png": web / "apple-touch-icon.png",
         public / "android-chrome-192x192.png": web / "android-chrome-192x192.png",
         public / "android-chrome-512x512.png": web / "android-chrome-512x512.png",
-        public / "shruggietech-logo.svg": source / "logos" / "svg" / "shruggietech-horizontal-white.svg",
-        public / "shruggietech-logo-dark.svg": source / "logos" / "svg" / "shruggietech-horizontal-white.svg",
-        public / "shruggietech-logo-light.svg": source / "logos" / "svg" / "shruggietech-horizontal-black.svg",
+        public / "shruggietech-logo.svg": source / "logos" / "svg" / "shruggietech-horizontal-color.svg",
+        public / "shruggietech-logo-dark.svg": source / "logos" / "svg" / "shruggietech-horizontal-color.svg",
+        public / "shruggietech-logo-light.svg": source / "logos" / "svg" / "shruggietech-horizontal-light.svg",
         public / "social-preview.png": source / "logos" / "png" / "shruggietech-social-preview-1280.png",
     }
     missing = [origin for origin in [*files.values(), source_manifest] if not origin.is_file()]

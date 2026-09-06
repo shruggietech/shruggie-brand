@@ -1,4 +1,4 @@
-import { createReadStream, existsSync, mkdirSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 import { chromium } from '@playwright/test';
@@ -10,6 +10,7 @@ import { isCanonicalRedirect, selectVerificationOrigin } from './verification-or
 
 const root = resolve(import.meta.dirname, '..', 'out');
 const visualRoot = resolve(import.meta.dirname, '..', 'test-results', 'visual');
+rmSync(visualRoot, { recursive: true, force: true });
 mkdirSync(visualRoot, { recursive: true });
 const routeByPath = new Map(routeRecords.map((route) => [route.pathname, route]));
 const types = { '.css': 'text/css', '.html': 'text/html', '.ico': 'image/x-icon', '.json': 'application/json', '.pdf': 'application/pdf', '.png': 'image/png', '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.woff2': 'font/woff2' };
@@ -63,7 +64,7 @@ function pngInfo(buffer) {
     if (kind === 'IEND') break;
   }
   if (!width || !height || depth !== 8 || colorType !== 6) throw new Error(`unsupported PNG ${width}x${height} depth ${depth} color ${colorType}`);
-  const raw = inflateSync(Buffer.concat(compressed)); const stride = width * 4; let cursor = 0; let previous = Buffer.alloc(stride); let minAlpha = 255; let visible = 0;
+  const raw = inflateSync(Buffer.concat(compressed)); const stride = width * 4; let cursor = 0; let previous = Buffer.alloc(stride); let minAlpha = 255; let visible = 0; const corners = [];
   for (let y = 0; y < height; y += 1) {
     const filter = raw[cursor]; const row = Buffer.from(raw.subarray(cursor + 1, cursor + 1 + stride)); cursor += stride + 1;
     for (let i = 0; i < stride; i += 1) {
@@ -75,16 +76,18 @@ function pngInfo(buffer) {
       else if (filter !== 0) throw new Error(`unsupported PNG filter ${filter}`);
     }
     for (let i = 3; i < stride; i += 4) { minAlpha = Math.min(minAlpha, row[i]); if (row[i] > 0) visible += 1; }
+    if (y === 0 || y === height - 1) for (const x of [0, width - 1]) corners.push([...row.subarray(x * 4, x * 4 + 4)]);
     previous = row;
   }
-  return { width, height, opaque: minAlpha === 255, srgb, visible };
+  return { width, height, opaque: minAlpha === 255, srgb, visible, corners };
 }
-function icoSizes(buffer) {
+function icoEntries(buffer) {
   if (buffer.length < 6 || !buffer.subarray(0, 4).equals(Buffer.from([0, 0, 1, 0]))) throw new Error('invalid ICO signature');
-  const count = buffer.readUInt16LE(4); if (buffer.length < 6 + count * 16) throw new Error('truncated ICO directory'); const sizes = [];
-  for (let index = 0; index < count; index += 1) { const offset = 6 + index * 16; const width = buffer[offset] || 256; const height = buffer[offset + 1] || 256; const length = buffer.readUInt32LE(offset + 8); const start = buffer.readUInt32LE(offset + 12); if (width !== height || start + length > buffer.length) throw new Error(`invalid ICO entry ${index}`); sizes.push(width); }
-  return sizes;
+  const count = buffer.readUInt16LE(4); if (buffer.length < 6 + count * 16) throw new Error('truncated ICO directory'); const entries = [];
+  for (let index = 0; index < count; index += 1) { const offset = 6 + index * 16; const width = buffer[offset] || 256; const height = buffer[offset + 1] || 256; const length = buffer.readUInt32LE(offset + 8); const start = buffer.readUInt32LE(offset + 12); if (width !== height || start + length > buffer.length) throw new Error(`invalid ICO entry ${index}`); entries.push({ size: width, payload: buffer.subarray(start, start + length) }); }
+  return entries;
 }
+const hasCanonicalBlackCorners = (info) => info.corners.length === 4 && info.corners.every((pixel) => JSON.stringify(pixel) === JSON.stringify([0, 0, 0, 255]));
 const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
@@ -95,6 +98,20 @@ try {
   check(await page.locator('.brand-icon img').count() === 5, 'every brand card must include an icon');
   const homeText = (await page.locator('body').innerText()).toLowerCase();
   for (const rejected of ['a shruggietech project', 'skill 1.', 'canon', 'example brand', 'read the system']) check(!homeText.includes(rejected), `homepage contains retired wording: ${rejected}`);
+  const visibleHeaderLinks = async () => page.locator('a').evaluateAll((links) => links.filter((link) => { const rect = link.getBoundingClientRect(); return ['Documentation', 'Download the Skill', 'View on GitHub', 'Portfolio'].includes(link.textContent?.trim()) && rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth; }).map((link) => ({ text: link.textContent?.trim(), href: new URL(link.href).pathname })));
+  const desktopLinks = await visibleHeaderLinks();
+  check(JSON.stringify(desktopLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }]), `desktop landing navigation must expose only Documentation (${JSON.stringify(desktopLinks)})`);
+  await page.setViewportSize({ width: 360, height: 900 });
+  await page.getByRole('button', { name: 'Toggle Menu' }).click();
+  const mobileLinks = await visibleHeaderLinks();
+  check(JSON.stringify(mobileLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Download the Skill', href: '/ShruggieTech/shruggie-brand/releases/latest' }, { text: 'View on GitHub', href: '/ShruggieTech/shruggie-brand' }]), `mobile landing menu must expose the three approved destinations in order (${JSON.stringify(mobileLinks)})`);
+  for (const link of await page.getByRole('link').filter({ hasText: /^(Documentation|Download the Skill|View on GitHub)$/ }).all()) { const box = await link.boundingBox(); if (box && box.y < 900) check(box.width >= 44 && box.height >= 44, `${await link.textContent()} mobile navigation target is smaller than 44 by 44 CSS pixels`); }
+  await page.locator('a').filter({ hasText: /^Documentation$/ }).evaluateAll((links) => links.find((link) => { const rect = link.getBoundingClientRect(); return rect.bottom > 0 && rect.top < window.innerHeight; })?.focus());
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  const escapedLinks = await visibleHeaderLinks();
+  const menuState = await page.getByRole('button', { name: 'Toggle Menu' }).getAttribute('data-state');
+  check(menuState === 'closed', `mobile landing menu does not close with Escape (${menuState}; ${JSON.stringify(escapedLinks)})`);
   for (const route of htmlRoutes) {
     const contract = routeByPath.get(route);
     check(Boolean(contract), `${route} is absent from the generated route contract`);
@@ -127,7 +144,9 @@ try {
         catch (error) { failures.push(`${route} JSON-LD cannot be parsed: ${error.message}`); }
       }
       check(await page.locator('link[rel="icon"]').count() >= 1, `${route} lacks a favicon`);
-      if (contract.kind === 'docs-index' || contract.kind === 'docs-page') check(await page.locator('header a').filter({ hasText: /^How we build brands$/ }).count() <= 1, `${route} repeats the documentation root in navigation at ${width}px`);
+      const publicText = await page.locator('body').innerText();
+      for (const rejected of ['How we build brands', 'How we build', 'The ShruggieTech Variance Contract']) check(!publicText.includes(rejected), `${route} contains retired public wording: ${rejected}`);
+      if (contract.kind === 'docs-index' || contract.kind === 'docs-page') check(await page.locator('header a').filter({ hasText: /^Documentation$/ }).count() <= 1, `${route} repeats the documentation root in navigation at ${width}px`);
       if (route === '/shruggietech/guidelines/') {
         check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
       }
@@ -189,10 +208,16 @@ try {
   check(Boolean(preBehavior && ['auto', 'scroll'].includes(preBehavior.overflowX) && preBehavior.whiteSpace.startsWith('pre')), `documentation code blocks do not preserve horizontal scrolling and preformatted whitespace (${JSON.stringify(preBehavior)})`);
   const tokenColors = await page.locator('.docs-page figure pre code span').evaluateAll((tokens) => [...new Set(tokens.map((token) => getComputedStyle(token).color))]);
   check(tokenColors.length > 1, 'documentation syntax highlighting has been flattened to one token color');
+  const stringToken = page.locator(".docs-page .shiki span[style*='--shiki-light:#032F62']").first();
+  check(await stringToken.count() === 1, 'toolchain guidance lacks a verifiable code string token');
+  if (await stringToken.count() === 1) {
+    const stringColors = await stringToken.evaluate((element) => { const probe = document.createElement('i'); probe.style.color = 'var(--primary)'; document.body.append(probe); const result = { actual: getComputedStyle(element).color, expected: getComputedStyle(probe).color }; probe.remove(); return result; });
+    check(stringColors.actual === stringColors.expected, `documentation code string token is not the generated green (${JSON.stringify(stringColors)})`);
+  }
   const inlineCode = page.locator('.docs-page :not(pre) > code').first();
   check(await inlineCode.count() === 1, 'toolchain guidance lacks a rendered inline-code sample');
   if (await inlineCode.count() === 1) check((await inlineCode.evaluate((element) => getComputedStyle(element).backgroundColor)) !== 'rgba(0, 0, 0, 0)', 'inline code lacks a distinct surface');
-  check(await page.locator('header a').filter({ hasText: /^How we build brands$/ }).count() <= 1, 'documentation header repeats the current documentation destination');
+  check(await page.locator('header a').filter({ hasText: /^Documentation$/ }).count() <= 1, 'documentation header repeats the current documentation destination');
   const activeSidebar = page.locator('#nd-sidebar a[data-active="true"]');
   check(await activeSidebar.count() === 1, 'documentation sidebar must expose exactly one active page');
   if (await activeSidebar.count() === 1) check(Number(await activeSidebar.evaluate((element) => getComputedStyle(element).fontWeight)) >= 600, 'documentation sidebar active state is not visually distinct');
@@ -204,6 +229,12 @@ try {
   const startLink = page.locator('.docs-page a[href*="releases/latest"]').first();
   const startBox = await startLink.boundingBox();
   check(Boolean(startBox && startBox.y < 900), 'documentation landing page does not surface its next action in the first viewport');
+  const paginationCard = page.locator('.docs-pagination > a').first();
+  check(await paginationCard.count() === 1, 'documentation landing page lacks a pagination card');
+  if (await paginationCard.count() === 1) {
+    const resting = await paginationCard.evaluate((element) => { const style = getComputedStyle(element); return { borderColor: style.borderColor, titleColor: getComputedStyle(element.querySelector('p')).color, bodyColor: getComputedStyle(document.body).color }; });
+    check(resting.borderColor !== 'rgb(229, 231, 235)' && resting.titleColor !== resting.bodyColor, 'documentation pagination card lacks a persistent resting affordance');
+  }
   const themeSurfaces = new Map();
   for (const route of visualRoutes) {
     for (const width of visualWidths) {
@@ -219,9 +250,12 @@ try {
         const logo = page.locator('.header-logo:visible').first();
         const logoBox = await logo.boundingBox();
         check(Boolean(logoBox && logoBox.width >= 100 && logoBox.height >= 24), `${route} ${theme} header logo is not legible at ${width}px`);
+        const logoPath = await logo.evaluate((element) => new URL(element.src).pathname);
+        check(logoPath === (theme === 'dark' ? '/shruggietech-logo-dark.svg' : '/shruggietech-logo-light.svg'), `${route} ${theme} uses the wrong visible ShruggieTech lockup`);
         const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
         for (const violation of results.violations) failures.push(`${route} in ${theme} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
-        const filename = `${route === '/docs/' ? 'docs-index' : 'docs-toolchain'}-${theme}-${width}.png`;
+        const routeName = route === '/' ? 'home' : route === '/docs/' ? 'docs-index' : 'docs-variance-contract';
+        const filename = `${routeName}-${theme}-${width}.png`;
         await page.screenshot({ path: join(visualRoot, filename), fullPage: true });
       }
       check(themeSurfaces.get(`${route}:${width}:light`) !== themeSurfaces.get(`${route}:${width}:dark`), `${route} light and dark themes resolve to the same surface at ${width}px`);
@@ -230,6 +264,23 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   for (const route of tableRoutes) { await page.goto(base + route); check(await page.locator('table').count() > 0, `${route} does not render its Markdown table semantically`); }
   await page.goto(base + '/');
+  const primaryAction = page.locator('.hero .button.primary');
+  const actionStyle = await primaryAction.evaluate((element) => { const style = getComputedStyle(element); const probe = document.createElement('i'); probe.style.backgroundColor = 'var(--brand-cta)'; document.body.append(probe); const result = { background: style.backgroundColor, cta: getComputedStyle(probe).backgroundColor, color: style.color, transitionDuration: style.transitionDuration }; probe.remove(); return result; });
+  check(actionStyle.background === actionStyle.cta, `primary landing action does not use the generated CTA token (${JSON.stringify(actionStyle)})`);
+  check(actionStyle.color === 'rgb(255, 255, 255)', 'primary landing action must use white text');
+  check(Number.parseFloat(actionStyle.transitionDuration) >= 0.12 && Number.parseFloat(actionStyle.transitionDuration) <= 0.3, 'interactive motion must remain within the 120-300ms contract');
+  const secondaryActionColor = await page.locator('.hero .button:not(.primary)').evaluate((element) => getComputedStyle(element).color);
+  const primaryTokenColor = await page.evaluate(() => { const probe = document.createElement('i'); probe.style.color = 'var(--primary)'; document.body.append(probe); const color = getComputedStyle(probe).color; probe.remove(); return color; });
+  check(secondaryActionColor === primaryTokenColor, `secondary landing action does not use the generated accessible green token (${secondaryActionColor} != ${primaryTokenColor})`);
+  const textLink = page.locator('.hero .text-link');
+  const linkBackground = await textLink.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, size: getComputedStyle(element).backgroundSize, duration: getComputedStyle(element).transitionDuration }));
+  check(linkBackground.image !== 'none' && linkBackground.size.startsWith('0px') && Number.parseFloat(linkBackground.duration) >= 0.12 && Number.parseFloat(linkBackground.duration) <= 0.3, `landing text link lacks its animated underline treatment (${JSON.stringify(linkBackground)})`);
+  for (const selector of ['.hero .button', '.brand-card', '.header-identity']) check(!['0px 2px', '100% 2px'].includes(await page.locator(selector).first().evaluate((element) => getComputedStyle(element).backgroundSize)), `${selector} incorrectly inherits the ordinary-link underline`);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await textLink.hover();
+  const reducedStyle = await textLink.evaluate((element) => ({ duration: getComputedStyle(element).transitionDuration, size: getComputedStyle(element).backgroundSize, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }));
+  check(reducedStyle.reduced && Number.parseFloat(reducedStyle.duration) <= 0.001 && !reducedStyle.size.startsWith('0px'), `reduced-motion mode does not preserve a static underline without animation (${JSON.stringify(reducedStyle)})`);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   for (const card of await page.locator('.brand-card').all()) { const box = await card.boundingBox(); check(Boolean(box && box.width >= 44 && box.height >= 44), 'portfolio card target is smaller than 44 by 44 CSS pixels'); }
   for (const file of [...requiredFiles, ...downloadFiles]) {
     const response = await page.request.get(base + file);
@@ -243,15 +294,15 @@ try {
     const response = await page.request.get(base + file); check(response.ok(), `${file} cannot be fetched for icon validation`); if (!response.ok()) continue;
     const buffer = Buffer.from(await response.body());
     try {
-      if (file.endsWith('.png')) { const info = pngInfo(buffer); const size = expectedPngs.get(file); check(info.width === size && info.height === size, `${file} is ${info.width}x${info.height}, expected ${size}x${size}`); check(info.srgb, `${file} lacks an sRGB declaration`); check(info.visible > 0, `${file} has no visible pixels`); if (file.includes('apple-touch') || file.includes('android-chrome')) check(info.opaque, `${file} must have an opaque platform background`); }
-      else if (file.endsWith('.ico')) check(JSON.stringify(icoSizes(buffer)) === JSON.stringify([16, 24, 32, 48, 64, 128, 256]), `${file} lacks the required ICO entries`);
-      else if (file.endsWith('.svg')) { const text = buffer.toString('utf8'); check(text.includes('<svg') && text.includes('<image'), `${file} lacks SVG artwork`); const references = [...text.matchAll(/(?:href|xlink:href)=["']([^"']+)/g)].map((match) => match[1]); check(references.every((reference) => reference.startsWith('data:') || reference.startsWith('#')), `${file} has an unresolved nested dependency`); }
+      if (file.endsWith('.png')) { const info = pngInfo(buffer); const size = expectedPngs.get(file); check(info.width === size && info.height === size, `${file} is ${info.width}x${info.height}, expected ${size}x${size}`); check(info.srgb, `${file} lacks an sRGB declaration`); check(info.visible > 0, `${file} has no visible pixels`); check(info.opaque, `${file} must have an opaque platform background`); check(hasCanonicalBlackCorners(info), `${file} does not use canonical #000000 corner pixels`); }
+      else if (file.endsWith('.ico')) { const entries = icoEntries(buffer); check(JSON.stringify(entries.map((entry) => entry.size)) === JSON.stringify([16, 24, 32, 48, 64, 128, 256]), `${file} lacks the required ICO entries`); for (const entry of entries) check(hasCanonicalBlackCorners(pngInfo(entry.payload)), `${file} ${entry.size}px frame does not use canonical #000000 corner pixels`); }
+      else if (file.endsWith('.svg')) { const text = buffer.toString('utf8'); check(text.includes('<svg') && text.includes('<image'), `${file} lacks SVG artwork`); check(/<rect[^>]+fill=["']#000000["']/i.test(text), `${file} does not declare the canonical #000000 background`); const references = [...text.matchAll(/(?:href|xlink:href)=["']([^"']+)/g)].map((match) => match[1]); check(references.every((reference) => reference.startsWith('data:') || reference.startsWith('#')), `${file} has an unresolved nested dependency`); }
     } catch (error) { failures.push(`${file} does not decode: ${error.message}`); }
   }
   const manifestResponse = await page.request.get(base + '/site.webmanifest');
   if (manifestResponse.ok()) {
-    const manifest = await manifestResponse.json(); check(Array.isArray(manifest.icons) && manifest.icons.length >= 2, 'site.webmanifest lacks installable icons');
-    for (const icon of manifest.icons ?? []) { const match = /^(\d+)x(\d+)$/.exec(icon.sizes ?? ''); check(Boolean(match), `manifest icon ${icon.src} has an invalid size declaration`); if (!match) continue; const response = await page.request.get(new URL(icon.src, base).href); check(response.ok(), `manifest icon ${icon.src} is missing`); if (!response.ok()) continue; try { const info = pngInfo(Buffer.from(await response.body())); check(info.width === Number(match[1]) && info.height === Number(match[2]), `manifest icon ${icon.src} dimensions disagree with ${icon.sizes}`); check(info.srgb, `manifest icon ${icon.src} lacks an sRGB declaration`); check(info.opaque, `manifest icon ${icon.src} must be opaque`); } catch (error) { failures.push(`manifest icon ${icon.src} does not decode: ${error.message}`); } }
+    const manifest = await manifestResponse.json(); check(Array.isArray(manifest.icons) && manifest.icons.length >= 2, 'site.webmanifest lacks installable icons'); check(manifest.background_color === '#000000' && manifest.theme_color === '#000000', 'site.webmanifest must declare canonical #000000 background and theme colors');
+    for (const icon of manifest.icons ?? []) { const match = /^(\d+)x(\d+)$/.exec(icon.sizes ?? ''); check(Boolean(match), `manifest icon ${icon.src} has an invalid size declaration`); if (!match) continue; const response = await page.request.get(new URL(icon.src, base).href); check(response.ok(), `manifest icon ${icon.src} is missing`); if (!response.ok()) continue; try { const info = pngInfo(Buffer.from(await response.body())); check(info.width === Number(match[1]) && info.height === Number(match[2]), `manifest icon ${icon.src} dimensions disagree with ${icon.sizes}`); check(info.srgb, `manifest icon ${icon.src} lacks an sRGB declaration`); check(info.opaque, `manifest icon ${icon.src} must be opaque`); check(hasCanonicalBlackCorners(info), `manifest icon ${icon.src} does not use canonical #000000 corner pixels`); } catch (error) { failures.push(`manifest icon ${icon.src} does not decode: ${error.message}`); } }
   }
   for (const route of iconRoutes) {
     await page.goto(base + route); const icons = await page.locator('link[rel="icon"]').evaluateAll((links) => links.map((link) => new URL(link.href).pathname));

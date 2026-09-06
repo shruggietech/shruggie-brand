@@ -93,6 +93,11 @@ class AffiliationTests(unittest.TestCase):
 
 
 class ApplicationIconProfileTests(unittest.TestCase):
+    def test_shruggietech_uses_canonical_void_background(self):
+        brand = json.loads((ROOT / "brands" / "shruggietech" / "brand.json").read_text(encoding="utf-8"))
+        self.assertEqual(brand["surfaces"]["base"], application_icon_profile(brand)["background"])
+        self.assertEqual("#000000", application_icon_profile(brand)["background"])
+
     def test_profile_uses_declared_background_and_reduced_threshold(self):
         brand = owned_brand()
         brand["surfaces"] = {"base": "#080B0D"}
