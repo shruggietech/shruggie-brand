@@ -226,6 +226,31 @@ class PrepareSiteTests(unittest.TestCase):
                         found.append(str(path.relative_to(root)))
         self.assertEqual(found, [])
 
+    def test_active_public_sources_do_not_reference_retired_labels(self):
+        root = Path(__file__).resolve().parents[1]
+        active = [root / "skill" / "references", root / "site" / "app", root / "site" / "components", root / "site" / "lib"]
+        retired = [
+            "how we " + "build brands",
+            "how we " + "build",
+            "the shruggietech " + "variance contract",
+            "shruggietech " + "variance contract",
+            "the " + "variance contract",
+        ]
+        found = []
+        for target in active:
+            for path in target.rglob("*"):
+                if path.is_file() and path.suffix in {".md", ".mdx", ".ts", ".tsx", ".json"}:
+                    content = path.read_text(encoding="utf-8").lower()
+                    for phrase in retired:
+                        if phrase in content:
+                            found.append(f"{path.relative_to(root)}: {phrase}")
+        self.assertEqual(found, [])
+
+    def test_authoritative_variance_contract_title_is_canonical(self):
+        root = Path(__file__).resolve().parents[1]
+        source = root / "skill" / "references" / "00-variance-contract.md"
+        self.assertEqual(source.read_text(encoding="utf-8").splitlines()[0], "# Variance Contract")
+
     def test_site_identity_requires_and_copies_generated_web_suite(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

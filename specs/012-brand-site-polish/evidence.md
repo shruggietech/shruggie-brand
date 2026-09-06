@@ -5,7 +5,7 @@
 - Owner-merged main revision: `20e9a6dce3fa79e7a05c2f474e994f019cadf812`
 - Parent milestone: [Phase 13](https://github.com/shruggietech/shruggie-brand/milestone/23)
 - Tracking issue: [#133](https://github.com/shruggietech/shruggie-brand/issues/133)
-- Included issues: #120, #121, #122, #123, #124, #125, and #126
+- Included issues: #120, #121, #122, #123, #124, #125, #126, and review findings #135 through #139
 - Baseline Build workflow: [run 34003509588](https://github.com/shruggietech/shruggie-brand/actions/runs/34003509588), successful
 - Baseline Pages workflow: [run 34003509615](https://github.com/shruggietech/shruggie-brand/actions/runs/34003509615), successful
 
@@ -37,6 +37,10 @@
 - Round-one issue [#135](https://github.com/shruggietech/shruggie-brand/issues/135): primary-action hover and focus contrast. Corrected by darkening the generated CTA role on interaction and adding explicit hover-only and focus-only Axe contrast checks in both themes.
 - Round-one issue [#136](https://github.com/shruggietech/shruggie-brand/issues/136): background-only favicon outputs. Corrected by measuring a minimum amount of non-black artwork in every PNG, manifest icon, and ICO frame while retaining exact black, alpha, dimension, sRGB, and route-inheritance checks.
 - Round-one correction gate: Site lint, 26-route webpack production build, 11 Node contract tests, and the complete browser, responsive, icon, visual, reduced-motion, and WCAG matrix passed.
-- Explicit review requests posted: 0
-- Codex round two: Not requested
-- Unresolved threads: 0 after substantive responses and resolution on the corrected head
+- Explicit review requests posted: 1, the only authorized manual review request
+- Codex round two: Completed on `29d068605d61e72224a7a506465ce1f385ef8f5f` with three warranted findings
+- Round-two issue [#137](https://github.com/shruggietech/shruggie-brand/issues/137): colored lockup payload and load-state validation. Corrected by requiring both theme lockups as exported files, proving each image loads with positive intrinsic dimensions, and inspecting each SVG for its expected wordmark fill, self-contained references, and nonempty chromatic embedded mark.
+- Round-two issue [#138](https://github.com/shruggietech/shruggie-brand/issues/138): complete retired-terminology enforcement. Corrected with case-insensitive source coverage plus rendered HTML, metadata, structured-data, and route-contract scanning for all five retired variants.
+- Round-two issue [#139](https://github.com/shruggietech/shruggie-brand/issues/139): complete per-frame ICO validation. Corrected by independently verifying decoded dimensions, sRGB, opacity, visibility, black corners, and measurable artwork for every directory entry.
+- Round-two local correction gate: The 19-test site-preparation suite, site lint, 26-route webpack production build, 11 Node contract tests, and complete browser verifier passed. Final-head hosted checks and thread disposition remain pending before the owner gate.
+- No third review request is authorized or planned.

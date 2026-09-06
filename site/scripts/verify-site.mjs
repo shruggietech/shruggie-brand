@@ -64,7 +64,7 @@ function pngInfo(buffer) {
     if (kind === 'IEND') break;
   }
   if (!width || !height || depth !== 8 || colorType !== 6) throw new Error(`unsupported PNG ${width}x${height} depth ${depth} color ${colorType}`);
-  const raw = inflateSync(Buffer.concat(compressed)); const stride = width * 4; let cursor = 0; let previous = Buffer.alloc(stride); let minAlpha = 255; let visible = 0; let artwork = 0; const corners = [];
+  const raw = inflateSync(Buffer.concat(compressed)); const stride = width * 4; let cursor = 0; let previous = Buffer.alloc(stride); let minAlpha = 255; let visible = 0; let artwork = 0; let chromatic = 0; const corners = [];
   for (let y = 0; y < height; y += 1) {
     const filter = raw[cursor]; const row = Buffer.from(raw.subarray(cursor + 1, cursor + 1 + stride)); cursor += stride + 1;
     for (let i = 0; i < stride; i += 1) {
@@ -75,11 +75,11 @@ function pngInfo(buffer) {
       else if (filter === 4) row[i] = (row[i] + paeth(left, above, upperLeft)) & 255;
       else if (filter !== 0) throw new Error(`unsupported PNG filter ${filter}`);
     }
-    for (let i = 3; i < stride; i += 4) { minAlpha = Math.min(minAlpha, row[i]); if (row[i] > 0) visible += 1; if (row[i] > 0 && (row[i - 3] !== 0 || row[i - 2] !== 0 || row[i - 1] !== 0)) artwork += 1; }
+    for (let i = 3; i < stride; i += 4) { minAlpha = Math.min(minAlpha, row[i]); if (row[i] > 0) visible += 1; if (row[i] > 0 && (row[i - 3] !== 0 || row[i - 2] !== 0 || row[i - 1] !== 0)) artwork += 1; if (row[i] > 0 && (row[i - 3] !== row[i - 2] || row[i - 2] !== row[i - 1])) chromatic += 1; }
     if (y === 0 || y === height - 1) for (const x of [0, width - 1]) corners.push([...row.subarray(x * 4, x * 4 + 4)]);
     previous = row;
   }
-  return { width, height, opaque: minAlpha === 255, srgb, visible, artwork, corners };
+  return { width, height, opaque: minAlpha === 255, srgb, visible, artwork, chromatic, corners };
 }
 function icoEntries(buffer) {
   if (buffer.length < 6 || !buffer.subarray(0, 4).equals(Buffer.from([0, 0, 1, 0]))) throw new Error('invalid ICO signature');
@@ -89,6 +89,7 @@ function icoEntries(buffer) {
 }
 const hasCanonicalBlackCorners = (info) => info.corners.length === 4 && info.corners.every((pixel) => JSON.stringify(pixel) === JSON.stringify([0, 0, 0, 255]));
 const hasVisibleArtwork = (info) => info.artwork >= Math.max(1, Math.ceil(info.width * info.height * 0.005));
+const retiredPublicPhrases = ['how we build brands', 'how we build', 'the shruggietech variance contract', 'shruggietech variance contract', 'the variance contract'];
 const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
@@ -145,8 +146,8 @@ try {
         catch (error) { failures.push(`${route} JSON-LD cannot be parsed: ${error.message}`); }
       }
       check(await page.locator('link[rel="icon"]').count() >= 1, `${route} lacks a favicon`);
-      const publicText = await page.locator('body').innerText();
-      for (const rejected of ['How we build brands', 'How we build', 'The ShruggieTech Variance Contract']) check(!publicText.includes(rejected), `${route} contains retired public wording: ${rejected}`);
+      const publicSurface = `${await page.content()}\n${JSON.stringify(contract)}`.toLowerCase();
+      for (const rejected of retiredPublicPhrases) check(!publicSurface.includes(rejected), `${route} contains retired public wording in rendered content, metadata, or route data: ${rejected}`);
       if (contract.kind === 'docs-index' || contract.kind === 'docs-page') check(await page.locator('header a').filter({ hasText: /^Documentation$/ }).count() <= 1, `${route} repeats the documentation root in navigation at ${width}px`);
       if (route === '/shruggietech/guidelines/') {
         check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
@@ -251,7 +252,9 @@ try {
         const logo = page.locator('.header-logo:visible').first();
         const logoBox = await logo.boundingBox();
         check(Boolean(logoBox && logoBox.width >= 100 && logoBox.height >= 24), `${route} ${theme} header logo is not legible at ${width}px`);
-        const logoPath = await logo.evaluate((element) => new URL(element.src).pathname);
+        const logoState = await logo.evaluate((element) => ({ complete: element.complete, naturalWidth: element.naturalWidth, naturalHeight: element.naturalHeight, path: new URL(element.src).pathname }));
+        check(logoState.complete && logoState.naturalWidth > 0 && logoState.naturalHeight > 0, `${route} ${theme} header logo did not load a decodable image at ${width}px`);
+        const logoPath = logoState.path;
         check(logoPath === (theme === 'dark' ? '/shruggietech-logo-dark.svg' : '/shruggietech-logo-light.svg'), `${route} ${theme} uses the wrong visible ShruggieTech lockup`);
         const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
         for (const violation of results.violations) failures.push(`${route} in ${theme} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
@@ -302,13 +305,32 @@ try {
     const body = Buffer.from(await response.body());
     for (const failure of payloadFailures(file, response.headers()['content-type'], body)) failures.push(`${file} ${failure}`);
   }
+  const lockupContracts = new Map([['/shruggietech-logo-dark.svg', '#F2F5FA'], ['/shruggietech-logo-light.svg', '#0A0A0A']]);
+  for (const [file, wordmarkFill] of lockupContracts) {
+    const response = await page.request.get(base + file);
+    check(response.ok(), `${file} cannot be fetched for lockup validation`);
+    if (!response.ok()) continue;
+    try {
+      const text = await response.text();
+      check(text.includes('<svg') && text.includes('<image') && text.includes('<path'), `${file} lacks the complete lockup payload`);
+      check(new RegExp(`fill=["']${wordmarkFill}["']`, 'i').test(text), `${file} lacks its expected ${wordmarkFill} wordmark fill`);
+      const references = [...text.matchAll(/(?:href|xlink:href)=["']([^"']+)/g)].map((match) => match[1]);
+      check(references.length > 0 && references.every((reference) => reference.startsWith('data:') || reference.startsWith('#')), `${file} has an unresolved nested dependency`);
+      const embedded = /href=["']data:image\/png;base64,([^"']+)/i.exec(text);
+      check(Boolean(embedded), `${file} lacks its embedded colored mark`);
+      if (embedded) {
+        const info = pngInfo(Buffer.from(embedded[1], 'base64'));
+        check(info.visible > 0 && info.artwork > 0 && info.chromatic > 0, `${file} embedded mark is empty or monochrome`);
+      }
+    } catch (error) { failures.push(`${file} lockup payload does not decode: ${error.message}`); }
+  }
   const expectedPngs = new Map([['/favicon-16x16.png', 16], ['/favicon-32x32.png', 32], ['/apple-touch-icon.png', 180], ['/android-chrome-192x192.png', 192], ['/android-chrome-512x512.png', 512]]);
   for (const file of iconFiles) {
     const response = await page.request.get(base + file); check(response.ok(), `${file} cannot be fetched for icon validation`); if (!response.ok()) continue;
     const buffer = Buffer.from(await response.body());
     try {
       if (file.endsWith('.png')) { const info = pngInfo(buffer); const size = expectedPngs.get(file); check(info.width === size && info.height === size, `${file} is ${info.width}x${info.height}, expected ${size}x${size}`); check(info.srgb, `${file} lacks an sRGB declaration`); check(info.visible > 0, `${file} has no visible pixels`); check(hasVisibleArtwork(info), `${file} contains only its black background and no measurable ShruggieTech artwork`); check(info.opaque, `${file} must have an opaque platform background`); check(hasCanonicalBlackCorners(info), `${file} does not use canonical #000000 corner pixels`); }
-      else if (file.endsWith('.ico')) { const entries = icoEntries(buffer); check(JSON.stringify(entries.map((entry) => entry.size)) === JSON.stringify([16, 24, 32, 48, 64, 128, 256]), `${file} lacks the required ICO entries`); for (const entry of entries) { const info = pngInfo(entry.payload); check(hasCanonicalBlackCorners(info), `${file} ${entry.size}px frame does not use canonical #000000 corner pixels`); check(hasVisibleArtwork(info), `${file} ${entry.size}px frame contains only its black background and no measurable ShruggieTech artwork`); } }
+      else if (file.endsWith('.ico')) { const entries = icoEntries(buffer); check(JSON.stringify(entries.map((entry) => entry.size)) === JSON.stringify([16, 24, 32, 48, 64, 128, 256]), `${file} lacks the required ICO entries`); for (const entry of entries) { const info = pngInfo(entry.payload); check(info.width === entry.size && info.height === entry.size, `${file} ${entry.size}px directory entry decodes as ${info.width}x${info.height}`); check(info.srgb, `${file} ${entry.size}px frame lacks an sRGB declaration`); check(info.opaque, `${file} ${entry.size}px frame must be opaque`); check(info.visible > 0, `${file} ${entry.size}px frame has no visible pixels`); check(hasCanonicalBlackCorners(info), `${file} ${entry.size}px frame does not use canonical #000000 corner pixels`); check(hasVisibleArtwork(info), `${file} ${entry.size}px frame contains only its black background and no measurable ShruggieTech artwork`); } }
       else if (file.endsWith('.svg')) { const text = buffer.toString('utf8'); check(text.includes('<svg') && text.includes('<image'), `${file} lacks SVG artwork`); check(/<rect[^>]+fill=["']#000000["']/i.test(text), `${file} does not declare the canonical #000000 background`); const references = [...text.matchAll(/(?:href|xlink:href)=["']([^"']+)/g)].map((match) => match[1]); check(references.every((reference) => reference.startsWith('data:') || reference.startsWith('#')), `${file} has an unresolved nested dependency`); }
     } catch (error) { failures.push(`${file} does not decode: ${error.message}`); }
   }
