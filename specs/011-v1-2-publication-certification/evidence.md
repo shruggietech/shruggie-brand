@@ -84,5 +84,8 @@
 - Filed review issue: [#132](https://github.com/shruggietech/shruggie-brand/issues/132)
 - Round-two correction: every required and downloadable file now requires a non-empty payload, expected media type, and format-specific PDF, PNG, ICO, SVG, JSON, web manifest, XML, or robots-text validation
 - Corrected local and production contracts: 26 routes at both widths, zero failures and zero WCAG 2.1 AA violations
-- Round-two unresolved threads: 1, pending corrected-head push and response
-- Further review requests authorized: 0
+- Round-two response: [discussion reply 3942556123](https://github.com/shruggietech/shruggie-brand/pull/130#discussion_r3942556123)
+- Round-two corrected head: `f6b15158666af2ac7850fe100dca682aa12d2f39`
+- Corrected-head CI: [pull-request run 34002692885](https://github.com/shruggietech/shruggie-brand/actions/runs/34002692885) and [push run 34002694208](https://github.com/shruggietech/shruggie-brand/actions/runs/34002694208), all build and Python 3.8 compatibility jobs successful
+- Round-two unresolved threads: 0
+- Further review requests authorized and posted: 0

@@ -12,7 +12,8 @@ No third review request is authorized. Every negative finding is filed as a GitH
 ## Pull request state
 
 - Pull request: [#130](https://github.com/shruggietech/shruggie-brand/pull/130)
-- Required checks: Passed on initial and round-one heads, final corrected-head rerun pending
-- Unresolved actionable threads: One, pending corrected-head push and response
+- Required checks: Passed on initial, round-one, and final implementation heads. Final implementation runs are [34002692885](https://github.com/shruggietech/shruggie-brand/actions/runs/34002692885) and [34002694208](https://github.com/shruggietech/shruggie-brand/actions/runs/34002694208).
+- Unresolved actionable threads: 0
 - Explicit review requests posted: 1
+- Further review requests authorized: 0
 - Owner merge gate: Required
