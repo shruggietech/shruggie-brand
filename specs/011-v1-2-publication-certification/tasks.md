@@ -36,7 +36,7 @@
 
 - [X] T015 [US3] Complete `evidence.md`, update the task ledger, and run Markdown, encoding, sensitive-data, generated-artifact, diff, and git-status gates
 - [X] T016 [US3] Commit, push, and open the official S011 pull request with closure links for #116, #118, #119, and #129
-- [ ] T017 [US3] Process automatic Codex round one, file every negative finding, respond to every comment, implement and verify warranted corrections, and resolve addressed threads
+- [X] T017 [US3] Process automatic Codex round one, file every negative finding, respond to every comment, implement and verify warranted corrections, and resolve addressed threads
 - [ ] T018 [US3] Post at most one explicit `@Codex review` request after round one completes and record its URL
 - [ ] T019 [US3] Process round two without another trigger, disposition every comment, wait for all required checks to succeed, and update the durable review ledger
 - [ ] T020 [US3] Stop with the pull request open and ask the owner for the final review and merge ritual
