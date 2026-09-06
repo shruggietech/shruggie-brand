@@ -36,4 +36,4 @@ pnpm --dir site test
 Remove-Item Env:SITE_VERIFY_BASE_URL
 ```
 
-Inspect the four representative screenshots under ignored `site/test-results/visual/`, then record only sanitized results and public URLs in `evidence.md`.
+Inspect all eight representative screenshots under ignored `site/test-results/visual/`, then record only sanitized results and public URLs in `evidence.md`.

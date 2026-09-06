@@ -71,4 +71,11 @@
 
 ## Pull request and reviews
 
-Pending.
+- Pull request: [#130](https://github.com/shruggietech/shruggie-brand/pull/130)
+- Initial head: `22cc2642f37813b49768507f12a98187715fb77d`
+- Initial CI: both push and pull-request Build jobs plus both Python 3.8 compatibility jobs passed
+- Codex round one: completed with one P2 finding at [discussion 3942515617](https://github.com/shruggietech/shruggie-brand/pull/130#discussion_r3942515617)
+- Filed review issue: [#131](https://github.com/shruggietech/shruggie-brand/issues/131)
+- Round-one correction: changed the quickstart screenshot count from four to eight so it agrees with the actual two-route, two-width, two-theme matrix
+- Explicit review requests posted: 0
+- Round-two status: pending
