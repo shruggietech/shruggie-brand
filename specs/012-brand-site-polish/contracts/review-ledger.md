@@ -12,7 +12,7 @@ No third review request is authorized. Every negative finding must become a GitH
 ## Pull request state
 
 - Pull request: [#134](https://github.com/shruggietech/shruggie-brand/pull/134)
-- Required checks: Pending on the round-two correction head
-- Unresolved actionable threads: 3, pending substantive responses on the correction commit
+- Required checks: Green on round-two correction commit `5674e102000dc178ef901f29047336e1b82478f4`; the documentation-only ledger finalization receives the same gates before owner handoff
+- Unresolved actionable threads: 0
 - Explicit review requests posted: 1 of 1 authorized
 - Owner merge gate: Required
