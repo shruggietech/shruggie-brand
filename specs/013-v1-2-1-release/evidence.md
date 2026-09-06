@@ -33,8 +33,10 @@
 
 ## Pull request and review
 
-- Initial candidate commit: `26df279`
-- Pending branch publication and automatic review.
+- Candidate commit: `0333779`
+- Pull request: [#141](https://github.com/shruggietech/shruggie-brand/pull/141)
+- Manual Codex review requests posted: 0
+- Automatic review and required checks: pending.
 
 ## Public release
 

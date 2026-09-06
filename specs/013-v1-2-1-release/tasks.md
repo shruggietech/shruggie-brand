@@ -59,7 +59,7 @@
 **Independent Test**: The pull request has successful required checks, substantive dispositions for every review comment, zero unresolved actionable threads, and no manual Codex review request.
 
 - [X] T016 [US2] Complete candidate evidence and task state, commit the S013 revision, and verify the committed branch is clean
-- [ ] T017 [US2] Push `codex/013-v1-2-1-release` and open the official S013 pull request tracking #140
+- [X] T017 [US2] Push `codex/013-v1-2-1-release` and open the official S013 pull request tracking #140
 - [ ] T018 [US2] Process automatic Codex review, file every negative finding, implement and verify warranted corrections, respond to every comment, resolve addressed threads, and update `specs/013-v1-2-1-release/evidence.md`
 - [ ] T019 [US2] Wait for every required check to succeed, verify zero manual review triggers, and merge the pull request
 - [ ] T020 [US2] Synchronize actual main and repeat the complete v1.2.1 candidate contract before tagging
