@@ -15,6 +15,8 @@ This repository is the source of the ShruggieTech brand system. It contains the 
 - [Glitchpad](https://brand.shruggie.tech/glitchpad/)
 - [Covarity](https://brand.shruggie.tech/covarity/)
 
+Each brand page links to a generated multi-page guideline portal with focused voice, logo, color, typography, component, asset, and platform-integration topics. The downloads page also carries a standalone HTML guideline for offline use.
+
 ## Build
 
 Install Python 3.8 or newer and the dependencies documented in [CONTRIBUTING.md](CONTRIBUTING.md), then build every production kit and the fixture:

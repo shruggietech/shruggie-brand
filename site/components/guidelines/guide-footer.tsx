@@ -1,0 +1,1 @@
+export function GuideFooter() { return <footer className="guide-footer" aria-label="Guideline utilities"><a href="#guide-title">Back to top</a><a className="guide-host-exit" href="/">All brands</a></footer>; }

@@ -88,6 +88,60 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(1, len(groups))
         self.assertEqual({"favicon", "apple-touch", "installable"}, {item["role"] for item in groups[0]["deliveries"]})
 
+    def test_portal_colors_are_hex_first_and_keep_aliases_secondary(self):
+        entries = gen_guidelines.portal_colors([
+            ("primary", "#2BCC73"),
+            ("ring", "#2BCC73"),
+            ("background", "#080B0D"),
+        ])
+        self.assertEqual(["primary", "background"], [entry["token"] for entry in entries])
+        self.assertEqual(["ring"], entries[0]["aliases"])
+        self.assertEqual("#2BCC73", entries[0]["hex"])
+        self.assertIn("oklch(", entries[0]["oklch"])
+
+    def test_portal_assets_use_bounded_representatives_and_document_resources(self):
+        deliveries = [
+            {"path": "icons/web/favicon-16x16.png", "family": "icon", "platform": "web", "role": "favicon", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 16, "height": 16, "destination": "Web root"},
+            {"path": "icons/web/favicon-32x32.png", "family": "icon", "platform": "web", "role": "favicon", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 32, "height": 32, "destination": "Web root"},
+            {"path": "icons/web/site.webmanifest", "family": "icon", "platform": "web", "role": "manifest", "appearance": "default", "source_variant": "reduced", "format": "json", "destination": "Web root"},
+            {"path": "icons/web/README.md", "family": "icon", "platform": "web", "role": "instructions", "appearance": "default", "source_variant": "reduced", "format": "markdown", "destination": "Web integration guide"},
+        ]
+        families, resources = gen_guidelines.portal_assets(deliveries)
+        self.assertEqual(1, len(families))
+        self.assertEqual(1, len(families[0]["assets"]))
+        self.assertEqual(2, len(families[0]["assets"][0]["deliveries"]))
+        self.assertEqual("icons/web/favicon-32x32.png", families[0]["assets"][0]["preview"]["path"])
+        self.assertEqual({"json", "markdown"}, {resource["format"] for resource in resources})
+        self.assertTrue(all("preview" not in resource for resource in resources))
+
+    def test_portal_payload_covers_every_delivery_once(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            (kit / "logos" / "svg").mkdir(parents=True)
+            (kit / "icons" / "web").mkdir(parents=True)
+            (kit / "logos" / "svg" / "alpha-mark-color.svg").write_text(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"></svg>\n', encoding="utf-8")
+            (kit / "logos" / "provenance.json").write_text(json.dumps({"derivatives": [{
+                "path": "logos/svg/alpha-mark-color.svg", "kind": "mark", "variant": "full", "colourway": "color",
+            }]}), encoding="utf-8")
+            Image.new("RGBA", (32, 32), (43, 204, 115, 255)).save(kit / "icons" / "web" / "favicon-32x32.png")
+            (kit / "icons" / "web" / "README.md").write_text("# Web icons\n\nInstall the generated files.\n", encoding="utf-8")
+            artifacts = [
+                {"path": "icons/web/favicon-32x32.png", "platform": "web", "role": "favicon", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 32, "height": 32, "destination": "Web root"},
+                {"path": "icons/web/README.md", "platform": "web", "role": "instructions", "appearance": "default", "source_variant": "reduced", "format": "markdown", "destination": "Web integration guide"},
+            ]
+            (kit / "icons" / "manifest.json").write_text(json.dumps({"artifacts": artifacts, "suites": [], "aliases": {}}), encoding="utf-8")
+            brand = {"slug": "alpha", "title": "Alpha", "descriptor": "Alpha tools.", "brand_idea": "Work clearly.", "guide": {}, "voice": {}, "typography": {"families": {}}, "domain_components": {}, "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
+            palettes = ({"primary": "#2BCC73", "background": "#080B0D"}, {"primary": "#167A45", "background": "#FFFFFF"})
+            with mock.patch.object(gen_guidelines, "tokens", return_value=palettes):
+                payload = gen_guidelines.portal_payload(brand, kit)
+            paths = [delivery["path"] for family in payload["asset_families"] for item in family["assets"] for delivery in item["deliveries"]]
+            paths += [resource["path"] for resource in payload["resources"]]
+            self.assertEqual(3, len(paths))
+            self.assertEqual(3, len(set(paths)))
+            self.assertEqual("# Web icons", payload["instructions"][0]["markdown"].splitlines()[0])
+            self.assertEqual("1.0", payload["schema_version"])
+
     def test_guideline_swatches_cover_every_role_and_deduplicate_equal_values(self):
         html = gen_guidelines._swatches("Dark palette", [
             ("primary", "#2BCC73"), ("ring", "#2BCC73"), ("chart-1", "#58A6FF"),

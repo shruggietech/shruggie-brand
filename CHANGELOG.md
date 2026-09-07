@@ -6,6 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added generated portal payloads, canonical multi-page brand guideline routes, focused topic navigation, compact HEX-first color references, purpose-led asset libraries, rendered platform instructions, and portable offline guide downloads for issues #157 through #161.
 - Added manifest-derived guideline asset catalogs, copyable governed color references, scoped dark/light specimens, compact section navigation, and progressive back-to-top behavior for issues #147, #148, and #149.
 - Added explicit constructed and authoritative logo source modes, separate Full and Reduced source bindings, deterministic derivative provenance, hash-bound mask approval, and fail-closed source, metadata, operation, placement, raster, icon, and mask-topology verification.
 - Added issue #151 regressions for unrelated geometry, construction helpers, stale hashes, role and usage mismatches, reduced-mark substitution, undeclared transformations, incomplete provenance, and changed authoritative silhouettes.
@@ -14,6 +15,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-07, superseded S017's hosted single-page guideline presentation with brand-owned Fumadocs portals backed by one validated typed registry, while retaining generated standalone HTML as a download-only artifact.
 - On 2026-09-07, replaced the superseded universal orange link decoration with explicit editorial, text-action, navigation, utility, card, button, identity, and contextual-navigation roles, and rebuilt documentation pagination with neutral surfaces and restrained green border feedback for issues #142 and #143.
 - On 2026-09-07, made generated logo provenance and platform icon manifests the only guideline inventory authority, with portable relative asset links rewritten only by the hosted publication step.
 - On 2026-09-07, bound ShruggieTech Full and Reduced marks to their separately approved immutable raster masters while preserving all source bytes, constructed identity paths, colors, and public presentation.
@@ -23,6 +25,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Corrected clipped brand landing headings, unstable color disclosure layouts, unbounded asset previews, blank nonvisual asset cards, raw integration Markdown, and conflated guideline footer controls across responsive and 200 percent zoom layouts.
 - Removed the generated global anchor hover underline that could combine with site-owned decoration, and corrected pagination title and description selectors so each retains its intended hierarchy.
 - Rejected square-enclosure configurations whose measured source paths exceed the safe content area, and distinguished composed external clear space from protected internal glyph measurements in generated guidance.
 - Preserved the permanent page-and-G knockout in Android adaptive monochrome and iOS tinted exports by routing platform recoloring through the generated one-color master instead of the full-color alpha silhouette.

@@ -12,7 +12,7 @@ surface alongside it.
 
     python3 build/gen_guidelines.py <brand.json> <kit-dir>
 """
-import argparse, base64, json, math, os, re, sys
+import argparse, base64, hashlib, json, math, os, re, sys
 from html import escape
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -62,6 +62,115 @@ def group_asset_deliveries(deliveries):
         result.append({"id": "asset-" + re.sub(r"[^a-z0-9]+", "-", "-".join(key).lower()).strip("-"),
                        "key": key, "representative": representative, "deliveries": rows})
     return sorted(result, key=lambda item: item["id"])
+
+def _humanize(value):
+    return re.sub(r"\s+", " ", str(value or "").replace("_", " ").replace("-", " ")).strip().title()
+
+def portal_colors(values):
+    """Return one compact reference row per canonical value."""
+    grouped = {}
+    for token, value in values:
+        grouped.setdefault(value.upper(), []).append(token)
+    result = []
+    for value, names in grouped.items():
+        reference = color_reference(names[0], value)
+        reference.update({"role": _humanize(names[0]), "aliases": names[1:]})
+        result.append(reference)
+    return result
+
+def _asset_family(item):
+    if item.get("family") == "logo":
+        return "marks" if item.get("kind") == "mark" else "logos"
+    platform = item.get("platform") or "integration"
+    return {"web": "web", "android": "android", "apple-ios": "ios", "apple-macos": "macos", "windows": "windows"}.get(platform, "integration")
+
+def _delivery_record(item, kit=None):
+    record = dict(item)
+    if kit is not None:
+        record["sha256"] = hashlib.sha256(Path(kit, item["path"]).read_bytes()).hexdigest()
+    return record
+
+def portal_assets(deliveries, kit=None):
+    """Project manifest deliveries into purpose-led visual families and documents."""
+    families = {}
+    resources = []
+    visual = {"svg", "png"}
+    for group in group_asset_deliveries(deliveries):
+        previews = [item for item in group["deliveries"] if item.get("format") in visual]
+        nonvisual = [item for item in group["deliveries"] if item.get("format") not in visual]
+        for item in nonvisual:
+            resources.append({
+                **_delivery_record(item, kit),
+                "id": "resource-" + re.sub(r"[^a-z0-9]+", "-", item["path"].lower()).strip("-"),
+                "title": _humanize(Path(item["path"]).stem),
+                "resource_kind": "instructions" if item.get("format") == "markdown" else "code-or-container",
+                "summary": str(item.get("destination") or "Integration resource"),
+            })
+        if not previews:
+            continue
+        representative = max(previews, key=lambda item: (item.get("format") == "svg", int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
+        family_key = _asset_family(representative)
+        family = families.setdefault(family_key, {
+            "key": family_key,
+            "title": {"logos": "Logos and lockups", "marks": "Marks", "web": "Web icons", "android": "Android", "ios": "iOS", "macos": "macOS", "windows": "Windows", "integration": "Integration resources"}[family_key],
+            "summary": "Choose by purpose, then open details for every delivered size and format.",
+            "assets": [],
+        })
+        records = [_delivery_record(item, kit) for item in previews]
+        title_parts = [representative.get("kind"), representative.get("variant"), representative.get("role"), representative.get("appearance") or representative.get("colourway")]
+        title = _humanize(" ".join(str(part) for part in title_parts if part and part != "default")) or _humanize(Path(representative["path"]).stem)
+        family["assets"].append({
+            "id": group["id"], "title": title,
+            "role": representative.get("role") or representative.get("kind") or "asset",
+            "platform": representative.get("platform") or "identity",
+            "appearance": representative.get("appearance") or representative.get("colourway") or "default",
+            "surface": "light" if representative.get("colourway") in {"light", "black"} or representative.get("appearance") in {"light", "tinted", "light-unplated"} else "dark",
+            "summary": "Use this %s for %s." % (_humanize(representative.get("role") or representative.get("kind") or "asset").lower(), str(representative.get("destination") or "its declared destination").lower()),
+            "formats": sorted({item["format"] for item in records}),
+            "variants": sorted({str(item.get("source_variant") or item.get("variant") or "default") for item in records}),
+            "preview": _delivery_record(representative, kit), "deliveries": records,
+        })
+    order = ["logos", "marks", "web", "android", "ios", "macos", "windows", "integration"]
+    return [families[key] for key in order if key in families], sorted(resources, key=lambda item: item["path"])
+
+def portal_payload(B, kit):
+    dark, light = tokens(kit)
+    deliveries, suites, aliases = asset_deliveries(kit)
+    families, resources = portal_assets(deliveries, kit)
+    instructions = []
+    for resource in resources:
+        if resource["format"] == "markdown":
+            instructions.append({
+                "key": re.sub(r"[^a-z0-9]+", "-", (resource.get("platform") or "integration").lower()).strip("-"),
+                "title": resource["title"], "platform": resource.get("platform") or "integration",
+                "source_path": resource["path"], "markdown": Path(kit, resource["path"]).read_text(encoding="utf-8"),
+            })
+    guide = B.get("guide") or {}
+    topics = [
+        {"key": "overview", "title": "Overview and foundations", "description": str(guide.get("foundation_title") or B.get("descriptor") or "Brand foundations")},
+        {"key": "voice", "title": "Voice and messaging", "description": "Principles for writing in the brand voice."},
+        {"key": "logos", "title": "Logo system and usage", "description": "Approved marks, lockups, clear space, and reduction rules."},
+        {"key": "color", "title": "Color", "description": "Canonical palette values and semantic roles."},
+        {"key": "typography", "title": "Typography", "description": "Approved type families, weights, and roles."},
+        {"key": "components", "title": "Components and examples", "description": "Representative interface patterns for this identity."},
+        {"key": "assets", "title": "Asset library and downloads", "description": "Task-oriented access to every verified delivery."},
+    ]
+    if instructions:
+        topics.append({"key": "integration", "title": "Platform integration", "description": "Rendered instructions for delivered platform assets."})
+    return {
+        "schema_version": "1.0",
+        "brand": {"slug": B["slug"], "title": B["title"], "descriptor": B.get("descriptor", ""), "idea": B.get("brand_idea", ""), "affiliation": affiliation_text(B)},
+        "topics": topics,
+        "content": {
+            "overview": {"foundation_title": guide.get("foundation_title", "Foundations"), "foundation": guide.get("foundation", ""), "promises": guide.get("promises", []), "in_scope": guide.get("in_scope", []), "out_of_scope": guide.get("out_of_scope", []), "sharp_edge": guide.get("sharp_edge", "")},
+            "voice": {"principle": B.get("governing_principle", ""), "qualities": (B.get("voice") or {}).get("qualities", []), "lead_with": (B.get("voice") or {}).get("lead_with", []), "avoid": (B.get("voice") or {}).get("avoid", []), "personality": guide.get("personality", [])},
+            "logos": {"guidance": guide.get("logo", ""), "minimum_sizes": (B.get("logo") or {}).get("min_px", {}), "reduced_below_px": (B.get("logo") or {}).get("reduced_below_px"), "prohibitions": (B.get("logo") or {}).get("prohibitions", [])},
+            "typography": B.get("typography", {}), "components": B.get("domain_components", {}),
+        },
+        "palettes": {"dark": portal_colors(list(dark.items())), "light": portal_colors(list(light.items()))},
+        "asset_families": families, "resources": resources, "instructions": instructions,
+        "capability_suites": suites, "aliases": aliases, "portable_guide": "guidelines/index.html",
+    }
 
 def _dimensions(path):
     suffix = path.suffix.lower()
@@ -427,7 +536,12 @@ def main():
     d = os.path.join(a.kit, "guidelines"); os.makedirs(d, exist_ok=True)
     p = os.path.join(d, "index.html")
     with open(p, "w", encoding="utf-8", newline="\n") as f: f.write(build(B, a.kit))
+    portal = os.path.join(d, "portal.json")
+    with open(portal, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(portal_payload(B, a.kit), f, ensure_ascii=False, indent=2)
+        f.write("\n")
     print("wrote", p)
+    print("wrote", portal)
     print("Now run qc_images.py and OPEN the page sheet. It renders at 390px too.")
     return 0
 

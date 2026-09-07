@@ -128,7 +128,7 @@ It validates the explicit contract first, then probes, runs the glyph gate, and 
     python3 templates/gen_nextjs.py     <brand.json> <kit>    # globals.css, registry, fonts, provider
     python3 templates/gen_enforcement.py <brand.json> <kit>   # AGENTS.md, oxlint, stylelint
     python3 templates/gen_logo.py       <brand.json> <kit>    # colourways, lockups, native icon suites
-    python3 templates/gen_guidelines.py <brand.json> <kit>    # the guidelines page
+    python3 templates/gen_guidelines.py <brand.json> <kit>    # portal payload and portable guide
     python3 templates/gen_guide_pdf.py  <brand.json> <kit>    # the brand guide, full-bleed dark
     python3 templates/verify.py         <kit>                 # measured VERIFY.md
     python3 templates/scan_affiliation.py <brand.json> <kit>  # false claims
@@ -148,7 +148,7 @@ correct output looks like.
 A kit is done when `verify.py` reports zero problems, `validate_glyph.py`
 reports zero failures, `qc_render.py` reports zero problems where the tier
 allowed it to run, and every skip names the tool that was missing. Present the
-guidelines page, the UI kit screenshots, the type specimen, and the verification
+portal payload and portable guidelines page, the UI kit screenshots, the type specimen, and the verification
 table. A non-zero problem count blocks the final gate.
 
 If you can see images, open `qc/logo-sheet.png` and `qc/contact-sheet.png`
@@ -194,7 +194,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/gen_enforcement.py` | `AGENTS.md`, oxlint and stylelint configs |
 | `templates/gen_logo.py` | colourways, outlined wordmark, lockups, rasters, categorized application icons |
 | `templates/iconkit.py` | platform matrices, composition, native containers, manifests, and compatibility aliases |
-| `templates/gen_guidelines.py` | the portable guidelines reference, rendered from shipped tokens, logo provenance, and icon manifests, with multi-format colors, scoped theme wells, asset catalog, and progressive navigation |
+| `templates/gen_guidelines.py` | the deterministic `guidelines/portal.json` contract and portable HTML reference, rendered from shipped tokens, logo provenance, icon manifests, instruction files, semantic asset families, and complete color palettes |
 | `templates/gen_guide_pdf.py` | the brand guide PDF, full-bleed dark to the house standard |
 | `templates/build_specimen.py` | the outlined type specimen, driven by brand.json |
 | `templates/_guidekit.py` | shared token, font and copy helpers for the document generators |
