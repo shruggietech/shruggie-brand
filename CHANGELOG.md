@@ -14,6 +14,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-07, replaced the superseded universal orange link decoration with explicit editorial, text-action, navigation, utility, card, button, identity, and contextual-navigation roles, and rebuilt documentation pagination with neutral surfaces and restrained green border feedback for issues #142 and #143.
 - On 2026-09-07, made generated logo provenance and platform icon manifests the only guideline inventory authority, with portable relative asset links rewritten only by the hosted publication step.
 - On 2026-09-07, bound ShruggieTech Full and Reduced marks to their separately approved immutable raster masters while preserving all source bytes, constructed identity paths, colors, and public presentation.
 - On 2026-09-07, approved Glitchpad's permanent square identity using a sulfur square with charcoal page on dark surfaces and a charcoal square with sulfur page on light surfaces, retaining the slate fold and protected page paths while prohibiting muddy or darkened yellow variants.
@@ -22,6 +23,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Removed the generated global anchor hover underline that could combine with site-owned decoration, and corrected pagination title and description selectors so each retains its intended hierarchy.
 - Rejected square-enclosure configurations whose measured source paths exceed the safe content area, and distinguished composed external clear space from protected internal glyph measurements in generated guidance.
 - Preserved the permanent page-and-G knockout in Android adaptive monochrome and iOS tinted exports by routing platform recoloring through the generated one-color master instead of the full-color alpha silhouette.
 - Centered non-square portfolio marks inside a constrained square image box and replaced Glitchpad's diluted yellow landing-card and portfolio-hero surfaces with its governed charcoal card surface, including accessible light-theme text and no decorative yellow glow.
