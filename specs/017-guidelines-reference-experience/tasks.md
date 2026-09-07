@@ -37,7 +37,7 @@
 - [x] T017 Run focused Python suites and the complete five-kit aggregate build
 - [x] T018 Run release, site lint/build/browser, accessibility, encoding, mojibake, and Git hygiene gates
 - [x] T019 Inspect all five responsive guideline outputs and record evidence in `evidence.md`
-- [ ] T020 Push the branch, publish an issue-closing PR, resolve at most two Codex review rounds, and record final green CI
+- [x] T020 Push the branch, publish an issue-closing PR, resolve at most two Codex review rounds, and record final green CI
 
 ## Dependencies
 
