@@ -40,4 +40,7 @@ All S019 tasks are complete locally. Generated kits, site exports, browser captu
 
 - Implementation commit: `289e3e5` (`feat(S019): rebuild hosted guideline portals`).
 - Pull request: [#162](https://github.com/shruggietech/shruggie-brand/pull/162).
-- CI and external review status: pending.
+- CI: the current-head Build run `34162563224` passed both `python-38-compatibility` and the full `build` job. The superseded initial run `34162559920` also completed green.
+- External review round one: the automatic Codex connector reported that its review quota was exhausted, so it produced no findings.
+- External review round two: the single authorized `@Codex review` request received the same quota response and produced no findings. No further review round was requested.
+- Review disposition: both connector responses were acknowledged on the pull request, no review threads or inline comments exist, and the pull request reports a clean merge state.
