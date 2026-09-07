@@ -71,5 +71,5 @@ Desktop and Android release preparation should consume assets rebuilt from the S
 
 - Implementation commit: `cd8b16b` (`fix(S014): harden Glitchpad presentation and icon containment`).
 - Pull request: [#150](https://github.com/shruggietech/shruggie-brand/pull/150)
-- First review round: pending.
+- First review round: completed against `cd8b16b`. Codex reported one P1 Spec Kit synchronization finding. Commit `ff42463` marked T022 and T023 complete to match the recorded validation evidence; the finding received a substantive reply and its review thread was resolved.
 - Authorized second review round: not triggered.
