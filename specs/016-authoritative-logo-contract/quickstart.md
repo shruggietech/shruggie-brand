@@ -12,7 +12,7 @@
 .\.venv\Scripts\python skill/templates/test_brand_contract.py
 ```
 
-Expected: explicit modes, variant bindings, hash and role checks, helper conflicts, imported-image exclusivity, constructed compatibility, and the issue #151 negative matrix all pass.
+Expected: explicit modes, variant bindings, hash and role checks, portable bound formats, hash-bound mask approval, helper conflicts, imported-image exclusivity, constructed compatibility, and the issue #151 negative matrix all pass.
 
 ## 2. Focused generator and provenance tests
 
@@ -22,7 +22,7 @@ Expected: explicit modes, variant bindings, hash and role checks, helper conflic
 .\.venv\Scripts\python skill/templates/test_glyphkit.py
 ```
 
-Expected: authoritative SVG metadata, deterministic logo provenance, unchanged embedding, valid recolor and lockup lineage, silhouette-tamper rejection, verified platform master handoff, and existing constructed logo behavior all pass.
+Expected: authoritative SVG metadata, deterministic logo provenance, unchanged passive SVG embedding, valid recolor and lockup lineage, rendered placement and visibility, silhouette and PNG tamper rejection, exact platform artifact verification, and existing constructed logo behavior all pass.
 
 ## 3. Production build and identity audit
 

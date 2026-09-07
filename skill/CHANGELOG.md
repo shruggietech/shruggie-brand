@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Added explicit constructed and authoritative logo source modes with separate Full and Reduced bindings, a closed transformation vocabulary, and fresh-approval rules for identity-affecting source changes.
-- Added deterministic `logos/provenance.json` lineage, SVG source metadata, platform-master handoff records, and fail-closed verification of inventory, hashes, transformations, aspect, and exact authoritative PNG mask topology.
+- Added deterministic `logos/provenance.json` lineage, SVG source metadata, platform-master handoff records, and fail-closed verification of inventory, hashes, transformations, placement, every raster and icon payload, and exact owner-approved PNG mask topology.
 - Added issue #151 regression coverage and migrated all production brands without changing constructed paths or authoritative source bytes.
 - Added optional, schema-validated square-enclosure rendering with contextual color roles, source-owned wordmark colors, and portable one-color knockout output.
 - Updated generated guideline metrics to describe the delivered square composition while preserving the protected inner artwork measurements in source.

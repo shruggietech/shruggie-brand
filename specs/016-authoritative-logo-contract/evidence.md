@@ -30,8 +30,8 @@ ShruggieTech's retained imported path record remains `da15b5819b777ff3c1323d801b
 
 Run on 2026-09-07 from the repository virtual environment:
 
-- `test_brand_contract.py`: 27 passed.
-- `test_pipeline.py`: 29 passed.
+- `test_brand_contract.py`: 28 passed.
+- `test_pipeline.py`: 31 passed.
 - `test_iconkit.py`: 14 passed.
 - `test_glyphkit.py`: 31 checks, 0 failures.
 - `test_release_contract.py`: 13 passed.
@@ -39,7 +39,7 @@ Run on 2026-09-07 from the repository virtual environment:
 - `test_package_release.py`: 2 passed.
 - `check_markdown.py`: passed.
 
-The tests cover explicit modes, separate role-correct bindings, stale or reference-only inputs, construction-helper conflicts, unrelated geometry, reduced substitution, deterministic provenance, SVG metadata, valid recolors and lockups, incomplete or stale lineage, undeclared operations, topology tampering, and platform master handoff.
+The tests cover explicit modes, separate role-correct bindings, stale or reference-only inputs, construction-helper conflicts, unrelated geometry, reduced substitution, portable PNG preflight, hash-bound mask approval, passive SVG byte preservation, deterministic provenance, SVG metadata and rendered placement, valid recolors and lockups, incomplete or stale lineage, undeclared operations, topology and raster tampering, and exact platform master handoff.
 
 ## Production Verification
 
@@ -56,11 +56,11 @@ Initial cross-artifact analysis identified two material omissions, both resolved
 - Fresh owner approval is now required for a changed binding, hash, source artwork, mask method, or visible geometry (FR-021).
 - Raster silhouette acceptance now requires exact binary topology after deterministic nearest-neighbor normalization (SC-004).
 
-Final analysis result: zero material consistency, coverage, ambiguity, constitution, or underspecification findings across 21 functional requirements, 6 success criteria, and 37 chronological tasks.
+Final analysis result: zero material consistency, coverage, ambiguity, constitution, or underspecification findings across 22 functional requirements, 6 success criteria, and 37 chronological tasks.
 
 ## Publication
 
 - Pull request: https://github.com/shruggietech/shruggie-brand/pull/154
-- Automatic Codex review: one P2 identified PNG encodings accepted by preflight but unsupported by the portable recolorer. Contract validation now rejects bound PNG masters unless they are non-interlaced RGBA8, and a regression proves failure occurs before generation.
-- Optional second review round: not requested.
-- Hosted CI: pending.
+- Automatic Codex review: completed. Its five findings covered unsupported PNG encodings, unverified logo PNG derivatives, passive SVG verification, JPEG and WebP binding, and the implicit wordmark lockup path. Contract preflight and independent derivative verification now cover each case.
+- Optional second review round: requested exactly once with `@Codex review` and completed. Its three findings covered hash-bound owner approval for raster mask selection, rendered SVG placement and visibility, and pixel-level verification of every platform icon artifact. All three are implemented with regressions and synchronized contract guidance.
+- Hosted CI: all four checks on `32bfdf2` passed. Review-remediation checks will run after the corrective commit is pushed.

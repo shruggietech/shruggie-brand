@@ -6,7 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
-- Added explicit constructed and authoritative logo source modes, separate Full and Reduced source bindings, deterministic derivative provenance, and fail-closed source, metadata, operation, and mask-topology verification.
+- Added explicit constructed and authoritative logo source modes, separate Full and Reduced source bindings, deterministic derivative provenance, hash-bound mask approval, and fail-closed source, metadata, operation, placement, raster, icon, and mask-topology verification.
 - Added issue #151 regressions for unrelated geometry, construction helpers, stale hashes, role and usage mismatches, reduced-mark substitution, undeclared transformations, incomplete provenance, and changed authoritative silhouettes.
 - Added optional validated square-enclosure composition, source-owned contextual wordmark roles, and renderer-portable monochrome knockout support for generated marks, lockups, and application icons.
 - Added visible-ink square-containment regressions for portrait, landscape, asymmetric-canvas, empty, standalone-master, and platform-specific occupancy cases.

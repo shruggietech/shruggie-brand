@@ -67,6 +67,10 @@ class ReleaseContractTests(unittest.TestCase):
         for input_id in shruggietech["logo"]["authoritative_input_ids"].values():
             path = ROOT / "brands" / "shruggietech" / inputs[input_id]["path"]
             self.assertEqual(inputs[input_id]["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
+            self.assertEqual(inputs[input_id]["sha256"], inputs[input_id]["mask_source_sha256"])
+            self.assertIn(inputs[input_id]["approved_mask"], {"alpha", "luminance"})
+            self.assertEqual("Repository owner via S016 approval", inputs[input_id]["mask_approved_by"])
+            self.assertEqual("2026-09-07", inputs[input_id]["mask_approved_on"])
 
     def test_repository_metadata_and_notes_agree_for_1_2_1(self):
         metadata = release_contract.load_metadata(ROOT, "1.2.1")

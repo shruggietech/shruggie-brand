@@ -19,11 +19,12 @@ No mode is inferred. Missing, unknown, or contradictory declarations block the b
 2. Full resolves to one approved `mark` input; Reduced resolves to one approved `reduced-mark` input.
 3. Each variant contains exactly one image element whose source equals the bound input path.
 4. No path, rectangle, or other independently constructed logo element may coexist with the bound image.
-5. The input format and SHA-256 match measured bytes, and its approved operations cover every requested derivative transformation.
+5. Bound input format is passive SVG or portable PNG, its SHA-256 matches measured bytes, and its approved operations cover every requested derivative transformation. JPEG and WebP may remain reference inputs but cannot bind a logo variant.
 6. Raster placement preserves source aspect ratio. Passive SVG sources embed unchanged bytes.
 7. `build/mk_paths.py` beneath the staged brand source is a contract error and is never executed.
 8. Any later change to a binding, source hash, source artwork, mask method, or visible identity geometry requires a new explicit owner approval before generation.
-9. A bound PNG uses non-interlaced 8-bit RGBA encoding so Core generation and verification can process it without Pillow.
+9. A bound PNG uses non-interlaced 8-bit RGBA encoding so Core generation and verification can process it without Pillow. Its `approved_mask`, `mask_source_sha256`, `mask_approved_by`, and `mask_approved_on` fields are all required, the approval hash equals the current source hash, and the image element uses that approved mask.
+10. The Full input always approves `place-in-lockup` because generated typography supplies a wordmark when no explicit wordmark path exists.
 
 ## Failure timing
 

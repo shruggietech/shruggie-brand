@@ -72,7 +72,7 @@ As a maintainer, I can continue generating path-authored brands under an explici
 
 - Full and Reduced may bind to distinct files, but each binding must use the matching unique `mark` or `reduced-mark` role.
 - One file cannot be declared twice under different protected roles, and one authoritative variant cannot fall back to another variant's source.
-- SVG sources must remain passive and self-contained; raster sources must retain measurable transparency when silhouette validation is required.
+- Bound SVG sources must remain passive and self-contained. Bound raster logo sources must be portable PNGs whose owner-approved `alpha` or `luminance` mask is tied to the current source hash, approver, and approval date.
 - Authoritative PNG logo masters must use the portable non-interlaced RGBA8 profile required by Core generation and topology verification; unsupported PNG encodings fail contract preflight rather than failing during export.
 - A source that permits palette analysis but not generated use cannot satisfy an authoritative logo binding.
 - An authoritative input may coexist with reference artwork, but reference artwork cannot become a logo source through inference.
@@ -97,14 +97,15 @@ As a maintainer, I can continue generating path-authored brands under an explici
 - **FR-011**: Generated authoritative SVG marks and lockups MUST carry machine-readable source ID and source-hash metadata consistent with the provenance index.
 - **FR-012**: Unchanged derivatives MUST embed the approved source bytes directly; resized, recolored, and lockup derivatives MUST preserve the source aspect ratio and alpha silhouette within a documented exact or measured tolerance.
 - **FR-013**: Verification MUST reject missing, extra, stale, conflicting, or duplicate provenance records and any output whose declared lineage does not match its embedded source metadata.
-- **FR-014**: Verification MUST reject an authoritative raster derivative whose visible alpha silhouette differs from its approved source after accounting only for declared proportional scaling and placement.
-- **FR-015**: Guidelines, logo catalogs, favicons, and platform icon suites MUST consume generated derivatives from the same authoritative lineage and MUST NOT construct a substitute logo.
+- **FR-014**: Verification MUST reject an authoritative raster derivative whose visible alpha silhouette differs from its hash-bound, owner-approved source mask after accounting only for declared proportional scaling and placement.
+- **FR-015**: Guidelines, logo catalogs, favicons, and platform icon suites MUST consume generated derivatives from the same authoritative lineage and MUST NOT construct a substitute logo; verifier coverage MUST compare every generated PNG and icon payload with an independently rendered verified master.
 - **FR-016**: The contract, generator, verifier, schema, and operator documentation MUST use the same definitions for source mode, bound variant, authoritative source, derivative, and approved transformation.
 - **FR-017**: Validation failures MUST identify the affected brand, variant or derivative, source ID when available, and the violated authority rule before publishable outputs are produced.
 - **FR-018**: Regression coverage MUST include every negative and positive case enumerated in issue #151, including unrelated paths, construction helpers, hash drift, valid lockups, valid recolors, silhouette-changing recolors, and unapproved reduced redraws.
 - **FR-019**: The aggregate production gate MUST continue to require zero `verify.py` problems and zero `validate_glyph.py` failures for every production kit, with authoritative marks exempted only from constructed-geometry advice that would require redrawing.
 - **FR-020**: S016 MUST close issue #151 without changing approved colors, logo geometry, source artwork bytes, public site design, or release versioning.
-- **FR-021**: Changing an authoritative variant binding, bound source hash, source artwork, mask method, or visible identity geometry after approval MUST require a new explicit owner approval recorded before generation.
+- **FR-021**: Changing an authoritative variant binding, bound source hash, source artwork, mask method, or visible identity geometry after approval MUST require a new explicit owner approval recorded before generation, including approver identity and approval date for raster mask selection.
+- **FR-022**: Verification MUST prove passive SVG bytes directly, reject unsupported bound formats before output, and reject authoritative SVGs whose placement, visibility, ancestor transforms, or later compositing obscure or remove identity pixels.
 
 ### Key Entities
 

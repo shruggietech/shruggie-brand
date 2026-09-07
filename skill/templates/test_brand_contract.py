@@ -243,8 +243,8 @@ class AuthoritativeInputTests(unittest.TestCase):
         brand["logo"]["paths"]["reduced"] = [{"element": "image", "source": "assets/reduced.png", "mask": "alpha", "x": 0, "y": 0, "width": 3, "height": 2}]
         operations = ["recolor-mask", "resize", "place-in-lockup", "palette-analysis"]
         brand["authoritative_inputs"] = [
-            {"id": "master-mark", "role": "mark", "path": "assets/mark.png", "format": "png", "sha256": sha256_file(source), "color_profile": "unknown", "usage_status": "approved", "license": "Test fixture", "approved_transformations": operations},
-            {"id": "master-reduced", "role": "reduced-mark", "path": "assets/reduced.png", "format": "png", "sha256": sha256_file(reduced), "color_profile": "unknown", "usage_status": "approved", "license": "Test fixture", "approved_transformations": ["recolor-mask", "resize"]},
+            {"id": "master-mark", "role": "mark", "path": "assets/mark.png", "format": "png", "sha256": sha256_file(source), "color_profile": "unknown", "usage_status": "approved", "license": "Test fixture", "approved_mask": "alpha", "mask_source_sha256": sha256_file(source), "mask_approved_by": "Test owner", "mask_approved_on": "2026-09-07", "approved_transformations": operations},
+            {"id": "master-reduced", "role": "reduced-mark", "path": "assets/reduced.png", "format": "png", "sha256": sha256_file(reduced), "color_profile": "unknown", "usage_status": "approved", "license": "Test fixture", "approved_mask": "alpha", "mask_source_sha256": sha256_file(reduced), "mask_approved_by": "Test owner", "mask_approved_on": "2026-09-07", "approved_transformations": ["recolor-mask", "resize"]},
         ]
         brand["palette_approvals"] = [{
             "input_id": "master-mark", "source_sha256": sha256_file(source), "selected_candidate": "#2BCC73",
@@ -397,6 +397,18 @@ class AuthoritativeInputTests(unittest.TestCase):
             Image.new("RGB", (3, 2), (43, 204, 115)).save(source)
             brand["authoritative_inputs"][0]["sha256"] = sha256_file(source)
             with self.assertRaisesRegex(ContractError, "non-interlaced RGBA8"):
+                validate_brand(brand, kit)
+
+    def test_authoritative_mask_method_requires_current_owner_approval(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _source = self.make_raster_brand(kit)
+            brand["logo"]["paths"]["full"][0]["mask"] = "luminance"
+            with self.assertRaisesRegex(ContractError, "mask method lacks matching owner approval"):
+                validate_brand(brand, kit)
+            brand["logo"]["paths"]["full"][0]["mask"] = "alpha"
+            brand["authoritative_inputs"][0]["mask_source_sha256"] = "0" * 64
+            with self.assertRaisesRegex(ContractError, "mask approval is stale"):
                 validate_brand(brand, kit)
 
 

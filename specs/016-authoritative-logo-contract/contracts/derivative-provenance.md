@@ -33,8 +33,10 @@ Verification independently derives the expected inventory and rejects:
 2. Missing or conflicting SVG root metadata.
 3. Unknown or undeclared transformations.
 4. Source ID, path, role, approval, or hash drift.
-5. Aspect-ratio distortion.
-6. Raster-mask topology that differs from the declared alpha or luminance source after deterministic nearest-neighbor normalization.
-7. Downstream references to a logo master absent from the validated index.
+5. Aspect-ratio distortion, changed image placement, hidden identity content, unsupported transforms, or later SVG content that obscures opaque identity pixels.
+6. Raster-mask topology that differs from the hash-bound owner-approved alpha or luminance source after deterministic nearest-neighbor normalization.
+7. Any generated logo PNG whose pixels differ from an independent rendering of its verified SVG master.
+8. Any platform PNG, favicon SVG payload, ICO frame, or ICNS frame whose pixels or embedded bytes differ from the declared verified Full, Reduced, or monochrome master.
+9. Downstream references to a logo master absent from the validated index.
 
 Generated PDF or PNG byte identity is never used as the correctness gate.

@@ -311,7 +311,7 @@ def _write_android(writer, full_mark, monochrome_mark):
     foreground = contain_visible(full_mark, 432, 66.0 / 108.0)
     monochrome = contain_visible(monochrome_mark, 432, 66.0 / 108.0, "#FFFFFF")
     writer.png(res / "drawable-nodpi" / "ic_launcher_foreground.png", foreground, "android", "adaptive-foreground", alpha="transparent", destination="Android res/drawable-nodpi")
-    writer.png(res / "drawable-nodpi" / "ic_launcher_monochrome.png", monochrome, "android", "adaptive-monochrome", alpha="transparent", destination="Android res/drawable-nodpi")
+    writer.png(res / "drawable-nodpi" / "ic_launcher_monochrome.png", monochrome, "android", "adaptive-monochrome", alpha="transparent", source_variant="monochrome", destination="Android res/drawable-nodpi")
     background_xml = '<?xml version="1.0" encoding="utf-8"?>\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="@color/ic_launcher_background"/></shape>\n'
     writer.text(res / "drawable" / "ic_launcher_background.xml", background_xml, "android", "adaptive-background", "xml", "Android res/drawable")
     adaptive = '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@drawable/ic_launcher_background"/><foreground android:drawable="@drawable/ic_launcher_foreground"/><monochrome android:drawable="@drawable/ic_launcher_monochrome"/></adaptive-icon>\n'
@@ -343,7 +343,8 @@ def _write_ios(writer, full_mark, monochrome_mark):
     )
     rows = []
     for name, image, appearance in images:
-        writer.png(catalog / name, image, "apple-ios", "app-icon", appearance or "default", "opaque", destination="Xcode AppIcon.appiconset")
+        writer.png(catalog / name, image, "apple-ios", "app-icon", appearance or "default", "opaque",
+                   "monochrome" if appearance == "tinted" else "full", "Xcode AppIcon.appiconset")
         row = {"filename": name, "idiom": "universal", "platform": "ios", "size": "1024x1024"}
         if appearance:
             row["appearances"] = [{"appearance": "luminosity", "value": appearance}]

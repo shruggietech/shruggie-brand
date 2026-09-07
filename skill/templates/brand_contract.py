@@ -426,7 +426,12 @@ def authoritative_inputs(brand, kit):
     normalized = []
     for index, record in enumerate(records):
         required = {"id", "role", "path", "format", "sha256", "color_profile", "usage_status", "license", "approved_transformations"}
-        _require(isinstance(record, dict) and set(record) == required, "authoritative input %d must contain exactly the required fields" % index)
+        mask_approval = {"approved_mask", "mask_source_sha256", "mask_approved_by", "mask_approved_on"}
+        _require(isinstance(record, dict) and required.issubset(set(record)) and set(record).issubset(required | mask_approval),
+                 "authoritative input %d must contain the required fields and only supported mask-approval fields" % index)
+        present_mask_fields = set(record) & mask_approval
+        _require(not present_mask_fields or present_mask_fields == mask_approval,
+                 "authoritative input %s has an incomplete mask approval" % record.get("id", index))
         _require(ID.fullmatch(record["id"] or ""), "authoritative input %d has an invalid id" % index)
         _require(record["id"] not in identifiers, "duplicate authoritative input id: %s" % record["id"])
         identifiers.add(record["id"])
@@ -441,6 +446,11 @@ def authoritative_inputs(brand, kit):
         transforms = record["approved_transformations"]
         _require(isinstance(transforms, list) and len(transforms) == len(set(transforms)) and set(transforms).issubset(allowed_transforms), "authoritative input %s has invalid approved transformations" % record["id"])
         _require(DIGEST.fullmatch(record["sha256"] or ""), "authoritative input %s has an invalid SHA-256" % record["id"])
+        if present_mask_fields:
+            _require(record["approved_mask"] in {"alpha", "luminance"}, "authoritative input %s has an invalid approved mask" % record["id"])
+            _require(DIGEST.fullmatch(record["mask_source_sha256"] or ""), "authoritative input %s has an invalid mask-approval SHA-256" % record["id"])
+            _require(isinstance(record["mask_approved_by"], str) and record["mask_approved_by"].strip(), "authoritative input %s lacks a mask approver" % record["id"])
+            _require(re.fullmatch(r"\d{4}-\d{2}-\d{2}", record["mask_approved_on"] or ""), "authoritative input %s has an invalid mask approval date" % record["id"])
         path = contained_path(kit, record["path"])
         _require(record["path"] not in by_path, "authoritative input path declared more than once: %s" % record["path"])
         by_path[record["path"]] = record
@@ -566,6 +576,8 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
                  (variant, expected_role, record["role"], input_id))
         _require(record["usage_status"] == "approved",
                  "%s authoritative input %s is not approved for generated use" % (variant, input_id))
+        _require(record["format"] in {"png", "svg"},
+                 "%s authoritative input %s must use portable PNG or passive SVG" % (variant, input_id))
         elements = paths[variant]
         _require(len(elements) == 1 and isinstance(elements[0], dict)
                  and elements[0].get("element") == "image" and "d" not in elements[0],
@@ -578,7 +590,7 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
                  "%s authoritative input %s does not approve %s" % (variant, input_id, required))
         _require("resize" in record["approved_transformations"],
                  "%s authoritative input %s does not approve resize" % (variant, input_id))
-        if variant == "full" and (brand.get("wordmark_text") or paths.get("wordmark")):
+        if variant == "full":
             _require("place-in-lockup" in record["approved_transformations"],
                      "full authoritative input %s does not approve place-in-lockup" % input_id)
         source_width, source_height = _image_dimensions(source_path)
@@ -590,8 +602,14 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
         target_ratio = target_width / target_height
         _require(abs(source_ratio - target_ratio) <= 1e-6,
                  "%s variant distorts authoritative source aspect ratio for %s" % (variant, input_id))
-        _require(element.get("mask") in ({None} if record["format"] == "svg" else {"alpha", "luminance"}),
-                 "%s authoritative input %s has an invalid mask method" % (variant, input_id))
+        if record["format"] == "svg":
+            _require(element.get("mask") is None,
+                     "%s authoritative input %s has an invalid mask method" % (variant, input_id))
+        else:
+            _require(record.get("mask_source_sha256") == record["sha256"],
+                     "%s authoritative input %s mask approval is stale for the current source hash" % (variant, input_id))
+            _require(element.get("mask") == record.get("approved_mask"),
+                     "%s authoritative input %s mask method lacks matching owner approval" % (variant, input_id))
         resolved[variant] = {
             "record": record,
             "path": source_path,

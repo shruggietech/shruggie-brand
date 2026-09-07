@@ -19,12 +19,14 @@ Constructed mode rejects `authoritative_input_ids` and approved `mark` or `reduc
 | `input_id` | identifier | References exactly one authoritative input |
 | expected role | derived enum | Full requires `mark`; Reduced requires `reduced-mark` |
 | source path | derived path | Image element source equals the referenced input path |
-| mask method | enum | Raster uses `alpha` or `luminance`; SVG embeds unchanged |
+| mask method | enum | PNG uses the owner-approved `alpha` or `luminance`; SVG embeds unchanged |
 | placement | rectangle | Finite x, y, width, and height preserving source aspect ratio |
 
 ## Authoritative Input Extension
 
 The existing record remains immutable. `approved_transformations` uses the closed set:
+
+Bound PNG mark records also require `approved_mask`, `mask_source_sha256`, `mask_approved_by`, and `mask_approved_on`. The approval hash must equal the current source SHA-256, making a changed file or changed extraction method a fresh owner decision. Bound logo inputs accept only PNG or passive SVG; other supported reference-art formats cannot become logo bindings.
 
 | Transformation | Meaning |
 | --- | --- |
