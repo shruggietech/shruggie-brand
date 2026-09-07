@@ -17,7 +17,7 @@ Specification, clarification, requirements checklist, experience checklist, plan
 
 - Manifest grouping, largest-preview selection, skipped capability disclosure, missing-file rejection, alias retention, container-size extraction, deterministic conversion, and conversion round trips were exercised in `test_pipeline.py`.
 - Hosted asset rewrite, traversal rejection, missing-target rejection, metadata preservation, and exactly-one-exit behavior were exercised in `test_prepare_site.py`.
-- The final focused matrix passed: 37 pipeline tests, 22 prepare-site tests, 28 brand-contract tests, 14 icon-kit tests, 13 release-contract tests, 2 package-release tests, and 31 glyph checks with zero failures.
+- The final focused matrix passed: 39 pipeline tests, 22 prepare-site tests, 28 brand-contract tests, 14 icon-kit tests, 13 release-contract tests, 2 package-release tests, and 31 glyph checks with zero failures.
 - Python compilation and the Markdown prose policy passed. Generated `skill/AGENTS.md` remained synchronized.
 
 ### Production and publication gates
@@ -34,4 +34,7 @@ The five responsive guideline sheets were inspected at 1280 and 390 pixels. The 
 
 ## Publication
 
-Pending official pull request, hosted CI, and Codex review closure.
+- Pull request: https://github.com/shruggietech/shruggie-brand/pull/155
+- Automatic Codex review: completed against `73cd7e0`. Its two findings covered complete dark/light token references and macOS integration-role preview deduplication. Both are implemented with focused regressions and complete local gates.
+- Optional second review round: pending exactly one authorized `@Codex review` request after the corrective commit.
+- Hosted CI and final review state: pending the corrective head.

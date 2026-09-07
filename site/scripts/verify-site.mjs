@@ -186,6 +186,8 @@ try {
         for (const id of ['colors', 'themes', 'type-components', 'assets']) check(await page.locator(`#${id}`).count() === 1, `${route} lacks stable section #${id}`);
         check(await page.locator('.asset-card').count() >= 10, `${route} asset catalog is unexpectedly incomplete`);
         check(await page.locator('.theme-well').count() === 2, `${route} must contain dark and light theme wells`);
+        check(await page.getByRole('heading', { name: 'Dark palette' }).count() === 1 && await page.getByRole('heading', { name: 'Light palette' }).count() === 1, `${route} lacks complete dark and light color reference sections`);
+        check(await page.locator('button.copy[aria-label*="chart-1"]').count() >= 2, `${route} omits dark or light chart color references`);
         check(await page.locator('.host-exit').count() === 1 && await page.locator('.host-exit').getAttribute('href') === '/', `${route} must contain exactly one All brands exit`);
         check(await page.locator('footer a[href="#top"]').count() === 1, `${route} lacks its no-script top-anchor fallback`);
         const backTop = page.locator('button.back-top');

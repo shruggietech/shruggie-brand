@@ -69,6 +69,24 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(2, len(groups[0]["deliveries"]))
         self.assertEqual("icons/web/favicon-32x32.png", groups[0]["representative"]["path"])
 
+    def test_guideline_asset_groups_merge_macos_integration_roles_without_losing_role_data(self):
+        deliveries = [
+            {"path": "icons/apple/macos/Assets.xcassets/AppIcon.appiconset/icon_16x16.png", "family": "icon", "platform": "apple-macos", "role": "asset-catalog-icon", "appearance": "default", "source_variant": "full", "format": "png", "width": 16, "height": 16, "destination": "Xcode AppIcon.appiconset"},
+            {"path": "icons/apple/macos/AppIcon.iconset/icon_16x16.png", "family": "icon", "platform": "apple-macos", "role": "iconset-icon", "appearance": "default", "source_variant": "full", "format": "png", "width": 16, "height": 16, "destination": "macOS AppIcon.iconset"},
+        ]
+        groups = gen_guidelines.group_asset_deliveries(deliveries)
+        self.assertEqual(1, len(groups))
+        self.assertEqual({"asset-catalog-icon", "iconset-icon"}, {item["role"] for item in groups[0]["deliveries"]})
+
+    def test_guideline_swatches_cover_every_role_and_deduplicate_equal_values(self):
+        html = gen_guidelines._swatches("Dark palette", [
+            ("primary", "#2BCC73"), ("ring", "#2BCC73"), ("chart-1", "#58A6FF"),
+        ], "Example")
+        self.assertIn("primary, ring", html)
+        self.assertIn("chart-1", html)
+        self.assertEqual(2, html.count('class="color-card"'))
+        self.assertIn("Copy Example chart-1 OKLCH", html)
+
     def test_guideline_catalog_uses_manifests_and_reports_skipped_capabilities(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp)

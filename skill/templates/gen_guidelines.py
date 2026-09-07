@@ -42,8 +42,14 @@ def color_reference(token, value):
 def group_asset_deliveries(deliveries):
     grouped = {}
     for item in deliveries:
+        visual_role = item.get("role")
+        if item.get("platform") == "apple-macos" and visual_role in {"asset-catalog-icon", "iconset-icon"}:
+            visual_role = "app-icon"
+        normalized = dict(item); normalized["role"] = visual_role
         key = tuple(item.get(field) or "default" for field in
-                    ("family", "platform", "kind", "variant", "colourway", "role", "appearance", "source_variant"))
+                    ("family", "platform", "kind", "variant", "colourway")) + (
+                        normalized.get("role") or "default", item.get("appearance") or "default",
+                        item.get("source_variant") or "default")
         grouped.setdefault(key, []).append(item)
     result = []
     for key, rows in grouped.items():
@@ -148,8 +154,9 @@ def _asset_catalog(kit, title):
                 size = "embedded: " + ", ".join("%d × %d" % (value, value) for value in item["embedded_sizes"])
             else:
                 size = "container or metadata"
-            entries.append('<li><a data-kit-asset href="../%s">%s</a><span>%s · %s · %s</span></li>' %
-                           (escape(item["path"], quote=True), escape(item["path"]), size, item["format"].upper(),
+            entries.append('<li><a data-kit-asset href="../%s">%s</a><span>%s · %s · %s · %s</span></li>' %
+                           (escape(item["path"], quote=True), escape(item["path"]), escape(str(item.get("role") or "asset")),
+                            size, item["format"].upper(),
                             escape(str(item.get("destination") or "Kit delivery"))))
         light_surface = row.get("colourway") in {"light", "black"} or row.get("appearance") in {"light", "tinted", "light-unplated"}
         surface_class = "light-well" if light_surface else "dark-well"
@@ -171,16 +178,20 @@ def _asset_catalog(kit, title):
 
 def _swatches(title, values, brand_title):
     cards = []
+    grouped = {}
     for key, value in values:
-        ref = color_reference(key, value)
+        grouped.setdefault(value.upper(), []).append(key)
+    for value, keys in grouped.items():
+        roles = ", ".join(keys)
+        ref = color_reference(roles, value)
         detail = []
         for fmt in ("hex", "rgb", "hsl", "oklch", "lab"):
-            label = "%s %s" % (key, fmt.upper())
+            label = "%s %s" % (roles, fmt.upper())
             detail.append('<div class="color-value"><code>%s</code><button class="copy" type="button" data-copy="%s" aria-label="Copy %s %s">Copy</button></div>' %
                           (escape(ref[fmt]), escape(ref[fmt], quote=True), escape(brand_title, quote=True), escape(label, quote=True)))
         cards.append('<article class="color-card"><div class="chip" style="background:%s"></div><h3>%s</h3>'
                      '<details><summary>Color values</summary>%s<p class="dim">%s</p></details></article>' %
-                     (value, escape(key), "".join(detail), ref["print"]))
+                     (value, escape(roles), "".join(detail), ref["print"]))
     return '<h3>%s</h3><div class="color-grid">%s</div>' % (escape(title), "".join(cards))
 
 def clear_space_guidance(brand, clear_space):
@@ -215,8 +226,8 @@ def build(B, kit):
     type_ = type_context(B)
     endorsement = affiliation_text(B)
     cs, canvas_width, canvas_height, artwork_width = logo_metrics(B)
-    color_keys = ["primary", "brand-accent-deep", "brand-emphasis", "destructive", "background", "card", "secondary", "border", "muted-foreground"]
-    color_reference_html = _swatches("Governed colors", [(key, D[key]) for key in color_keys if key in D], title)
+    color_reference_html = (_swatches("Dark palette", list(D.items()), title)
+                            + _swatches("Light palette", list(L.items()), title))
     catalog = _asset_catalog(kit, title)
 
     return """<!doctype html><html lang="en"><head><meta charset="utf-8">
