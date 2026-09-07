@@ -327,8 +327,19 @@ try {
   const paginationCard = page.locator('.docs-pagination > a').first();
   check(await paginationCard.count() === 1, 'documentation landing page lacks a pagination card');
   if (await paginationCard.count() === 1) {
-    const resting = await paginationCard.evaluate((element) => { const style = getComputedStyle(element); return { borderColor: style.borderColor, titleColor: getComputedStyle(element.querySelector('p')).color, bodyColor: getComputedStyle(document.body).color }; });
-    check(resting.borderColor !== 'rgb(229, 231, 235)' && resting.titleColor !== resting.bodyColor, 'documentation pagination card lacks a persistent resting affordance');
+    const resting = await paginationCard.evaluate((element) => { const style = getComputedStyle(element); const title = element.querySelector(':scope > div > p'); const description = element.querySelector(':scope > p'); return { borderColor: style.borderColor, background: style.backgroundColor, decoration: style.textDecorationLine, height: element.getBoundingClientRect().height, titleWeight: Number(getComputedStyle(title).fontWeight), descriptionWeight: Number(getComputedStyle(description).fontWeight), descriptionWrap: getComputedStyle(description).whiteSpace }; });
+    check(resting.decoration === 'none' && resting.height >= 44 && resting.titleWeight > resting.descriptionWeight && resting.descriptionWrap === 'normal', `documentation pagination contract failed (${JSON.stringify(resting)})`);
+    await paginationCard.hover();
+    const hovered = await paginationCard.evaluate((element) => ({ borderColor: getComputedStyle(element).borderColor, background: getComputedStyle(element).backgroundColor, decoration: getComputedStyle(element).textDecorationLine }));
+    check(hovered.borderColor !== resting.borderColor && hovered.background === resting.background && hovered.decoration === 'none', `documentation pagination hover state is not neutral and border-led (${JSON.stringify({ resting, hovered })})`);
+  }
+  const editorial = page.locator('.docs-page :where(p, li, td, blockquote) > a').first();
+  check(await editorial.count() === 1 && await editorial.evaluate((element) => getComputedStyle(element).textDecorationLine.includes('underline')), 'editorial links lack a persistent resting underline');
+  for (const paginationCase of [{ route: '/docs/', count: 1 }, { route: '/docs/02-kit-anatomy/', count: 2 }, { route: '/docs/09-portability/', count: 1 }]) {
+    await page.goto(base + paginationCase.route);
+    const links = page.locator('.docs-pagination > a');
+    check(await links.count() === paginationCase.count, `${paginationCase.route} has the wrong pagination neighbor count`);
+    for (const href of await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')))) check(Boolean(href && href.startsWith('/docs/') && href !== paginationCase.route), `${paginationCase.route} has an invalid pagination destination: ${href}`);
   }
   const themeSurfaces = new Map();
   for (const route of visualRoutes) {
@@ -381,14 +392,14 @@ try {
   const secondaryActionColor = await page.locator('.hero .button:not(.primary)').evaluate((element) => getComputedStyle(element).color);
   const primaryTokenColor = await page.evaluate(() => { const probe = document.createElement('i'); probe.style.color = 'var(--primary)'; document.body.append(probe); const color = getComputedStyle(probe).color; probe.remove(); return color; });
   check(secondaryActionColor === primaryTokenColor, `secondary landing action does not use the generated accessible green token (${secondaryActionColor} != ${primaryTokenColor})`);
-  const textLink = page.locator('.hero .text-link');
-  const linkBackground = await textLink.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, size: getComputedStyle(element).backgroundSize, duration: getComputedStyle(element).transitionDuration }));
-  check(linkBackground.image !== 'none' && linkBackground.size.startsWith('0px') && Number.parseFloat(linkBackground.duration) >= 0.12 && Number.parseFloat(linkBackground.duration) <= 0.3, `landing text link lacks its animated underline treatment (${JSON.stringify(linkBackground)})`);
-  for (const selector of ['.hero .button', '.brand-card', '.header-identity']) check(!['0px 2px', '100% 2px'].includes(await page.locator(selector).first().evaluate((element) => getComputedStyle(element).backgroundSize)), `${selector} incorrectly inherits the ordinary-link underline`);
+  const textLink = page.locator('.hero .text-action');
+  const linkBackground = await textLink.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, decoration: getComputedStyle(element).textDecorationLine, height: element.getBoundingClientRect().height, cue: element.querySelector('[aria-hidden="true"]')?.textContent }));
+  check(linkBackground.image === 'none' && linkBackground.decoration === 'none' && linkBackground.height >= 44 && linkBackground.cue === '→', `landing text action violates its semantic treatment (${JSON.stringify(linkBackground)})`);
+  for (const selector of ['.hero .button', '.brand-card', '.header-identity', '.site-footer a']) check(await page.locator(selector).first().evaluate((element) => getComputedStyle(element).textDecorationLine) === 'none', `${selector} inherits an ordinary-link underline`);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await textLink.hover();
-  const reducedStyle = await textLink.evaluate((element) => ({ duration: getComputedStyle(element).transitionDuration, size: getComputedStyle(element).backgroundSize, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }));
-  check(reducedStyle.reduced && Number.parseFloat(reducedStyle.duration) <= 0.001 && !reducedStyle.size.startsWith('0px'), `reduced-motion mode does not preserve a static underline without animation (${JSON.stringify(reducedStyle)})`);
+  const reducedStyle = await textLink.evaluate((element) => ({ duration: getComputedStyle(element).transitionDuration, decoration: getComputedStyle(element).textDecorationLine, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }));
+  check(reducedStyle.reduced && Number.parseFloat(reducedStyle.duration) <= 0.001 && reducedStyle.decoration === 'none', `reduced-motion text action contract failed (${JSON.stringify(reducedStyle)})`);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto(base + '/glitchpad/');
   const glitchpadHeroStyle = await page.locator('.brand-logo').evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));

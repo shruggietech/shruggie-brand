@@ -63,8 +63,10 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .button:hover, .button:focus-visible { border-color: var(--green); color: var(--green); }
 .button.primary { border-color: var(--brand-cta); background: var(--brand-cta); color: var(--sh-text); }
 .button.primary:hover, .button.primary:focus-visible { border-color: color-mix(in srgb, var(--brand-cta) 88%, black); background: color-mix(in srgb, var(--brand-cta) 88%, black); color: var(--sh-text); transform: translateY(-1px); }
-.text-link, .site-footer nav a, #nd-nav a:not(:has(img)), .docs-page :where(p, li) > a { background-image: linear-gradient(var(--brand-cta), var(--brand-cta)); background-position: left bottom; background-repeat: no-repeat; background-size: 0 2px; color: var(--primary); text-decoration: none; transition: background-size var(--sh-motion-normal), color var(--sh-motion-normal); }
-.text-link:hover, .text-link:focus-visible, .site-footer nav a:hover, .site-footer nav a:focus-visible, #nd-nav a:not(:has(img)):hover, #nd-nav a:not(:has(img)):focus-visible, .docs-page :where(p, li) > a:hover, .docs-page :where(p, li) > a:focus-visible { background-size: 100% 2px; }
+.text-action { display: inline-flex; min-height: 44px; align-items: center; gap: .45rem; color: var(--primary); font-weight: 600; text-decoration: none; transition: color var(--sh-motion-normal); }
+.text-action:hover, .text-action:focus-visible { color: color-mix(in srgb, var(--primary) 82%, var(--foreground)); text-decoration: none; }
+#nd-nav a:not(:has(img)) { position: relative; color: var(--foreground); text-decoration: none; transition: color var(--sh-motion-normal); }
+@media (min-width: 768px) { #nd-nav a:not(:has(img))::after { position: absolute; right: 0; bottom: 3px; left: 0; height: 2px; background: var(--primary); content: ''; transform: scaleX(0); transform-origin: left; transition: transform var(--sh-motion-normal); } #nd-nav a:not(:has(img)):hover::after, #nd-nav a:not(:has(img)):focus-visible::after { transform: scaleX(1); } }
 .section { margin-top: clamp(5rem, 10vw, 9rem); scroll-margin-top: 6rem; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 2rem; margin-bottom: 2rem; }
 .section-heading > p { max-width: 42ch; color: var(--muted-text); }
@@ -98,23 +100,28 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .dark .footer-logo-light { display: none; }
 .site-footer p { max-width: 28rem; margin-top: .8rem; color: var(--muted-text); }
 .site-footer nav { display: flex; flex-wrap: wrap; align-content: start; gap: 1rem 1.5rem; }
-.site-footer a { display: inline-flex; min-height: 44px; align-items: center; color: var(--muted-text); }
-.site-footer a:hover { color: var(--green); }
+.site-footer a { display: inline-flex; min-height: 44px; align-items: center; color: var(--muted-text); text-decoration: none; transition: color var(--sh-motion-normal); }
+.site-footer a:hover, .site-footer a:focus-visible { color: var(--foreground); }
 .docs-page { color: var(--foreground); }
 .docs-page h1 { max-width: none; font-size: clamp(2.1rem, 4vw, 2.5rem); line-height: 1.1; }
 .docs-page h2 { font-size: clamp(1.5rem, 2.5vw, 1.875rem); line-height: 1.25; }
 .docs-page h3 { font-size: clamp(1.2rem, 2vw, 1.5rem); line-height: 1.3; }
 .docs-page :not(pre) > code { border: 1px solid var(--border); border-radius: .3rem; background: var(--muted); color: var(--foreground); }
+.docs-page :where(p, li, td, blockquote) > a { color: var(--primary); text-decoration-line: underline; text-decoration-color: color-mix(in srgb, var(--primary) 58%, transparent); text-decoration-thickness: 1px; text-underline-offset: .18em; transition: color var(--sh-motion-normal), text-decoration-color var(--sh-motion-normal), text-decoration-thickness var(--sh-motion-normal); }
+.docs-page :where(p, li, td, blockquote) > a:hover, .docs-page :where(p, li, td, blockquote) > a:focus-visible { text-decoration-color: currentColor; text-decoration-thickness: 2px; }
+.docs-page :where(p, li, td, blockquote) > a:visited { color: color-mix(in srgb, var(--primary) 78%, var(--foreground)); }
 .docs-page :where(ul, ol) li::marker { color: var(--primary); }
 .docs-page .shiki span[style*='--shiki-light:#032F62'] { --shiki-light: var(--primary) !important; --shiki-dark: var(--primary) !important; }
 .dark .docs-page .shiki span[style*='--shiki-dark:#6A737D'] { --shiki-dark: #aeb8b5 !important; }
-.docs-pagination > a { min-height: 4.5rem; border-color: color-mix(in srgb, var(--brand-cta) 64%, var(--border)); background: color-mix(in srgb, var(--brand-cta) 7%, var(--card)); box-shadow: inset 0 -2px color-mix(in srgb, var(--brand-cta) 42%, transparent); transition: border-color var(--sh-motion-normal), background-color var(--sh-motion-normal), transform var(--sh-motion-normal); }
-.docs-pagination > a:hover, .docs-pagination > a:focus-visible { border-color: var(--brand-cta); background: color-mix(in srgb, var(--brand-cta) 12%, var(--card)); transform: translateY(-1px); }
-.docs-pagination > a:active { background: color-mix(in srgb, var(--brand-cta) 17%, var(--card)); transform: translateY(0); }
-.docs-pagination > a p:first-of-type { color: var(--primary); font-weight: 700; }
+.docs-pagination > a { min-height: 4.5rem; border-color: var(--border); background: var(--card); color: var(--foreground); text-decoration: none; box-shadow: none; transition: border-color var(--sh-motion-normal), color var(--sh-motion-normal); }
+.docs-pagination > a:hover, .docs-pagination > a:focus-visible { border-color: var(--primary); background: var(--card); color: var(--foreground); text-decoration: none; }
+.docs-pagination > a:active { border-color: color-mix(in srgb, var(--primary) 78%, var(--border)); background: var(--card); }
+.docs-pagination > a > div > p { color: var(--foreground); font-size: .875rem; font-weight: 650; line-height: 1.4; }
+.docs-pagination > a > p { overflow: visible; color: var(--color-fd-muted-foreground); font-size: .8125rem; font-weight: 400; line-height: 1.45; text-overflow: clip; white-space: normal; }
+.docs-pagination > a p { text-decoration: none; }
 .docs-page .site-footer { margin: 4rem -1rem 1.5rem; padding: 2rem; }
 #nd-docs-layout :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 #nd-sidebar a[data-active='true'], #nd-sidebar a[aria-current='page'], #nd-toc a[data-active='true'], #nd-toc a[aria-current='true'] { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--foreground); font-weight: 700; box-shadow: inset 3px 0 var(--primary); }
 @media (max-width: 760px) { .section-heading, .site-footer { align-items: flex-start; flex-direction: column; } .brand-hero { grid-template-columns: 1fr; } .shell { width: min(100% - 1.5rem, 1180px); } }
 @media (max-width: 420px) { .shell h1 { font-size: clamp(2.6rem, 13vw, 3.3rem); } .docs-page h1 { font-size: 2rem; } }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .brand-card, .button, .text-link, .site-footer nav a, #nd-nav a:not(:has(img)), .docs-page :where(p, li) > a, .docs-pagination > a { transition: none; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .brand-card, .button, .text-action, .site-footer nav a, #nd-nav a:not(:has(img)), #nd-nav a:not(:has(img))::after, .docs-page :where(p, li, td, blockquote) > a, .docs-pagination > a { transition: none; } }
