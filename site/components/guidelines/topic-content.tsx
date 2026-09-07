@@ -1,0 +1,24 @@
+import type { GuidelinePortal, GuidelineTopic } from '@/lib/guidelines';
+import { AssetLibrary } from './asset-library';
+import { ColorReference } from './color-reference';
+import { InlineContent, InstructionBlocks } from './resource-list';
+
+function Items({ values }: { values?: string[] }) { return values?.length ? <ul>{values.map((value) => <li key={value}>{value}</li>)}</ul> : <p>No additional rules are declared.</p>; }
+
+function Overview({ portal }: { portal: GuidelinePortal }) { const value = portal.content.overview; return <><section className="guide-section"><h2 id="foundations">{value.foundation_title || 'Foundations'}</h2><p>{value.foundation || portal.brand.descriptor}</p></section><section className="guide-section"><h2 id="promises">Promises</h2><Items values={value.promises} /></section><section className="guide-section"><h2 id="boundaries">Boundaries</h2><div className="guide-columns"><div><h3>In scope</h3><Items values={value.in_scope} /></div><div><h3>Out of scope</h3><Items values={value.out_of_scope} /></div></div>{value.sharp_edge && <aside className="guide-notice"><strong>Sharp edge</strong><p>{value.sharp_edge}</p></aside>}</section></>; }
+function Voice({ portal }: { portal: GuidelinePortal }) { const value = portal.content.voice; return <><section className="guide-section"><h2 id="governing-principle">Governing principle</h2><p className="guide-lead">{value.principle}</p></section><section className="guide-section"><h2 id="voice-qualities">Voice qualities</h2><div className="guide-columns"><div><h3>Qualities</h3><Items values={value.qualities} /></div><div><h3>Lead with</h3><Items values={value.lead_with} /></div><div><h3>Avoid</h3><Items values={value.avoid} /></div></div></section><section className="guide-section"><h2 id="personality">Personality</h2><div className="personality-list">{value.personality?.map((row) => <article key={row[0]}><h3>{row[0]}</h3><p>{row[1]}</p><small>Avoid: {row[2]}</small></article>)}</div></section></>; }
+function Logos({ portal }: { portal: GuidelinePortal }) { const value = portal.content.logos; const logoFamily = portal.asset_families.find((family) => family.key === 'logos'); return <><section className="guide-section"><h2 id="usage">Usage</h2><p>{value.guidance}</p>{logoFamily?.assets.slice(0, 3).map((asset) => <figure className={`logo-example ${asset.surface}-well`} key={asset.id}><img src={asset.preview.url} alt={`${asset.title} example`} /><figcaption>{asset.title}</figcaption></figure>)}</section><section className="guide-section"><h2 id="minimum-sizes">Minimum sizes</h2><dl className="metric-list">{Object.entries(value.minimum_sizes || {}).map(([name, size]) => <div key={name}><dt>{name}</dt><dd>{size} px</dd></div>)}</dl>{value.reduced_below_px && <p>Use the reduced mark below {value.reduced_below_px} px.</p>}</section><section className="guide-section"><h2 id="prohibitions">Prohibitions</h2><Items values={value.prohibitions} /></section></>; }
+function Typography({ portal }: { portal: GuidelinePortal }) { const families = portal.content.typography.families || {}; return <section className="guide-section"><h2 id="type-families">Type families</h2><div className="type-list">{Object.entries(families).map(([role, family]) => <article key={role}><span>{role}</span><h3>{family.name}</h3><p>Weights: {family.weights.join(', ')}</p></article>)}</div></section>; }
+function Components({ portal }: { portal: GuidelinePortal }) { return <section className="guide-section"><h2 id="domain-components">Domain components</h2><div className="component-list">{Object.entries(portal.content.components).map(([name, fields]) => <article key={name}><h3>{name}</h3><p>{fields.join(' · ')}</p></article>)}</div></section>; }
+function Integration({ portal }: { portal: GuidelinePortal }) { return <>{portal.instructions.map((instruction, index) => <section className="guide-section instruction-section" id={`instruction-${index + 1}`} key={instruction.source_path}><p className="guide-eyebrow">{instruction.platform.replaceAll('-', ' ')}</p><InstructionBlocks blocks={instruction.blocks} /><a className="guide-source-download" href={instruction.source_url}>Download source instructions</a></section>)}</>; }
+
+export function TopicContent({ portal, topic }: { portal: GuidelinePortal; topic: GuidelineTopic }) {
+  if (topic.key === 'overview') return <Overview portal={portal} />;
+  if (topic.key === 'voice') return <Voice portal={portal} />;
+  if (topic.key === 'logos') return <Logos portal={portal} />;
+  if (topic.key === 'color') return <ColorReference palettes={portal.palettes} />;
+  if (topic.key === 'typography') return <Typography portal={portal} />;
+  if (topic.key === 'components') return <Components portal={portal} />;
+  if (topic.key === 'assets') return <AssetLibrary portal={portal} />;
+  return <Integration portal={portal} />;
+}

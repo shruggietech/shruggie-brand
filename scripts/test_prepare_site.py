@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -13,6 +14,21 @@ from PIL import Image
 import prepare_site
 
 
+def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha") -> None:
+    guideline = source / "guidelines"
+    guideline.mkdir(parents=True, exist_ok=True)
+    (guideline / "index.html").write_text("<!doctype html><title>Portable guide</title>\n", encoding="utf-8")
+    (guideline / "portal.json").write_text(json.dumps({
+        "schema_version": "1.0",
+        "brand": {"slug": slug, "title": title, "descriptor": "Alpha.", "idea": "Alpha.", "affiliation": ""},
+        "topics": [{"key": "overview", "title": "Overview and foundations", "description": "Start here."}, {"key": "color", "title": "Color", "description": "Palette."}],
+        "content": {"overview": {}, "voice": {}, "logos": {}, "typography": {}, "components": {}},
+        "palettes": {"dark": [], "light": []},
+        "asset_families": [], "resources": [], "instructions": [], "capability_suites": [], "aliases": {},
+        "portable_guide": "guidelines/index.html",
+    }) + "\n", encoding="utf-8")
+
+
 class PrepareSiteTests(unittest.TestCase):
     def test_copy_kit_emits_only_explicit_governed_showcase_surface(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -21,6 +37,7 @@ class PrepareSiteTests(unittest.TestCase):
             public = root / "public"
             for name in ("guidelines", "nextjs/registry", "logos/svg", "favicons", "icons", "specimens"):
                 (source / name).mkdir(parents=True, exist_ok=True)
+            write_minimal_portal(source)
             (source / "brand-guide.pdf").write_bytes(b"%PDF-test")
             (source / "specimens" / "sample.svg").write_text("<svg/>\n", encoding="utf-8")
             public.mkdir()
@@ -80,6 +97,41 @@ class PrepareSiteTests(unittest.TestCase):
         seen = {"alpha"}
         with self.assertRaisesRegex(ValueError, "duplicate"):
             prepare_site.validate_source_identity(source, {"slug": "alpha"}, seen)
+
+    def test_portal_projection_rewrites_safe_downloads_and_rejects_duplicates(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "alpha"
+            asset = source / "icons" / "web" / "favicon.svg"
+            asset.parent.mkdir(parents=True)
+            asset.write_text('<svg xmlns="http://www.w3.org/2000/svg"/>\n', encoding="utf-8")
+            write_minimal_portal(source)
+            payload = json.loads((source / "guidelines" / "portal.json").read_text(encoding="utf-8"))
+            delivery = {"path": "icons/web/favicon.svg", "format": "svg", "role": "web-icon", "platform": "web", "appearance": "default", "width": 32, "height": 32, "destination": "Web root", "sha256": hashlib.sha256(asset.read_bytes()).hexdigest()}
+            payload["asset_families"] = [{"key": "web", "title": "Web icons", "summary": "For browsers.", "assets": [{"id": "web-icon", "title": "Web icon", "role": "web-icon", "platform": "web", "appearance": "default", "surface": "dark", "summary": "Use in browsers.", "formats": ["svg"], "variants": ["reduced"], "preview": dict(delivery), "deliveries": [delivery]}]}]
+            projected = prepare_site.project_portal(source, payload)
+            self.assertEqual("/alpha/downloads/files/icons/web/favicon.svg", projected["asset_families"][0]["assets"][0]["preview"]["url"])
+            self.assertEqual("/alpha/downloads/files/icons/web/favicon.svg", projected["asset_families"][0]["assets"][0]["deliveries"][0]["url"])
+            payload["resources"] = [{"id": "duplicate", "title": "Duplicate", "resource_kind": "code-or-container", **delivery}]
+            with self.assertRaisesRegex(ValueError, "duplicate portal delivery"):
+                prepare_site.project_portal(source, payload)
+
+    def test_instruction_markdown_becomes_safe_semantic_blocks(self):
+        blocks = prepare_site.markdown_blocks("# Web icons\n\nUse `favicon.svg`.\n\n- Copy the file\n- Keep the name\n\n| Path | Use |\n| --- | --- |\n| `favicon.svg` | Preferred |\n\n```xml\n<link rel=\"icon\">\n```\n")
+        self.assertEqual(["heading", "paragraph", "list", "table", "code"], [block["type"] for block in blocks])
+        self.assertEqual("favicon.svg", blocks[1]["segments"][1]["text"])
+        self.assertEqual(["Path", "Use"], blocks[3]["headers"])
+        self.assertEqual("xml", blocks[4]["language"])
+        for unsafe in ("[bad](javascript:alert(1))", "[escape](../../outside.txt)"):
+            with self.assertRaisesRegex(ValueError, "unsafe Markdown link"):
+                prepare_site.markdown_blocks(unsafe)
+
+    def test_topic_routes_are_generated_for_every_portal_topic(self):
+        brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
+        portals = [{"brand": {"slug": "alpha"}, "topics": [{"key": "overview", "title": "Overview and foundations", "description": "Start."}, {"key": "color", "title": "Color", "description": "Palette."}, {"key": "assets", "title": "Asset library", "description": "Downloads."}]}]
+        routes = prepare_site.build_routes(brands, [], portals)
+        guide_routes = [route for route in routes if route["kind"] in {"guidelines", "guidelines-topic"}]
+        self.assertEqual(["/alpha/guidelines/", "/alpha/guidelines/color/", "/alpha/guidelines/assets/"], [route["pathname"] for route in guide_routes])
+        self.assertEqual(["overview", "color", "assets"], [route["guideTopic"] for route in guide_routes])
 
     def test_stale_generated_public_brand_is_removed(self):
         with tempfile.TemporaryDirectory() as tmp:

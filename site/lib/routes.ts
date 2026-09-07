@@ -1,6 +1,6 @@
 import contract from '@/generated/routes.json';
 
-export type RouteKind = 'home' | 'brand' | 'downloads' | 'guidelines' | 'docs-index' | 'docs-page';
+export type RouteKind = 'home' | 'brand' | 'downloads' | 'guidelines' | 'guidelines-topic' | 'docs-index' | 'docs-page';
 
 export type RouteRecord = {
   key: string;
@@ -22,6 +22,7 @@ export type RouteRecord = {
   breadcrumbs: Array<{ name: string; url: string }>;
   brandSlug: string | null;
   docsSlug: string | null;
+  guideTopic: string | null;
   structuredData: Record<string, unknown>;
 };
 

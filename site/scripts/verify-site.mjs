@@ -5,6 +5,7 @@ import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { inflateSync } from 'node:zlib';
 import { downloadFiles, htmlRoutes, iconFiles, iconRoutes, requiredFiles, routeRecords, tableRoutes, visualRoutes, visualThemes, visualWidths } from '../tests/site.test.mjs';
+import guidelinePortals from '../generated/guidelines.json' with { type: 'json' };
 import { payloadFailures } from './payload-contract.mjs';
 import { isCanonicalRedirect, selectVerificationOrigin } from './verification-origin.mjs';
 
@@ -13,6 +14,7 @@ const visualRoot = resolve(import.meta.dirname, '..', 'test-results', 'visual');
 rmSync(visualRoot, { recursive: true, force: true });
 mkdirSync(visualRoot, { recursive: true });
 const routeByPath = new Map(routeRecords.map((route) => [route.pathname, route]));
+const portalBySlug = new Map(guidelinePortals.map((portal) => [portal.brand.slug, portal]));
 const types = { '.css': 'text/css', '.html': 'text/html', '.ico': 'image/x-icon', '.json': 'application/json', '.pdf': 'application/pdf', '.png': 'image/png', '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.woff2': 'font/woff2' };
 function diskPath(url) {
   const pathname = decodeURIComponent(new URL(url, 'http://local').pathname);
@@ -181,63 +183,46 @@ try {
       if (route === '/shruggietech/guidelines/') {
         check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
       }
-      if (contract.kind === 'guidelines') {
-        check(await page.locator('nav.contents').count() === 1, `${route} lacks one compact guideline contents navigation`);
-        for (const id of ['colors', 'themes', 'type-components', 'assets']) check(await page.locator(`#${id}`).count() === 1, `${route} lacks stable section #${id}`);
-        check(await page.locator('.asset-card').count() >= 10, `${route} asset catalog is unexpectedly incomplete`);
-        check(await page.locator('.theme-well').count() === 2, `${route} must contain dark and light theme wells`);
-        check(await page.getByRole('heading', { name: 'Dark palette' }).count() === 1 && await page.getByRole('heading', { name: 'Light palette' }).count() === 1, `${route} lacks complete dark and light color reference sections`);
-        check(await page.locator('button.copy[aria-label*="chart-1"]').count() >= 2, `${route} omits dark or light chart color references`);
-        check(await page.locator('.host-exit').count() === 1 && await page.locator('.host-exit').getAttribute('href') === '/', `${route} must contain exactly one All brands exit`);
-        check(await page.locator('footer a[href="#top"]').count() === 1, `${route} lacks its no-script top-anchor fallback`);
-        const backTop = page.locator('button.back-top');
-        check(await backTop.count() === 1 && await backTop.getAttribute('tabindex') === '-1' && !(await backTop.getAttribute('class')).includes('visible'), `${route} exposes back-to-top before it is useful`);
-        const assetLinks = page.locator('a[data-kit-asset]');
-        check(await assetLinks.count() > 0, `${route} has no downloadable catalog assets`);
-        const catalogHrefs = await assetLinks.evaluateAll((links) => links.map((link) => link.getAttribute('href')));
-        for (const href of catalogHrefs) check(href.startsWith(`/${contract.brandSlug}/downloads/files/`), `${route} contains an unrewritten kit asset link: ${href}`);
-        const [logoInventory, iconInventory] = await Promise.all([
-          page.request.get(`${base}/${contract.brandSlug}/downloads/files/logos/provenance.json`).then((response) => response.json()),
-          page.request.get(`${base}/${contract.brandSlug}/downloads/files/icons/manifest.json`).then((response) => response.json()),
-        ]);
-        const eligibleIconFormats = new Set(['png', 'svg', 'ico', 'icns', 'json', 'xml', 'markdown']);
-        const expectedPaths = [
-          ...logoInventory.derivatives.map((item) => item.path),
-          ...iconInventory.artifacts.filter((item) => eligibleIconFormats.has(item.format)).map((item) => item.path),
-          ...Object.keys(iconInventory.aliases ?? {}),
-        ].map((path) => `/${contract.brandSlug}/downloads/files/${path}`);
-        check(new Set(catalogHrefs).size === catalogHrefs.length, `${route} repeats a delivery path in the catalog`);
-        check(expectedPaths.length === catalogHrefs.length && expectedPaths.every((path) => catalogHrefs.includes(path)), `${route} catalog does not exactly cover its manifest-derived delivery paths`);
-        const guideCopy = page.locator('button.copy').first();
-        check(await guideCopy.count() === 1, `${route} lacks color copy controls`);
-        if (await guideCopy.count() === 1) {
-          await page.locator('.color-card details').first().locator('summary').click();
-          const size = await guideCopy.evaluate((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }));
-          check(size.width >= 44 && size.height >= 44, `${route} color copy target is smaller than 44px (${JSON.stringify(size)})`);
-          await guideCopy.click();
-          await page.waitForFunction(() => document.querySelector('#copy-status')?.textContent?.length > 0);
-          check((await page.locator('#copy-status').textContent()).startsWith('Copied '), `${route} copy action did not announce success`);
-          await page.evaluate(() => { Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('denied'); } } }); document.querySelector('#copy-status').textContent = ''; });
-          await page.locator('button.copy').nth(1).click();
-          await page.waitForFunction(() => document.querySelector('#copy-status')?.textContent?.length > 0);
-          check((await page.locator('#copy-status').textContent()).startsWith('Copy failed.'), `${route} copy denial did not announce failure`);
+      if (['guidelines', 'guidelines-topic'].includes(contract.kind)) {
+        const portal = portalBySlug.get(contract.brandSlug);
+        check(Boolean(portal), `${route} lacks a generated portal record`);
+        check(await page.locator('.guideline-page').count() === 1, `${route} lacks one guideline document`);
+        check(await page.locator('.guide-nav-title').count() >= 1, `${route} lacks the brand-specific guideline identity`);
+        if (width === 1280) check(await page.locator('#nd-sidebar a[data-active="true"], #nd-sidebar a[aria-current="page"]').count() >= 1, `${route} lacks an active desktop guideline topic`);
+        check(await page.locator('.guide-footer a[href="#guide-title"]').count() === 1, `${route} lacks a separate Back to top link`);
+        check(await page.locator('.guide-footer .guide-host-exit[href="/"]').count() === 1, `${route} lacks a separate All brands exit`);
+        check(await page.locator('.shell, .site-footer').count() === 0, `${route} leaks the marketing-site shell into the guideline portal`);
+        const bodyText = (await page.locator('body').innerText()).toLowerCase();
+        check(!bodyText.includes('we build comprehensive brands'), `${route} leaks host marketing copy into the guideline portal`);
+        if (contract.guideTopic === 'color') {
+          check(await page.locator('.color-row').count() === portal.palettes.dark.length + portal.palettes.light.length, `${route} does not render every dark and light palette entry`);
+          check(await page.getByRole('heading', { name: 'Dark palette' }).count() === 1 && await page.getByRole('heading', { name: 'Light palette' }).count() === 1, `${route} lacks independently grouped dark and light palettes`);
+          const copy = page.locator('.guide-copy').first();
+          const copySize = await copy.evaluate((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }));
+          check(copySize.width >= 44 && copySize.height >= 44, `${route} color copy target is smaller than 44px (${JSON.stringify(copySize)})`);
+          await copy.click();
+          const copyStatus = copy.locator('xpath=following-sibling::span[@data-copy-status][1]');
+          await copyStatus.waitFor({ state: 'attached' });
+          await page.waitForFunction((buttonLabel) => [...document.querySelectorAll('button')].find((button) => button.getAttribute('aria-label') === buttonLabel)?.nextElementSibling?.textContent?.startsWith('Copied '), await copy.getAttribute('aria-label'));
+          check((await copyStatus.textContent()).startsWith('Copied '), `${route} copy action did not announce success`);
+          await page.locator('.color-details').first().locator('summary').click();
+          check(await page.locator('.color-details[open]').count() === 1, `${route} cannot reveal one row's secondary color formats independently`);
         }
-        await page.locator('#assets').scrollIntoViewIfNeeded();
-        await page.waitForFunction(() => document.querySelector('button.back-top')?.classList.contains('visible'));
-        check(await backTop.getAttribute('tabindex') === '0', `${route} back-to-top remains unfocusable after the opening leaves view`);
-        await backTop.focus();
-        await page.locator('header').scrollIntoViewIfNeeded();
-        await page.waitForFunction(() => window.scrollY < 2);
-        check(await backTop.evaluate((element) => document.activeElement === element && element.classList.contains('visible')), `${route} hides the focused back-to-top control`);
-        await backTop.evaluate((element) => element.blur());
-        await page.waitForFunction(() => !document.querySelector('button.back-top')?.classList.contains('visible'));
-        check(await backTop.getAttribute('tabindex') === '-1', `${route} retains back-to-top in the tab order after focus leaves at the top`);
-        await page.locator('#assets').scrollIntoViewIfNeeded();
-        await page.waitForFunction(() => document.querySelector('button.back-top')?.classList.contains('visible'));
-        await page.emulateMedia({ reducedMotion: 'reduce' });
-        await backTop.click();
-        await page.waitForFunction(() => document.activeElement?.id === 'top' && window.scrollY < 2);
-        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        if (contract.guideTopic === 'assets') {
+          check(await page.locator('.asset-tile').count() === portal.asset_families.reduce((total, family) => total + family.assets.length, 0), `${route} does not render every representative visual asset`);
+          check(await page.locator('.resource-list li').count() === portal.resources.length, `${route} does not render every nonvisual resource`);
+          const previewHeights = await page.locator('.asset-preview').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().height));
+          check(previewHeights.every((height) => height <= 193), `${route} contains an unbounded asset preview`);
+          const assetLinks = page.locator('a[data-kit-asset]');
+          const catalogHrefs = await assetLinks.evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+          const expectedHrefs = [...portal.asset_families.flatMap((family) => family.assets.flatMap((asset) => asset.deliveries.map((delivery) => delivery.url))), ...portal.resources.map((resource) => resource.url)];
+          check(new Set(catalogHrefs).size === catalogHrefs.length, `${route} repeats a delivery path in the catalog`);
+          check(expectedHrefs.length === catalogHrefs.length && expectedHrefs.every((href) => catalogHrefs.includes(href)), `${route} catalog does not exactly cover its generated deliveries and resources`);
+          await page.getByLabel('Search assets').fill('no-such-brand-asset');
+          check(await page.locator('.asset-empty').count() === 1 && (await page.locator('.asset-count').textContent()).startsWith('0 '), `${route} lacks an honest empty result state`);
+          await page.getByRole('button', { name: 'Show all assets' }).click();
+          check(await page.locator('.asset-tile').count() > 0 && new URL(page.url()).search === '', `${route} reset does not restore the full library and clean URL`);
+        }
         if (width === 1280) {
           await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
           const zoomOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -254,6 +239,30 @@ try {
       for (const violation of results.violations) failures.push(`${route} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
     }
   }
+  for (const contract of routeRecords.filter((route) => route.kind === 'brand')) {
+    for (const width of [360, 768, 1024, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(base + contract.pathname);
+      const heading = page.locator('.brand-hero h1');
+      const measure = await heading.evaluate((element) => { const style = getComputedStyle(element); const box = element.getBoundingClientRect(); return { lines: Math.round(box.height / Number.parseFloat(style.lineHeight)), overflow: element.scrollWidth - element.clientWidth, wordBreak: style.wordBreak }; });
+      check(measure.overflow <= 1 && measure.wordBreak === 'normal', `${contract.pathname} hero heading breaks within words at ${width}px (${JSON.stringify(measure)})`);
+      check(measure.lines <= (width < 768 ? 3 : 2), `${contract.pathname} hero heading wraps to ${measure.lines} lines at ${width}px`);
+      if (width === 1280) {
+        await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+        const zoomOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        check(zoomOverflow <= 1, `${contract.pathname} hero overflows horizontally at 200 percent zoom by ${zoomOverflow}px`);
+        await page.evaluate(() => { document.documentElement.style.zoom = ''; });
+      }
+    }
+  }
+  const noScriptContext = await browser.newContext({ viewport: { width: 360, height: 900 }, javaScriptEnabled: false });
+  const noScriptPage = await noScriptContext.newPage();
+  await noScriptPage.goto(base + '/glitchpad/guidelines/assets/');
+  check(await noScriptPage.locator('.guide-noscript-nav a').count() === 8, 'no-script guideline fallback does not expose all topic routes');
+  check(await noScriptPage.locator('.guide-noscript-nav a[aria-current="page"]').count() === 1, 'no-script guideline fallback does not identify the current topic');
+  check(await noScriptPage.locator('.asset-tile').count() > 0 && await noScriptPage.locator('.resource-list a[data-kit-asset]').count() > 0, 'no-script asset route does not retain complete server-rendered browsing and downloads');
+  check((await noScriptPage.locator('body').innerText()).includes('Search and filters require JavaScript'), 'no-script asset route does not explain its progressive enhancement boundary');
+  await noScriptContext.close();
   const sitemapResponse = await page.request.get(base + '/sitemap.xml');
   check(sitemapResponse.ok(), 'sitemap.xml cannot be fetched');
   if (sitemapResponse.ok()) {
@@ -353,16 +362,20 @@ try {
         check(await page.locator('html').evaluate((element, selectedTheme) => element.classList.contains('dark') === (selectedTheme === 'dark'), theme), `${route} did not settle in the requested ${theme} theme`);
         const surface = await page.evaluate(() => { const style = getComputedStyle(document.body); return `${style.backgroundColor}|${style.color}`; });
         themeSurfaces.set(`${route}:${width}:${theme}`, surface);
-        const logo = page.locator('.header-logo:visible').first();
-        const logoBox = await logo.boundingBox();
-        check(Boolean(logoBox && logoBox.width >= 100 && logoBox.height >= 24), `${route} ${theme} header logo is not legible at ${width}px`);
-        const logoState = await logo.evaluate((element) => ({ complete: element.complete, naturalWidth: element.naturalWidth, naturalHeight: element.naturalHeight, path: new URL(element.src).pathname }));
-        check(logoState.complete && logoState.naturalWidth > 0 && logoState.naturalHeight > 0, `${route} ${theme} header logo did not load a decodable image at ${width}px`);
-        const logoPath = logoState.path;
-        check(logoPath === (theme === 'dark' ? '/shruggietech-logo-dark.svg' : '/shruggietech-logo-light.svg'), `${route} ${theme} uses the wrong visible ShruggieTech lockup`);
+        if (route.includes('/guidelines/')) {
+          check(await page.locator('.header-logo:visible').count() === 0, `${route} leaks the host ShruggieTech lockup into the brand-owned portal`);
+          check(await page.locator('.guide-nav-title').count() >= 1, `${route} lacks its brand-owned portal identity at ${width}px`);
+        } else {
+          const logo = page.locator('.header-logo:visible').first();
+          const logoBox = await logo.boundingBox();
+          check(Boolean(logoBox && logoBox.width >= 100 && logoBox.height >= 24), `${route} ${theme} header logo is not legible at ${width}px`);
+          const logoState = await logo.evaluate((element) => ({ complete: element.complete, naturalWidth: element.naturalWidth, naturalHeight: element.naturalHeight, path: new URL(element.src).pathname }));
+          check(logoState.complete && logoState.naturalWidth > 0 && logoState.naturalHeight > 0, `${route} ${theme} header logo did not load a decodable image at ${width}px`);
+          check(logoState.path === (theme === 'dark' ? '/shruggietech-logo-dark.svg' : '/shruggietech-logo-light.svg'), `${route} ${theme} uses the wrong visible ShruggieTech lockup`);
+        }
         const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
         for (const violation of results.violations) failures.push(`${route} in ${theme} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
-        const routeName = route === '/' ? 'home' : route === '/glitchpad/' ? 'glitchpad' : route === '/docs/' ? 'docs-index' : 'docs-variance-contract';
+        const routeName = route === '/' ? 'home' : route.replace(/^\//, '').replace(/\/$/, '').replaceAll('/', '-');
         const filename = `${routeName}-${theme}-${width}.png`;
         await page.screenshot({ path: join(visualRoot, filename), fullPage: true });
       }

@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 import re
 import shutil
@@ -122,7 +124,7 @@ def remove_stale_public_brands(public: Path, expected: set[str]) -> list[str]:
 
 def make_route(key: str, kind: str, pathname: str, title: str, description: str, eyebrow: str,
                breadcrumbs: list[dict[str, str]], brand_slug: Optional[str] = None,
-               docs_slug: Optional[str] = None) -> dict[str, Any]:
+               docs_slug: Optional[str] = None, guide_topic: Optional[str] = None) -> dict[str, Any]:
     canonical = f"{SITE_URL}{pathname}"
     social_path = f"/social/{key}.png"
     return {
@@ -145,6 +147,7 @@ def make_route(key: str, kind: str, pathname: str, title: str, description: str,
         "breadcrumbs": breadcrumbs,
         "brandSlug": brand_slug,
         "docsSlug": docs_slug,
+        "guideTopic": guide_topic,
     }
 
 
@@ -189,7 +192,7 @@ def structured_data(route: dict[str, Any], routes: list[dict[str, Any]], brands:
     organization = {"@type": "Organization", "@id": ORGANIZATION_URL, "name": "ShruggieTech", "url": ORGANIZATION_URL}
     website_id = f"{SITE_URL}/#website"
     website = {"@type": "WebSite", "@id": website_id, "url": f"{SITE_URL}/", "name": "Brands | ShruggieTech", "publisher": {"@id": ORGANIZATION_URL}}
-    kind_types = {"home": "CollectionPage", "brand": "WebPage", "downloads": "CollectionPage", "guidelines": "WebPage", "docs-index": "CollectionPage", "docs-page": "TechArticle"}
+    kind_types = {"home": "CollectionPage", "brand": "WebPage", "downloads": "CollectionPage", "guidelines": "WebPage", "guidelines-topic": "WebPage", "docs-index": "CollectionPage", "docs-page": "TechArticle"}
     page_id = f"{route['canonical']}#webpage"
     page: dict[str, Any] = {"@type": kind_types[route["kind"]], "@id": page_id, "url": route["canonical"], "name": route["documentTitle"], "description": route["description"], "isPartOf": {"@id": website_id}, "publisher": {"@id": ORGANIZATION_URL}}
     graph: list[dict[str, Any]] = [organization, website, page]
@@ -210,19 +213,26 @@ def structured_data(route: dict[str, Any], routes: list[dict[str, Any]], brands:
     return {"@context": "https://schema.org", "@graph": graph}
 
 
-def build_routes(brands: list[dict], docs: list[dict[str, str]]) -> list[dict[str, Any]]:
+def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Optional[list[dict[str, Any]]] = None) -> list[dict[str, Any]]:
     home = {"name": "Brands", "url": f"{SITE_URL}/"}
     docs_root = {"name": "Documentation", "url": f"{SITE_URL}/docs/"}
     routes = [make_route("home", "home", "/", "Brands", SITE_DESCRIPTION, "Brand portfolio", [])]
+    portal_by_slug = {portal["brand"]["slug"]: portal for portal in (portals or [])}
     for brand in sorted(brands, key=lambda item: item["slug"]):
         slug = brand["slug"]
         brand_path = f"/{slug}/"
         brand_crumb = {"name": brand["title"], "url": f"{SITE_URL}{brand_path}"}
+        portal = portal_by_slug.get(slug)
+        topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "description": brand["descriptor"]}]
+        overview = topics[0]
         routes.extend([
             make_route(f"brand-{slug}", "brand", brand_path, brand["title"], brand["descriptor"], "Brand portfolio", [home, brand_crumb], brand_slug=slug),
             make_route(f"downloads-{slug}", "downloads", f"/{slug}/downloads/", f"{brand['title']} downloads", f"Download the {brand['title']} brand guide and asset collections.", "Brand assets", [home, brand_crumb, {"name": "Downloads", "url": f"{SITE_URL}/{slug}/downloads/"}], brand_slug=slug),
-            make_route(f"guidelines-{slug}", "guidelines", f"/{slug}/guidelines/", f"{brand['title']} guidelines", brand["descriptor"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}], brand_slug=slug),
+            make_route(f"guidelines-{slug}", "guidelines", f"/{slug}/guidelines/", f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}], brand_slug=slug, guide_topic=overview["key"]),
         ])
+        for topic in topics[1:]:
+            pathname = f"/{slug}/guidelines/{topic['key']}/"
+            routes.append(make_route(f"guidelines-{slug}-{topic['key']}", "guidelines-topic", pathname, f"{topic['title']} | {brand['title']}", topic["description"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}, {"name": topic["title"], "url": f"{SITE_URL}{pathname}"}], brand_slug=slug, guide_topic=topic["key"]))
     routes.append(make_route("docs", "docs-index", "/docs/", "Documentation", "The repeatable ShruggieTech system for building complete, usable brand identities.", "Documentation", [home, docs_root]))
     for doc in sorted(docs, key=lambda item: item["slug"]):
         pathname = f"/docs/{doc['slug']}/"
@@ -231,6 +241,128 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]]) -> list[dict[st
     for route in routes:
         route["structuredData"] = structured_data(route, routes, brands)
     return routes
+
+
+def inline_segments(value: str) -> list[dict[str, str]]:
+    segments: list[dict[str, str]] = []
+    cursor = 0
+    pattern = re.compile(r"`([^`]+)`|\[([^\]]+)\]\(([^)]+)\)")
+    for match in pattern.finditer(value):
+        if match.start() > cursor:
+            segments.append({"type": "text", "text": value[cursor:match.start()]})
+        if match.group(1) is not None:
+            segments.append({"type": "code", "text": match.group(1)})
+        else:
+            href = match.group(3)
+            safe_relative = bool(re.fullmatch(r"[A-Za-z0-9._@/-]+", href)) and ".." not in href.split("/")
+            if not (href.startswith("https://") or href.startswith("http://") or href.startswith("#") or safe_relative):
+                raise ValueError(f"unsafe Markdown link: {href}")
+            segments.append({"type": "link", "text": match.group(2), "href": href})
+        cursor = match.end()
+    if cursor < len(value):
+        segments.append({"type": "text", "text": value[cursor:]})
+    return segments or [{"type": "text", "text": ""}]
+
+
+def markdown_blocks(content: str) -> list[dict[str, Any]]:
+    """Convert the generated integration subset into safe semantic blocks."""
+    lines = content.splitlines()
+    blocks: list[dict[str, Any]] = []
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if not line.strip():
+            index += 1
+            continue
+        if line.startswith("```"):
+            language = line[3:].strip()
+            code: list[str] = []
+            index += 1
+            while index < len(lines) and not lines[index].startswith("```"):
+                code.append(lines[index]); index += 1
+            if index >= len(lines):
+                raise ValueError("unterminated instruction code fence")
+            blocks.append({"type": "code", "language": language, "text": "\n".join(code)})
+            index += 1
+            continue
+        heading = re.match(r"^(#{1,6})\s+(.+)$", line)
+        if heading:
+            blocks.append({"type": "heading", "depth": len(heading.group(1)), "segments": inline_segments(heading.group(2))})
+            index += 1
+            continue
+        if line.startswith("|") and index + 1 < len(lines) and re.fullmatch(r"\|?[\s:|-]+\|?", lines[index + 1]):
+            split = lambda row: [cell.strip() for cell in row.strip().strip("|").split("|")]
+            headers = split(line)
+            rows: list[list[list[dict[str, str]]]] = []
+            index += 2
+            while index < len(lines) and lines[index].startswith("|"):
+                rows.append([inline_segments(cell) for cell in split(lines[index])]); index += 1
+            blocks.append({"type": "table", "headers": headers, "rows": rows})
+            continue
+        list_match = re.match(r"^\s*([-*]|\d+\.)\s+(.+)$", line)
+        if list_match:
+            ordered = list_match.group(1).endswith(".")
+            items = []
+            while index < len(lines):
+                item = re.match(r"^\s*([-*]|\d+\.)\s+(.+)$", lines[index])
+                if not item or item.group(1).endswith(".") != ordered:
+                    break
+                items.append(inline_segments(item.group(2))); index += 1
+            blocks.append({"type": "list", "ordered": ordered, "items": items})
+            continue
+        paragraph = [line.strip()]
+        index += 1
+        while index < len(lines) and lines[index].strip() and not re.match(r"^(#{1,6})\s+|^```|^\s*([-*]|\d+\.)\s+|^\|", lines[index]):
+            paragraph.append(lines[index].strip()); index += 1
+        blocks.append({"type": "paragraph", "segments": inline_segments(" ".join(paragraph))})
+    return blocks
+
+
+def project_portal(source: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    if payload.get("schema_version") != "1.0":
+        raise ValueError(f"{source.name}: unsupported portal schema")
+    if payload.get("brand", {}).get("slug") != source.name:
+        raise ValueError(f"{source.name}: portal brand slug must match kit")
+    topics = payload.get("topics")
+    if not isinstance(topics, list) or not topics or topics[0].get("key") != "overview":
+        raise ValueError(f"{source.name}: portal must begin with overview")
+    topic_keys = [topic.get("key") for topic in topics]
+    if any(not isinstance(key, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", key) for key in topic_keys) or len(topic_keys) != len(set(topic_keys)):
+        raise ValueError(f"{source.name}: portal topic keys must be unique and URL-safe")
+    projected = copy.deepcopy(payload)
+    seen: set[str] = set()
+
+    def add_url(record: dict[str, Any], count: bool = True) -> None:
+        relative = record.get("path")
+        if not isinstance(relative, str) or not re.fullmatch(r"[A-Za-z0-9._@/-]+", relative) or ".." in relative.split("/"):
+            raise ValueError(f"{source.name}: unsafe portal delivery path: {relative}")
+        path = source / relative
+        if not path.is_file():
+            raise ValueError(f"{source.name}: portal delivery is missing: {relative}")
+        digest = record.get("sha256")
+        if digest and digest != hashlib.sha256(path.read_bytes()).hexdigest():
+            raise ValueError(f"{source.name}: portal delivery hash mismatch: {relative}")
+        if count:
+            if relative in seen:
+                raise ValueError(f"{source.name}: duplicate portal delivery: {relative}")
+            seen.add(relative)
+        record["url"] = f"/{source.name}/downloads/files/{relative}"
+
+    for family in projected.get("asset_families", []):
+        for item in family.get("assets", []):
+            for delivery in item.get("deliveries", []):
+                add_url(delivery)
+            add_url(item["preview"], count=False)
+    for resource in projected.get("resources", []):
+        add_url(resource)
+    for instruction in projected.get("instructions", []):
+        instruction["blocks"] = markdown_blocks(instruction.pop("markdown"))
+        matching = next((resource for resource in projected.get("resources", []) if resource["path"] == instruction["source_path"]), None)
+        if matching is None:
+            raise ValueError(f"{source.name}: instruction source is not a resource")
+        instruction["source_url"] = matching["url"]
+    projected["portable_guide"] = f"/{source.name}/downloads/files/{source.name}-portable-guidelines.html"
+    return projected
 
 
 def generate_social_previews(routes: list[dict[str, Any]], public: Path, mark_path: Path,
@@ -349,11 +481,15 @@ def copy_kit(source: Path, brand: dict) -> dict:
     if target.exists():
         shutil.rmtree(target)
     target.mkdir(parents=True)
-    replace_tree(source / "guidelines", target / "guidelines")
     replace_tree(source / "nextjs" / "registry", target / "brand" / "r")
     downloads = target / "downloads" / "files"
     downloads.mkdir(parents=True)
     shutil.copy2(guide, downloads / f"{slug}-brand-guide.pdf")
+    portable_guide = source / "guidelines" / "index.html"
+    portal_payload_path = source / "guidelines" / "portal.json"
+    if not portable_guide.is_file() or not portal_payload_path.is_file():
+        raise ValueError(f"{slug}: verified guideline portal output is missing")
+    shutil.copy2(portable_guide, downloads / f"{slug}-portable-guidelines.html")
     for name in ("logos", "favicons", "icons", "specimens"):
         replace_tree(source / name, downloads / name)
     specimen_name = next((source / "specimens").glob("*.svg")).name
@@ -371,6 +507,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "logo": f"{logo_root}/{slug}-horizontal-color.svg",
         "icon": f"{logo_root}/{slug}-mark-color.svg",
         "specimen": f"/{slug}/downloads/files/specimens/{specimen_name}",
+        "portableGuide": f"/{slug}/downloads/files/{slug}-portable-guidelines.html",
         "ownership": aff["ownership"],
         "showcase": aff["showcase"],
         "inheritance": aff["inheritance"],
@@ -552,6 +689,7 @@ def main() -> int:
     PUBLIC.mkdir(parents=True, exist_ok=True)
     GENERATED.mkdir(parents=True, exist_ok=True)
     brands = []
+    portals = []
     seen: set[str] = set()
     sources = source_dirs()
     loaded = []
@@ -564,6 +702,8 @@ def main() -> int:
     remove_stale_public_brands(PUBLIC, {source.name for source, _ in public_sources})
     for source, brand in public_sources:
         brands.append(copy_kit(source, brand))
+        payload = json.loads((source / "guidelines" / "portal.json").read_text(encoding="utf-8"))
+        portals.append(project_portal(source, payload))
     parent = DIST / "shruggietech"
     parent_css = "\n".join((parent / "tokens" / name).read_text(encoding="utf-8") for name in ("colors.css", "spacing.css", "typography.css", "base.css"))
     write_utf8(GENERATED / "parent.css", parent_css)
@@ -573,11 +713,9 @@ def main() -> int:
         shutil.rmtree(generated_fonts)
     shutil.copytree(ROOT / "assets" / "fonts" / "woff2", generated_fonts)
     write_utf8(GENERATED / "brands.json", json.dumps(brands, indent=2) + "\n")
+    write_utf8(GENERATED / "guidelines.json", json.dumps(portals, ensure_ascii=False, indent=2) + "\n")
     docs = write_docs(REFERENCES, GENERATED / "docs")
-    routes = build_routes(brands, docs)
-    for brand in brands:
-        route = next(item for item in routes if item["kind"] == "guidelines" and item["brandSlug"] == brand["slug"])
-        add_guideline_metadata(PUBLIC / brand["slug"] / "guidelines" / "index.html", route)
+    routes = build_routes(brands, docs, portals)
     write_utf8(GENERATED / "routes.json", json.dumps({"siteUrl": SITE_URL, "routes": routes}, indent=2, ensure_ascii=False) + "\n")
     generate_social_previews(
         routes,

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a deterministic `guidelines/portal.json` publication contract with semantic topics, exact manifest-derived deliveries, bounded visual representatives, nonvisual resources, rendered instruction blocks, complete dark and light palettes, and a separate portable HTML reference.
 - Removed the generated global anchor hover underline so consuming applications can assign link treatment by semantic component without duplicate decoration.
 - Added a manifest-derived complete asset reference, deterministic HEX/RGB/HSL/OKLCH/Lab D50 values, profile-honest print guidance, scoped theme examples, and accessible progressive guide navigation.
 - Added explicit constructed and authoritative logo source modes with separate Full and Reduced bindings, a closed transformation vocabulary, and fresh-approval rules for identity-affecting source changes.
