@@ -114,7 +114,7 @@
 - [x] T034 Run the focused contract, pipeline, icon, glyph, release-contract, prepare-site, and Markdown checks from `specs/016-authoritative-logo-contract/quickstart.md`
 - [x] T035 Run the complete five-kit, release, site, browser, accessibility, encoding, mojibake, and repository-hygiene gate and record results in `specs/016-authoritative-logo-contract/evidence.md`
 - [x] T036 Push `codex/016-authoritative-logo-contract`, publish the official issue-closing PR, and record the URL in `specs/016-authoritative-logo-contract/evidence.md`
-- [ ] T037 Wait for the automatic Codex review, answer and resolve every finding, optionally request exactly one second round, and record final green CI and review state in `specs/016-authoritative-logo-contract/evidence.md`
+- [x] T037 Wait for the automatic Codex review, answer and resolve every finding, optionally request exactly one second round, and record final green CI and review state in `specs/016-authoritative-logo-contract/evidence.md`
 
 ---
 
