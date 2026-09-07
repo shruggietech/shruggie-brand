@@ -26,7 +26,7 @@ Desktop and mobile captures were inspected for the landing page and documentatio
 
 ## Publication
 
-- Pull request: pending.
+- Pull request: https://github.com/shruggietech/shruggie-brand/pull/156
 - Automatic Codex review: pending.
 - Optional second review round: not yet requested.
 - Hosted CI: pending.
