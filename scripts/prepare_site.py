@@ -27,7 +27,7 @@ SITE_DESCRIPTION = "Explore ShruggieTech brand identities, standards, assets, an
 SOCIAL_SIZE = (1280, 640)
 ALERT_TYPES = {"NOTE": "info", "WARNING": "warn", "CAUTION": "error"}
 sys.path.insert(0, str(TEMPLATES))
-from brand_contract import affiliation, public_showcase
+from brand_contract import affiliation, public_showcase, showcase_surface
 DOC_DESCRIPTIONS = {
     "00-variance-contract": "The rules that keep every identity distinct while preserving a shared standard.",
     "01-canon": "Machine-readable defaults and constraints used by the brand generator.",
@@ -329,7 +329,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
     specimen_name = next((source / "specimens").glob("*.svg")).name
     logo_root = f"/{slug}/downloads/files/logos/svg"
     aff = affiliation(brand)
-    return {
+    record = {
         "slug": slug,
         "title": brand["title"],
         "kind": brand.get("kind", "sub-brand"),
@@ -348,6 +348,10 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "endorsement": aff["endorsement"],
         "serviceCredit": aff["service_credit"],
     }
+    surface = showcase_surface(brand)
+    if surface is not None:
+        record["showcaseSurface"] = surface
+    return record
 
 
 def convert_documentation_alerts(content: str) -> str:

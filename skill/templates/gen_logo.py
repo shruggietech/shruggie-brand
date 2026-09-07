@@ -19,11 +19,23 @@ import zlib
 from svgelements import Path
 from brand_contract import font_face_path, semantic_colors, typography_families
 from capabilities import load_capabilities
-from iconkit import generate_icon_suites
+from iconkit import contain_visible, generate_icon_suites
 from process_utils import hidden_process_kwargs
 
 NODE = os.environ.get("GP_NODE") or shutil.which("node")
 RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__file__), "rsvg-convert.js")
+
+
+def standalone_mark_ratio(brand):
+    """Return the visible long-edge occupancy that preserves declared clear space."""
+    logo = brand.get("logo") or {}
+    width = float(logo.get("artwork_width", logo.get("grid", 1000)))
+    height = float(logo.get("artwork_height", logo.get("grid", 1000)))
+    clear_space = float(logo.get("clear_space_units", 0))
+    long_edge = max(width, height)
+    if long_edge <= 0 or clear_space < 0:
+        raise ValueError("standalone mark dimensions and clear space must be non-negative")
+    return long_edge / (long_edge + 2.0 * clear_space)
 
 
 def measured_ico_converter(capabilities):
@@ -617,11 +629,7 @@ def main():
             raster(["-h", str(width), source, "-o", output])
             with Image.open(output) as rendered:
                 mark_image = rendered.convert("RGBA")
-                square_image = Image.new("RGBA", (width, width), (0, 0, 0, 0))
-                square_image.alpha_composite(
-                    mark_image,
-                    ((width - mark_image.width) // 2, (width - mark_image.height) // 2),
-                )
+                square_image = contain_visible(mark_image, width, standalone_mark_ratio(brand))
                 square_image.save(output)
             with Image.open(output) as squared:
                 assert squared.size == (width, width), "%s is not square" % output

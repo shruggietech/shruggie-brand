@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, scan_affiliation_output, sha256_file, validate_brand
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, scan_affiliation_output, sha256_file, showcase_surface, validate_brand
 from ingest_font import ingest_font
 
 
@@ -129,8 +129,29 @@ class ApplicationIconProfileTests(unittest.TestCase):
         brand["logo"]["reduced_below_px"] = 0
         with self.assertRaisesRegex(ContractError, "reduced mark threshold"):
             application_icon_profile(brand)
-            (kit / "README.md").write_text("Brand system by ShruggieTech\n", encoding="utf-8")
-            self.assertEqual(1, len(scan_affiliation_output(brand, kit)))
+
+
+class ShowcaseSurfaceTests(unittest.TestCase):
+    def test_optional_role_resolves_from_governed_surfaces(self):
+        brand = owned_brand()
+        brand["surfaces"] = {"base": "#080B0D", "card": "#121416"}
+        self.assertIsNone(showcase_surface(brand))
+        brand["showcase_surface"] = "card"
+        self.assertEqual("#121416", showcase_surface(brand))
+
+    def test_invalid_role_and_color_fail_closed(self):
+        brand = owned_brand()
+        brand["surfaces"] = {"card": "#121416"}
+        brand["showcase_surface"] = "missing"
+        with self.assertRaisesRegex(ContractError, "showcase surface role"):
+            showcase_surface(brand)
+        brand["showcase_surface"] = "card"
+        brand["surfaces"]["card"] = "charcoal"
+        with self.assertRaisesRegex(ContractError, "six-digit hex"):
+            showcase_surface(brand)
+        brand["showcase_surface"] = ""
+        with self.assertRaisesRegex(ContractError, "non-empty"):
+            showcase_surface(brand)
 
 
 class AuthoritativeInputTests(unittest.TestCase):

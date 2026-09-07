@@ -14,6 +14,34 @@ import prepare_site
 
 
 class PrepareSiteTests(unittest.TestCase):
+    def test_copy_kit_emits_only_explicit_governed_showcase_surface(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "kit"
+            public = root / "public"
+            for name in ("guidelines", "nextjs/registry", "logos/svg", "favicons", "icons", "specimens"):
+                (source / name).mkdir(parents=True, exist_ok=True)
+            (source / "brand-guide.pdf").write_bytes(b"%PDF-test")
+            (source / "specimens" / "sample.svg").write_text("<svg/>\n", encoding="utf-8")
+            public.mkdir()
+            original_public = prepare_site.PUBLIC
+            prepare_site.PUBLIC = public
+            try:
+                brand = {
+                    "slug": "alpha", "title": "Alpha", "kind": "sub-brand",
+                    "descriptor": "Alpha.", "brand_idea": "Alpha.", "version": "1.0.0",
+                    "accent": {"bright": "#FFD900", "accessible": "#867100"},
+                    "surfaces": {"card": "#121416"},
+                    "affiliation": {"ownership": "shruggietech-owned", "showcase": "public", "parent": "ShruggieTech", "inheritance": "shruggietech-house", "endorsement": "shruggietech-project", "service_credit": "none"},
+                }
+                record = prepare_site.copy_kit(source, brand)
+                self.assertNotIn("showcaseSurface", record)
+                brand["showcase_surface"] = "card"
+                record = prepare_site.copy_kit(source, brand)
+                self.assertEqual("#121416", record["showcaseSurface"])
+            finally:
+                prepare_site.PUBLIC = original_public
+
     def test_showcase_permission_is_independent_and_fail_closed(self):
         brand = {"kind": "sub-brand", "affiliation": {"ownership": "third-party", "showcase": "private", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
         self.assertFalse(prepare_site.public_showcase(brand))

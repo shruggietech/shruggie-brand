@@ -4,6 +4,19 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Added
+
+- Added visible-ink square-containment regressions for portrait, landscape, asymmetric-canvas, empty, standalone-master, and platform-specific occupancy cases.
+
+### Changed
+
+- On 2026-09-07, introduced an optional brand-source showcase-surface role that resolves through existing governed surfaces and is omitted for unconfigured brands, keeping site presentation policy out of slug-specific CSS and preserving sibling treatments.
+- On 2026-09-07, made visible-alpha bounds the shared standalone square-raster composition authority while retaining each platform's established safe-area ratio and preserving canonical vector geometry.
+
+### Fixed
+
+- Centered non-square portfolio marks inside a constrained square image box and replaced Glitchpad's diluted yellow landing-card and portfolio-hero surfaces with its governed charcoal card surface, including accessible light-theme text and no decorative yellow glow.
+
 ## [1.2.1] - 2026-09-06
 
 ### Changed

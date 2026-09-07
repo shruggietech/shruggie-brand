@@ -100,7 +100,11 @@ def _visible_crop(image):
     return rgba.crop(box)
 
 
-def _contain(mark, size, ratio, color=None):
+def contain_visible(mark, size, ratio, color=None):
+    if not isinstance(size, int) or isinstance(size, bool) or size < 1:
+        raise ValueError("square composition size must be a positive integer")
+    if not isinstance(ratio, (int, float)) or isinstance(ratio, bool) or not 0 < ratio <= 1:
+        raise ValueError("square composition ratio must be greater than zero and no greater than one")
     Image, _, _ = _pillow()
     source = _visible_crop(mark)
     maximum = max(1, int(round(size * ratio)))
@@ -119,7 +123,7 @@ def _contain(mark, size, ratio, color=None):
 def _plated(mark, size, background, ratio=0.72, color=None):
     Image, _, _ = _pillow()
     canvas = Image.new("RGBA", (size, size), _hex_rgb(background) + (255,))
-    canvas.alpha_composite(_contain(mark, size, ratio, color))
+    canvas.alpha_composite(contain_visible(mark, size, ratio, color))
     return canvas
 
 
@@ -302,8 +306,8 @@ def _write_android(writer, full_mark):
     for density, size in ANDROID_DENSITIES.items():
         writer.png(res / ("mipmap-%s" % density) / "ic_launcher.png", _plated(full_mark, size, background, 0.72),
                    "android", "legacy-launcher", alpha="opaque", destination="Android res/mipmap-%s" % density)
-    foreground = _contain(full_mark, 432, 66.0 / 108.0)
-    monochrome = _contain(full_mark, 432, 66.0 / 108.0, "#FFFFFF")
+    foreground = contain_visible(full_mark, 432, 66.0 / 108.0)
+    monochrome = contain_visible(full_mark, 432, 66.0 / 108.0, "#FFFFFF")
     writer.png(res / "drawable-nodpi" / "ic_launcher_foreground.png", foreground, "android", "adaptive-foreground", alpha="transparent", destination="Android res/drawable-nodpi")
     writer.png(res / "drawable-nodpi" / "ic_launcher_monochrome.png", monochrome, "android", "adaptive-monochrome", alpha="transparent", destination="Android res/drawable-nodpi")
     background_xml = '<?xml version="1.0" encoding="utf-8"?>\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="@color/ic_launcher_background"/></shape>\n'
@@ -413,9 +417,9 @@ def _write_windows(writer, full_mark, reduced_mark):
         mark = reduced_mark if size <= writer.profile["reduced_below_px"] else full_mark
         writer.png(assets / ("Square44x44Logo.targetsize-%d.png" % size), _plated(mark, size, background, 0.72),
                    "windows", "target-size", alpha="opaque", source_variant="reduced" if mark is reduced_mark else "full", destination="MSIX Assets")
-        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-unplated.png" % size), _contain(mark, size, 0.72),
+        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-unplated.png" % size), contain_visible(mark, size, 0.72),
                    "windows", "target-size", "dark-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
-        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size), _contain(mark, size, 0.72),
+        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size), contain_visible(mark, size, 0.72),
                    "windows", "target-size", "light-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
     for scale in (100, 200, 400):
         pixels = 50 * scale // 100
