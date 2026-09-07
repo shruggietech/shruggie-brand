@@ -189,11 +189,12 @@ def _svg_wrapper(source, background, ratio=0.72):
 
 
 class Writer:
-    def __init__(self, kit, brand, profile, capabilities):
+    def __init__(self, kit, brand, profile, capabilities, source_masters):
         self.kit = Path(kit)
         self.brand = brand
         self.profile = profile
         self.capabilities = capabilities
+        self.source_masters = source_masters
         self.artifacts = []
         self.suites = []
 
@@ -229,6 +230,7 @@ class Writer:
             "platform": platform,
             "status": status,
             "reason": reason,
+            "source_masters": self.source_masters,
             "artifacts": [item for item in entries],
         }
         write_text(path, json.dumps(content, indent=2) + "\n")
@@ -309,7 +311,7 @@ def _write_android(writer, full_mark, monochrome_mark):
     foreground = contain_visible(full_mark, 432, 66.0 / 108.0)
     monochrome = contain_visible(monochrome_mark, 432, 66.0 / 108.0, "#FFFFFF")
     writer.png(res / "drawable-nodpi" / "ic_launcher_foreground.png", foreground, "android", "adaptive-foreground", alpha="transparent", destination="Android res/drawable-nodpi")
-    writer.png(res / "drawable-nodpi" / "ic_launcher_monochrome.png", monochrome, "android", "adaptive-monochrome", alpha="transparent", destination="Android res/drawable-nodpi")
+    writer.png(res / "drawable-nodpi" / "ic_launcher_monochrome.png", monochrome, "android", "adaptive-monochrome", alpha="transparent", source_variant="monochrome", destination="Android res/drawable-nodpi")
     background_xml = '<?xml version="1.0" encoding="utf-8"?>\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="@color/ic_launcher_background"/></shape>\n'
     writer.text(res / "drawable" / "ic_launcher_background.xml", background_xml, "android", "adaptive-background", "xml", "Android res/drawable")
     adaptive = '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@drawable/ic_launcher_background"/><foreground android:drawable="@drawable/ic_launcher_foreground"/><monochrome android:drawable="@drawable/ic_launcher_monochrome"/></adaptive-icon>\n'
@@ -341,7 +343,8 @@ def _write_ios(writer, full_mark, monochrome_mark):
     )
     rows = []
     for name, image, appearance in images:
-        writer.png(catalog / name, image, "apple-ios", "app-icon", appearance or "default", "opaque", destination="Xcode AppIcon.appiconset")
+        writer.png(catalog / name, image, "apple-ios", "app-icon", appearance or "default", "opaque",
+                   "monochrome" if appearance == "tinted" else "full", "Xcode AppIcon.appiconset")
         row = {"filename": name, "idiom": "universal", "platform": "ios", "size": "1024x1024"}
         if appearance:
             row["appearances"] = [{"appearance": "luminosity", "value": appearance}]
@@ -466,7 +469,12 @@ def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabili
     safe_reset(kit, kit / "icons")
     safe_reset(kit, kit / "favicons")
     profile = application_icon_profile(brand)
-    writer = Writer(kit, brand, profile, capabilities)
+    source_masters = {
+        "full": full_svg.relative_to(kit).as_posix(),
+        "reduced": reduced_svg.relative_to(kit).as_posix(),
+        "monochrome": Path(monochrome_svg or full_svg).resolve().relative_to(kit).as_posix(),
+    }
+    writer = Writer(kit, brand, profile, capabilities, source_masters)
     marker = kit / "icons" / GENERATION_MARKER
     writer.text(marker, json.dumps({"generator": "shruggie-iconkit", "schema_version": SCHEMA_VERSION}, indent=2) + "\n",
                 "web", "icon-index", "json", "Generation ownership marker")
@@ -526,6 +534,7 @@ def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabili
         "brand": brand["slug"],
         "profile": profile,
         "capability": {"tier": capabilities.get("tier", "core"), "svg_raster": raster_capable},
+        "source_masters": source_masters,
         "suites": writer.suites,
         "artifacts": writer.artifacts,
         "aliases": aliases,

@@ -11,11 +11,13 @@ as SKIP with the reason, never silently passed.
 
 Exit code is the number of problems found, capped at 125.
 """
-import argparse, hashlib, json, os, re, struct, sys, unicodedata
+import argparse, base64, copy, hashlib, json, os, re, struct, sys, tempfile, unicodedata, zlib
+from io import BytesIO
+from pathlib import Path
 import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
-from brand_contract import affiliation, application_icon_profile
+from brand_contract import affiliation, application_icon_profile, logo_source_contract
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 
 # ------------------------------------------------------------------ utilities
@@ -494,6 +496,81 @@ def _validate_windows_manifest_fragments(kit, brand, profile, problems):
         problems.append("PackageProperties.fragment.xml cannot be validated: %s" % error)
 
 
+def _same_rgba(expected, actual):
+    expected_rgba = expected.convert("RGBA")
+    actual_rgba = actual.convert("RGBA")
+    return expected_rgba.size == actual_rgba.size and expected_rgba.tobytes() == actual_rgba.tobytes()
+
+
+def _expected_authoritative_icon(item, masters, profile):
+    from iconkit import _plated, contain_visible
+    variant = item.get("source_variant")
+    if variant not in masters:
+        return None
+    mark = masters[variant]
+    size = int(item["width"])
+    role = item.get("role")
+    appearance = item.get("appearance")
+    if role == "adaptive-foreground":
+        return contain_visible(mark, size, 66.0 / 108.0)
+    if role == "adaptive-monochrome":
+        return contain_visible(mark, size, 66.0 / 108.0, "#FFFFFF")
+    if appearance in {"dark-unplated", "light-unplated"}:
+        return contain_visible(mark, size, 0.72)
+    background = ("#000000" if appearance == "dark" else
+                  "#FFFFFF" if appearance == "tinted" else profile["background"])
+    colour = "#000000" if appearance == "tinted" else None
+    return _plated(mark, size, background, 0.75 if role == "play-store" else 0.72, colour)
+
+
+def _render_icon_master(kit, relative, brand):
+    from PIL import Image
+    from gen_logo import raster
+    source = os.path.join(kit, relative.replace("/", os.sep))
+    logo = brand.get("logo") or {}
+    canvas_width = float(logo.get("canvas_width", logo.get("grid", 1000)))
+    canvas_height = float(logo.get("canvas_height", logo.get("grid", 1000)))
+    with tempfile.TemporaryDirectory(prefix="icon-authority-") as temporary:
+        rendered = os.path.join(temporary, "rendered.png")
+        raster((["-w", "1024"] if canvas_width >= canvas_height else ["-h", "1024"])
+               + [source, "-o", rendered])
+        with Image.open(rendered) as source_image:
+            rgba = source_image.convert("RGBA")
+            rgba.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+            square = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
+            square.alpha_composite(rgba, ((1024 - rgba.width) // 2, (1024 - rgba.height) // 2))
+            return square
+
+
+def _container_png_payloads(path, kind):
+    payload = Path(path).read_bytes()
+    results = []
+    if kind == "ico":
+        count = struct.unpack("<H", payload[4:6])[0]
+        for index in range(count):
+            offset = 6 + index * 16
+            size = payload[offset] or 256
+            length, start = struct.unpack("<II", payload[offset + 8:offset + 16])
+            image = payload[start:start + length]
+            if not image.startswith(b"\x89PNG\r\n\x1a\n"):
+                raise ValueError("ICO identity frame is not PNG encoded")
+            results.append((size, image))
+        return results
+    offset = 8
+    mapping = {b"icp4": 16, b"icp5": 32, b"icp6": 64, b"ic07": 128,
+               b"ic08": 256, b"ic09": 512, b"ic10": 1024}
+    while offset < len(payload):
+        code = payload[offset:offset + 4]
+        length = struct.unpack(">I", payload[offset + 4:offset + 8])[0]
+        if code in mapping:
+            image = payload[offset + 8:offset + length]
+            if not image.startswith(b"\x89PNG\r\n\x1a\n"):
+                raise ValueError("ICNS identity frame is not PNG encoded")
+            results.append((mapping[code], image))
+        offset += length
+    return results
+
+
 def c_icon_suites(kit, brand, rep):
     manifest_path = os.path.join(kit, "icons", "manifest.json")
     try:
@@ -515,6 +592,29 @@ def c_icon_suites(kit, brand, rep):
     expected_profile = application_icon_profile(brand)
     if manifest.get("profile") != expected_profile:
         problems.append("manifest profile does not match the effective brand contract")
+    expected_masters = {
+        "full": "logos/svg/%s-mark-color.svg" % brand.get("slug"),
+        "reduced": "logos/svg/%s-mark-reduced-color.svg" % brand.get("slug"),
+        "monochrome": "logos/svg/%s-mark-white.svg" % brand.get("slug"),
+    }
+    if manifest.get("source_masters") != expected_masters:
+        problems.append("manifest source_masters do not match generated logo masters")
+    else:
+        try:
+            with open(os.path.join(kit, "logos", "provenance.json"), encoding="utf-8") as handle:
+                logo_paths = {item["path"] for item in json.load(handle).get("derivatives", [])}
+            if not set(expected_masters.values()).issubset(logo_paths):
+                problems.append("icon source_masters are absent from verified logo provenance")
+        except Exception as error:
+            problems.append("icon source_masters cannot be matched to logo provenance: %s" % error)
+    authoritative = (brand.get("logo") or {}).get("source_mode") == "authoritative"
+    identity_masters = {}
+    if authoritative and capabilities.get("svg_raster"):
+        try:
+            for variant, master in expected_masters.items():
+                identity_masters[variant] = _render_icon_master(kit, master, brand)
+        except Exception as error:
+            problems.append("authoritative icon masters cannot be loaded: %s" % error)
     expected_suites = {"web", "android", "apple-ios", "apple-macos", "windows"}
     suites = manifest.get("suites")
     if not isinstance(suites, list) or {row.get("id") for row in suites if isinstance(row, dict)} != expected_suites:
@@ -586,6 +686,14 @@ def c_icon_suites(kit, brand, rep):
                     inset = max(0, int(item.get("width") * (1.0 - ratio) / 2.0) - 2)
                     if content is None or content[0] < inset or content[1] < inset or content[2] > item.get("width") - inset or content[3] > item.get("height") - inset:
                         problems.append("%s artwork exceeds its declared safe area: %s" % (relative, content))
+                if authoritative and identity_masters:
+                    from PIL import Image
+                    expected_identity = _expected_authoritative_icon(item, identity_masters, expected_profile)
+                    if expected_identity is not None:
+                        with Image.open(path) as actual_identity:
+                            if not _same_rgba(expected_identity, actual_identity):
+                                problems.append("%s identity pixels disagree with declared %s master" %
+                                                (relative, item.get("source_variant")))
             except Exception as error:
                 problems.append("%s cannot be decoded as PNG: %s" % (relative, error))
         elif fmt == "json":
@@ -603,12 +711,34 @@ def c_icon_suites(kit, brand, rep):
             try:
                 with open(path, encoding="utf-8") as handle:
                     text = handle.read()
-                ET.fromstring(text)
+                svg_root = ET.fromstring(text)
                 for reference in re.findall(r'(?:href|xlink:href)=["\']([^"\']+)', text):
                     if not reference.startswith("data:") and not reference.startswith("#"):
                         problems.append("%s has a non-contained SVG dependency: %s" % (relative, reference))
+                if authoritative and item.get("source_variant") in expected_masters:
+                    images = [node for node in svg_root.iter() if node.tag.rsplit("}", 1)[-1] == "image"]
+                    href = None if len(images) != 1 else images[0].get("href")
+                    master = os.path.join(kit, expected_masters[item["source_variant"]].replace("/", os.sep))
+                    expected_href = "data:image/svg+xml;base64," + base64.b64encode(Path(master).read_bytes()).decode("ascii")
+                    if href != expected_href:
+                        problems.append("%s does not embed its declared authoritative SVG master" % relative)
             except Exception as error:
                 problems.append("%s cannot be parsed as SVG: %s" % (relative, error))
+        elif fmt in {"ico", "icns"} and authoritative and identity_masters:
+            try:
+                from PIL import Image
+                kind = fmt
+                for size, payload in _container_png_payloads(path, kind):
+                    variant = "full" if kind == "icns" or size > expected_profile["reduced_below_px"] else "reduced"
+                    expected_identity = _expected_authoritative_icon(
+                        {"source_variant": variant, "width": size, "role": "favicon", "appearance": "default"},
+                        identity_masters, expected_profile)
+                    with Image.open(BytesIO(payload)) as actual_identity:
+                        if not _same_rgba(expected_identity, actual_identity):
+                            problems.append("%s %d px frame disagrees with declared %s master" %
+                                            (relative, size, variant))
+            except Exception as error:
+                problems.append("%s identity frames cannot be verified: %s" % (relative, error))
     for suite in suites:
         suite_id = suite.get("id")
         platform_path = os.path.join(kit, str(suite.get("manifest", "")).replace("/", os.sep))
@@ -616,7 +746,7 @@ def c_icon_suites(kit, brand, rep):
             with open(platform_path, encoding="utf-8") as handle:
                 platform_manifest = json.load(handle)
             expected_entries = [item for item in artifacts if item.get("platform") == suite_id and item.get("role") not in {"icon-index", "platform-manifest"}]
-            if platform_manifest.get("schema_version") != manifest.get("schema_version") or platform_manifest.get("brand") != manifest.get("brand") or platform_manifest.get("platform") != suite_id or platform_manifest.get("status") != suite.get("status") or platform_manifest.get("reason") != suite.get("reason") or platform_manifest.get("artifacts") != expected_entries:
+            if platform_manifest.get("schema_version") != manifest.get("schema_version") or platform_manifest.get("brand") != manifest.get("brand") or platform_manifest.get("platform") != suite_id or platform_manifest.get("status") != suite.get("status") or platform_manifest.get("reason") != suite.get("reason") or platform_manifest.get("source_masters") != manifest.get("source_masters") or platform_manifest.get("artifacts") != expected_entries:
                 problems.append("%s does not agree with the top-level icon manifest" % suite.get("manifest"))
         except Exception as error:
             problems.append("%s cannot be validated against the top-level manifest: %s" % (suite.get("manifest"), error))
@@ -774,6 +904,305 @@ def c_capability_artifacts(kit, rep):
     else:
         rep.skip("brand-guide-artifact", "%s tier: headless Chromium unavailable; PDF skipped" % tier)
 
+
+def _paeth(left, above, upper_left):
+    estimate = left + above - upper_left
+    distances = (abs(estimate - left), abs(estimate - above), abs(estimate - upper_left))
+    return (left, above, upper_left)[distances.index(min(distances))]
+
+
+def _png_mask(payload, method):
+    """Return (width, height, binary mask) for a non-interlaced RGBA8 PNG."""
+    if not payload.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError("authoritative mask source is not a PNG")
+    position, header, compressed = 8, None, []
+    while position < len(payload):
+        length = struct.unpack(">I", payload[position:position + 4])[0]
+        kind = payload[position + 4:position + 8]
+        data = payload[position + 8:position + 8 + length]
+        if kind == b"IHDR":
+            header = data
+        elif kind == b"IDAT":
+            compressed.append(data)
+        elif kind == b"IEND":
+            break
+        position += 12 + length
+    if header is None or not compressed:
+        raise ValueError("authoritative PNG is incomplete")
+    width, height, depth, colour_type, compression, filtering, interlace = struct.unpack(">IIBBBBB", header)
+    if (depth, colour_type, compression, filtering, interlace) != (8, 6, 0, 0, 0):
+        raise ValueError("authoritative PNG must be non-interlaced RGBA8")
+    stride = width * 4
+    raw = zlib.decompress(b"".join(compressed))
+    if len(raw) != height * (stride + 1):
+        raise ValueError("authoritative PNG has an unexpected data length")
+    previous, offset, mask = bytearray(stride), 0, bytearray()
+    for _row in range(height):
+        filter_type = raw[offset]
+        scanline = bytearray(raw[offset + 1:offset + stride + 1])
+        offset += stride + 1
+        for index in range(stride):
+            left = scanline[index - 4] if index >= 4 else 0
+            above = previous[index]
+            upper_left = previous[index - 4] if index >= 4 else 0
+            if filter_type == 1:
+                scanline[index] = (scanline[index] + left) & 0xff
+            elif filter_type == 2:
+                scanline[index] = (scanline[index] + above) & 0xff
+            elif filter_type == 3:
+                scanline[index] = (scanline[index] + ((left + above) // 2)) & 0xff
+            elif filter_type == 4:
+                scanline[index] = (scanline[index] + _paeth(left, above, upper_left)) & 0xff
+            elif filter_type != 0:
+                raise ValueError("authoritative PNG uses an unknown filter")
+        for index in range(0, stride, 4):
+            red, green, blue, alpha = scanline[index:index + 4]
+            if method == "luminance":
+                alpha = round(alpha * max(red, green, blue) / 255)
+            mask.append(255 if alpha else 0)
+        previous = scanline
+    return width, height, bytes(mask)
+
+
+def _png_matches_svg(kit, relative, brand):
+    """Independently rerender a logo PNG from its verified SVG master."""
+    match = re.fullmatch(r"logos/png/(.+)-(1024|1280)\.png", relative)
+    if not match:
+        raise ValueError("logo PNG name does not identify its SVG master")
+    svg_path = os.path.join(kit, "logos", "svg", match.group(1) + ".svg")
+    if not os.path.isfile(svg_path):
+        raise ValueError("corresponding SVG master is missing")
+    width = int(match.group(2))
+    from PIL import Image
+    from gen_logo import raster, standalone_mark_ratio
+    from iconkit import contain_visible
+    with tempfile.TemporaryDirectory(prefix="logo-provenance-") as temporary:
+        rendered = os.path.join(temporary, "rendered.png")
+        expected_path = os.path.join(temporary, "expected.png")
+        standalone = match.group(1).startswith(brand["slug"] + "-mark-")
+        raster((["-h", str(width)] if standalone else ["-w", str(width)])
+               + [svg_path, "-o", rendered])
+        with Image.open(rendered) as source:
+            expected = (contain_visible(source.convert("RGBA"), width, standalone_mark_ratio(brand))
+                        if standalone else source.convert("RGBA"))
+            expected.save(expected_path)
+        with Image.open(expected_path) as expected, Image.open(os.path.join(kit, relative.replace("/", os.sep))) as actual:
+            return _same_rgba(expected, actual)
+
+
+def _transformed_image_bounds(root, image):
+    """Resolve the generator's translate and uniform-scale ancestors."""
+    parent = {child: node for node in root.iter() for child in node}
+    chain, node = [], image
+    while node in parent:
+        node = parent[node]
+        chain.append(node)
+    points = [
+        (float(image.get("x", 0)), float(image.get("y", 0))),
+        (float(image.get("x", 0)) + float(image.get("width")), float(image.get("y", 0)) + float(image.get("height"))),
+    ]
+    for ancestor in chain:
+        transform = ancestor.get("transform")
+        if not transform:
+            continue
+        operations = re.findall(r"(translate|scale)\(([^)]+)\)", transform)
+        if "".join("%s(%s)" % item for item in operations).replace(" ", "") != transform.replace(" ", ""):
+            raise ValueError("authoritative image has an unsupported ancestor transform")
+        for operation, arguments in reversed(operations):
+            values = [float(value) for value in re.split(r"[ ,]+", arguments.strip())]
+            if operation == "translate":
+                dx, dy = values[0], values[1] if len(values) > 1 else 0.0
+                points = [(x + dx, y + dy) for x, y in points]
+            else:
+                sx, sy = values[0], values[1] if len(values) > 1 else values[0]
+                if abs(sx - sy) > 1e-9 or sx <= 0:
+                    raise ValueError("authoritative image has a non-uniform or non-positive scale")
+                points = [(x * sx, y * sy) for x, y in points]
+    return points
+
+
+def _authoritative_identity_unobscured(svg_path, root):
+    """Render the identity layer alone and prove later SVG content does not cover it."""
+    isolated = copy.deepcopy(root)
+    isolated_image = next(node for node in isolated.iter()
+                          if node.tag.rsplit("}", 1)[-1] == "image")
+    parents = {child: node for node in isolated.iter() for child in node}
+    keep, node = {isolated, isolated_image}, isolated_image
+    while node in parents:
+        node = parents[node]
+        keep.add(node)
+    for parent in list(isolated.iter()):
+        for child in list(parent):
+            if child not in keep:
+                parent.remove(child)
+
+    from PIL import Image
+    from gen_logo import raster
+    with tempfile.TemporaryDirectory(prefix="logo-visibility-") as temporary:
+        identity_svg = os.path.join(temporary, "identity.svg")
+        identity_png = os.path.join(temporary, "identity.png")
+        complete_png = os.path.join(temporary, "complete.png")
+        ET.ElementTree(isolated).write(identity_svg, encoding="utf-8", xml_declaration=True)
+        raster(["-w", "512", identity_svg, "-o", identity_png])
+        raster(["-w", "512", svg_path, "-o", complete_png])
+        with Image.open(identity_png) as identity_file, Image.open(complete_png) as complete_file:
+            identity = identity_file.convert("RGBA")
+            complete = complete_file.convert("RGBA")
+            if identity.size != complete.size:
+                return False
+            identity_pixels = identity.load()
+            complete_pixels = complete.load()
+            opaque = 0
+            for y in range(identity.height):
+                for x in range(identity.width):
+                    expected = identity_pixels[x, y]
+                    if expected[3] == 255:
+                        opaque += 1
+                        actual = complete_pixels[x, y]
+                        if actual[3] != 255 or actual[:3] != expected[:3]:
+                            return False
+            if opaque:
+                return True
+            return _same_rgba(identity, complete)
+
+
+def c_logo_provenance(kit, brand, rep):
+    """Verify the generated logo inventory against the source authority contract."""
+    path = os.path.join(kit, "logos", "provenance.json")
+    if not os.path.isfile(path):
+        return rep.bad("logo-provenance", "logos/provenance.json is missing")
+    try:
+        with open(path, encoding="utf-8") as handle:
+            provenance = json.load(handle)
+        authority = logo_source_contract(brand, kit)
+    except Exception as error:
+        return rep.bad("logo-provenance", str(error))
+
+    problems = []
+    capabilities = load_capabilities(kit)
+    if provenance.get("schema_version") != 1 or provenance.get("brand") != brand.get("slug"):
+        problems.append("index identity or schema version is invalid")
+    if provenance.get("source_mode") != authority["source_mode"]:
+        problems.append("index source mode disagrees with brand contract")
+    records = provenance.get("derivatives")
+    if not isinstance(records, list):
+        return rep.bad("logo-provenance", "derivatives must be an array")
+    paths = [item.get("path") for item in records if isinstance(item, dict)]
+    if len(paths) != len(records) or paths != sorted(paths) or len(paths) != len(set(paths)):
+        problems.append("derivative paths must be complete, unique, and sorted")
+    actual = []
+    for directory, suffix in (("logos/svg", ".svg"), ("logos/png", ".png")):
+        root = os.path.join(kit, directory.replace("/", os.sep))
+        if os.path.isdir(root):
+            actual.extend("%s/%s" % (directory, name) for name in os.listdir(root)
+                          if name.lower().endswith(suffix))
+    if set(paths) != set(actual):
+        missing = sorted(set(actual) - set(paths))
+        extra = sorted(set(paths) - set(actual))
+        if missing:
+            problems.append("unindexed logo derivatives: %s" % ", ".join(missing[:6]))
+        if extra:
+            problems.append("provenance names absent derivatives: %s" % ", ".join(extra[:6]))
+
+    expected_keys = {"path", "kind", "variant", "colourway", "source_mode", "input_id",
+                     "source_sha256", "transformations", "embedded_metadata"}
+    checked_sources = set()
+    for item in records:
+        if not isinstance(item, dict) or set(item) != expected_keys:
+            problems.append("derivative record has invalid fields")
+            continue
+        relative = item["path"]
+        variant = item["variant"]
+        source = authority.get(variant) if variant in {"full", "reduced"} else None
+        if source:
+            record = source["record"]
+            base_transform = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
+            expected = [base_transform, "resize"]
+            if item["kind"] == "lockup":
+                expected.append("place-in-lockup")
+            if item["source_mode"] != "authoritative" or item["input_id"] != record["id"] or item["source_sha256"] != record["sha256"]:
+                problems.append("%s has stale or conflicting source identity" % relative)
+            if item["transformations"] != expected or not set(expected).issubset(set(record["approved_transformations"])):
+                problems.append("%s has undeclared or misordered transformations" % relative)
+        elif item["input_id"] is not None or item["source_sha256"] is not None or item["transformations"]:
+            problems.append("%s claims source lineage without a bound logo variant" % relative)
+
+        output = os.path.join(kit, relative.replace("/", os.sep))
+        if not os.path.isfile(output):
+            continue
+        if relative.endswith(".png"):
+            if source:
+                try:
+                    if not _png_matches_svg(kit, relative, brand):
+                        problems.append("%s pixels disagree with its verified SVG master" % relative)
+                except Exception as error:
+                    problems.append("%s cannot be compared with its SVG master: %s" % (relative, error))
+            continue
+        if not relative.endswith(".svg"):
+            continue
+        try:
+            root = ET.parse(output).getroot()
+            if root.get("data-logo-source-mode") != item["source_mode"]:
+                problems.append("%s source-mode metadata disagrees with index" % relative)
+            expected_variant = item["variant"]
+            if root.get("data-logo-variant") != expected_variant:
+                problems.append("%s variant metadata disagrees with index" % relative)
+            if source:
+                if root.get("data-authoritative-input-id") != source["record"]["id"] or root.get("data-authoritative-source-sha256") != source["record"]["sha256"]:
+                    problems.append("%s authoritative metadata disagrees with index" % relative)
+                images = [node for node in root.iter() if node.tag.rsplit("}", 1)[-1] == "image"]
+                if len(images) != 1:
+                    problems.append("%s must contain exactly one authoritative image" % relative)
+                else:
+                    image = images[0]
+                    href = image.get("href") or image.get("{http://www.w3.org/1999/xlink}href")
+                    element = source["element"]
+                    expected_geometry = (float(element.get("x", 0)), float(element.get("y", 0)),
+                                         float(element["width"]), float(element["height"]))
+                    actual_geometry = (float(image.get("x", 0)), float(image.get("y", 0)),
+                                       float(image.get("width")), float(image.get("height")))
+                    if actual_geometry != expected_geometry or image.get("preserveAspectRatio") != "xMidYMid meet":
+                        problems.append("%s changes the authoritative image placement" % relative)
+                    forbidden = {"opacity", "display", "visibility", "style", "filter", "mask", "clip-path", "transform"}
+                    if forbidden & set(image.attrib):
+                        problems.append("%s hides or modifies the authoritative image presentation" % relative)
+                    bounds = _transformed_image_bounds(root, image)
+                    view_box = [float(value) for value in root.get("viewBox", "").split()]
+                    if len(view_box) != 4 or min(x for x, _y in bounds) < view_box[0] or min(y for _x, y in bounds) < view_box[1] or max(x for x, _y in bounds) > view_box[0] + view_box[2] or max(y for _x, y in bounds) > view_box[1] + view_box[3]:
+                        problems.append("%s moves authoritative identity content outside its canvas" % relative)
+                    if item["kind"] == "mark":
+                        visible_shapes = [node for node in root.iter() if node.tag.rsplit("}", 1)[-1] in {"path", "rect", "circle", "ellipse", "polygon", "polyline", "line"}]
+                        if visible_shapes:
+                            problems.append("%s adds substitute geometry to an authoritative mark" % relative)
+                    if capabilities.get("svg_raster") and not _authoritative_identity_unobscured(output, root):
+                        problems.append("%s obscures authoritative identity pixels" % relative)
+                    if source["record"]["format"] == "svg":
+                        if not href or not href.startswith("data:image/svg+xml;base64,"):
+                            problems.append("%s lacks embedded authoritative SVG bytes" % relative)
+                        else:
+                            with open(source["path"], "rb") as handle:
+                                if base64.b64decode(href.split(",", 1)[1]) != handle.read():
+                                    problems.append("%s changes authoritative SVG source bytes" % relative)
+                    else:
+                        if not href or not href.startswith("data:image/png;base64,"):
+                            problems.append("%s lacks an embedded authoritative raster mask" % relative)
+                        else:
+                            with open(source["path"], "rb") as handle:
+                                original = _png_mask(handle.read(), source["mask"])
+                            derived = _png_mask(base64.b64decode(href.split(",", 1)[1]), "alpha")
+                            if original != derived:
+                                problems.append("%s changes authoritative %s mask topology" % (relative, variant))
+                    checked_sources.add(variant)
+        except Exception as error:
+            problems.append("%s provenance metadata cannot be verified: %s" % (relative, error))
+    if authority["source_mode"] == "authoritative" and checked_sources != {"full", "reduced"}:
+        problems.append("authoritative Full and Reduced sources were not both verified")
+    if problems:
+        rep.bad("logo-provenance", "; ".join(problems[:20]))
+    else:
+        rep.ok("logo-provenance", "%d derivatives agree with %s source contract" %
+               (len(records), authority["source_mode"]))
+
 # ---------------------------------------------------------------------- main
 def c_glyph(kit, brand, rep):
     """The measured geometry gate, folded into VERIFY.md.
@@ -928,6 +1357,7 @@ def main():
     c_raw_values(kit, rep)
     c_font_weights(kit, brand, rep)
     c_glyph(kit, brand, rep)
+    c_logo_provenance(kit, brand, rep)
     c_capability_artifacts(kit, rep)
     c_icon_suites(kit, brand, rep)
     c_svg(kit, rep)

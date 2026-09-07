@@ -101,6 +101,12 @@ class IconKitTests(unittest.TestCase):
                 {"tier": "full", "svg_raster": True, "ico_writer": True},
                 monochrome_svg=monochrome,
             )
+            manifest = json.loads((kit / "icons" / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual({"full": "full.svg", "reduced": "reduced.svg", "monochrome": "monochrome.svg"},
+                             manifest["source_masters"])
+            for suite in manifest["suites"]:
+                child = json.loads((kit / suite["manifest"]).read_text(encoding="utf-8"))
+                self.assertEqual(manifest["source_masters"], child["source_masters"])
             android = kit / "icons" / "android" / "app" / "src" / "main" / "res" / "drawable-nodpi" / "ic_launcher_monochrome.png"
             ios = kit / "icons" / "apple" / "ios" / "Assets.xcassets" / "AppIcon.appiconset" / "AppIcon-1024-tinted.png"
             with Image.open(android) as image:

@@ -45,7 +45,11 @@
       "color_profile": "srgb",
       "usage_status": "approved",
       "license": "ShruggieTech-owned paid artwork",
-      "approved_transformations": ["embed-unchanged", "recolor-mask", "palette-analysis"]
+      "approved_mask": "alpha",
+      "mask_source_sha256": "d500c3eadf049d36ce094bf7e35e37902a4ab49a66bcd6a9b40696961208a5c8",
+      "mask_approved_by": "Repository owner via S016 approval",
+      "mask_approved_on": "2026-09-07",
+      "approved_transformations": ["recolor-mask", "resize", "place-in-lockup", "palette-analysis"]
     },
     {
       "id": "reduced-mark-master",
@@ -56,7 +60,11 @@
       "color_profile": "unknown",
       "usage_status": "approved",
       "license": "ShruggieTech-owned paid artwork",
-      "approved_transformations": ["embed-unchanged", "recolor-mask", "palette-analysis"]
+      "approved_mask": "luminance",
+      "mask_source_sha256": "dc84170f164277ee4289240405aec1b35170937da0d4afe8f096ecd6d893c324",
+      "mask_approved_by": "Repository owner via S016 approval",
+      "mask_approved_on": "2026-09-07",
+      "approved_transformations": ["recolor-mask", "resize", "palette-analysis"]
     },
     {
       "id": "horizontal-dark-master",
@@ -156,6 +164,11 @@
     "surface_dark_products": "#0E1014"
   },
   "logo": {
+    "source_mode": "authoritative",
+    "authoritative_input_ids": {
+      "full": "full-mark-master",
+      "reduced": "reduced-mark-master"
+    },
     "grid": 919,
     "canvas_width": 919,
     "canvas_height": 500,

@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import struct
 import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
@@ -421,11 +422,16 @@ def authoritative_inputs(brand, kit):
     identifiers = set()
     protected_roles = set()
     by_path = {}
-    allowed_transforms = {"embed-unchanged", "recolor-mask", "palette-analysis"}
+    allowed_transforms = {"embed-unchanged", "recolor-mask", "resize", "place-in-lockup", "palette-analysis"}
     normalized = []
     for index, record in enumerate(records):
         required = {"id", "role", "path", "format", "sha256", "color_profile", "usage_status", "license", "approved_transformations"}
-        _require(isinstance(record, dict) and set(record) == required, "authoritative input %d must contain exactly the required fields" % index)
+        mask_approval = {"approved_mask", "mask_source_sha256", "mask_approved_by", "mask_approved_on"}
+        _require(isinstance(record, dict) and required.issubset(set(record)) and set(record).issubset(required | mask_approval),
+                 "authoritative input %d must contain the required fields and only supported mask-approval fields" % index)
+        present_mask_fields = set(record) & mask_approval
+        _require(not present_mask_fields or present_mask_fields == mask_approval,
+                 "authoritative input %s has an incomplete mask approval" % record.get("id", index))
         _require(ID.fullmatch(record["id"] or ""), "authoritative input %d has an invalid id" % index)
         _require(record["id"] not in identifiers, "duplicate authoritative input id: %s" % record["id"])
         identifiers.add(record["id"])
@@ -440,6 +446,11 @@ def authoritative_inputs(brand, kit):
         transforms = record["approved_transformations"]
         _require(isinstance(transforms, list) and len(transforms) == len(set(transforms)) and set(transforms).issubset(allowed_transforms), "authoritative input %s has invalid approved transformations" % record["id"])
         _require(DIGEST.fullmatch(record["sha256"] or ""), "authoritative input %s has an invalid SHA-256" % record["id"])
+        if present_mask_fields:
+            _require(record["approved_mask"] in {"alpha", "luminance"}, "authoritative input %s has an invalid approved mask" % record["id"])
+            _require(DIGEST.fullmatch(record["mask_source_sha256"] or ""), "authoritative input %s has an invalid mask-approval SHA-256" % record["id"])
+            _require(isinstance(record["mask_approved_by"], str) and record["mask_approved_by"].strip(), "authoritative input %s lacks a mask approver" % record["id"])
+            _require(re.fullmatch(r"\d{4}-\d{2}-\d{2}", record["mask_approved_on"] or ""), "authoritative input %s has an invalid mask approval date" % record["id"])
         path = contained_path(kit, record["path"])
         _require(record["path"] not in by_path, "authoritative input path declared more than once: %s" % record["path"])
         by_path[record["path"]] = record
@@ -458,6 +469,156 @@ def authoritative_inputs(brand, kit):
             required_transform = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
             _require(required_transform in record["approved_transformations"], "imported logo image %s does not approve %s" % (item.get("source"), required_transform))
     return normalized
+
+
+def _image_dimensions(path):
+    data = path.read_bytes()
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        if len(data) < 29 or data[12:16] != b"IHDR":
+            raise ContractError("authoritative PNG logo source %s has an invalid header" % path.name)
+        width, height, depth, colour_type, compression, filtering, interlace = struct.unpack(">IIBBBBB", data[16:29])
+        if (depth, colour_type, compression, filtering, interlace) != (8, 6, 0, 0, 0):
+            raise ContractError("authoritative PNG logo source %s must be non-interlaced RGBA8 for portable generation" % path.name)
+        return width, height
+    if data.startswith(b"\xff\xd8"):
+        offset = 2
+        while offset + 9 <= len(data):
+            if data[offset] != 0xff:
+                offset += 1
+                continue
+            marker = data[offset + 1]
+            offset += 2
+            if marker in {0xd8, 0xd9} or 0xd0 <= marker <= 0xd7:
+                continue
+            if offset + 2 > len(data):
+                break
+            length = struct.unpack(">H", data[offset:offset + 2])[0]
+            if marker in {0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf} and offset + 7 <= len(data):
+                height, width = struct.unpack(">HH", data[offset + 3:offset + 7])
+                return width, height
+            offset += length
+    if data.startswith(b"RIFF") and data[8:12] == b"WEBP" and len(data) >= 30:
+        kind = data[12:16]
+        if kind == b"VP8X":
+            width = 1 + int.from_bytes(data[24:27], "little")
+            height = 1 + int.from_bytes(data[27:30], "little")
+            return width, height
+        if kind == b"VP8 " and len(data) >= 30 and data[23:26] == b"\x9d\x01\x2a":
+            width, height = struct.unpack("<HH", data[26:30])
+            return width & 0x3fff, height & 0x3fff
+        if kind == b"VP8L" and len(data) >= 25 and data[20] == 0x2f:
+            bits = int.from_bytes(data[21:25], "little")
+            return (bits & 0x3fff) + 1, ((bits >> 14) & 0x3fff) + 1
+    if data.lstrip().startswith(b"<"):
+        try:
+            root = ET.fromstring(data.decode("utf-8-sig"))
+            view_box = root.get("viewBox")
+            if view_box:
+                _x, _y, width, height = [float(value) for value in view_box.replace(",", " ").split()]
+                return width, height
+            width = float(re.sub(r"[^0-9.+-]", "", root.get("width", "")))
+            height = float(re.sub(r"[^0-9.+-]", "", root.get("height", "")))
+            if width > 0 and height > 0:
+                return width, height
+        except Exception:
+            pass
+    try:
+        from PIL import Image
+        with Image.open(path) as image:
+            return image.size
+    except Exception as error:
+        raise ContractError("cannot measure authoritative logo source %s: %s" % (path.name, error)) from error
+
+
+def logo_source_contract(brand, kit, normalized_inputs=None):
+    """Validate and resolve the mutually exclusive logo authority modes."""
+    logo = brand.get("logo")
+    _require(isinstance(logo, dict), "logo is required")
+    mode = logo.get("source_mode")
+    _require(mode is not None, "logo.source_mode is required; declare constructed or authoritative")
+    _require(mode in {"constructed", "authoritative"}, "logo.source_mode must be constructed or authoritative")
+    paths = logo.get("paths")
+    _require(isinstance(paths, dict), "logo.paths is required")
+    for variant in ("full", "reduced"):
+        _require(isinstance(paths.get(variant), list) and paths[variant], "%s logo paths must be a non-empty array" % variant)
+
+    normalized_inputs = authoritative_inputs(brand, kit) if normalized_inputs is None else normalized_inputs
+    records = {record["id"]: (record, path) for record, path in normalized_inputs}
+    approved_protected = [record for record, _path in normalized_inputs
+                          if record["role"] in {"mark", "reduced-mark"}
+                          and record["usage_status"] == "approved"]
+
+    if mode == "constructed":
+        _require("authoritative_input_ids" not in logo,
+                 "constructed logo cannot declare authoritative_input_ids")
+        _require(not approved_protected,
+                 "constructed logo cannot declare approved mark or reduced-mark authoritative inputs")
+        return {"source_mode": mode, "full": None, "reduced": None}
+
+    bindings = logo.get("authoritative_input_ids")
+    _require(isinstance(bindings, dict) and set(bindings) == {"full", "reduced"},
+             "authoritative logo bindings must contain exactly full and reduced")
+    helper = Path(kit).resolve() / "build" / "mk_paths.py"
+    _require(not helper.is_file(),
+             "authoritative logo conflicts with construction helper build/mk_paths.py")
+
+    resolved = {"source_mode": mode}
+    for variant, expected_role in (("full", "mark"), ("reduced", "reduced-mark")):
+        input_id = bindings[variant]
+        _require(isinstance(input_id, str) and ID.fullmatch(input_id or ""),
+                 "%s authoritative logo binding has an invalid input id" % variant)
+        bound = records.get(input_id)
+        _require(bound is not None,
+                 "%s authoritative logo binding references unknown input %s" % (variant, input_id))
+        record, source_path = bound
+        _require(record["role"] == expected_role,
+                 "%s variant requires authoritative role %s, got %s from %s" %
+                 (variant, expected_role, record["role"], input_id))
+        _require(record["usage_status"] == "approved",
+                 "%s authoritative input %s is not approved for generated use" % (variant, input_id))
+        _require(record["format"] in {"png", "svg"},
+                 "%s authoritative input %s must use portable PNG or passive SVG" % (variant, input_id))
+        elements = paths[variant]
+        _require(len(elements) == 1 and isinstance(elements[0], dict)
+                 and elements[0].get("element") == "image" and "d" not in elements[0],
+                 "%s authoritative logo must contain exactly one bound image and no constructed geometry" % variant)
+        element = elements[0]
+        _require(element.get("source") == record["path"],
+                 "%s authoritative logo does not use bound source %s" % (variant, input_id))
+        required = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
+        _require(required in record["approved_transformations"],
+                 "%s authoritative input %s does not approve %s" % (variant, input_id, required))
+        _require("resize" in record["approved_transformations"],
+                 "%s authoritative input %s does not approve resize" % (variant, input_id))
+        if variant == "full":
+            _require("place-in-lockup" in record["approved_transformations"],
+                     "full authoritative input %s does not approve place-in-lockup" % input_id)
+        source_width, source_height = _image_dimensions(source_path)
+        target_width = float(element.get("width", 0))
+        target_height = float(element.get("height", 0))
+        _require(target_width > 0 and target_height > 0,
+                 "%s authoritative logo placement needs positive dimensions" % variant)
+        source_ratio = float(source_width) / float(source_height)
+        target_ratio = target_width / target_height
+        _require(abs(source_ratio - target_ratio) <= 1e-6,
+                 "%s variant distorts authoritative source aspect ratio for %s" % (variant, input_id))
+        if record["format"] == "svg":
+            _require(element.get("mask") is None,
+                     "%s authoritative input %s has an invalid mask method" % (variant, input_id))
+        else:
+            _require(record.get("mask_source_sha256") == record["sha256"],
+                     "%s authoritative input %s mask approval is stale for the current source hash" % (variant, input_id))
+            _require(element.get("mask") == record.get("approved_mask"),
+                     "%s authoritative input %s mask method lacks matching owner approval" % (variant, input_id))
+        resolved[variant] = {
+            "record": record,
+            "path": source_path,
+            "element": element,
+            "mask": element.get("mask"),
+        }
+    _require(bindings["full"] != bindings["reduced"],
+             "full and reduced authoritative logo variants require distinct inputs")
+    return resolved
 
 
 def analyze_input(record, path):
@@ -572,7 +733,10 @@ def validate_brand(brand, kit):
     square_enclosure_profile(brand)
     wordmark_role_colors(brand)
     showcase_surface(brand)
-    evidence = analyze_authoritative_inputs(brand, kit)
+    normalized_inputs = authoritative_inputs(brand, kit)
+    logo_source_contract(brand, kit, normalized_inputs)
+    evidence = [evidence for record, path in normalized_inputs
+                for evidence in [analyze_input(record, path)] if evidence is not None]
     validate_palette_approvals(brand, evidence)
     return evidence
 

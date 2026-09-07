@@ -2,6 +2,10 @@
 """Regression tests for portability, registry, and release-critical pipeline behavior."""
 
 import json
+import base64
+import copy
+import hashlib
+from io import BytesIO
 import os
 import shutil
 import subprocess
@@ -282,8 +286,199 @@ class PipelineTests(unittest.TestCase):
             self.assertFalse(any(path.suffix.lower() in {".png", ".ico", ".icns"}
                                  for path in (kit / "icons").rglob("*")))
             icon_manifest = json.loads((kit / "icons" / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual({
+                "full": "logos/svg/covarity-mark-color.svg",
+                "reduced": "logos/svg/covarity-mark-reduced-color.svg",
+                "monochrome": "logos/svg/covarity-mark-white.svg",
+            }, icon_manifest["source_masters"])
             self.assertTrue(all(row["status"] == "skipped" for row in icon_manifest["suites"]
                                 if row["id"] != "web"))
+
+    def test_authoritative_logo_provenance_is_complete_and_tamper_evident(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "shruggietech"
+            shutil.copytree(ROOT / "brands" / "shruggietech", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            index_path = kit / "logos" / "provenance.json"
+            provenance = json.loads(index_path.read_text(encoding="utf-8"))
+            paths = [item["path"] for item in provenance["derivatives"]]
+            self.assertEqual(paths, sorted(paths))
+            self.assertEqual(set(paths), {path.relative_to(kit).as_posix() for path in (kit / "logos" / "svg").glob("*.svg")})
+            mark = next(item for item in provenance["derivatives"] if item["path"].endswith("-mark-color.svg"))
+            self.assertEqual("full-mark-master", mark["input_id"])
+            self.assertEqual(["recolor-mask", "resize"], mark["transformations"])
+            svg_path = kit / mark["path"]
+            text = svg_path.read_text(encoding="utf-8")
+            self.assertIn('data-logo-source-mode="authoritative"', text)
+            self.assertIn('data-authoritative-input-id="full-mark-master"', text)
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+            self.assertFalse(report.problems)
+
+            mutations = {}
+            missing = copy.deepcopy(provenance)
+            missing["derivatives"].pop()
+            mutations["missing"] = missing
+            extra = copy.deepcopy(provenance)
+            ghost = copy.deepcopy(extra["derivatives"][-1])
+            ghost["path"] = "logos/svg/ghost.svg"
+            extra["derivatives"].append(ghost)
+            mutations["extra"] = extra
+            duplicate = copy.deepcopy(provenance)
+            duplicate["derivatives"].append(copy.deepcopy(duplicate["derivatives"][-1]))
+            mutations["duplicate"] = duplicate
+            stale = copy.deepcopy(provenance)
+            stale["derivatives"][0]["source_sha256"] = "0" * 64
+            mutations["stale"] = stale
+            undeclared = copy.deepcopy(provenance)
+            authoritative = next(item for item in undeclared["derivatives"] if item["input_id"])
+            authoritative["transformations"].append("trace")
+            mutations["undeclared"] = undeclared
+            for name, mutated in mutations.items():
+                with self.subTest(provenance_mutation=name):
+                    index_path.write_text(json.dumps(mutated, indent=2) + "\n", encoding="utf-8")
+                    report = verify.Report()
+                    verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+                    self.assertTrue(report.problems)
+
+            index_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+            svg_path.write_text(text.replace('data-authoritative-input-id="full-mark-master"',
+                                             'data-authoritative-input-id="substitute"'), encoding="utf-8")
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+            self.assertTrue(any("metadata disagrees" in problem for problem in report.problems))
+
+    def test_authoritative_logo_provenance_rejects_changed_mask_topology(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "shruggietech"
+            shutil.copytree(ROOT / "brands" / "shruggietech", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            svg_path = kit / "logos" / "svg" / "shruggietech-mark-color.svg"
+            root = verify.ET.parse(str(svg_path)).getroot()
+            image = next(node for node in root.iter() if node.tag.rsplit("}", 1)[-1] == "image")
+            blank = Image.new("RGBA", (919, 302), (0, 0, 0, 0))
+            payload = BytesIO()
+            blank.save(payload, format="PNG")
+            data_url = "data:image/png;base64," + base64.b64encode(payload.getvalue()).decode("ascii")
+            image.set("href", data_url)
+            image.set("{http://www.w3.org/1999/xlink}href", data_url)
+            verify.ET.ElementTree(root).write(str(svg_path), encoding="unicode")
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+            self.assertTrue(any("mask topology" in problem for problem in report.problems), report.problems)
+
+    def test_passive_svg_authority_verifies_embedded_source_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "svg-authority"
+            shutil.copytree(ROOT / "brands" / "covarity", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            (kit / "build" / "mk_paths.py").unlink()
+            assets = kit / "assets"
+            assets.mkdir()
+            full = assets / "full.svg"
+            reduced = assets / "reduced.svg"
+            full.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 2"><path d="M0 0h4v2H0z"/></svg>\n', encoding="utf-8")
+            reduced.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><circle cx="1" cy="1" r="1"/></svg>\n', encoding="utf-8")
+            brand_path = kit / "brand.json"
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["logo"]["source_mode"] = "authoritative"
+            brand["logo"]["geometry_provenance"] = "imported"
+            brand["logo"]["geometry_provenance_reason"] = "Passive SVG test masters are imported unchanged."
+            brand["logo"]["authoritative_input_ids"] = {"full": "full-svg", "reduced": "reduced-svg"}
+            brand["logo"]["paths"]["full"] = [{"element": "image", "source": "assets/full.svg", "x": 0, "y": 0, "width": 4, "height": 2}]
+            brand["logo"]["paths"]["reduced"] = [{"element": "image", "source": "assets/reduced.svg", "x": 0, "y": 0, "width": 2, "height": 2}]
+            brand["authoritative_inputs"] = [
+                {"id": "full-svg", "role": "mark", "path": "assets/full.svg", "format": "svg", "sha256": hashlib.sha256(full.read_bytes()).hexdigest(), "color_profile": "none", "usage_status": "approved", "license": "Test fixture", "approved_transformations": ["embed-unchanged", "resize", "place-in-lockup"]},
+                {"id": "reduced-svg", "role": "reduced-mark", "path": "assets/reduced.svg", "format": "svg", "sha256": hashlib.sha256(reduced.read_bytes()).hexdigest(), "color_profile": "none", "usage_status": "approved", "license": "Test fixture", "approved_transformations": ["embed-unchanged", "resize"]},
+            ]
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(brand_path), str(kit)]
+                self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), brand, report)
+            self.assertFalse(report.problems, report.problems)
+
+    def test_authoritative_rasters_icons_and_rendered_placement_are_tamper_evident(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "shruggietech"
+            shutil.copytree(ROOT / "brands" / "shruggietech", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            self.write_probe(kit, tier="full", raster=True, chromium=True, ico=True)
+
+            def fake_raster(args):
+                size = int(args[args.index("-w") + 1] if "-w" in args else args[args.index("-h") + 1])
+                output = Path(args[args.index("-o") + 1])
+                output.parent.mkdir(parents=True, exist_ok=True)
+                Image.new("RGBA", (size, size), (43, 204, 115, 255)).save(output)
+
+            old_argv = sys.argv
+            try:
+                with mock.patch.object(gen_logo, "raster", fake_raster):
+                    sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                    self.assertEqual(gen_logo.main(), 0)
+                    brand = json.loads((kit / "brand.json").read_text(encoding="utf-8"))
+                    logo_report = verify.Report()
+                    verify.c_logo_provenance(str(kit), brand, logo_report)
+                    self.assertFalse(logo_report.problems, logo_report.problems)
+                    icon_report = verify.Report()
+                    verify.c_icon_suites(str(kit), brand, icon_report)
+                    self.assertFalse(icon_report.problems, icon_report.problems)
+
+                    logo_png = kit / "logos" / "png" / "shruggietech-mark-color-1024.png"
+                    original_png = logo_png.read_bytes()
+                    with Image.open(logo_png) as image:
+                        changed = image.convert("RGBA")
+                    changed.putpixel((0, 0), (255, 0, 0, 0))
+                    changed.save(logo_png)
+                    logo_report = verify.Report()
+                    verify.c_logo_provenance(str(kit), brand, logo_report)
+                    self.assertIn("pixels disagree", "\n".join(logo_report.problems))
+                    logo_png.write_bytes(original_png)
+
+                    logo_svg = kit / "logos" / "svg" / "shruggietech-mark-color.svg"
+                    original_svg = logo_svg.read_text(encoding="utf-8")
+                    logo_svg.write_text(original_svg.replace('<image x="0"', '<image opacity="0" x="1"'), encoding="utf-8")
+                    logo_report = verify.Report()
+                    verify.c_logo_provenance(str(kit), brand, logo_report)
+                    detail = "\n".join(logo_report.problems)
+                    self.assertIn("changes the authoritative image placement", detail)
+                    self.assertIn("hides or modifies", detail)
+                    logo_svg.write_text(original_svg, encoding="utf-8")
+
+                    with mock.patch.object(verify, "_authoritative_identity_unobscured", return_value=False):
+                        logo_report = verify.Report()
+                        verify.c_logo_provenance(str(kit), brand, logo_report)
+                    self.assertIn("obscures authoritative identity pixels", "\n".join(logo_report.problems))
+
+                    icon = kit / "icons" / "web" / "favicon-32x32.png"
+                    with Image.open(icon) as image:
+                        substitute = image.convert("RGBA")
+                    substitute.putpixel((16, 16), (255, 0, 0, 255))
+                    substitute.save(icon)
+                    icon_report = verify.Report()
+                    verify.c_icon_suites(str(kit), brand, icon_report)
+                    self.assertIn("identity pixels disagree", "\n".join(icon_report.problems))
+            finally:
+                sys.argv = old_argv
 
     def test_square_enclosure_preserves_page_paths_and_contextual_roles(self):
         with tempfile.TemporaryDirectory() as tmp:

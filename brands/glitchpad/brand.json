@@ -101,6 +101,7 @@
     ]
   },
   "logo": {
+    "source_mode": "constructed",
     "grid": 1000,
     "canvas_width": 800,
     "canvas_height": 1000,
