@@ -12,16 +12,198 @@ surface alongside it.
 
     python3 build/gen_guidelines.py <brand.json> <kit-dir>
 """
-import argparse, json, os, sys
+import argparse, base64, json, math, os, re, sys
 from html import escape
+from pathlib import Path
+import xml.etree.ElementTree as ET
+from coloraide import Color
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
 from brand_contract import affiliation_text, logo_metrics
 
-def sw(t, keys):
-    return "".join('<div class="sw"><div class="chip" style="background:%s"></div>'
-                   '<div class="mono">%s</div><div class="mono dim">%s</div></div>'
-                   % (t[k], k, t[k]) for k in keys if k in t)
+def color_reference(token, value):
+    color = Color(value).convert("srgb")
+    red, green, blue = [round(channel * 255) for channel in color.coords()]
+    hsl = color.convert("hsl")
+    oklch = color.convert("oklch")
+    lab = color.convert("lab")
+    hsl_hue = hsl["hue"] if math.isfinite(hsl["hue"]) else 0.0
+    oklch_hue = oklch["hue"] if math.isfinite(oklch["hue"]) else 0.0
+    return {
+        "token": token,
+        "hex": value.upper(),
+        "rgb": "rgb(%d %d %d)" % (red, green, blue),
+        "hsl": "hsl(%.1f %.1f%% %.1f%%)" % (hsl_hue, hsl["saturation"] * 100, hsl["lightness"] * 100),
+        "oklch": "oklch(%.4f %.4f %.1f)" % (oklch["lightness"], oklch["chroma"], oklch_hue),
+        "lab": "lab(%.2f%% %.2f %.2f) (D50)" % (lab["lightness"], lab["a"], lab["b"]),
+        "print": "CMYK: output profile required",
+    }
+
+def group_asset_deliveries(deliveries):
+    grouped = {}
+    for item in deliveries:
+        visual_role = item.get("role")
+        if item.get("platform") == "apple-macos" and visual_role in {"asset-catalog-icon", "iconset-icon"}:
+            visual_role = "app-icon"
+        if item.get("platform") == "web" and visual_role in {"favicon", "apple-touch", "installable"}:
+            visual_role = "web-icon"
+        normalized = dict(item); normalized["role"] = visual_role
+        key = tuple(item.get(field) or "default" for field in
+                    ("family", "platform", "kind", "variant", "colourway")) + (
+                        normalized.get("role") or "default", item.get("appearance") or "default",
+                        item.get("source_variant") or "default")
+        grouped.setdefault(key, []).append(item)
+    result = []
+    for key, rows in grouped.items():
+        rows.sort(key=lambda item: item["path"])
+        previews = [item for item in rows if item.get("format") in {"svg", "png"}]
+        representative = max(previews or rows, key=lambda item: (
+            item.get("format") == "svg", int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
+        result.append({"id": "asset-" + re.sub(r"[^a-z0-9]+", "-", "-".join(key).lower()).strip("-"),
+                       "key": key, "representative": representative, "deliveries": rows})
+    return sorted(result, key=lambda item: item["id"])
+
+def _dimensions(path):
+    suffix = path.suffix.lower()
+    if suffix == ".png":
+        from PIL import Image
+        with Image.open(str(path)) as image:
+            return image.size
+    if suffix == ".svg":
+        root = ET.parse(str(path)).getroot()
+        box = root.get("viewBox", "").replace(",", " ").split()
+        return (round(float(box[2])), round(float(box[3]))) if len(box) == 4 else (None, None)
+    return (None, None)
+
+def _container_sizes(path, format_):
+    payload = path.read_bytes()
+    if format_ == "ico" and len(payload) >= 6 and payload[:4] == b"\x00\x00\x01\x00":
+        count = int.from_bytes(payload[4:6], "little")
+        return sorted({payload[6 + index * 16] or 256 for index in range(count) if 6 + (index + 1) * 16 <= len(payload)})
+    if format_ == "icns" and len(payload) >= 8 and payload[:4] == b"icns":
+        types = {b"icp4": 16, b"icp5": 32, b"icp6": 64, b"ic07": 128, b"ic08": 256, b"ic09": 512, b"ic10": 1024}
+        sizes, offset = set(), 8
+        while offset + 8 <= len(payload):
+            length = int.from_bytes(payload[offset + 4:offset + 8], "big")
+            if length < 8 or offset + length > len(payload):
+                raise ValueError("invalid ICNS container: %s" % path)
+            if payload[offset:offset + 4] in types:
+                sizes.add(types[payload[offset:offset + 4]])
+            offset += length
+        return sorted(sizes)
+    return []
+
+def asset_deliveries(kit):
+    rows = []
+    provenance = json.loads(Path(kit, "logos", "provenance.json").read_text(encoding="utf-8"))
+    for item in provenance["derivatives"]:
+        path = Path(kit, item["path"])
+        if not path.is_file():
+            raise ValueError("guideline logo inventory references missing file: %s" % item["path"])
+        width, height = _dimensions(path)
+        rows.append({"family": "logo", "platform": "identity", "kind": item["kind"], "variant": item["variant"],
+                     "colourway": item["colourway"], "role": item["kind"], "appearance": item["colourway"],
+                     "source_variant": item["variant"], "format": path.suffix[1:], "width": width, "height": height,
+                     "destination": "Brand identity", "path": item["path"]})
+    icons = json.loads(Path(kit, "icons", "manifest.json").read_text(encoding="utf-8"))
+    icon_rows = {}
+    for item in icons["artifacts"]:
+        if item.get("format") not in {"png", "svg", "ico", "icns", "json", "xml", "markdown"}:
+            continue
+        path = Path(kit, item["path"])
+        if not path.is_file():
+            raise ValueError("guideline icon inventory references missing file: %s" % item["path"])
+        row = dict(item); row["family"] = "icon"
+        if row["format"] in {"png", "svg"}:
+            width, height = _dimensions(path)
+            if ((row.get("width") and row["width"] != width)
+                    or (row.get("height") and row["height"] != height)):
+                raise ValueError("guideline icon inventory dimensions disagree with file: %s" % item["path"])
+            row["width"], row["height"] = width, height
+        elif row["format"] in {"ico", "icns"}:
+            row["embedded_sizes"] = _container_sizes(path, row["format"])
+        rows.append(row); icon_rows[item["path"]] = row
+    for alias, target in icons.get("aliases", {}).items():
+        path = Path(kit, alias)
+        if not path.is_file():
+            raise ValueError("guideline icon alias references missing file: %s" % alias)
+        if target not in icon_rows:
+            raise ValueError("guideline icon alias references uncatalogued target: %s" % target)
+        row = dict(icon_rows[target]); row["path"] = alias; row["destination"] = "Compatibility alias for %s" % target
+        rows.append(row)
+    return rows, icons.get("suites", []), icons.get("aliases", {})
+
+def _preview(kit, item, title):
+    path = Path(kit, item["path"])
+    if item.get("format") not in {"png", "svg"}:
+        return '<div class="no-preview">Container asset</div>'
+    mime = "image/svg+xml" if item["format"] == "svg" else "image/png"
+    payload = base64.b64encode(path.read_bytes()).decode("ascii")
+    return '<img src="data:%s;base64,%s" alt="%s preview">' % (mime, payload, escape(title, quote=True))
+
+def _asset_catalog(kit, title):
+    deliveries, suites, aliases = asset_deliveries(kit)
+    instructions = [item for item in deliveries if item.get("format") == "markdown"]
+    groups = group_asset_deliveries([item for item in deliveries if item.get("format") != "markdown"])
+    cards = []
+    for group in groups:
+        row = group["representative"]
+        label = " ".join(str(value) for value in group["key"] if value != "default").replace("-", " ").title()
+        entries = []
+        for item in group["deliveries"]:
+            if item.get("width") and item.get("height"):
+                size = "%s × %s" % (item["width"], item["height"])
+            elif item.get("embedded_sizes"):
+                size = "embedded: " + ", ".join("%d × %d" % (value, value) for value in item["embedded_sizes"])
+            else:
+                size = "container or metadata"
+            entries.append('<li><a data-kit-asset href="../%s">%s</a><span>%s · %s · %s · %s</span></li>' %
+                           (escape(item["path"], quote=True), escape(item["path"]), escape(str(item.get("role") or "asset")),
+                            size, item["format"].upper(),
+                            escape(str(item.get("destination") or "Kit delivery"))))
+        light_surface = row.get("colourway") in {"light", "black"} or row.get("appearance") in {"light", "tinted", "light-unplated"}
+        surface_class = "light-well" if light_surface else "dark-well"
+        surface_label = "Light surface" if light_surface else "Dark surface"
+        raster_widths = [int(item["width"]) for item in group["deliveries"] if item.get("format") == "png" and item.get("width")]
+        sizing = ("Smallest delivered raster: %d px. Do not synthesize missing sizes." % min(raster_widths)
+                  if raster_widths else "Use the declared container or vector at its listed destination.")
+        handling = ("Follow the clear-space and reduction threshold above."
+                    if row["family"] == "logo" else "Preserve declared plate and transparency behavior.")
+        cards.append('<article class="asset-card" id="%s"><h3>%s</h3><div class="preview %s"><span class="surface-label">%s</span>%s</div>'
+                     '<p class="dim">Use the declared %s form on compatible backgrounds. %s %s</p>'
+                     '<ul class="deliveries">%s</ul></article>' %
+                     (group["id"], escape(label), surface_class, surface_label, _preview(kit, row, "%s %s" % (title, label)),
+                      escape(str(row.get("role") or row.get("kind") or "identity")), sizing, handling, "".join(entries)))
+    skipped = [suite["id"] for suite in suites if suite.get("status") == "skipped"]
+    note = ("<p class=\"notice\">Unavailable at this capability tier: %s.</p>" % escape(", ".join(skipped))) if skipped else ""
+    alias_note = "" if not aliases else '<p class="lead">Compatibility aliases are listed with their canonical delivery group; byte-identical aliases do not create duplicate previews.</p>'
+    instruction_items = "".join('<li><a data-kit-asset href="../%s">%s</a><span>%s · MARKDOWN · %s</span></li>' %
+                                (escape(item["path"], quote=True), escape(item["path"]),
+                                 escape(str(item.get("role") or "instructions")),
+                                 escape(str(item.get("destination") or "Integration instructions")))
+                                for item in sorted(instructions, key=lambda item: item["path"]))
+    instruction_note = ('<div class="instruction-files"><h3>Integration instructions</h3>'
+                        '<p class="lead">Read the instructions for each platform before installing its assets.</p>'
+                        '<ul class="deliveries">%s</ul></div>' % instruction_items) if instruction_items else ""
+    return note + alias_note + instruction_note + '<div class="asset-grid">' + "".join(cards) + "</div>"
+
+def _swatches(title, values, brand_title):
+    cards = []
+    grouped = {}
+    for key, value in values:
+        grouped.setdefault(value.upper(), []).append(key)
+    for value, keys in grouped.items():
+        roles = ", ".join(keys)
+        ref = color_reference(roles, value)
+        detail = []
+        for fmt in ("hex", "rgb", "hsl", "oklch", "lab"):
+            label = "%s %s" % (roles, fmt.upper())
+            detail.append('<div class="color-value"><code>%s</code><button class="copy" type="button" data-copy="%s" aria-label="Copy %s %s">Copy</button></div>' %
+                          (escape(ref[fmt]), escape(ref[fmt], quote=True), escape(brand_title, quote=True), escape(label, quote=True)))
+        cards.append('<article class="color-card"><div class="chip" style="background:%s"></div><h3>%s</h3>'
+                     '<details><summary>Color values</summary>%s<p class="dim">%s</p></details></article>' %
+                     (value, escape(roles), "".join(detail), ref["print"]))
+    return '<h3>%s</h3><div class="color-grid">%s</div>' % (escape(title), "".join(cards))
 
 def clear_space_guidance(brand, clear_space):
     logo = brand.get("logo") or {}
@@ -38,8 +220,6 @@ def build(B, kit):
     slug, title = B["slug"], B["title"]
     A, AL = D["primary"], L["primary"]
     logo = asset(kit, "%s-horizontal-color-1024.png" % slug)
-    mark = asset(kit, "%s-mark-color-1024.png" % slug)
-    stacked = asset(kit, "%s-stacked-color-1024.png" % slug)
     lockups = (B.get("logo") or {}).get("lockups") or {}
     horizontal_lockup = lockups.get("horizontal") or {}
     stacked_lockup = lockups.get("stacked") or {}
@@ -57,6 +237,9 @@ def build(B, kit):
     type_ = type_context(B)
     endorsement = affiliation_text(B)
     cs, canvas_width, canvas_height, artwork_width = logo_metrics(B)
+    color_reference_html = (_swatches("Dark palette", list(D.items()), title)
+                            + _swatches("Light palette", list(L.items()), title))
+    catalog = _asset_catalog(kit, title)
 
     return """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -84,15 +267,42 @@ h3 { font-family:var(--font-display); font-weight:%(display_regular)d; font-size
 .eyebrow { font-family:var(--font-mono); font-size:.75rem; letter-spacing:.12em;
   text-transform:uppercase; color:var(--primary); }
 section { padding:56px 0; border-top:1px solid var(--border); }
+section { scroll-margin-top:24px; }
+.contents { border-block:1px solid var(--border); padding:16px 0; }
+.contents ul { display:flex; flex-wrap:wrap; gap:8px 20px; margin:8px 0 0; padding:0; list-style:none; }
+.contents a,.utility a,.deliveries a { color:var(--foreground); text-underline-offset:4px; }
 .lead { color:var(--muted-foreground); max-width:720px; }
 .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); margin-top:24px; }
 .sw .chip { height:64px; border-radius:var(--radius-md); border:1px solid var(--border); }
+.color-grid,.asset-grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(min(100%%,260px),1fr)); margin-top:20px; }
+.color-card,.asset-card { min-width:0; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:18px; }
+.color-card .chip { height:72px; border:1px solid var(--border); border-radius:var(--radius-md); }
+.color-card h3,.asset-card h3 { margin:12px 0; }
+.color-value { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; border-top:1px solid var(--border); padding:8px 0; }
+.color-value code,.deliveries a,.deliveries span { overflow-wrap:anywhere; }
+.copy { min-width:44px; min-height:44px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--secondary); color:var(--foreground); cursor:pointer; }
+.preview { display:grid; place-items:center; min-height:180px; border:1px solid var(--border); border-radius:var(--radius-md); padding:20px; overflow:hidden; }
+.preview img { max-height:180px; }
+.dark-well { background:#090909; }
+.light-well { background:#F5F5F5; color:#111111; }
+.surface-label { align-self:start; justify-self:start; font: .65rem var(--font-mono); letter-spacing:.08em; text-transform:uppercase; }
+.deliveries { list-style:none; padding:0; margin:12px 0 0; }
+.deliveries li { display:grid; gap:2px; border-top:1px solid var(--border); padding:9px 0; }
+.deliveries span { color:var(--muted-foreground); font: .7rem var(--font-mono); }
+.theme-wells { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px; }
+.theme-well { border:1px solid var(--border); border-radius:var(--radius-xl); padding:20px; background:var(--background); color:var(--foreground); }
+.theme-well .mini-bars { display:flex; gap:5px; height:64px; align-items:flex-end; }
+.theme-well .mini-bars span { flex:1; height:var(--height); background:var(--bar); border-radius:4px 4px 0 0; }
+.notice { border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; }
+.back-top { position:fixed; right:16px; bottom:16px; min-width:44px; min-height:44px; opacity:0; pointer-events:none; transform:translateY(8px); }
+.back-top.visible,.back-top:focus { opacity:1; pointer-events:auto; transform:none; }
+.sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
 .mono { font-family:var(--font-mono); font-size:.75rem; margin-top:6px; }
 .dim { color:var(--muted-foreground); }
 .card { background:var(--card); border:1px solid var(--border);
   border-radius:var(--radius-xl); padding:24px; }
 .two { display:grid; gap:24px; grid-template-columns:1fr 1fr; }
-@media(max-width:800px){ .two{ grid-template-columns:1fr; } }
+@media(max-width:800px){ .two,.theme-wells{ grid-template-columns:1fr; } }
 .row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-top:24px; }
 .btn { font-family:var(--font-body); font-weight:%(body_medium)d; font-size:.875rem; border-radius:var(--radius-md);
   padding:10px 18px; border:1px solid transparent; cursor:pointer; }
@@ -107,8 +317,6 @@ table { width:100%%; border-collapse:collapse; font-family:var(--font-mono); fon
 th { text-align:left; color:var(--muted-foreground); font-weight:400; letter-spacing:.08em;
   text-transform:uppercase; font-size:.7rem; padding:8px 12px; border-bottom:1px solid var(--border); }
 td { padding:8px 12px; border-bottom:1px solid var(--border); }
-.charts { display:flex; gap:8px; align-items:flex-end; height:120px; margin-top:24px; }
-.charts div { flex:1; border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
 .endorse { font-family:var(--font-mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
   color:var(--muted-foreground); padding:48px 0 96px; }
 img { max-width:100%%; height:auto; object-fit:contain; }
@@ -116,28 +324,34 @@ img.logo { max-height:56px; } img.mark { max-height:40px; } img.stacked { max-he
 code { font-family:var(--font-mono); font-variant-ligatures:none; }
 @media(prefers-reduced-motion:reduce){ *{ animation-duration:.01ms!important; transition-duration:.01ms!important; } }
 </style></head><body class="dark"><div class="wrap">
-<header>%(logoimg)s
+<header id="top">%(logoimg)s
 <div class="eyebrow" style="margin-top:32px">Brand guidelines</div>
 <h1>%(idea)s</h1>
 <p class="lead">%(descriptor)s</p>
 </header>
 
-<section><div class="eyebrow">Colour</div><h2>Identity accent</h2>
+<nav class="contents" aria-label="On this page"><strong>On this page</strong><ul>
+<li><a href="#colors">Colors</a></li><li><a href="#themes">Theme examples</a></li>
+<li><a href="#type-components">Type and components</a></li><li><a href="#assets">Asset catalog</a></li>
+</ul></nav>
+
+<main><section id="colors"><div class="eyebrow">Colour</div><h2>Identity accent</h2>
 <p class="lead">%(sepline)s</p>
-<div class="grid">%(acc)s</div>
-<h3>Product surface</h3><div class="grid">%(surf)s</div>
+<p class="lead">HEX uses uppercase pairs; sRGB uses integer 0-255 channels; HSL uses degrees and percentages rounded to one decimal; OKLCH uses four decimals for lightness and chroma plus one for hue; CIELAB uses D50 with lightness as a percentage and two decimals per channel.</p>
+%(color_reference_html)s
 <div class="card" style="margin-top:24px"><div class="eyebrow">Light surfaces</div>
 <p style="margin:8px 0 0">The bright accent <code>%(A)s</code> measures <b>%(on_light)s:1</b> on the light
 reading surface and is never text there. The light block substitutes <code>%(AL)s</code> at
 %(acc_light)s:1. The legal foreground on an accent fill is <code>%(fgc)s</code> at %(fgr)s:1.</p></div>
 </section>
 
-<section><div class="eyebrow">Colour</div><h2>Chart colors</h2>
+<section id="themes"><div class="eyebrow">Theme reference</div><h2>Dark and light examples</h2>
 <p class="lead">Chart colors serve data visualization. Brand applications use the identity accent and the neutral surfaces. Each chart color is derived from the accent, clears 4.5:1 on its surface, and remains separate from warning and failure states.</p>
-<div class="charts">%(bars)s</div>
+<div class="theme-wells"><div class="theme-well" style="%(dark_vars)s"><div class="eyebrow">Dark</div><h3>Heading and controls</h3><p>Body text on the generated dark surface.</p><div class="row"><button class="btn btn-primary">Primary</button><button class="btn btn-secondary">Secondary</button></div><div class="mini-bars">%(mini_bars)s</div></div>
+<div class="theme-well" style="%(light_vars)s"><div class="eyebrow">Light</div><h3>Heading and controls</h3><p>Body text on the generated light surface.</p><div class="row"><button class="btn btn-primary">Primary</button><button class="btn btn-secondary">Secondary</button></div><div class="mini-bars">%(mini_bars_light)s</div></div></div>
 </section>
 
-<section><div class="eyebrow">Type and components</div><h2>%(display)s, %(body)s, %(mono)s</h2>
+<section id="type-components"><div class="eyebrow">Type and components</div><h2>%(display)s, %(body)s, %(mono)s</h2>
 <div class="two" style="margin-top:24px">
 <div class="card">
 <div style="font-family:var(--font-display);font-weight:%(display_bold)d;font-size:3rem;letter-spacing:-.025em;line-height:1.1">Display</div>
@@ -157,37 +371,35 @@ reading surface and is never text there. The light block substitutes <code>%(AL)
 <tr><td>focus</td><td>2px ring, 2px offset</td></tr></table></div></div>
 </section>
 
-<section><div class="eyebrow">Logo</div><h2>Mark and lockup</h2>
+<section id="assets"><div class="eyebrow">Delivery</div><h2>Complete asset catalog</h2>
 <p class="lead">Canvas %(canvas_width)d × %(canvas_height)d units, clear space %(cs)d units (%(cspct).1f percent of artwork width).
 Below %(red)d px the reduced master takes over.</p>
-<div class="row">%(logoimg)s%(markimg)s%(stackedimg)s</div>
 <h3>Fixed lockup proportions</h3>
 <table><tr><th>lockup</th><th>mark height</th><th>gap</th><th>alignment</th></tr>
 <tr><td>horizontal</td><td>%(hmark).0f units</td><td>%(hgap).0f units</td><td>optical center</td></tr>
 <tr><td>stacked</td><td>%(smark).2fC</td><td>%(sgap).2fC</td><td>centered on wordmark ink width</td></tr></table>
 <p class="lead">%(clear_space_guidance)s</p>
-</section>
-
-<section><div class="eyebrow">Delivery</div><h2>Application icon suites</h2>
-<p class="lead">Start at <code>icons/README.md</code>. The kit includes ready-to-integrate web, Android, iOS and iPadOS, macOS, and Windows suites with platform-local instructions and manifests. <code>icons/manifest.json</code> is the exact inventory; <code>favicons/</code> contains compatibility aliases only.</p>
-</section>
+%(catalog)s
+</section></main>
 
 %(endorsement)s
-</div></body></html>""" % {
+<footer class="utility"><a href="#top">Back to top</a><span data-host-exit></span></footer>
+<div id="copy-status" class="sr-only" aria-live="polite"></div>
+<button class="back-top btn btn-secondary" type="button" hidden aria-label="Back to top">Top</button>
+</div><script>
+const topTarget=document.querySelector('header');const topButton=document.querySelector('.back-top');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+for(const button of document.querySelectorAll('[data-copy]'))button.addEventListener('click',async()=>{const status=document.querySelector('#copy-status');try{if(!navigator.clipboard)throw new Error('unavailable');await navigator.clipboard.writeText(button.dataset.copy);status.textContent='Copied '+button.getAttribute('aria-label').replace(/^Copy /,'');}catch(error){status.textContent='Copy failed. Select the displayed value instead.';}});
+if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;const syncTopButton=()=>{const show=!topVisible||document.activeElement===topButton;topButton.classList.toggle('visible',show);topButton.tabIndex=show?0:-1;};new IntersectionObserver(([entry])=>{topVisible=entry.isIntersecting;syncTopButton();}).observe(topTarget);topButton.addEventListener('blur',syncTopButton);topButton.addEventListener('click',()=>{topTarget.scrollIntoView({behavior:reduced.matches?'auto':'smooth'});topTarget.setAttribute('tabindex','-1');topTarget.focus({preventScroll:true});});}
+</script></body></html>""" % {
         "title": title, "faces": faces(kit, B), "lv": lv, "dv": dv,
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),
-        "markimg": im(mark, "mark", "%s brand mark" % title),
-        "stackedimg": im(stacked, "stacked", "%s stacked logo" % title),
         "idea": copy_for(B, "idea", B.get("brand_idea", title)),
         "descriptor": copy_for(B, "descriptor", B.get("descriptor", "")),
         "sepline": ("Hue %s in OKLCH." % M.get("identity_hue", "?")) + (
             "" if near is None else " %.1f degrees clear of the nearest sibling identity accent." % near),
-        "acc": sw(D, ["primary", "brand-accent-deep", "brand-emphasis", "destructive"]),
-        "surf": sw(D, ["background", "card", "secondary", "border", "muted-foreground"]),
         "A": A, "AL": AL, "on_light": on_light, "acc_light": acc_light,
         "fgc": fg.get("color", "?"), "fgr": fg.get("ratio", "?"),
-        "bars": "".join('<div style="background:%s;height:%d%%"></div>'
-                        % (D["chart-%d" % i], 40 + i * 12) for i in range(1, 6)),
         "canvas_width": canvas_width,
         "canvas_height": canvas_height,
         "hmark": float(horizontal_lockup.get("mark_height_units", 160.0)),
@@ -197,6 +409,12 @@ Below %(red)d px the reduced master takes over.</p>
         "cs": cs,
         "cspct": 100.0 * cs / artwork_width,
         "clear_space_guidance": clear_space_guidance(B, cs),
+        "color_reference_html": color_reference_html,
+        "catalog": catalog,
+        "dark_vars": escape(";".join("--%s:%s" % item for item in D.items()), quote=True),
+        "light_vars": escape(";".join("--%s:%s" % item for item in L.items()), quote=True),
+        "mini_bars": "".join('<span style="--bar:%s;--height:%d%%"></span>' % (D["chart-%d" % i], 36 + i * 10) for i in range(1, 6)),
+        "mini_bars_light": "".join('<span style="--bar:%s;--height:%d%%"></span>' % (L["chart-%d" % i], 36 + i * 10) for i in range(1, 6)),
         "red": (B.get("logo") or {}).get("reduced_below_px", 32),
         "endorsement": "" if not endorsement else '<div class="endorse">%s</div>' % escape(endorsement),
         **type_,

@@ -194,7 +194,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/gen_enforcement.py` | `AGENTS.md`, oxlint and stylelint configs |
 | `templates/gen_logo.py` | colourways, outlined wordmark, lockups, rasters, categorized application icons |
 | `templates/iconkit.py` | platform matrices, composition, native containers, manifests, and compatibility aliases |
-| `templates/gen_guidelines.py` | the guidelines page, rendered from the tokens the product ships |
+| `templates/gen_guidelines.py` | the portable guidelines reference, rendered from shipped tokens, logo provenance, and icon manifests, with multi-format colors, scoped theme wells, asset catalog, and progressive navigation |
 | `templates/gen_guide_pdf.py` | the brand guide PDF, full-bleed dark to the house standard |
 | `templates/build_specimen.py` | the outlined type specimen, driven by brand.json |
 | `templates/_guidekit.py` | shared token, font and copy helpers for the document generators |
