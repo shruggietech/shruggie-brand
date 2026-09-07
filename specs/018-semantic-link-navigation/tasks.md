@@ -36,7 +36,7 @@
 - [x] T016 Run the complete five-kit build and confirm zero verifier problems and glyph failures
 - [x] T017 Run site lint, production build, browser, accessibility, motion, zoom, encoding, mojibake, and Git hygiene gates
 - [x] T018 Inspect representative desktop/mobile dark/light outputs and record evidence in `evidence.md`
-- [ ] T019 Push, publish an issue-closing PR, resolve no more than two Codex review rounds, and record final green CI
+- [x] T019 Push, publish an issue-closing PR, resolve no more than two Codex review rounds, and record final green CI
 
 ## Dependencies
 

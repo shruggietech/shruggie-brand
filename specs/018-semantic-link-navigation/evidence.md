@@ -27,9 +27,9 @@ Desktop and mobile captures were inspected for the landing page and documentatio
 ## Publication
 
 - Pull request: https://github.com/shruggietech/shruggie-brand/pull/156
-- Automatic Codex review: pending.
-- Optional second review round: not yet requested.
-- Hosted CI: pending.
+- Automatic Codex review: completed with one finding, answered and resolved in `bca73a3`.
+- Authorized second Codex review: requested exactly once against `bca73a3` and completed with no findings.
+- Hosted CI: both build jobs and both Python 3.8 compatibility jobs passed on the corrective head.
 
 ## Review Corrections
 
