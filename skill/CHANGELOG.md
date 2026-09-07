@@ -4,6 +4,7 @@
 
 - Added optional, schema-validated square-enclosure rendering with contextual color roles, source-owned wordmark colors, and portable one-color knockout output.
 - Updated generated guideline metrics to describe the delivered square composition while preserving the protected inner artwork measurements in source.
+- Routed Android adaptive monochrome and iOS tinted recoloring through the generated one-color master so interior knockout topology is retained.
 - Added a reusable visible-ink square-containment primitive with explicit validation and retained role-specific web, Android, Apple, macOS, and Windows occupancy behavior.
 - Corrected standalone square raster masters to preserve declared clear space for portrait, landscape, and asymmetric transparent source canvases without changing canonical SVG geometry.
 - Added an optional validated showcase-surface role reference for generated consumers.

@@ -40,6 +40,19 @@ def fake_render(_source, target, size):
     image.save(target, format="PNG")
 
 
+def topology_render(source, target, size):
+    image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    margin = size // 10
+    for y in range(margin, size - margin):
+        for x in range(margin, size - margin):
+            image.putpixel((x, y), (43, 204, 115, 255))
+    if Path(source).name == "monochrome.svg":
+        for y in range(size * 3 // 10, size * 7 // 10):
+            for x in range(size * 3 // 10, size * 7 // 10):
+                image.putpixel((x, y), (0, 0, 0, 0))
+    image.save(target, format="PNG")
+
+
 class IconKitTests(unittest.TestCase):
     def test_contain_visible_centers_portrait_landscape_and_offset_ink(self):
         cases = ((30, 70, (9, 4)), (70, 30, (4, 11)), (43, 61, (31, 7)))
@@ -73,6 +86,31 @@ class IconKitTests(unittest.TestCase):
             self.assertLessEqual(max(legacy["content_bbox"][2] - legacy["content_bbox"][0], legacy["content_bbox"][3] - legacy["content_bbox"][1]), 139)
             self.assertLessEqual(max(adaptive["visible_bbox"][2] - adaptive["visible_bbox"][0], adaptive["visible_bbox"][3] - adaptive["visible_bbox"][1]), 264)
             self.assertLessEqual(max(play["content_bbox"][2] - play["content_bbox"][0], play["content_bbox"][3] - play["content_bbox"][1]), 384)
+
+    def test_platform_monochrome_exports_preserve_interior_knockout(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            kit.mkdir()
+            full = kit / "full.svg"
+            reduced = kit / "reduced.svg"
+            monochrome = kit / "monochrome.svg"
+            for source in (full, reduced, monochrome):
+                source.write_text('<svg xmlns="http://www.w3.org/2000/svg"/>\n', encoding="utf-8")
+            generate_icon_suites(
+                brand_fixture(), kit, full, reduced, topology_render,
+                {"tier": "full", "svg_raster": True, "ico_writer": True},
+                monochrome_svg=monochrome,
+            )
+            android = kit / "icons" / "android" / "app" / "src" / "main" / "res" / "drawable-nodpi" / "ic_launcher_monochrome.png"
+            ios = kit / "icons" / "apple" / "ios" / "Assets.xcassets" / "AppIcon.appiconset" / "AppIcon-1024-tinted.png"
+            with Image.open(android) as image:
+                rgba = image.convert("RGBA")
+                self.assertEqual(0, rgba.getpixel((216, 216))[3])
+                self.assertEqual(255, rgba.getpixel((216, 100))[3])
+            with Image.open(ios) as image:
+                rgb = image.convert("RGB")
+                self.assertEqual((255, 255, 255), rgb.getpixel((512, 512)))
+                self.assertEqual((0, 0, 0), rgb.getpixel((512, 256)))
 
     def generate(self, root):
         kit = Path(root) / "kit"

@@ -674,8 +674,10 @@ def main():
                 temporary.unlink()
 
     if not capabilities.get("svg_raster"):
-        generate_icon_suites(brand, kit, icon_full_svg, icon_reduced_svg,
-                             render_icon_source, capabilities)
+        generate_icon_suites(
+            brand, kit, icon_full_svg, icon_reduced_svg, render_icon_source,
+            capabilities, monochrome_svg=os.path.join(svg_dir, "%s-mark-white.svg" % slug),
+        )
         print("SKIP raster exports and native icon binaries: %s at core tier"
               % capabilities.get("raster_reason", "required raster capability unavailable"))
         print("wrote %d vector SVG masters and a vector-only icon index" % len(written))
@@ -706,8 +708,10 @@ def main():
             raster(["-w", str(width), source, "-o", output])
         assert_visible_raster(output)
 
-    generate_icon_suites(brand, kit, icon_full_svg, icon_reduced_svg,
-                         render_icon_source, capabilities)
+    generate_icon_suites(
+        brand, kit, icon_full_svg, icon_reduced_svg, render_icon_source,
+        capabilities, monochrome_svg=os.path.join(svg_dir, "%s-mark-white.svg" % slug),
+    )
 
     print("canvas %g x %g; artwork width %g" % (canvas_width, canvas_height, artwork_width))
     print("clear space %d units = %.1f%% of artwork width" % (clear_space, 100.0 * clear_space / artwork_width))
