@@ -16,7 +16,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from iconkit import generate_icon_suites, inspect_png, safe_reset
+from iconkit import contain_visible, generate_icon_suites, inspect_png, safe_reset
 
 
 def brand_fixture():
@@ -41,6 +41,39 @@ def fake_render(_source, target, size):
 
 
 class IconKitTests(unittest.TestCase):
+    def test_contain_visible_centers_portrait_landscape_and_offset_ink(self):
+        cases = ((30, 70, (9, 4)), (70, 30, (4, 11)), (43, 61, (31, 7)))
+        for width, height, offset in cases:
+            with self.subTest(width=width, height=height, offset=offset):
+                source = Image.new("RGBA", (120, 100), (0, 0, 0, 0))
+                for y in range(offset[1], offset[1] + height):
+                    for x in range(offset[0], offset[0] + width):
+                        source.putpixel((x, y), (43, 204, 115, 255))
+                contained = contain_visible(source, 101, 0.72)
+                box = contained.getchannel("A").getbbox()
+                self.assertLessEqual(abs(box[0] - (101 - box[2])), 1)
+                self.assertLessEqual(abs(box[1] - (101 - box[3])), 1)
+                self.assertLessEqual(max(box[2] - box[0], box[3] - box[1]), 73)
+
+    def test_contain_visible_rejects_empty_and_invalid_inputs(self):
+        empty = Image.new("RGBA", (10, 10), (0, 0, 0, 0))
+        with self.assertRaisesRegex(ValueError, "no visible pixels"):
+            contain_visible(empty, 16, 0.72)
+        visible = Image.new("RGBA", (10, 10), (43, 204, 115, 255))
+        for size, ratio in ((0, 0.72), (16, 0), (16, 1.01)):
+            with self.assertRaisesRegex(ValueError, "size|ratio"):
+                contain_visible(visible, size, ratio)
+
+    def test_platform_roles_retain_distinct_occupancy(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = self.generate(temporary)
+            legacy = inspect_png(kit / "icons" / "android" / "app" / "src" / "main" / "res" / "mipmap-xxxhdpi" / "ic_launcher.png", "#FFFFFF")
+            adaptive = inspect_png(kit / "icons" / "android" / "app" / "src" / "main" / "res" / "drawable-nodpi" / "ic_launcher_foreground.png")
+            play = inspect_png(kit / "icons" / "android" / "play-store" / "google-play-512.png", "#FFFFFF")
+            self.assertLessEqual(max(legacy["content_bbox"][2] - legacy["content_bbox"][0], legacy["content_bbox"][3] - legacy["content_bbox"][1]), 139)
+            self.assertLessEqual(max(adaptive["visible_bbox"][2] - adaptive["visible_bbox"][0], adaptive["visible_bbox"][3] - adaptive["visible_bbox"][1]), 264)
+            self.assertLessEqual(max(play["content_bbox"][2] - play["content_bbox"][0], play["content_bbox"][3] - play["content_bbox"][1]), 384)
+
     def generate(self, root):
         kit = Path(root) / "kit"
         kit.mkdir()

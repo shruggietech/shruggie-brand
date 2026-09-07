@@ -5,6 +5,7 @@
   "title": "Glitchpad",
   "slug": "glitchpad",
   "version": "1.0.0",
+  "showcase_surface": "card",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",

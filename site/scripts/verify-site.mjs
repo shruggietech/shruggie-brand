@@ -98,12 +98,41 @@ try {
   check(await page.locator('h1').textContent() === 'We build comprehensive brands', 'homepage headline does not match the approved wording');
   check(await page.locator('.brand-card').count() === 5, 'homepage must show exactly the five production brand cards');
   check(await page.locator('.brand-icon img').count() === 5, 'every brand card must include an icon');
+  const measurePortfolioIcons = async (label) => {
+    for (const card of await page.locator('.brand-card').all()) {
+      const title = await card.locator('h3').textContent();
+      const wrapper = await card.locator('.brand-icon').boundingBox();
+      const image = await card.locator('.brand-icon img').boundingBox();
+      check(Boolean(wrapper && image), `${title} ${label} icon lacks measurable bounds`);
+      if (!wrapper || !image) continue;
+      check(Math.abs(wrapper.width - wrapper.height) <= 0.5, `${title} ${label} icon wrapper is not square (${wrapper.width}x${wrapper.height})`);
+      check(Math.abs(image.width - image.height) <= 0.5, `${title} ${label} icon image box is not square (${image.width}x${image.height})`);
+      check(image.x >= wrapper.x && image.y >= wrapper.y && image.x + image.width <= wrapper.x + wrapper.width + 0.5 && image.y + image.height <= wrapper.y + wrapper.height + 0.5, `${title} ${label} icon escapes its wrapper`);
+      check(Math.abs((image.x - wrapper.x) - (wrapper.x + wrapper.width - image.x - image.width)) <= 0.5, `${title} ${label} icon has asymmetric horizontal margins`);
+      check(Math.abs((image.y - wrapper.y) - (wrapper.y + wrapper.height - image.y - image.height)) <= 0.5, `${title} ${label} icon has asymmetric vertical margins`);
+    }
+  };
+  await measurePortfolioIcons('desktop');
+  const glitchpadCard = page.locator('.brand-card', { hasText: 'Glitchpad' });
+  const glitchpadCardStyle = await glitchpadCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector(':scope > p')).color, surface: element.getAttribute('data-showcase-surface'), shadow: getComputedStyle(element.querySelector('.brand-icon')).boxShadow }));
+  check(glitchpadCardStyle.surface === 'governed' && glitchpadCardStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadCardStyle.backgroundImage === 'none', `Glitchpad card does not use its governed charcoal surface (${JSON.stringify(glitchpadCardStyle)})`);
+  check(glitchpadCardStyle.foreground === 'rgb(255, 255, 255)' && glitchpadCardStyle.bodyForeground === 'rgb(255, 255, 255)', `Glitchpad card does not use its generated contrast foreground (${JSON.stringify(glitchpadCardStyle)})`);
+  check(glitchpadCardStyle.shadow === 'none', `Glitchpad card retains an accent showcase glow (${glitchpadCardStyle.shadow})`);
+  for (const card of await page.locator('.brand-card').all()) {
+    if ((await card.locator('h3').textContent()) === 'Glitchpad') continue;
+    const style = await card.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
+    check(style.surface === null && style.image !== 'none', `${await card.locator('h3').textContent()} lost its existing showcase fallback (${JSON.stringify(style)})`);
+  }
   const homeText = (await page.locator('body').innerText()).toLowerCase();
   for (const rejected of ['a shruggietech project', 'skill 1.', 'canon', 'example brand', 'read the system']) check(!homeText.includes(rejected), `homepage contains retired wording: ${rejected}`);
   const visibleHeaderLinks = async () => page.locator('a').evaluateAll((links) => links.filter((link) => { const rect = link.getBoundingClientRect(); return ['Documentation', 'Download the Skill', 'View on GitHub', 'Portfolio'].includes(link.textContent?.trim()) && rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth; }).map((link) => ({ text: link.textContent?.trim(), href: new URL(link.href).pathname })));
   const desktopLinks = await visibleHeaderLinks();
   check(JSON.stringify(desktopLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }]), `desktop landing navigation must expose only Documentation (${JSON.stringify(desktopLinks)})`);
   await page.setViewportSize({ width: 360, height: 900 });
+  await measurePortfolioIcons('mobile');
+  await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+  await measurePortfolioIcons('200-percent zoom');
+  await page.evaluate(() => { document.documentElement.style.zoom = ''; });
   await page.getByRole('button', { name: 'Toggle Menu' }).click();
   const mobileLinks = await visibleHeaderLinks();
   check(JSON.stringify(mobileLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Download the Skill', href: '/ShruggieTech/shruggie-brand/releases/latest' }, { text: 'View on GitHub', href: '/ShruggieTech/shruggie-brand' }]), `mobile landing menu must expose the three approved destinations in order (${JSON.stringify(mobileLinks)})`);
@@ -258,7 +287,7 @@ try {
         check(logoPath === (theme === 'dark' ? '/shruggietech-logo-dark.svg' : '/shruggietech-logo-light.svg'), `${route} ${theme} uses the wrong visible ShruggieTech lockup`);
         const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
         for (const violation of results.violations) failures.push(`${route} in ${theme} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
-        const routeName = route === '/' ? 'home' : route === '/docs/' ? 'docs-index' : 'docs-variance-contract';
+        const routeName = route === '/' ? 'home' : route === '/glitchpad/' ? 'glitchpad' : route === '/docs/' ? 'docs-index' : 'docs-variance-contract';
         const filename = `${routeName}-${theme}-${width}.png`;
         await page.screenshot({ path: join(visualRoot, filename), fullPage: true });
       }
@@ -297,6 +326,10 @@ try {
   const reducedStyle = await textLink.evaluate((element) => ({ duration: getComputedStyle(element).transitionDuration, size: getComputedStyle(element).backgroundSize, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }));
   check(reducedStyle.reduced && Number.parseFloat(reducedStyle.duration) <= 0.001 && !reducedStyle.size.startsWith('0px'), `reduced-motion mode does not preserve a static underline without animation (${JSON.stringify(reducedStyle)})`);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto(base + '/glitchpad/');
+  const glitchpadHeroStyle = await page.locator('.brand-logo').evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
+  check(glitchpadHeroStyle.surface === 'governed' && glitchpadHeroStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadHeroStyle.backgroundImage === 'none', `Glitchpad hero does not use its governed charcoal surface (${JSON.stringify(glitchpadHeroStyle)})`);
+  await page.goto(base + '/');
   for (const card of await page.locator('.brand-card').all()) { const box = await card.boundingBox(); check(Boolean(box && box.width >= 44 && box.height >= 44), 'portfolio card target is smaller than 44 by 44 CSS pixels'); }
   for (const file of [...requiredFiles, ...downloadFiles]) {
     const response = await page.request.get(base + file);

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added a reusable visible-ink square-containment primitive with explicit validation and retained role-specific web, Android, Apple, macOS, and Windows occupancy behavior.
+- Corrected standalone square raster masters to preserve declared clear space for portrait, landscape, and asymmetric transparent source canvases without changing canonical SVG geometry.
+- Added an optional validated showcase-surface role reference for generated consumers.
+
 ## 1.2.1 - 2026-09-06
 
 - Made the canonical ShruggieTech brand source generate the approved black-background browser icon suite without changing logo geometry.

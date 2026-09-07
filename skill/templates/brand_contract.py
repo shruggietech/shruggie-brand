@@ -142,6 +142,22 @@ def application_icon_profile(brand):
     return {"background": background.upper(), "reduced_below_px": threshold}
 
 
+def showcase_surface(brand):
+    """Resolve an optional large-presentation surface through a governed role."""
+    role = brand.get("showcase_surface")
+    if role is None:
+        return None
+    _require(isinstance(role, str) and role.strip(),
+             "showcase_surface must be a non-empty surface role")
+    surfaces = brand.get("surfaces")
+    _require(isinstance(surfaces, dict) and role in surfaces,
+             "showcase surface role %r is not declared in surfaces" % role)
+    value = surfaces[role]
+    _require(isinstance(value, str) and HEX.fullmatch(value),
+             "showcase surface must resolve to a six-digit hex color")
+    return value.upper()
+
+
 def affiliation_text(brand):
     value = affiliation(brand)
     if value["endorsement"] == "shruggietech-project":
@@ -443,6 +459,7 @@ def validate_brand(brand, kit):
         _require(all(isinstance(value, str) and HEX.fullmatch(value) for value in colors.values()), "independent semantic colors must be six-digit hex values")
     validate_typography(brand, kit)
     application_icon_profile(brand)
+    showcase_surface(brand)
     evidence = analyze_authoritative_inputs(brand, kit)
     validate_palette_approvals(brand, evidence)
     return evidence

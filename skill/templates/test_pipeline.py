@@ -37,6 +37,12 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_standalone_mark_ratio_honors_declared_long_edge_clear_space(self):
+        brand = {"logo": {"artwork_width": 720, "artwork_height": 900, "clear_space_units": 70}}
+        self.assertAlmostEqual(900.0 / 1040.0, gen_logo.standalone_mark_ratio(brand))
+        brand["logo"]["artwork_width"] = 1200
+        self.assertAlmostEqual(1200.0 / 1340.0, gen_logo.standalone_mark_ratio(brand))
+
     @staticmethod
     def owned_affiliation():
         return {"ownership": "shruggietech-owned", "showcase": "public", "parent": "ShruggieTech", "inheritance": "shruggietech-house", "endorsement": "shruggietech-project", "service_credit": "none"}
