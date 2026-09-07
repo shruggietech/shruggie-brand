@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, logo_source_contract, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, wordmark_role_colors
 from ingest_font import ingest_font
 
 
@@ -44,7 +44,7 @@ def owned_brand():
             },
         },
         "accent": {"bright": "#2BCC73", "deep": "#00AB21", "accessible": "#037B40"},
-        "logo": {"paths": {"full": [{"d": "M0 0H1V1Z", "role": "accent"}], "reduced": []}},
+        "logo": {"source_mode": "constructed", "paths": {"full": [{"d": "M0 0H1V1Z", "role": "accent"}], "reduced": [{"d": "M0 0H1V1Z", "role": "accent"}]}},
     }
 
 
@@ -233,14 +233,19 @@ class AuthoritativeInputTests(unittest.TestCase):
         image = Image.new("RGBA", (3, 2))
         image.putdata([(43, 204, 115, 255), (43, 204, 115, 255), (255, 255, 255, 0), (0, 171, 33, 255), (43, 204, 115, 128), (0, 171, 33, 255)])
         source = assets / "mark.png"
+        reduced = assets / "reduced.png"
         image.save(source)
+        image.save(reduced)
         brand = owned_brand()
+        brand["logo"]["source_mode"] = "authoritative"
+        brand["logo"]["authoritative_input_ids"] = {"full": "master-mark", "reduced": "master-reduced"}
         brand["logo"]["paths"]["full"] = [{"element": "image", "source": "assets/mark.png", "mask": "alpha", "x": 0, "y": 0, "width": 3, "height": 2}]
-        brand["authoritative_inputs"] = [{
-            "id": "master-mark", "role": "mark", "path": "assets/mark.png", "format": "png",
-            "sha256": sha256_file(source), "color_profile": "unknown", "usage_status": "approved",
-            "license": "Test fixture", "approved_transformations": ["embed-unchanged", "recolor-mask", "palette-analysis"],
-        }]
+        brand["logo"]["paths"]["reduced"] = [{"element": "image", "source": "assets/reduced.png", "mask": "alpha", "x": 0, "y": 0, "width": 3, "height": 2}]
+        operations = ["recolor-mask", "resize", "place-in-lockup", "palette-analysis"]
+        brand["authoritative_inputs"] = [
+            {"id": "master-mark", "role": "mark", "path": "assets/mark.png", "format": "png", "sha256": sha256_file(source), "color_profile": "unknown", "usage_status": "approved", "license": "Test fixture", "approved_transformations": operations},
+            {"id": "master-reduced", "role": "reduced-mark", "path": "assets/reduced.png", "format": "png", "sha256": sha256_file(reduced), "color_profile": "unknown", "usage_status": "approved", "license": "Test fixture", "approved_transformations": ["recolor-mask", "resize"]},
+        ]
         brand["palette_approvals"] = [{
             "input_id": "master-mark", "source_sha256": sha256_file(source), "selected_candidate": "#2BCC73",
             "canonical_tokens": ["accent.bright"], "approved_by": "human-test-operator", "approved_on": "2026-09-05",
@@ -320,6 +325,69 @@ class AuthoritativeInputTests(unittest.TestCase):
             brand, _ = self.make_raster_brand(kit)
             brand["authoritative_inputs"][0]["approved_transformations"].remove("recolor-mask")
             with self.assertRaisesRegex(ContractError, "does not approve"):
+                validate_brand(brand, kit)
+
+    def test_source_mode_is_required_and_constructed_mode_rejects_mark_inputs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            stage_house_fonts(kit)
+            brand = owned_brand()
+            del brand["logo"]["source_mode"]
+            with self.assertRaisesRegex(ContractError, "logo.source_mode is required"):
+                validate_brand(brand, kit)
+            brand["logo"]["source_mode"] = "automatic"
+            with self.assertRaisesRegex(ContractError, "constructed or authoritative"):
+                validate_brand(brand, kit)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _ = self.make_raster_brand(kit)
+            brand["logo"]["source_mode"] = "constructed"
+            del brand["logo"]["authoritative_input_ids"]
+            with self.assertRaisesRegex(ContractError, "constructed logo cannot declare approved mark"):
+                validate_brand(brand, kit)
+
+    def test_authoritative_bindings_reject_substitute_geometry_and_wrong_sources(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _ = self.make_raster_brand(kit)
+            self.assertEqual("master-mark", logo_source_contract(brand, kit)["full"]["record"]["id"])
+
+            cases = []
+            missing = copy.deepcopy(brand)
+            del missing["logo"]["authoritative_input_ids"]["reduced"]
+            cases.append((missing, "exactly full and reduced"))
+            unrelated = copy.deepcopy(brand)
+            unrelated["logo"]["paths"]["full"].append({"d": "M0 0H1V1Z", "role": "accent"})
+            cases.append((unrelated, "exactly one bound image"))
+            wrong_source = copy.deepcopy(brand)
+            wrong_source["logo"]["paths"]["full"][0]["source"] = "assets/reduced.png"
+            cases.append((wrong_source, "does not use bound source"))
+            wrong_role = copy.deepcopy(brand)
+            wrong_role["authoritative_inputs"][0]["role"] = "wordmark"
+            cases.append((wrong_role, "requires authoritative role mark"))
+            reference_only = copy.deepcopy(brand)
+            reference_only["authoritative_inputs"][0]["usage_status"] = "reference-only"
+            cases.append((reference_only, "is not approved"))
+            distorted = copy.deepcopy(brand)
+            distorted["logo"]["paths"]["full"][0]["width"] = 4
+            cases.append((distorted, "distorts authoritative source aspect ratio"))
+            for broken, message in cases:
+                with self.subTest(message=message), self.assertRaisesRegex(ContractError, message):
+                    validate_brand(broken, kit)
+
+    def test_authoritative_mode_rejects_construction_helper_and_reduced_redraw(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _ = self.make_raster_brand(kit)
+            helper = kit / "build" / "mk_paths.py"
+            helper.parent.mkdir()
+            helper.write_text("raise RuntimeError('must never execute')\n", encoding="utf-8")
+            with self.assertRaisesRegex(ContractError, "construction helper"):
+                validate_brand(brand, kit)
+            helper.unlink()
+            brand["logo"]["paths"]["reduced"] = [{"d": "M0 0H1V1Z", "role": "accent"}]
+            with self.assertRaisesRegex(ContractError, "reduced.*exactly one bound image"):
                 validate_brand(brand, kit)
 
 

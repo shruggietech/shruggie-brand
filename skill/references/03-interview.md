@@ -28,7 +28,7 @@ gate 5.
 
 Record the six affiliation decisions before any creative proposal. A third-party brand has no ShruggieTech parent or owned-project endorsement. Ask separately whether it adopts house inheritance or uses independent semantic colors, whether it may appear in the public showcase, and whether the fixed neutral service credit is approved.
 
-Classify every supplied logo item as either a concept or an authoritative master. A concept informs a new construction. An authoritative master is declared by role, path, format, hash, color-profile status, usage basis, and approved transformations, and its original bytes remain unchanged. Palette extraction creates evidence only and requires a human approval tied to the current source hash before a candidate becomes canonical.
+Classify every supplied logo item as either a concept or an authoritative master, then record `logo.source_mode` explicitly. A concept informs a new `constructed` identity. An authoritative master requires `authoritative` mode, separate Full and Reduced bindings to approved role-correct inputs, and no construction helper. Declare role, path, format, hash, color-profile status, usage basis, and only the transformations needed by generation; original bytes remain unchanged. Any later binding, hash, source-art, mask, or visible-geometry change requires fresh owner approval. Palette extraction creates evidence only and requires a human approval tied to the current source hash before a candidate becomes canonical.
 
 Record typography mode as `house` or `fixed`. Fixed mode requires approved local faces, measured metadata, hashes, license evidence, and provenance. Use controlled ingestion before generation if a required approved face is not present. Ordinary builds never fetch fonts.
 
@@ -112,10 +112,9 @@ use of the tool. It produces conversation, never artwork.
 from the governing principle. Usually the strongest option for a technical
 sub-brand and always the fastest.
 
-**The way out, whichever path came in.** The shipped mark is composed in
-`<kit>/build/mk_paths.py` from `glyphkit` primitives, on a declared grid, with
-its parameters named. Never traced from a generated image. Never typed as path
-data. Never a downscaled full mark standing in for a reduced one.
+**The way out for a constructed direction.** The shipped mark is composed in `<kit>/build/mk_paths.py` from `glyphkit` primitives, on a declared grid, with its parameters named. Never traced from a generated image. Never typed as path data. Never a downscaled full mark standing in for a reduced one.
+
+**The way out for approved artwork.** Set `logo.source_mode` to `authoritative`; bind Full and Reduced to their exact approved input IDs and hashes; retain one bound image placement per variant; and prohibit `build/mk_paths.py`, tracing, simplification, reconstruction, and replacement. Generation may only recolor, resize, embed, or place the mark in a lockup when that source explicitly approves the operation. Review `logos/provenance.json` with the rendered sheet.
 
 Then run the gate:
 

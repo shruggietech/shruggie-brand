@@ -45,11 +45,18 @@
     },
     "logo": {
       "type": "object",
+      "required": ["source_mode"],
       "properties": {
+        "source_mode": {"enum": ["constructed", "authoritative"]},
+        "authoritative_input_ids": {"$ref": "#/$defs/authoritativeLogoBindings"},
         "application_icon": {"$ref": "#/$defs/applicationIcon"},
         "square_enclosure": {"$ref": "#/$defs/squareEnclosure"}
       },
-      "additionalProperties": true
+      "additionalProperties": true,
+      "allOf": [
+        {"if": {"properties": {"source_mode": {"const": "authoritative"}}}, "then": {"required": ["authoritative_input_ids"]}},
+        {"if": {"properties": {"source_mode": {"const": "constructed"}}}, "then": {"not": {"required": ["authoritative_input_ids"]}}}
+      ]
     }
   },
   "allOf": [
@@ -210,8 +217,17 @@
         "approved_transformations": {
           "type": "array",
           "uniqueItems": true,
-          "items": {"enum": ["embed-unchanged", "recolor-mask", "palette-analysis"]}
+          "items": {"enum": ["embed-unchanged", "recolor-mask", "resize", "place-in-lockup", "palette-analysis"]}
         }
+      }
+    },
+    "authoritativeLogoBindings": {
+      "type": "object",
+      "required": ["full", "reduced"],
+      "additionalProperties": false,
+      "properties": {
+        "full": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "reduced": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"}
       }
     },
     "paletteApproval": {

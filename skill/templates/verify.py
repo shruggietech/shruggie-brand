@@ -11,11 +11,11 @@ as SKIP with the reason, never silently passed.
 
 Exit code is the number of problems found, capped at 125.
 """
-import argparse, hashlib, json, os, re, struct, sys, unicodedata
+import argparse, base64, hashlib, json, os, re, struct, sys, unicodedata, zlib
 import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
-from brand_contract import affiliation, application_icon_profile
+from brand_contract import affiliation, application_icon_profile, logo_source_contract
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 
 # ------------------------------------------------------------------ utilities
@@ -515,6 +515,21 @@ def c_icon_suites(kit, brand, rep):
     expected_profile = application_icon_profile(brand)
     if manifest.get("profile") != expected_profile:
         problems.append("manifest profile does not match the effective brand contract")
+    expected_masters = {
+        "full": "logos/svg/%s-mark-color.svg" % brand.get("slug"),
+        "reduced": "logos/svg/%s-mark-reduced-color.svg" % brand.get("slug"),
+        "monochrome": "logos/svg/%s-mark-white.svg" % brand.get("slug"),
+    }
+    if manifest.get("source_masters") != expected_masters:
+        problems.append("manifest source_masters do not match generated logo masters")
+    else:
+        try:
+            with open(os.path.join(kit, "logos", "provenance.json"), encoding="utf-8") as handle:
+                logo_paths = {item["path"] for item in json.load(handle).get("derivatives", [])}
+            if not set(expected_masters.values()).issubset(logo_paths):
+                problems.append("icon source_masters are absent from verified logo provenance")
+        except Exception as error:
+            problems.append("icon source_masters cannot be matched to logo provenance: %s" % error)
     expected_suites = {"web", "android", "apple-ios", "apple-macos", "windows"}
     suites = manifest.get("suites")
     if not isinstance(suites, list) or {row.get("id") for row in suites if isinstance(row, dict)} != expected_suites:
@@ -616,7 +631,7 @@ def c_icon_suites(kit, brand, rep):
             with open(platform_path, encoding="utf-8") as handle:
                 platform_manifest = json.load(handle)
             expected_entries = [item for item in artifacts if item.get("platform") == suite_id and item.get("role") not in {"icon-index", "platform-manifest"}]
-            if platform_manifest.get("schema_version") != manifest.get("schema_version") or platform_manifest.get("brand") != manifest.get("brand") or platform_manifest.get("platform") != suite_id or platform_manifest.get("status") != suite.get("status") or platform_manifest.get("reason") != suite.get("reason") or platform_manifest.get("artifacts") != expected_entries:
+            if platform_manifest.get("schema_version") != manifest.get("schema_version") or platform_manifest.get("brand") != manifest.get("brand") or platform_manifest.get("platform") != suite_id or platform_manifest.get("status") != suite.get("status") or platform_manifest.get("reason") != suite.get("reason") or platform_manifest.get("source_masters") != manifest.get("source_masters") or platform_manifest.get("artifacts") != expected_entries:
                 problems.append("%s does not agree with the top-level icon manifest" % suite.get("manifest"))
         except Exception as error:
             problems.append("%s cannot be validated against the top-level manifest: %s" % (suite.get("manifest"), error))
@@ -774,6 +789,161 @@ def c_capability_artifacts(kit, rep):
     else:
         rep.skip("brand-guide-artifact", "%s tier: headless Chromium unavailable; PDF skipped" % tier)
 
+
+def _paeth(left, above, upper_left):
+    estimate = left + above - upper_left
+    distances = (abs(estimate - left), abs(estimate - above), abs(estimate - upper_left))
+    return (left, above, upper_left)[distances.index(min(distances))]
+
+
+def _png_mask(payload, method):
+    """Return (width, height, binary mask) for a non-interlaced RGBA8 PNG."""
+    if not payload.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError("authoritative mask source is not a PNG")
+    position, header, compressed = 8, None, []
+    while position < len(payload):
+        length = struct.unpack(">I", payload[position:position + 4])[0]
+        kind = payload[position + 4:position + 8]
+        data = payload[position + 8:position + 8 + length]
+        if kind == b"IHDR":
+            header = data
+        elif kind == b"IDAT":
+            compressed.append(data)
+        elif kind == b"IEND":
+            break
+        position += 12 + length
+    if header is None or not compressed:
+        raise ValueError("authoritative PNG is incomplete")
+    width, height, depth, colour_type, compression, filtering, interlace = struct.unpack(">IIBBBBB", header)
+    if (depth, colour_type, compression, filtering, interlace) != (8, 6, 0, 0, 0):
+        raise ValueError("authoritative PNG must be non-interlaced RGBA8")
+    stride = width * 4
+    raw = zlib.decompress(b"".join(compressed))
+    if len(raw) != height * (stride + 1):
+        raise ValueError("authoritative PNG has an unexpected data length")
+    previous, offset, mask = bytearray(stride), 0, bytearray()
+    for _row in range(height):
+        filter_type = raw[offset]
+        scanline = bytearray(raw[offset + 1:offset + stride + 1])
+        offset += stride + 1
+        for index in range(stride):
+            left = scanline[index - 4] if index >= 4 else 0
+            above = previous[index]
+            upper_left = previous[index - 4] if index >= 4 else 0
+            if filter_type == 1:
+                scanline[index] = (scanline[index] + left) & 0xff
+            elif filter_type == 2:
+                scanline[index] = (scanline[index] + above) & 0xff
+            elif filter_type == 3:
+                scanline[index] = (scanline[index] + ((left + above) // 2)) & 0xff
+            elif filter_type == 4:
+                scanline[index] = (scanline[index] + _paeth(left, above, upper_left)) & 0xff
+            elif filter_type != 0:
+                raise ValueError("authoritative PNG uses an unknown filter")
+        for index in range(0, stride, 4):
+            red, green, blue, alpha = scanline[index:index + 4]
+            if method == "luminance":
+                alpha = round(alpha * max(red, green, blue) / 255)
+            mask.append(255 if alpha else 0)
+        previous = scanline
+    return width, height, bytes(mask)
+
+
+def c_logo_provenance(kit, brand, rep):
+    """Verify the generated logo inventory against the source authority contract."""
+    path = os.path.join(kit, "logos", "provenance.json")
+    if not os.path.isfile(path):
+        return rep.bad("logo-provenance", "logos/provenance.json is missing")
+    try:
+        with open(path, encoding="utf-8") as handle:
+            provenance = json.load(handle)
+        authority = logo_source_contract(brand, kit)
+    except Exception as error:
+        return rep.bad("logo-provenance", str(error))
+
+    problems = []
+    if provenance.get("schema_version") != 1 or provenance.get("brand") != brand.get("slug"):
+        problems.append("index identity or schema version is invalid")
+    if provenance.get("source_mode") != authority["source_mode"]:
+        problems.append("index source mode disagrees with brand contract")
+    records = provenance.get("derivatives")
+    if not isinstance(records, list):
+        return rep.bad("logo-provenance", "derivatives must be an array")
+    paths = [item.get("path") for item in records if isinstance(item, dict)]
+    if len(paths) != len(records) or paths != sorted(paths) or len(paths) != len(set(paths)):
+        problems.append("derivative paths must be complete, unique, and sorted")
+    actual = []
+    for directory, suffix in (("logos/svg", ".svg"), ("logos/png", ".png")):
+        root = os.path.join(kit, directory.replace("/", os.sep))
+        if os.path.isdir(root):
+            actual.extend("%s/%s" % (directory, name) for name in os.listdir(root)
+                          if name.lower().endswith(suffix))
+    if set(paths) != set(actual):
+        missing = sorted(set(actual) - set(paths))
+        extra = sorted(set(paths) - set(actual))
+        if missing:
+            problems.append("unindexed logo derivatives: %s" % ", ".join(missing[:6]))
+        if extra:
+            problems.append("provenance names absent derivatives: %s" % ", ".join(extra[:6]))
+
+    expected_keys = {"path", "kind", "variant", "colourway", "source_mode", "input_id",
+                     "source_sha256", "transformations", "embedded_metadata"}
+    checked_masks = set()
+    for item in records:
+        if not isinstance(item, dict) or set(item) != expected_keys:
+            problems.append("derivative record has invalid fields")
+            continue
+        relative = item["path"]
+        variant = item["variant"]
+        source = authority.get(variant) if variant in {"full", "reduced"} else None
+        if source:
+            record = source["record"]
+            base_transform = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
+            expected = [base_transform, "resize"]
+            if item["kind"] == "lockup":
+                expected.append("place-in-lockup")
+            if item["source_mode"] != "authoritative" or item["input_id"] != record["id"] or item["source_sha256"] != record["sha256"]:
+                problems.append("%s has stale or conflicting source identity" % relative)
+            if item["transformations"] != expected or not set(expected).issubset(set(record["approved_transformations"])):
+                problems.append("%s has undeclared or misordered transformations" % relative)
+        elif item["input_id"] is not None or item["source_sha256"] is not None or item["transformations"]:
+            problems.append("%s claims source lineage without a bound logo variant" % relative)
+
+        output = os.path.join(kit, relative.replace("/", os.sep))
+        if not os.path.isfile(output) or not relative.endswith(".svg"):
+            continue
+        try:
+            root = ET.parse(output).getroot()
+            if root.get("data-logo-source-mode") != item["source_mode"]:
+                problems.append("%s source-mode metadata disagrees with index" % relative)
+            expected_variant = item["variant"]
+            if root.get("data-logo-variant") != expected_variant:
+                problems.append("%s variant metadata disagrees with index" % relative)
+            if source:
+                if root.get("data-authoritative-input-id") != source["record"]["id"] or root.get("data-authoritative-source-sha256") != source["record"]["sha256"]:
+                    problems.append("%s authoritative metadata disagrees with index" % relative)
+                if source["record"]["format"] != "svg":
+                    image = next((node for node in root.iter() if node.tag.rsplit("}", 1)[-1] == "image"), None)
+                    href = None if image is None else (image.get("href") or image.get("{http://www.w3.org/1999/xlink}href"))
+                    if not href or not href.startswith("data:image/png;base64,"):
+                        problems.append("%s lacks an embedded authoritative raster mask" % relative)
+                    else:
+                        with open(source["path"], "rb") as handle:
+                            original = _png_mask(handle.read(), source["mask"])
+                        derived = _png_mask(base64.b64decode(href.split(",", 1)[1]), "alpha")
+                        if original != derived:
+                            problems.append("%s changes authoritative %s mask topology" % (relative, variant))
+                    checked_masks.add(variant)
+        except Exception as error:
+            problems.append("%s provenance metadata cannot be verified: %s" % (relative, error))
+    if authority["source_mode"] == "authoritative" and checked_masks != {"full", "reduced"}:
+        problems.append("authoritative Full and Reduced mask topology was not both measured")
+    if problems:
+        rep.bad("logo-provenance", "; ".join(problems[:20]))
+    else:
+        rep.ok("logo-provenance", "%d derivatives agree with %s source contract" %
+               (len(records), authority["source_mode"]))
+
 # ---------------------------------------------------------------------- main
 def c_glyph(kit, brand, rep):
     """The measured geometry gate, folded into VERIFY.md.
@@ -928,6 +1098,7 @@ def main():
     c_raw_values(kit, rep)
     c_font_weights(kit, brand, rep)
     c_glyph(kit, brand, rep)
+    c_logo_provenance(kit, brand, rep)
     c_capability_artifacts(kit, rep)
     c_icon_suites(kit, brand, rep)
     c_svg(kit, rep)

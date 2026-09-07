@@ -123,6 +123,7 @@
     ]
   },
   "logo": {
+    "source_mode": "constructed",
     "grid": 1000,
     "center": [
       554,

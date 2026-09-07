@@ -2,6 +2,9 @@
 """Regression tests for portability, registry, and release-critical pipeline behavior."""
 
 import json
+import base64
+import copy
+from io import BytesIO
 import os
 import shutil
 import subprocess
@@ -282,8 +285,100 @@ class PipelineTests(unittest.TestCase):
             self.assertFalse(any(path.suffix.lower() in {".png", ".ico", ".icns"}
                                  for path in (kit / "icons").rglob("*")))
             icon_manifest = json.loads((kit / "icons" / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual({
+                "full": "logos/svg/covarity-mark-color.svg",
+                "reduced": "logos/svg/covarity-mark-reduced-color.svg",
+                "monochrome": "logos/svg/covarity-mark-white.svg",
+            }, icon_manifest["source_masters"])
             self.assertTrue(all(row["status"] == "skipped" for row in icon_manifest["suites"]
                                 if row["id"] != "web"))
+
+    def test_authoritative_logo_provenance_is_complete_and_tamper_evident(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "shruggietech"
+            shutil.copytree(ROOT / "brands" / "shruggietech", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            index_path = kit / "logos" / "provenance.json"
+            provenance = json.loads(index_path.read_text(encoding="utf-8"))
+            paths = [item["path"] for item in provenance["derivatives"]]
+            self.assertEqual(paths, sorted(paths))
+            self.assertEqual(set(paths), {path.relative_to(kit).as_posix() for path in (kit / "logos" / "svg").glob("*.svg")})
+            mark = next(item for item in provenance["derivatives"] if item["path"].endswith("-mark-color.svg"))
+            self.assertEqual("full-mark-master", mark["input_id"])
+            self.assertEqual(["recolor-mask", "resize"], mark["transformations"])
+            svg_path = kit / mark["path"]
+            text = svg_path.read_text(encoding="utf-8")
+            self.assertIn('data-logo-source-mode="authoritative"', text)
+            self.assertIn('data-authoritative-input-id="full-mark-master"', text)
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+            self.assertFalse(report.problems)
+
+            mutations = {}
+            missing = copy.deepcopy(provenance)
+            missing["derivatives"].pop()
+            mutations["missing"] = missing
+            extra = copy.deepcopy(provenance)
+            ghost = copy.deepcopy(extra["derivatives"][-1])
+            ghost["path"] = "logos/svg/ghost.svg"
+            extra["derivatives"].append(ghost)
+            mutations["extra"] = extra
+            duplicate = copy.deepcopy(provenance)
+            duplicate["derivatives"].append(copy.deepcopy(duplicate["derivatives"][-1]))
+            mutations["duplicate"] = duplicate
+            stale = copy.deepcopy(provenance)
+            stale["derivatives"][0]["source_sha256"] = "0" * 64
+            mutations["stale"] = stale
+            undeclared = copy.deepcopy(provenance)
+            authoritative = next(item for item in undeclared["derivatives"] if item["input_id"])
+            authoritative["transformations"].append("trace")
+            mutations["undeclared"] = undeclared
+            for name, mutated in mutations.items():
+                with self.subTest(provenance_mutation=name):
+                    index_path.write_text(json.dumps(mutated, indent=2) + "\n", encoding="utf-8")
+                    report = verify.Report()
+                    verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+                    self.assertTrue(report.problems)
+
+            index_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+            svg_path.write_text(text.replace('data-authoritative-input-id="full-mark-master"',
+                                             'data-authoritative-input-id="substitute"'), encoding="utf-8")
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+            self.assertTrue(any("metadata disagrees" in problem for problem in report.problems))
+
+    def test_authoritative_logo_provenance_rejects_changed_mask_topology(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "shruggietech"
+            shutil.copytree(ROOT / "brands" / "shruggietech", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            svg_path = kit / "logos" / "svg" / "shruggietech-mark-color.svg"
+            root = verify.ET.parse(str(svg_path)).getroot()
+            image = next(node for node in root.iter() if node.tag.rsplit("}", 1)[-1] == "image")
+            blank = Image.new("RGBA", (919, 302), (0, 0, 0, 0))
+            payload = BytesIO()
+            blank.save(payload, format="PNG")
+            data_url = "data:image/png;base64," + base64.b64encode(payload.getvalue()).decode("ascii")
+            image.set("href", data_url)
+            image.set("{http://www.w3.org/1999/xlink}href", data_url)
+            verify.ET.ElementTree(root).write(str(svg_path), encoding="unicode")
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+            self.assertTrue(any("mask topology" in problem for problem in report.problems), report.problems)
 
     def test_square_enclosure_preserves_page_paths_and_contextual_roles(self):
         with tempfile.TemporaryDirectory() as tmp:

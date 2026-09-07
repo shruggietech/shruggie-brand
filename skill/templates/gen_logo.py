@@ -17,7 +17,7 @@ import sys
 import zlib
 
 from svgelements import Path
-from brand_contract import font_face_path, semantic_colors, square_enclosure_profile, typography_families
+from brand_contract import font_face_path, logo_source_contract, semantic_colors, square_enclosure_profile, typography_families
 from capabilities import load_capabilities
 from iconkit import contain_visible, generate_icon_suites
 from process_utils import hidden_process_kwargs
@@ -234,11 +234,15 @@ def paths_bbox(paths):
     )
 
 
-def svg(width, height, body):
+def svg(width, height, body, metadata=None):
+    attributes = ""
+    for name, value in sorted((metadata or {}).items()):
+        if value is not None:
+            attributes += ' data-%s="%s"' % (name.replace("_", "-"), value)
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 %g %g" '
-        'width="%g" height="%g" fill="none">\n%s\n</svg>\n'
-        % (width, height, width, height, body)
+        'width="%g" height="%g" fill="none"%s>\n%s\n</svg>\n'
+        % (width, height, width, height, attributes, body)
     )
 
 
@@ -280,6 +284,7 @@ def main():
     paths = logo.get("paths") or {}
     if not paths.get("full"):
         sys.exit("brand.json logo.paths.full is empty; hand-author the mark first")
+    authority = logo_source_contract(brand, kit)
 
     # The geometry gate runs FIRST and blocks. Producing twenty colourways and a
     # favicon set from a mark that is clipped or off-centre wastes the run and
@@ -445,6 +450,59 @@ def main():
         )
 
     written = []
+    derivatives = []
+    svg_records = {}
+
+    def derivative_record(filename, kind, variant, colourway, is_svg=True):
+        source = authority.get(variant) if variant else None
+        if source:
+            record = source["record"]
+            base_transform = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
+            transformations = [base_transform, "resize"]
+            if kind == "lockup":
+                transformations.append("place-in-lockup")
+            input_id = record["id"]
+            source_sha256 = record["sha256"]
+        else:
+            transformations = []
+            input_id = None
+            source_sha256 = None
+        relative = "logos/svg/%s" % filename if is_svg else "logos/png/%s" % filename
+        item = {
+            "path": relative,
+            "kind": kind,
+            "variant": variant,
+            "colourway": colourway,
+            "source_mode": authority["source_mode"] if variant else "constructed",
+            "input_id": input_id,
+            "source_sha256": source_sha256,
+            "transformations": transformations,
+            "embedded_metadata": bool(is_svg),
+        }
+        derivatives.append(item)
+        if is_svg:
+            svg_records[filename] = item
+        return item
+
+    def svg_metadata(record):
+        values = {
+            "logo_source_mode": record["source_mode"],
+            "logo_variant": record["variant"],
+        }
+        if record["input_id"]:
+            values["authoritative_input_id"] = record["input_id"]
+            values["authoritative_source_sha256"] = record["source_sha256"]
+        return values
+
+    def write_provenance():
+        payload = {
+            "schema_version": 1,
+            "brand": slug,
+            "source_mode": authority["source_mode"],
+            "derivatives": sorted(derivatives, key=lambda item: item["path"]),
+        }
+        write(os.path.join(kit, "logos", "provenance.json"), json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
     variants = (("mark", paths["full"]), ("mark-reduced", paths.get("reduced") or paths["full"]))
     for variant, path_list in variants:
         box = paths_bbox(path_list)
@@ -455,7 +513,9 @@ def main():
             assert box[2] <= canvas_width + 0.5 and box[3] <= canvas_height + 0.5
         for colourway, roles in role_maps.items():
             filename = "%s-%s-%s.svg" % (slug, variant, colourway)
-            write(os.path.join(svg_dir, filename), svg(canvas_width, canvas_height, render_mark(path_list, roles, colourway)))
+            source_variant = "reduced" if variant == "mark-reduced" else "full"
+            record = derivative_record(filename, "mark", source_variant, colourway)
+            write(os.path.join(svg_dir, filename), svg(canvas_width, canvas_height, render_mark(path_list, roles, colourway), svg_metadata(record)))
             written.append(filename)
 
     mark_box = ((enclosure["inset"] - enclosure["stroke_width"] / 2.0,) * 2
@@ -505,7 +565,8 @@ def main():
         for colourway, roles in role_maps.items():
             body = word_group(colourway, roles, pad, pad if supplied_wordmark else 200, 1.0)
             filename = "%s-wordmark-%s.svg" % (slug, colourway)
-            write(os.path.join(svg_dir, filename), svg(wordmark_width, wordmark_height, body))
+            record = derivative_record(filename, "wordmark", None, colourway)
+            write(os.path.join(svg_dir, filename), svg(wordmark_width, wordmark_height, body, svg_metadata(record)))
             written.append(filename)
 
         for colourway, roles in role_maps.items():
@@ -540,7 +601,8 @@ def main():
                 )
             )
             filename = "%s-horizontal-%s.svg" % (slug, colourway)
-            write(os.path.join(svg_dir, filename), svg(lockup_width, horizontal_height, body))
+            record = derivative_record(filename, "lockup", "full", colourway)
+            write(os.path.join(svg_dir, filename), svg(lockup_width, horizontal_height, body, svg_metadata(record)))
             written.append(filename)
 
             stacked_spec = lockup_specs.get("stacked") or {}
@@ -579,7 +641,8 @@ def main():
                 )
             )
             filename = "%s-stacked-%s.svg" % (slug, colourway)
-            write(os.path.join(svg_dir, filename), svg(stacked_width, stacked_height, stacked))
+            record = derivative_record(filename, "lockup", "full", colourway)
+            write(os.path.join(svg_dir, filename), svg(stacked_width, stacked_height, stacked, svg_metadata(record)))
             written.append(filename)
 
     if wordmark_d or supplied_wordmark:
@@ -646,7 +709,8 @@ def main():
                tagline_x, tagline_baseline, tagline_scale, tagline_d, roles["neutral"])
         )
         filename = "%s-social-preview.svg" % slug
-        write(os.path.join(svg_dir, filename), svg(preview_width, preview_height, preview))
+        record = derivative_record(filename, "lockup", "full", "color")
+        write(os.path.join(svg_dir, filename), svg(preview_width, preview_height, preview, svg_metadata(record)))
         written.append(filename)
 
     capabilities = load_capabilities(kit)
@@ -675,6 +739,7 @@ def main():
                 temporary.unlink()
 
     if not capabilities.get("svg_raster"):
+        write_provenance()
         generate_icon_suites(
             brand, kit, icon_full_svg, icon_reduced_svg, render_icon_source,
             capabilities, monochrome_svg=os.path.join(svg_dir, "%s-mark-white.svg" % slug),
@@ -708,6 +773,13 @@ def main():
         else:
             raster(["-w", str(width), source, "-o", output])
         assert_visible_raster(output)
+        svg_record = svg_records[filename]
+        png_record = dict(svg_record)
+        png_record["path"] = "logos/png/%s" % os.path.basename(output)
+        png_record["embedded_metadata"] = False
+        derivatives.append(png_record)
+
+    write_provenance()
 
     generate_icon_suites(
         brand, kit, icon_full_svg, icon_reduced_svg, render_icon_source,

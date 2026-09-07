@@ -27,6 +27,8 @@ Three capability tiers, and what each can still finish:
 written wrong. That is why `validate_glyph.py` carries its own rasteriser and
 why no gate depends on an agent being able to view an image.
 
+Authoritative PNG logos follow the same rule. Core reads their dimensions and compares exact binary mask topology with the standard library. Raster and Full add exports and visual evidence, but they do not replace the authority verdict. Every generated derivative carries its source ID, source hash, variant, and transformations in `logos/provenance.json`, so capability handoffs cannot silently substitute another mark.
+
 ## Vision is a bonus, never a gate
 
 The house rule is still "look at every rendered artifact before shipping it",

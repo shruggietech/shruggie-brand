@@ -6,11 +6,14 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added explicit constructed and authoritative logo source modes, separate Full and Reduced source bindings, deterministic derivative provenance, and fail-closed source, metadata, operation, and mask-topology verification.
+- Added issue #151 regressions for unrelated geometry, construction helpers, stale hashes, role and usage mismatches, reduced-mark substitution, undeclared transformations, incomplete provenance, and changed authoritative silhouettes.
 - Added optional validated square-enclosure composition, source-owned contextual wordmark roles, and renderer-portable monochrome knockout support for generated marks, lockups, and application icons.
 - Added visible-ink square-containment regressions for portrait, landscape, asymmetric-canvas, empty, standalone-master, and platform-specific occupancy cases.
 
 ### Changed
 
+- On 2026-09-07, bound ShruggieTech Full and Reduced marks to their separately approved immutable raster masters while preserving all source bytes, constructed identity paths, colors, and public presentation.
 - On 2026-09-07, approved Glitchpad's permanent square identity using a sulfur square with charcoal page on dark surfaces and a charcoal square with sulfur page on light surfaces, retaining the slate fold and protected page paths while prohibiting muddy or darkened yellow variants.
 - On 2026-09-07, introduced an optional brand-source showcase-surface role that resolves through existing governed surfaces and is omitted for unconfigured brands, keeping site presentation policy out of slug-specific CSS and preserving sibling treatments.
 - On 2026-09-07, made visible-alpha bounds the shared standalone square-raster composition authority while retaining each platform's established safe-area ratio and preserving canonical vector geometry.

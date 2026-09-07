@@ -189,11 +189,12 @@ def _svg_wrapper(source, background, ratio=0.72):
 
 
 class Writer:
-    def __init__(self, kit, brand, profile, capabilities):
+    def __init__(self, kit, brand, profile, capabilities, source_masters):
         self.kit = Path(kit)
         self.brand = brand
         self.profile = profile
         self.capabilities = capabilities
+        self.source_masters = source_masters
         self.artifacts = []
         self.suites = []
 
@@ -229,6 +230,7 @@ class Writer:
             "platform": platform,
             "status": status,
             "reason": reason,
+            "source_masters": self.source_masters,
             "artifacts": [item for item in entries],
         }
         write_text(path, json.dumps(content, indent=2) + "\n")
@@ -466,7 +468,12 @@ def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabili
     safe_reset(kit, kit / "icons")
     safe_reset(kit, kit / "favicons")
     profile = application_icon_profile(brand)
-    writer = Writer(kit, brand, profile, capabilities)
+    source_masters = {
+        "full": full_svg.relative_to(kit).as_posix(),
+        "reduced": reduced_svg.relative_to(kit).as_posix(),
+        "monochrome": Path(monochrome_svg or full_svg).resolve().relative_to(kit).as_posix(),
+    }
+    writer = Writer(kit, brand, profile, capabilities, source_masters)
     marker = kit / "icons" / GENERATION_MARKER
     writer.text(marker, json.dumps({"generator": "shruggie-iconkit", "schema_version": SCHEMA_VERSION}, indent=2) + "\n",
                 "web", "icon-index", "json", "Generation ownership marker")
@@ -526,6 +533,7 @@ def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabili
         "brand": brand["slug"],
         "profile": profile,
         "capability": {"tier": capabilities.get("tier", "core"), "svg_raster": raster_capable},
+        "source_masters": source_masters,
         "suites": writer.suites,
         "artifacts": writer.artifacts,
         "aliases": aliases,

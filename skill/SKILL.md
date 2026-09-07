@@ -58,9 +58,7 @@ logo concept to consider, and any existing material at all.
 
 **One colour decision and one logo decision in house mode.** Under the ordinary owned-brand variance contract, everything else is inherited or derived. Authoritative supplied marks and fixed font requirements are explicit exceptions. They require hashes, provenance, usage or license evidence, and approval before generated use.
 
-**Never type path data.** The mark is composed in `<kit>/build/mk_paths.py` from
-`templates/glyphkit.py` primitives, in absolute M/L/C/Z only, and proved by
-`templates/validate_glyph.py` before anything is exported. This is the step that
+**Never type path data for constructed mode.** A constructed mark is composed in `<kit>/build/mk_paths.py` from `templates/glyphkit.py` primitives, in absolute M/L/C/Z only, and proved by `templates/validate_glyph.py` before anything is exported. An authoritative mark never has a construction helper. It binds Full and Reduced directly to approved immutable input IDs, and every derivative is recorded in `logos/provenance.json`. This is the step that
 fails, and it fails the same way every time: an agent writes coordinates and
 then has no mechanical way to tell whether they describe the shape it meant.
 `glyphkit` cannot emit malformed geometry, and the gate answers in numbers with
@@ -93,7 +91,7 @@ read as "not applicable".
 
 **Bundle fonts. Never fetch them at build time.** House mode uses the approved local faces. Fixed mode uses only declared local faces whose hash, family, weight, style, format, license, provenance, and usage status pass validation. Network retrieval happens only through the explicitly invoked `templates/ingest_font.py` command and completes atomically before a build begins.
 
-**Preserve authoritative supplied identity files.** A supplied master stays byte-identical. Declare its role, path, format, SHA-256, color-profile status, usage basis, and approved transformations. Palette analysis produces evidence only. A human approval must bind a selected candidate to the current source hash before that color can be canonical.
+**Preserve authoritative supplied identity files.** A supplied master stays byte-identical. Declare `logo.source_mode` explicitly. Authoritative mode binds Full and Reduced to separate approved input IDs and rejects constructed geometry or `build/mk_paths.py`; constructed mode rejects approved mark-role inputs. Declare each source role, path, format, SHA-256, color-profile status, usage basis, and approved transformations. Palette analysis produces evidence only. A human approval must bind a selected candidate to the current source hash before that color can be canonical. Any later binding, hash, source-art, mask, or visible-geometry change requires fresh owner approval.
 
 **The brand guide is full-bleed dark on every sheet, and it describes the brand.**
 House standard, set by fragcap 1.1.0 and enforced by `qc_render.py
@@ -136,9 +134,9 @@ It validates the explicit contract first, then probes, runs the glyph gate, and 
     python3 templates/qc_render.py      <kit>/brand-guide.pdf --expect-ground dark
     python3 templates/qc_paginate.py    <kit>/build/*.print.html
 
-`gen_logo.py` does not invent geometry. Copy `templates/mk_paths.example.py` to `<kit>/build/mk_paths.py`, edit the parameter block, run the gate, write the paths into `brand.json`, and the generator produces every colourway, the outlined wordmark, the lockups, all rasters, and categorized application-icon suites for web, Android, iOS and iPadOS, macOS, and Windows. `icons/manifest.json` is authoritative; `favicons/` is a byte-identical web compatibility mirror.
+`gen_logo.py` does not invent geometry. In constructed mode, copy `templates/mk_paths.example.py` to `<kit>/build/mk_paths.py`, edit the parameter block, run the gate, write the paths into `brand.json`, and the generator produces every colourway, the outlined wordmark, the lockups, all rasters, and categorized application-icon suites for web, Android, iOS and iPadOS, macOS, and Windows. In authoritative mode, bind the two variants to approved source IDs and do not create a construction helper. `logos/provenance.json` records every generated logo derivative, `icons/manifest.json` names its verified logo masters, and `favicons/` is a byte-identical web compatibility mirror.
 
-When an approved master already exists, do not route through reconstruction. Declare it under `authoritative_inputs`, preserve its bytes, authorize only the needed transformations, and let validation connect each imported logo image to its source record. Use `templates/ingest_font.py --help` for the separate fixed-font ingestion contract. Ordinary generation must stay offline.
+When an approved master already exists, do not route through reconstruction. Set `logo.source_mode` to `authoritative`, bind Full and Reduced to their role-correct records under `authoritative_inputs`, preserve their bytes, and authorize only `embed-unchanged`, `recolor-mask`, `resize`, `place-in-lockup`, or `palette-analysis` as actually needed. Validation rejects every substitute element and stale lineage. Use `templates/ingest_font.py --help` for the separate fixed-font ingestion contract. Ordinary generation must stay offline.
 
 `examples/shruggietech/` is a real generated instance. Read it when unsure what
 correct output looks like.

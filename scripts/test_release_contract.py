@@ -47,6 +47,27 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
 
 
 class ReleaseContractTests(unittest.TestCase):
+    def test_production_logo_source_modes_and_identity_fingerprints_are_pinned(self):
+        expected = {
+            "covarity": ("constructed", "b9846d9b00e393092678164a7d5f1c24cfd4186e2d2490b3d8a87be8e3b8e40c"),
+            "fragcap": ("constructed", "47877d1667ac44ab6c81ed41ab675cf8831b7644e4926c4df93eeca024805e3b"),
+            "glitchpad": ("constructed", "3115a137763ff75ab64a036282f9bc5bf683a3b4d68ffda6d0d5839da030c95e"),
+            "go-schedule": ("constructed", "95ce6d68210a79672af6d639a4610070e61269842d414de63194fd0ed25fb5a6"),
+            "shruggietech": ("authoritative", "da15b5819b777ff3c1323d801b52333b0fd8015bbe08443bd7bc53085616cad7"),
+        }
+        for slug, (mode, fingerprint) in expected.items():
+            brand = json.loads((ROOT / "brands" / slug / "brand.json").read_text(encoding="utf-8"))
+            payload = json.dumps(brand["logo"]["paths"], sort_keys=True, separators=(",", ":")).encode("utf-8")
+            self.assertEqual(mode, brand["logo"]["source_mode"], slug)
+            self.assertEqual(fingerprint, hashlib.sha256(payload).hexdigest(), slug)
+        shruggietech = json.loads((ROOT / "brands" / "shruggietech" / "brand.json").read_text(encoding="utf-8"))
+        self.assertEqual({"full": "full-mark-master", "reduced": "reduced-mark-master"},
+                         shruggietech["logo"]["authoritative_input_ids"])
+        inputs = {item["id"]: item for item in shruggietech["authoritative_inputs"]}
+        for input_id in shruggietech["logo"]["authoritative_input_ids"].values():
+            path = ROOT / "brands" / "shruggietech" / inputs[input_id]["path"]
+            self.assertEqual(inputs[input_id]["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
+
     def test_repository_metadata_and_notes_agree_for_1_2_1(self):
         metadata = release_contract.load_metadata(ROOT, "1.2.1")
         notes = release_contract.render_notes(metadata)

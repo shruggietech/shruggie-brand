@@ -22,6 +22,12 @@ The fix is not better prose telling the agent to be careful. It is removing the
 opportunity: geometry gets composed from primitives that cannot be malformed,
 and correctness is decided by a number.
 
+## Source mode comes first
+
+Every brand declares `logo.source_mode`. Use `constructed` only when the approved identity is the native Full and Reduced geometry described in this document. Use `authoritative` when the operator approved exact supplied artwork. Authoritative mode binds Full and Reduced to separate immutable input IDs, permits exactly one matching image element per variant, rejects `build/mk_paths.py`, and records every generated derivative in `logos/provenance.json`. Never trace, simplify, reconstruct, or replace an authoritative master.
+
+A later change to the binding, source hash, source bytes, mask method, or visible geometry is a new identity decision and requires fresh owner approval before generation. Color replacement, proportional resizing, unchanged embedding, and lockup placement are permitted only when named in the source's approved transformations.
+
 ## The three artifacts
 
 | File | What it is | Who writes it |
@@ -36,7 +42,7 @@ Existing shipped marks are identity assets, not raw material for cleanup. Set `l
 
 The absolute M, L, C, Z command rule remains a failure for the default `glyphkit` provenance. For `imported` geometry, unsupported commands are warnings. Measurements that require the absolute-only standard-library parser are skipped rather than producing invented numbers or forcing an identity redraw. `VERIFY.md` records the provenance and reason. All non-geometry checks, especially accessibility, remain mandatory.
 
-`mk_paths.py` is the master. The `logo.paths` block in `brand.json` is generated
+In constructed mode, `mk_paths.py` is the master. The `logo.paths` block in `brand.json` is generated
 output. When the mark changes, the parameters in `mk_paths.py` change and
 `brand.json` is regenerated. Editing path data in `brand.json` by hand is the
 same error as editing a compiled binary.

@@ -142,6 +142,7 @@
     "muted_ink": "#4A5A62"
   },
   "logo": {
+    "source_mode": "constructed",
     "grid": 512,
     "canvas_width": 512,
     "canvas_height": 512,
