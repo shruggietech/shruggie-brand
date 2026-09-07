@@ -69,4 +69,7 @@ Desktop and Android release preparation should consume assets rebuilt from the S
 
 ## Pull request and review ledger
 
-Pending.
+- Implementation commit: `cd8b16b` (`fix(S014): harden Glitchpad presentation and icon containment`).
+- Pull request: [#150](https://github.com/shruggietech/shruggie-brand/pull/150)
+- First review round: pending.
+- Authorized second review round: not triggered.
