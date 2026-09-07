@@ -6,15 +6,19 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added optional validated square-enclosure composition, source-owned contextual wordmark roles, and renderer-portable monochrome knockout support for generated marks, lockups, and application icons.
 - Added visible-ink square-containment regressions for portrait, landscape, asymmetric-canvas, empty, standalone-master, and platform-specific occupancy cases.
 
 ### Changed
 
+- On 2026-09-07, approved Glitchpad's permanent square identity using a sulfur square with charcoal page on dark surfaces and a charcoal square with sulfur page on light surfaces, retaining the slate fold and protected page paths while prohibiting muddy or darkened yellow variants.
 - On 2026-09-07, introduced an optional brand-source showcase-surface role that resolves through existing governed surfaces and is omitted for unconfigured brands, keeping site presentation policy out of slug-specific CSS and preserving sibling treatments.
 - On 2026-09-07, made visible-alpha bounds the shared standalone square-raster composition authority while retaining each platform's established safe-area ratio and preserving canonical vector geometry.
 
 ### Fixed
 
+- Rejected square-enclosure configurations whose measured source paths exceed the safe content area, and distinguished composed external clear space from protected internal glyph measurements in generated guidance.
+- Preserved the permanent page-and-G knockout in Android adaptive monochrome and iOS tinted exports by routing platform recoloring through the generated one-color master instead of the full-color alpha silhouette.
 - Centered non-square portfolio marks inside a constrained square image box and replaced Glitchpad's diluted yellow landing-card and portfolio-hero surfaces with its governed charcoal card surface, including accessible light-theme text and no decorative yellow glow.
 
 ## [1.2.1] - 2026-09-06

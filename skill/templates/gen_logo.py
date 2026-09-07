@@ -17,7 +17,7 @@ import sys
 import zlib
 
 from svgelements import Path
-from brand_contract import font_face_path, semantic_colors, typography_families
+from brand_contract import font_face_path, semantic_colors, square_enclosure_profile, typography_families
 from capabilities import load_capabilities
 from iconkit import contain_visible, generate_icon_suites
 from process_utils import hidden_process_kwargs
@@ -28,6 +28,10 @@ RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__fi
 
 def standalone_mark_ratio(brand):
     """Return the visible long-edge occupancy that preserves declared clear space."""
+    enclosure = square_enclosure_profile(brand)
+    if enclosure:
+        visible = enclosure["size"] + enclosure["stroke_width"]
+        return visible / enclosure["canvas_size"]
     logo = brand.get("logo") or {}
     width = float(logo.get("artwork_width", logo.get("grid", 1000)))
     height = float(logo.get("artwork_height", logo.get("grid", 1000)))
@@ -291,10 +295,13 @@ def main():
                  % gate.returncode)
 
     grid = logo.get("grid", 512)
-    canvas_width = logo.get("canvas_width", grid)
-    canvas_height = logo.get("canvas_height", grid)
-    clear_space = logo.get("clear_space_units", int(min(canvas_width, canvas_height) * 0.11))
-    artwork_width = logo.get("artwork_width", canvas_width)
+    enclosure = square_enclosure_profile(brand)
+    canvas_width = enclosure["canvas_size"] if enclosure else logo.get("canvas_width", grid)
+    canvas_height = enclosure["canvas_size"] if enclosure else logo.get("canvas_height", grid)
+    clear_space = (enclosure["inset"] - enclosure["stroke_width"] / 2.0
+                   if enclosure else logo.get("clear_space_units", int(min(canvas_width, canvas_height) * 0.11)))
+    artwork_width = (enclosure["size"] + enclosure["stroke_width"]
+                     if enclosure else logo.get("artwork_width", canvas_width))
     reduced_below = logo.get("reduced_below_px", 32)
     slug = brand["slug"]
     accent = brand["accent"]["bright"]
@@ -379,18 +386,81 @@ def main():
             output.append('%s<path d="%s"%s%s/>' % (indent, item["d"], paint, extra))
         return "\n".join(output)
 
+    def square_content_geometry(path_list):
+        source_box = paths_bbox(path_list)
+        source_width = source_box[2] - source_box[0]
+        source_height = source_box[3] - source_box[1]
+        scale = enclosure["content_scale"]
+        x = (enclosure["canvas_size"] - source_width * scale) / 2.0
+        y = (enclosure["canvas_size"] - source_height * scale) / 2.0
+        safe_min = enclosure["inset"] + enclosure["stroke_width"] / 2.0
+        safe_max = enclosure["canvas_size"] - safe_min
+        if (x < safe_min - 0.5 or y < safe_min - 0.5
+                or x + source_width * scale > safe_max + 0.5
+                or y + source_height * scale > safe_max + 0.5):
+            raise ValueError("square enclosure content exceeds the validated safe area")
+        return source_box, x, y, scale
+
+    def render_mark(path_list, roles, colourway, indent="  "):
+        if not enclosure:
+            return render_paths(path_list, roles, indent)
+        source_box, x, y, scale = square_content_geometry(path_list)
+        frame_role = enclosure["frame_role"]
+        stroke_role = enclosure["stroke_role"]
+        if colourway in ("black", "white") and enclosure["monochrome_knockout"]:
+            knockout = [item for item in path_list
+                        if item.get("role", "accent") == enclosure["knockout_role"]]
+            if not knockout:
+                knockout = path_list
+            mask_id = "%s-%s-square-knockout" % (slug, colourway)
+            mask_roles = {item.get("role", "accent"): "#000000" for item in knockout}
+            knocked_out = render_paths(knockout, mask_roles, indent + "      ")
+            return (
+                '%s<g data-square-enclosure="true">\n'
+                '%s  <defs><mask id="%s" maskUnits="userSpaceOnUse">\n'
+                '%s    <rect width="%g" height="%g" fill="#000000"/>\n'
+                '%s    <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="#FFFFFF"/>\n'
+                '%s    <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s    </g>\n'
+                '%s  </mask></defs>\n'
+                '%s  <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="%s" mask="url(#%s)"/>\n'
+                '%s</g>'
+                % (indent, indent, mask_id, indent, canvas_width, canvas_height,
+                   indent, enclosure["inset"], enclosure["inset"], enclosure["size"],
+                   enclosure["size"], enclosure["corner_radius"], indent, x, y, scale,
+                   -source_box[0], -source_box[1], knocked_out, indent, indent, indent,
+                   enclosure["inset"], enclosure["inset"], enclosure["size"],
+                   enclosure["size"], enclosure["corner_radius"], roles["accent"],
+                   mask_id, indent)
+            )
+        content = render_paths(path_list, roles, indent + "    ")
+        return (
+            '%s<g data-square-enclosure="true">\n'
+            '%s  <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="%s" stroke="%s" stroke-width="%g"/>\n'
+            '%s  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s  </g>\n'
+            '%s</g>'
+            % (indent, indent, enclosure["inset"], enclosure["inset"],
+               enclosure["size"], enclosure["size"], enclosure["corner_radius"],
+               roles[frame_role], roles[stroke_role], enclosure["stroke_width"],
+               indent, x, y, scale, -source_box[0], -source_box[1], content, indent, indent)
+        )
+
     written = []
     variants = (("mark", paths["full"]), ("mark-reduced", paths.get("reduced") or paths["full"]))
     for variant, path_list in variants:
         box = paths_bbox(path_list)
-        assert box[0] >= -0.5 and box[1] >= -0.5
-        assert box[2] <= canvas_width + 0.5 and box[3] <= canvas_height + 0.5
+        if enclosure:
+            square_content_geometry(path_list)
+        else:
+            assert box[0] >= -0.5 and box[1] >= -0.5
+            assert box[2] <= canvas_width + 0.5 and box[3] <= canvas_height + 0.5
         for colourway, roles in role_maps.items():
             filename = "%s-%s-%s.svg" % (slug, variant, colourway)
-            write(os.path.join(svg_dir, filename), svg(canvas_width, canvas_height, render_paths(path_list, roles)))
+            write(os.path.join(svg_dir, filename), svg(canvas_width, canvas_height, render_mark(path_list, roles, colourway)))
             written.append(filename)
 
-    mark_box = paths_bbox(paths["full"])
+    mark_box = ((enclosure["inset"] - enclosure["stroke_width"] / 2.0,) * 2
+                + (enclosure["canvas_size"] - enclosure["inset"] + enclosure["stroke_width"] / 2.0,) * 2
+                if enclosure else paths_bbox(paths["full"]))
     mark_width = mark_box[2] - mark_box[0]
     mark_height = mark_box[3] - mark_box[1]
 
@@ -419,7 +489,7 @@ def main():
         def word_ink(colourway, roles):
             if colourway in ("white", "black"):
                 return roles["accent"]
-            return "#F2F5FA" if colourway == "color" else "#0A0A0A"
+            return roles.get("wordmark", "#F2F5FA" if colourway == "color" else "#0A0A0A")
 
         def word_group(colourway, roles, x, y, scale, indent="  "):
             if supplied_wordmark:
@@ -455,7 +525,7 @@ def main():
             word_y = (horizontal_height - wordmark_ink_height_raw * word_scale) / 2.0 if supplied_wordmark else word_baseline
             word_x = lockup_pad + mark_render_width + gap
             lockup_width = mark_render_width + gap + wordmark_advance * word_scale + lockup_pad * 2.0
-            mark_group = render_paths(paths["full"], roles, "    ")
+            mark_group = render_mark(paths["full"], roles, colourway, "    ")
             body = (
                 '  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n  </g>\n'
                 '%s'
@@ -558,7 +628,7 @@ def main():
         tagline_scale = min(1.0, (preview_width - 64.0 - tagline_left) / tagline_width)
         tagline_baseline = tagline_top - tagline_box[1] * tagline_scale
         tagline_x = tagline_left - tagline_box[0] * tagline_scale
-        mark_group = render_paths(paths["full"], roles, "      ")
+        mark_group = render_mark(paths["full"], roles, "color", "      ")
         preview_word = word_group(
             "color",
             roles,
@@ -605,8 +675,10 @@ def main():
                 temporary.unlink()
 
     if not capabilities.get("svg_raster"):
-        generate_icon_suites(brand, kit, icon_full_svg, icon_reduced_svg,
-                             render_icon_source, capabilities)
+        generate_icon_suites(
+            brand, kit, icon_full_svg, icon_reduced_svg, render_icon_source,
+            capabilities, monochrome_svg=os.path.join(svg_dir, "%s-mark-white.svg" % slug),
+        )
         print("SKIP raster exports and native icon binaries: %s at core tier"
               % capabilities.get("raster_reason", "required raster capability unavailable"))
         print("wrote %d vector SVG masters and a vector-only icon index" % len(written))
@@ -637,8 +709,10 @@ def main():
             raster(["-w", str(width), source, "-o", output])
         assert_visible_raster(output)
 
-    generate_icon_suites(brand, kit, icon_full_svg, icon_reduced_svg,
-                         render_icon_source, capabilities)
+    generate_icon_suites(
+        brand, kit, icon_full_svg, icon_reduced_svg, render_icon_source,
+        capabilities, monochrome_svg=os.path.join(svg_dir, "%s-mark-white.svg" % slug),
+    )
 
     print("canvas %g x %g; artwork width %g" % (canvas_width, canvas_height, artwork_width))
     print("clear space %d units = %.1f%% of artwork width" % (clear_space, 100.0 * clear_space / artwork_width))

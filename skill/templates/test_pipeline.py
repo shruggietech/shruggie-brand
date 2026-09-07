@@ -19,6 +19,7 @@ ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
 import gen_guide_pdf
+import gen_guidelines
 import gen_logo
 import gen_nextjs
 import build_kit
@@ -42,6 +43,15 @@ class PipelineTests(unittest.TestCase):
         self.assertAlmostEqual(900.0 / 1040.0, gen_logo.standalone_mark_ratio(brand))
         brand["logo"]["artwork_width"] = 1200
         self.assertAlmostEqual(1200.0 / 1340.0, gen_logo.standalone_mark_ratio(brand))
+
+    def test_guide_metrics_describe_the_composed_square(self):
+        brand = json.loads((ROOT / "brands" / "glitchpad" / "brand.json").read_text(encoding="utf-8"))
+        self.assertEqual((50.0, 1000.0, 1000.0, 900.0), gen_guide_pdf.logo_metrics(brand))
+        self.assertEqual((50.0, 1000.0, 1000.0, 900.0), gen_guidelines.logo_metrics(brand))
+        guidance = gen_guidelines.clear_space_guidance(brand, 50.0)
+        self.assertIn("50 units of external clear space", guidance)
+        self.assertIn("70-unit G channel", guidance)
+        self.assertIn("not the external clear-space requirement", guidance)
 
     @staticmethod
     def owned_affiliation():
@@ -274,6 +284,53 @@ class PipelineTests(unittest.TestCase):
             icon_manifest = json.loads((kit / "icons" / "manifest.json").read_text(encoding="utf-8"))
             self.assertTrue(all(row["status"] == "skipped" for row in icon_manifest["suites"]
                                 if row["id"] != "web"))
+
+    def test_square_enclosure_preserves_page_paths_and_contextual_roles(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "glitchpad"
+            shutil.copytree(ROOT / "brands" / "glitchpad", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            brand_path = kit / "brand.json"
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            protected_paths = [item["d"] for item in brand["logo"]["paths"]["full"]]
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(brand_path), str(kit)]
+                self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            svg_dir = kit / "logos" / "svg"
+            color = (svg_dir / "glitchpad-mark-color.svg").read_text(encoding="utf-8")
+            light = (svg_dir / "glitchpad-mark-light.svg").read_text(encoding="utf-8")
+            reduced_color = (svg_dir / "glitchpad-mark-reduced-color.svg").read_text(encoding="utf-8")
+            reduced_light = (svg_dir / "glitchpad-mark-reduced-light.svg").read_text(encoding="utf-8")
+            black = (svg_dir / "glitchpad-mark-black.svg").read_text(encoding="utf-8")
+            horizontal = (svg_dir / "glitchpad-horizontal-color.svg").read_text(encoding="utf-8")
+            horizontal_light = (svg_dir / "glitchpad-horizontal-light.svg").read_text(encoding="utf-8")
+            wordmark = (svg_dir / "glitchpad-wordmark-color.svg").read_text(encoding="utf-8")
+            wordmark_light = (svg_dir / "glitchpad-wordmark-light.svg").read_text(encoding="utf-8")
+            for output in (color, light, black, horizontal):
+                self.assertIn('data-square-enclosure="true"', output)
+                self.assertNotIn("#867100", output)
+            for output in (color, light, horizontal):
+                for path in protected_paths:
+                    self.assertIn(path, output)
+            self.assertIn(protected_paths[0], black)
+            self.assertIn('viewBox="0 0 1000 1000"', color)
+            self.assertIn('fill="#FFD900"', color)
+            self.assertIn('fill="#0B0C0D"', color)
+            self.assertIn('fill="#0B0C0D"', light)
+            self.assertIn('fill="#FFD900"', light)
+            self.assertIn('fill="#0B0C0D"', reduced_color)
+            self.assertNotIn('fill="#667788"', reduced_color)
+            self.assertIn('fill="#FFD900"', reduced_light)
+            self.assertNotIn('fill="#667788"', reduced_light)
+            self.assertIn("<mask", black)
+            self.assertIn('fill="#F2F5FA"', horizontal)
+            self.assertIn('fill="#0A0A0A"', horizontal_light)
+            self.assertIn('fill="#F2F5FA"', wordmark)
+            self.assertIn('fill="#0A0A0A"', wordmark_light)
 
     def test_full_tier_page_qc_error_is_fatal(self):
         with tempfile.TemporaryDirectory() as tmp:

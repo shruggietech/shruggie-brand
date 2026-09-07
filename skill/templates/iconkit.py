@@ -293,7 +293,7 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
                           "manifest": writer.relative(manifest), "status": "generated", "reason": None})
 
 
-def _write_android(writer, full_mark):
+def _write_android(writer, full_mark, monochrome_mark):
     root = writer.kit / "icons" / "android"
     start = len(writer.artifacts)
     background = writer.profile["background"]
@@ -307,7 +307,7 @@ def _write_android(writer, full_mark):
         writer.png(res / ("mipmap-%s" % density) / "ic_launcher.png", _plated(full_mark, size, background, 0.72),
                    "android", "legacy-launcher", alpha="opaque", destination="Android res/mipmap-%s" % density)
     foreground = contain_visible(full_mark, 432, 66.0 / 108.0)
-    monochrome = contain_visible(full_mark, 432, 66.0 / 108.0, "#FFFFFF")
+    monochrome = contain_visible(monochrome_mark, 432, 66.0 / 108.0, "#FFFFFF")
     writer.png(res / "drawable-nodpi" / "ic_launcher_foreground.png", foreground, "android", "adaptive-foreground", alpha="transparent", destination="Android res/drawable-nodpi")
     writer.png(res / "drawable-nodpi" / "ic_launcher_monochrome.png", monochrome, "android", "adaptive-monochrome", alpha="transparent", destination="Android res/drawable-nodpi")
     background_xml = '<?xml version="1.0" encoding="utf-8"?>\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="@color/ic_launcher_background"/></shape>\n'
@@ -324,7 +324,7 @@ def _write_android(writer, full_mark):
                           "manifest": writer.relative(manifest), "status": "generated", "reason": None})
 
 
-def _write_ios(writer, full_mark):
+def _write_ios(writer, full_mark, monochrome_mark):
     root = writer.kit / "icons" / "apple" / "ios"
     start = len(writer.artifacts)
     background = writer.profile["background"]
@@ -337,7 +337,7 @@ def _write_ios(writer, full_mark):
     images = (
         ("AppIcon-1024.png", _plated(full_mark, 1024, background, 0.72), None),
         ("AppIcon-1024-dark.png", _plated(full_mark, 1024, "#000000", 0.72), "dark"),
-        ("AppIcon-1024-tinted.png", _plated(full_mark, 1024, "#FFFFFF", 0.72, "#000000"), "tinted"),
+        ("AppIcon-1024-tinted.png", _plated(monochrome_mark, 1024, "#FFFFFF", 0.72, "#000000"), "tinted"),
     )
     rows = []
     for name, image, appearance in images:
@@ -457,7 +457,7 @@ def _write_skipped(writer, platform, root, reason):
                           "manifest": writer.relative(manifest), "status": "skipped", "reason": reason})
 
 
-def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabilities):
+def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabilities, monochrome_svg=None):
     """Generate the authoritative platform tree and legacy web aliases."""
     kit = Path(kit).resolve()
     full_svg = Path(full_svg).resolve()
@@ -485,22 +485,26 @@ def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabili
          ("windows", "Win32 ICO and MSIX package assets"), ("domain", "Source-preserved product interface symbols, when supplied")),
     ), "web", "icon-index", destination="Kit root navigation")
     raster_capable = bool(capabilities.get("svg_raster"))
-    full_mark = reduced_mark = None
+    full_mark = reduced_mark = monochrome_mark = None
     if raster_capable:
         Image, _, _ = _pillow()
         with tempfile.TemporaryDirectory(prefix="iconkit-", dir=str(kit)) as temporary:
             full_path = Path(temporary) / "full.png"
             reduced_path = Path(temporary) / "reduced.png"
+            monochrome_path = Path(temporary) / "monochrome.png"
             render_svg(full_svg, full_path, 1024)
             render_svg(reduced_svg, reduced_path, 1024)
+            render_svg(monochrome_svg or full_svg, monochrome_path, 1024)
             with Image.open(str(full_path)) as image:
                 full_mark = image.convert("RGBA")
             with Image.open(str(reduced_path)) as image:
                 reduced_mark = image.convert("RGBA")
+            with Image.open(str(monochrome_path)) as image:
+                monochrome_mark = image.convert("RGBA")
     _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster_capable)
     if raster_capable:
-        _write_android(writer, full_mark)
-        _write_ios(writer, full_mark)
+        _write_android(writer, full_mark, monochrome_mark)
+        _write_ios(writer, full_mark, monochrome_mark)
         _write_macos(writer, full_mark)
         _write_windows(writer, full_mark, reduced_mark)
     else:

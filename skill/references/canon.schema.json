@@ -46,7 +46,8 @@
     "logo": {
       "type": "object",
       "properties": {
-        "application_icon": {"$ref": "#/$defs/applicationIcon"}
+        "application_icon": {"$ref": "#/$defs/applicationIcon"},
+        "square_enclosure": {"$ref": "#/$defs/squareEnclosure"}
       },
       "additionalProperties": true
     }
@@ -85,6 +86,22 @@
       "additionalProperties": false,
       "properties": {
         "background": {"$ref": "#/$defs/hexColor"}
+      }
+    },
+    "squareEnclosure": {
+      "type": "object",
+      "required": ["canvas_size", "inset", "corner_radius", "stroke_width", "content_scale", "frame_role", "stroke_role", "knockout_role", "monochrome_knockout"],
+      "additionalProperties": false,
+      "properties": {
+        "canvas_size": {"type": "number", "exclusiveMinimum": 0},
+        "inset": {"type": "number", "minimum": 0},
+        "corner_radius": {"type": "number", "minimum": 0},
+        "stroke_width": {"type": "number", "minimum": 0},
+        "content_scale": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "frame_role": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "stroke_role": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "knockout_role": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "monochrome_knockout": {"const": true}
       }
     },
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, scan_affiliation_output, sha256_file, showcase_surface, validate_brand
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, wordmark_role_colors
 from ingest_font import ingest_font
 
 
@@ -152,6 +152,77 @@ class ShowcaseSurfaceTests(unittest.TestCase):
         brand["showcase_surface"] = ""
         with self.assertRaisesRegex(ContractError, "non-empty"):
             showcase_surface(brand)
+
+
+class SquareEnclosureProfileTests(unittest.TestCase):
+    def test_optional_profile_resolves_complete_safe_geometry(self):
+        brand = owned_brand()
+        self.assertIsNone(square_enclosure_profile(brand))
+        brand["logo"]["square_enclosure"] = {
+            "canvas_size": 1000,
+            "inset": 62,
+            "corner_radius": 142,
+            "stroke_width": 24,
+            "content_scale": 0.72,
+            "frame_role": "frame",
+            "stroke_role": "frame_stroke",
+            "knockout_role": "neutral",
+            "monochrome_knockout": True,
+        }
+        brand["logo"]["role_colors"] = {
+            "color": {"frame": "#FFD900", "frame_stroke": "#FFD900"},
+            "light": {"frame": "#0B0C0D", "frame_stroke": "#0B0C0D"},
+        }
+        self.assertEqual(876, square_enclosure_profile(brand)["size"])
+
+    def test_profile_rejects_unsafe_or_incomplete_geometry(self):
+        brand = owned_brand()
+        profile = {
+            "canvas_size": 1000,
+            "inset": 62,
+            "corner_radius": 142,
+            "stroke_width": 24,
+            "content_scale": 0.72,
+            "frame_role": "frame",
+            "stroke_role": "frame_stroke",
+            "knockout_role": "neutral",
+            "monochrome_knockout": True,
+        }
+        brand["logo"]["square_enclosure"] = profile
+        brand["logo"]["role_colors"] = {
+            "color": {"frame": "#FFD900", "frame_stroke": "#FFD900"},
+            "light": {"frame": "#0B0C0D", "frame_stroke": "#0B0C0D"},
+        }
+        for field in tuple(profile):
+            broken = copy.deepcopy(brand)
+            del broken["logo"]["square_enclosure"][field]
+            with self.subTest(field=field), self.assertRaisesRegex(ContractError, "square enclosure"):
+                square_enclosure_profile(broken)
+        brand["logo"]["square_enclosure"]["inset"] = 10
+        with self.assertRaisesRegex(ContractError, "stroke inside"):
+            square_enclosure_profile(brand)
+        brand["logo"]["square_enclosure"]["inset"] = 62
+        brand["logo"]["square_enclosure"]["content_scale"] = 1.2
+        with self.assertRaisesRegex(ContractError, "content_scale"):
+            square_enclosure_profile(brand)
+        brand["logo"]["square_enclosure"]["content_scale"] = 1.0
+        brand["logo"]["paths"]["full"] = [{"role": "accent", "d": "M0 0H2000V2000Z"}]
+        brand["logo"]["paths"]["reduced"] = [{"role": "accent", "d": "M0 0H2000V2000Z"}]
+        with self.assertRaisesRegex(ContractError, "exceed the safe content area"):
+            square_enclosure_profile(brand)
+
+    def test_optional_wordmark_role_is_complete_and_source_owned(self):
+        brand = owned_brand()
+        self.assertIsNone(wordmark_role_colors(brand))
+        brand["logo"]["role_colors"] = {
+            "color": {"wordmark": "#F2F5FA"},
+            "light": {"wordmark": "#0A0A0A"},
+        }
+        self.assertEqual({"color": "#F2F5FA", "light": "#0A0A0A"},
+                         wordmark_role_colors(brand))
+        del brand["logo"]["role_colors"]["light"]["wordmark"]
+        with self.assertRaisesRegex(ContractError, "light.wordmark"):
+            wordmark_role_colors(brand)
 
 
 class AuthoritativeInputTests(unittest.TestCase):
