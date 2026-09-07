@@ -24,7 +24,7 @@ import argparse, json, os, sys
 from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
-from brand_contract import affiliation, affiliation_text
+from brand_contract import affiliation, affiliation_text, logo_metrics
 
 def chips(t, keys, light=False):
     o = ""
@@ -164,9 +164,7 @@ def build(B, kit):
     sep = M.get("hue_separation_deg", {})
     near = min(sep.values()) if sep else None
     LG = B.get("logo", {})
-    grid = LG.get("grid", 512); cs = LG.get("clear_space_units", 60)
-    canvas_width = LG.get("canvas_width", grid); canvas_height = LG.get("canvas_height", grid)
-    artwork_width = LG.get("artwork_width", canvas_width)
+    cs, canvas_width, canvas_height, artwork_width = logo_metrics(B)
     lockups = LG.get("lockups") or {}
     horizontal_lockup = lockups.get("horizontal") or {}
     stacked_lockup = lockups.get("stacked") or {}

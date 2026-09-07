@@ -142,6 +142,96 @@ def application_icon_profile(brand):
     return {"background": background.upper(), "reduced_below_px": threshold}
 
 
+def square_enclosure_profile(brand):
+    """Resolve an optional, safely inset square composition around source paths."""
+    logo = brand.get("logo") or {}
+    configured = logo.get("square_enclosure")
+    if configured is None:
+        return None
+    required = {"canvas_size", "inset", "corner_radius", "stroke_width",
+                "content_scale", "frame_role", "stroke_role", "knockout_role",
+                "monochrome_knockout"}
+    _require(isinstance(configured, dict) and set(configured) == required,
+             "square enclosure must contain exactly the supported fields")
+
+    def number(name):
+        value = configured[name]
+        _require(isinstance(value, (int, float)) and not isinstance(value, bool),
+                 "square enclosure %s must be numeric" % name)
+        return float(value)
+
+    canvas_size = number("canvas_size")
+    inset = number("inset")
+    corner_radius = number("corner_radius")
+    stroke_width = number("stroke_width")
+    content_scale = number("content_scale")
+    size = canvas_size - inset * 2.0
+    _require(canvas_size > 0 and size > 0, "square enclosure canvas and inset must leave positive area")
+    _require(stroke_width >= 0 and inset >= stroke_width / 2.0,
+             "square enclosure must keep its stroke inside the canvas")
+    _require(0 <= corner_radius <= size / 2.0,
+             "square enclosure corner_radius must fit the square")
+    _require(0 < content_scale <= 1.0,
+             "square enclosure content_scale must be greater than zero and at most one")
+    role_pattern = re.compile(r"^[a-z][a-z0-9_]*$")
+    for name in ("frame_role", "stroke_role", "knockout_role"):
+        _require(isinstance(configured[name], str) and role_pattern.fullmatch(configured[name]),
+                 "square enclosure %s must be a valid role name" % name)
+    _require(configured["monochrome_knockout"] is True,
+             "square enclosure monochrome_knockout must be true")
+    role_colors = logo.get("role_colors") or {}
+    for colourway in ("color", "light"):
+        mapping = role_colors.get(colourway)
+        _require(isinstance(mapping, dict),
+                 "square enclosure requires logo.role_colors.%s" % colourway)
+        for role in (configured["frame_role"], configured["stroke_role"]):
+            value = mapping.get(role)
+            _require(isinstance(value, str) and HEX.fullmatch(value),
+                     "square enclosure role %s.%s must be a six-digit hex color"
+                     % (colourway, role))
+    result = dict(configured)
+    result.update({"canvas_size": canvas_size, "inset": inset,
+                   "corner_radius": corner_radius, "stroke_width": stroke_width,
+                   "content_scale": content_scale, "size": size})
+    return result
+
+
+def logo_metrics(brand):
+    """Return the delivered mark's clear space, canvas, and artwork width."""
+    logo = brand.get("logo") or {}
+    enclosure = square_enclosure_profile(brand)
+    if enclosure:
+        clear_space = enclosure["inset"] - enclosure["stroke_width"] / 2.0
+        artwork_width = enclosure["size"] + enclosure["stroke_width"]
+        return clear_space, enclosure["canvas_size"], enclosure["canvas_size"], artwork_width
+    grid = logo.get("grid", 512)
+    clear_space = logo.get("clear_space_units", 60)
+    canvas_width = logo.get("canvas_width", grid)
+    canvas_height = logo.get("canvas_height", grid)
+    artwork_width = logo.get("artwork_width", canvas_width)
+    return clear_space, canvas_width, canvas_height, artwork_width
+
+
+def wordmark_role_colors(brand):
+    """Resolve optional source-owned dark and light wordmark colors."""
+    role_colors = ((brand.get("logo") or {}).get("role_colors") or {})
+    values = {}
+    present = False
+    for colourway in ("color", "light"):
+        mapping = role_colors.get(colourway)
+        value = mapping.get("wordmark") if isinstance(mapping, dict) else None
+        present = present or value is not None
+        values[colourway] = value
+    if not present:
+        return None
+    for colourway, value in values.items():
+        _require(isinstance(value, str) and HEX.fullmatch(value),
+                 "logo role_colors.%s.wordmark must be a six-digit hex color"
+                 % colourway)
+        values[colourway] = value.upper()
+    return values
+
+
 def showcase_surface(brand):
     """Resolve an optional large-presentation surface through a governed role."""
     role = brand.get("showcase_surface")
@@ -459,6 +549,8 @@ def validate_brand(brand, kit):
         _require(all(isinstance(value, str) and HEX.fullmatch(value) for value in colors.values()), "independent semantic colors must be six-digit hex values")
     validate_typography(brand, kit)
     application_icon_profile(brand)
+    square_enclosure_profile(brand)
+    wordmark_role_colors(brand)
     showcase_surface(brand)
     evidence = analyze_authoritative_inputs(brand, kit)
     validate_palette_approvals(brand, evidence)

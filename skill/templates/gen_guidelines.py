@@ -16,7 +16,7 @@ import argparse, json, os, sys
 from html import escape
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
-from brand_contract import affiliation_text
+from brand_contract import affiliation_text, logo_metrics
 
 def sw(t, keys):
     return "".join('<div class="sw"><div class="chip" style="background:%s"></div>'
@@ -46,6 +46,7 @@ def build(B, kit):
         return "" if not b else '<img class="%s" src="data:image/png;base64,%s" alt="%s">' % (cls, b, escape(alt, quote=True))
     type_ = type_context(B)
     endorsement = affiliation_text(B)
+    cs, canvas_width, canvas_height, artwork_width = logo_metrics(B)
 
     return """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -177,15 +178,14 @@ Below %(red)d px the reduced master takes over.</p>
         "fgc": fg.get("color", "?"), "fgr": fg.get("ratio", "?"),
         "bars": "".join('<div style="background:%s;height:%d%%"></div>'
                         % (D["chart-%d" % i], 40 + i * 12) for i in range(1, 6)),
-        "canvas_width": (B.get("logo") or {}).get("canvas_width", (B.get("logo") or {}).get("grid", 512)),
-        "canvas_height": (B.get("logo") or {}).get("canvas_height", (B.get("logo") or {}).get("grid", 512)),
+        "canvas_width": canvas_width,
+        "canvas_height": canvas_height,
         "hmark": float(horizontal_lockup.get("mark_height_units", 160.0)),
         "hgap": float(horizontal_lockup.get("gap_units", 34.0)),
         "smark": float(stacked_lockup.get("mark_height_c", 1.8)),
         "sgap": float(stacked_lockup.get("gap_c", 0.45)),
-        "cs": (B.get("logo") or {}).get("clear_space_units", 60),
-        "cspct": 100.0 * (B.get("logo") or {}).get("clear_space_units", 60)
-                 / (B.get("logo") or {}).get("artwork_width", (B.get("logo") or {}).get("grid", 512)),
+        "cs": cs,
+        "cspct": 100.0 * cs / artwork_width,
         "red": (B.get("logo") or {}).get("reduced_below_px", 32),
         "endorsement": "" if not endorsement else '<div class="endorse">%s</div>' % escape(endorsement),
         **type_,

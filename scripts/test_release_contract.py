@@ -71,7 +71,7 @@ class ReleaseContractTests(unittest.TestCase):
             "shruggietech-brand-1.0.0.zip",
             "fragcap-brand-1.1.0.zip",
             "go-schedule-brand-1.0.0.zip",
-            "glitchpad-brand-1.0.0.zip",
+            "glitchpad-brand-1.1.0.zip",
             "covarity-brand-1.0.0.zip",
         })
         self.assertEqual(
@@ -80,7 +80,7 @@ class ReleaseContractTests(unittest.TestCase):
                 "shruggietech": "1.0.0",
                 "fragcap": "1.1.0",
                 "go-schedule": "1.0.0",
-                "glitchpad": "1.0.0",
+                "glitchpad": "1.1.0",
                 "covarity": "1.0.0",
             },
         )
