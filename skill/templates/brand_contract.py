@@ -173,6 +173,26 @@ def square_enclosure_profile(brand):
              "square enclosure corner_radius must fit the square")
     _require(0 < content_scale <= 1.0,
              "square enclosure content_scale must be greater than zero and at most one")
+    safe_span = size - stroke_width
+    _require(safe_span > 0, "square enclosure stroke must leave a positive safe content area")
+    try:
+        from svgelements import Path as SvgPath
+        path_sets = (logo.get("paths") or {})
+        for form in ("full", "reduced"):
+            items = path_sets.get(form) or (path_sets.get("full") if form == "reduced" else []) or []
+            boxes = [SvgPath(item["d"]).bbox() for item in items
+                     if isinstance(item, dict) and isinstance(item.get("d"), str)]
+            _require(boxes and len(boxes) == len(items),
+                     "square enclosure requires measurable %s path geometry" % form)
+            width = max(box[2] for box in boxes) - min(box[0] for box in boxes)
+            height = max(box[3] for box in boxes) - min(box[1] for box in boxes)
+            _require(width * content_scale <= safe_span + 0.5
+                     and height * content_scale <= safe_span + 0.5,
+                     "square enclosure %s paths exceed the safe content area" % form)
+    except ContractError:
+        raise
+    except Exception as error:
+        raise ContractError("square enclosure path geometry cannot be measured: %s" % error)
     role_pattern = re.compile(r"^[a-z][a-z0-9_]*$")
     for name in ("frame_role", "stroke_role", "knockout_role"):
         _require(isinstance(configured[name], str) and role_pattern.fullmatch(configured[name]),

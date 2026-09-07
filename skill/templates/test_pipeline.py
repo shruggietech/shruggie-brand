@@ -48,6 +48,10 @@ class PipelineTests(unittest.TestCase):
         brand = json.loads((ROOT / "brands" / "glitchpad" / "brand.json").read_text(encoding="utf-8"))
         self.assertEqual((50.0, 1000.0, 1000.0, 900.0), gen_guide_pdf.logo_metrics(brand))
         self.assertEqual((50.0, 1000.0, 1000.0, 900.0), gen_guidelines.logo_metrics(brand))
+        guidance = gen_guidelines.clear_space_guidance(brand, 50.0)
+        self.assertIn("50 units of external clear space", guidance)
+        self.assertIn("70-unit G channel", guidance)
+        self.assertIn("not the external clear-space requirement", guidance)
 
     @staticmethod
     def owned_affiliation():

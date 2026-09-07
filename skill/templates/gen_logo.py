@@ -395,9 +395,10 @@ def main():
         y = (enclosure["canvas_size"] - source_height * scale) / 2.0
         safe_min = enclosure["inset"] + enclosure["stroke_width"] / 2.0
         safe_max = enclosure["canvas_size"] - safe_min
-        assert x >= safe_min - 0.5 and y >= safe_min - 0.5
-        assert x + source_width * scale <= safe_max + 0.5
-        assert y + source_height * scale <= safe_max + 0.5
+        if (x < safe_min - 0.5 or y < safe_min - 0.5
+                or x + source_width * scale > safe_max + 0.5
+                or y + source_height * scale > safe_max + 0.5):
+            raise ValueError("square enclosure content exceeds the validated safe area")
         return source_box, x, y, scale
 
     def render_mark(path_list, roles, colourway, indent="  "):

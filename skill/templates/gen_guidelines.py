@@ -23,6 +23,16 @@ def sw(t, keys):
                    '<div class="mono">%s</div><div class="mono dim">%s</div></div>'
                    % (t[k], k, t[k]) for k in keys if k in t)
 
+def clear_space_guidance(brand, clear_space):
+    logo = brand.get("logo") or {}
+    if logo.get("square_enclosure"):
+        channel = logo.get("g_thickness_units")
+        internal = (" The protected inner page retains its %g-unit G channel; that internal measurement is not the external clear-space requirement." % channel
+                    if isinstance(channel, (int, float)) and not isinstance(channel, bool) else "")
+        return ("The delivered square keeps %g units of external clear space on every side.%s Never resize the mark and wordmark independently."
+                % (clear_space, internal))
+    return "The horizontal row records its approved master composition. C is the outlined wordmark cap height used by the stacked lockup. X is the 70-unit G channel. Keep one X clear around every master. Never resize the mark and wordmark independently."
+
 def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
@@ -155,7 +165,7 @@ Below %(red)d px the reduced master takes over.</p>
 <table><tr><th>lockup</th><th>mark height</th><th>gap</th><th>alignment</th></tr>
 <tr><td>horizontal</td><td>%(hmark).0f units</td><td>%(hgap).0f units</td><td>optical center</td></tr>
 <tr><td>stacked</td><td>%(smark).2fC</td><td>%(sgap).2fC</td><td>centered on wordmark ink width</td></tr></table>
-<p class="lead">The horizontal row records its approved master composition. C is the outlined wordmark cap height used by the stacked lockup. X is the 70-unit G channel. Keep one X clear around every master. Never resize the mark and wordmark independently.</p>
+<p class="lead">%(clear_space_guidance)s</p>
 </section>
 
 <section><div class="eyebrow">Delivery</div><h2>Application icon suites</h2>
@@ -186,6 +196,7 @@ Below %(red)d px the reduced master takes over.</p>
         "sgap": float(stacked_lockup.get("gap_c", 0.45)),
         "cs": cs,
         "cspct": 100.0 * cs / artwork_width,
+        "clear_space_guidance": clear_space_guidance(B, cs),
         "red": (B.get("logo") or {}).get("reduced_below_px", 32),
         "endorsement": "" if not endorsement else '<div class="endorse">%s</div>' % escape(endorsement),
         **type_,

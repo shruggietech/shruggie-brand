@@ -205,6 +205,11 @@ class SquareEnclosureProfileTests(unittest.TestCase):
         brand["logo"]["square_enclosure"]["content_scale"] = 1.2
         with self.assertRaisesRegex(ContractError, "content_scale"):
             square_enclosure_profile(brand)
+        brand["logo"]["square_enclosure"]["content_scale"] = 1.0
+        brand["logo"]["paths"]["full"] = [{"role": "accent", "d": "M0 0H2000V2000Z"}]
+        brand["logo"]["paths"]["reduced"] = [{"role": "accent", "d": "M0 0H2000V2000Z"}]
+        with self.assertRaisesRegex(ContractError, "exceed the safe content area"):
+            square_enclosure_profile(brand)
 
     def test_optional_wordmark_role_is_complete_and_source_owned(self):
         brand = owned_brand()
