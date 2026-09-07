@@ -6,7 +6,7 @@
 | --- | --- |
 | path | Existing generated file, normalized relative to kit root |
 | family | `logo` or `icon` |
-| semantic key | Stable role, variant, colourway, appearance, and source combination |
+| semantic key | Stable visual role, variant, colourway, appearance, and source combination, with destination-only roles normalized |
 | format | Measured file format |
 | dimensions | Measured width and height where applicable |
 | destination | Existing integration destination or logo use class |

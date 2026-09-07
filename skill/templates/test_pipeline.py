@@ -78,6 +78,16 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(1, len(groups))
         self.assertEqual({"asset-catalog-icon", "iconset-icon"}, {item["role"] for item in groups[0]["deliveries"]})
 
+    def test_guideline_asset_groups_merge_web_destination_roles_without_losing_role_data(self):
+        deliveries = [
+            {"path": "icons/web/favicon-180x180.png", "family": "icon", "platform": "web", "role": "favicon", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 180, "height": 180, "destination": "Web root"},
+            {"path": "icons/web/apple-touch-icon.png", "family": "icon", "platform": "web", "role": "apple-touch", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 180, "height": 180, "destination": "Apple touch icon"},
+            {"path": "icons/web/icon-192.png", "family": "icon", "platform": "web", "role": "installable", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 192, "height": 192, "destination": "Web app manifest"},
+        ]
+        groups = gen_guidelines.group_asset_deliveries(deliveries)
+        self.assertEqual(1, len(groups))
+        self.assertEqual({"favicon", "apple-touch", "installable"}, {item["role"] for item in groups[0]["deliveries"]})
+
     def test_guideline_swatches_cover_every_role_and_deduplicate_equal_values(self):
         html = gen_guidelines._swatches("Dark palette", [
             ("primary", "#2BCC73"), ("ring", "#2BCC73"), ("chart-1", "#58A6FF"),
@@ -101,6 +111,11 @@ class PipelineTests(unittest.TestCase):
                 artifacts.append({"path": relative, "platform": "web", "role": "favicon",
                                   "appearance": "default", "source_variant": "reduced", "format": "png",
                                   "width": size, "height": size, "destination": "Web root"})
+            instructions = "icons/web/README.md"
+            (kit / instructions).write_text("# Web icon instructions\n", encoding="utf-8")
+            artifacts.append({"path": instructions, "platform": "web", "role": "instructions",
+                              "appearance": "default", "source_variant": "reduced", "format": "markdown",
+                              "destination": "Web integration guide"})
             (kit / "icons" / "manifest.json").write_text(json.dumps({
                 "artifacts": artifacts,
                 "suites": [{"id": "windows-store", "status": "skipped"}],
@@ -113,6 +128,9 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("favicon-16x16.png", catalog)
             self.assertIn("favicon-32x32.png", catalog)
             self.assertIn("favicon.png", catalog)
+            self.assertIn("Integration instructions", catalog)
+            self.assertIn("icons/web/README.md", catalog)
+            self.assertEqual(4, catalog.count("data-kit-asset"))
             self.assertIn("Unavailable at this capability tier: windows-store", catalog)
             self.assertIn("aliases are listed with their canonical delivery group", catalog)
 

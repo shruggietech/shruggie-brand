@@ -200,7 +200,7 @@ try {
           page.request.get(`${base}/${contract.brandSlug}/downloads/files/logos/provenance.json`).then((response) => response.json()),
           page.request.get(`${base}/${contract.brandSlug}/downloads/files/icons/manifest.json`).then((response) => response.json()),
         ]);
-        const eligibleIconFormats = new Set(['png', 'svg', 'ico', 'icns', 'json', 'xml']);
+        const eligibleIconFormats = new Set(['png', 'svg', 'ico', 'icns', 'json', 'xml', 'markdown']);
         const expectedPaths = [
           ...logoInventory.derivatives.map((item) => item.path),
           ...iconInventory.artifacts.filter((item) => eligibleIconFormats.has(item.format)).map((item) => item.path),
@@ -225,6 +225,15 @@ try {
         await page.locator('#assets').scrollIntoViewIfNeeded();
         await page.waitForFunction(() => document.querySelector('button.back-top')?.classList.contains('visible'));
         check(await backTop.getAttribute('tabindex') === '0', `${route} back-to-top remains unfocusable after the opening leaves view`);
+        await backTop.focus();
+        await page.locator('header').scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => window.scrollY < 2);
+        check(await backTop.evaluate((element) => document.activeElement === element && element.classList.contains('visible')), `${route} hides the focused back-to-top control`);
+        await backTop.evaluate((element) => element.blur());
+        await page.waitForFunction(() => !document.querySelector('button.back-top')?.classList.contains('visible'));
+        check(await backTop.getAttribute('tabindex') === '-1', `${route} retains back-to-top in the tab order after focus leaves at the top`);
+        await page.locator('#assets').scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => document.querySelector('button.back-top')?.classList.contains('visible'));
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await backTop.click();
         await page.waitForFunction(() => document.activeElement?.id === 'top' && window.scrollY < 2);

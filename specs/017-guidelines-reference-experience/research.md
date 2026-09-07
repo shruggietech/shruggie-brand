@@ -6,7 +6,7 @@ Use `logos/provenance.json` and `icons/manifest.json`. Their records already car
 
 ## Decision 2: Group by semantic design key, then retain delivery records
 
-Logo groups use kind, variant, and colourway; icon groups use platform, role, appearance, and source variant. Dimensions do not create a new group. Compatibility aliases attach to their target group. The largest raster or vector master becomes the representative.
+Logo groups use kind, variant, and colourway; icon groups use platform, appearance, source variant, and a semantic visual role. Destination-only web roles and the two macOS application-icon integration roles normalize to one visual role while every original role remains visible in its delivery row. Dimensions do not create a new group. Compatibility aliases attach to their target group. The largest raster or vector master becomes the representative.
 
 ## Decision 3: Embed previews but link to delivery files
 

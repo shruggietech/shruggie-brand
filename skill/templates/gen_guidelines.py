@@ -45,6 +45,8 @@ def group_asset_deliveries(deliveries):
         visual_role = item.get("role")
         if item.get("platform") == "apple-macos" and visual_role in {"asset-catalog-icon", "iconset-icon"}:
             visual_role = "app-icon"
+        if item.get("platform") == "web" and visual_role in {"favicon", "apple-touch", "installable"}:
+            visual_role = "web-icon"
         normalized = dict(item); normalized["role"] = visual_role
         key = tuple(item.get(field) or "default" for field in
                     ("family", "platform", "kind", "variant", "colourway")) + (
@@ -106,7 +108,7 @@ def asset_deliveries(kit):
     icons = json.loads(Path(kit, "icons", "manifest.json").read_text(encoding="utf-8"))
     icon_rows = {}
     for item in icons["artifacts"]:
-        if item.get("format") not in {"png", "svg", "ico", "icns", "json", "xml"}:
+        if item.get("format") not in {"png", "svg", "ico", "icns", "json", "xml", "markdown"}:
             continue
         path = Path(kit, item["path"])
         if not path.is_file():
@@ -141,7 +143,8 @@ def _preview(kit, item, title):
 
 def _asset_catalog(kit, title):
     deliveries, suites, aliases = asset_deliveries(kit)
-    groups = group_asset_deliveries(deliveries)
+    instructions = [item for item in deliveries if item.get("format") == "markdown"]
+    groups = group_asset_deliveries([item for item in deliveries if item.get("format") != "markdown"])
     cards = []
     for group in groups:
         row = group["representative"]
@@ -174,7 +177,15 @@ def _asset_catalog(kit, title):
     skipped = [suite["id"] for suite in suites if suite.get("status") == "skipped"]
     note = ("<p class=\"notice\">Unavailable at this capability tier: %s.</p>" % escape(", ".join(skipped))) if skipped else ""
     alias_note = "" if not aliases else '<p class="lead">Compatibility aliases are listed with their canonical delivery group; byte-identical aliases do not create duplicate previews.</p>'
-    return note + alias_note + '<div class="asset-grid">' + "".join(cards) + "</div>"
+    instruction_items = "".join('<li><a data-kit-asset href="../%s">%s</a><span>%s · MARKDOWN · %s</span></li>' %
+                                (escape(item["path"], quote=True), escape(item["path"]),
+                                 escape(str(item.get("role") or "instructions")),
+                                 escape(str(item.get("destination") or "Integration instructions")))
+                                for item in sorted(instructions, key=lambda item: item["path"]))
+    instruction_note = ('<div class="instruction-files"><h3>Integration instructions</h3>'
+                        '<p class="lead">Read the instructions for each platform before installing its assets.</p>'
+                        '<ul class="deliveries">%s</ul></div>' % instruction_items) if instruction_items else ""
+    return note + alias_note + instruction_note + '<div class="asset-grid">' + "".join(cards) + "</div>"
 
 def _swatches(title, values, brand_title):
     cards = []
@@ -284,7 +295,7 @@ section { scroll-margin-top:24px; }
 .theme-well .mini-bars span { flex:1; height:var(--height); background:var(--bar); border-radius:4px 4px 0 0; }
 .notice { border:1px solid var(--border); border-radius:var(--radius-md); padding:12px; }
 .back-top { position:fixed; right:16px; bottom:16px; min-width:44px; min-height:44px; opacity:0; pointer-events:none; transform:translateY(8px); }
-.back-top.visible { opacity:1; pointer-events:auto; transform:none; }
+.back-top.visible,.back-top:focus { opacity:1; pointer-events:auto; transform:none; }
 .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
 .mono { font-family:var(--font-mono); font-size:.75rem; margin-top:6px; }
 .dim { color:var(--muted-foreground); }
@@ -379,7 +390,7 @@ Below %(red)d px the reduced master takes over.</p>
 const topTarget=document.querySelector('header');const topButton=document.querySelector('.back-top');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 for(const button of document.querySelectorAll('[data-copy]'))button.addEventListener('click',async()=>{const status=document.querySelector('#copy-status');try{if(!navigator.clipboard)throw new Error('unavailable');await navigator.clipboard.writeText(button.dataset.copy);status.textContent='Copied '+button.getAttribute('aria-label').replace(/^Copy /,'');}catch(error){status.textContent='Copy failed. Select the displayed value instead.';}});
-if('IntersectionObserver' in window){topButton.hidden=false;new IntersectionObserver(([entry])=>{topButton.classList.toggle('visible',!entry.isIntersecting);topButton.tabIndex=entry.isIntersecting?-1:0;}).observe(topTarget);topButton.addEventListener('click',()=>{topTarget.scrollIntoView({behavior:reduced.matches?'auto':'smooth'});topTarget.setAttribute('tabindex','-1');topTarget.focus({preventScroll:true});});}
+if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;const syncTopButton=()=>{const show=!topVisible||document.activeElement===topButton;topButton.classList.toggle('visible',show);topButton.tabIndex=show?0:-1;};new IntersectionObserver(([entry])=>{topVisible=entry.isIntersecting;syncTopButton();}).observe(topTarget);topButton.addEventListener('blur',syncTopButton);topButton.addEventListener('click',()=>{topTarget.scrollIntoView({behavior:reduced.matches?'auto':'smooth'});topTarget.setAttribute('tabindex','-1');topTarget.focus({preventScroll:true});});}
 </script></body></html>""" % {
         "title": title, "faces": faces(kit, B), "lv": lv, "dv": dv,
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),

@@ -17,7 +17,7 @@ Specification, clarification, requirements checklist, experience checklist, plan
 
 - Manifest grouping, largest-preview selection, skipped capability disclosure, missing-file rejection, alias retention, container-size extraction, deterministic conversion, and conversion round trips were exercised in `test_pipeline.py`.
 - Hosted asset rewrite, traversal rejection, missing-target rejection, metadata preservation, and exactly-one-exit behavior were exercised in `test_prepare_site.py`.
-- The final focused matrix passed: 39 pipeline tests, 22 prepare-site tests, 28 brand-contract tests, 14 icon-kit tests, 13 release-contract tests, 2 package-release tests, and 31 glyph checks with zero failures.
+- The final focused matrix passed: 40 pipeline tests, 22 prepare-site tests, 28 brand-contract tests, 14 icon-kit tests, 13 release-contract tests, 2 package-release tests, and 31 glyph checks with zero failures.
 - Python compilation and the Markdown prose policy passed. Generated `skill/AGENTS.md` remained synchronized.
 
 ### Production and publication gates
@@ -26,7 +26,7 @@ Specification, clarification, requirements checklist, experience checklist, plan
 - Release packaging created and verified all seven version 1.2.1 assets without publishing them.
 - Site preparation and TypeScript lint passed. A production build with Next.js's supported webpack builder compiled, type-checked, generated all 26 static pages, and completed build traces.
 - The normal Windows Turbopack launcher failed to spawn its pooled Node child with operating-system error 5 and misleadingly named an existing generated MDX file as missing. This matches the established local host limitation; hosted Linux CI remains the authoritative Turbopack result.
-- Browser verification passed 11 payload/origin tests and all 26 HTML routes at 360 and 1280 pixels with zero WCAG 2.1 AA violations. The guideline checks prove exact manifest-derived path coverage, no duplicate delivery links, governed dark/light wells, 44 px copy targets, clipboard success and denial announcements, a no-script top anchor, a progressive focus-safe back-to-top interaction, reduced motion, 200 percent zoom, and exactly one hosted `All brands` exit.
+- Browser verification passed 11 payload/origin tests and all 26 HTML routes at 360 and 1280 pixels with zero WCAG 2.1 AA violations. The guideline checks prove exact manifest-derived path coverage including platform instruction files, no duplicate delivery links, governed dark/light wells, 44 px copy targets, clipboard success and denial announcements, a no-script top anchor, a progressive back-to-top control that remains visible while focused, reduced motion, 200 percent zoom, and exactly one hosted `All brands` exit.
 
 ### Visual and integrity review
 
@@ -36,5 +36,5 @@ The five responsive guideline sheets were inspected at 1280 and 390 pixels. The 
 
 - Pull request: https://github.com/shruggietech/shruggie-brand/pull/155
 - Automatic Codex review: completed against `73cd7e0`. Its two findings covered complete dark/light token references and macOS integration-role preview deduplication. Both are implemented with focused regressions and complete local gates.
-- Optional second review round: pending exactly one authorized `@Codex review` request after the corrective commit.
-- Hosted CI and final review state: pending the corrective head.
+- Authorized second Codex review: completed against `9652f1d` after exactly one `@Codex review` request. Its three findings covered destination-only web preview duplication, focused back-to-top visibility, and manifest-declared Markdown instruction deliveries. All three have focused regressions and are corrected in the final review-response commit.
+- Hosted CI and final review state: pending the final review-response head.
