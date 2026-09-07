@@ -307,6 +307,26 @@ def add_guideline_metadata(path: Path, route: dict[str, Any]) -> None:
     content, title_count = re.subn(r"<title>.*?</title>", f"<title>{escape(title)}</title>", content, count=1, flags=re.DOTALL)
     if title_count != 1:
         raise ValueError(f"guideline page lacks exactly one title element: {path}")
+    slug = route.get("brandSlug")
+    if not slug:
+        raise ValueError("guideline publication route lacks a brand slug")
+
+    def rewrite_asset(match: re.Match[str]) -> str:
+        href = match.group(1)
+        if (not href.startswith("../") or "\\" in href or "?" in href or "#" in href
+                or ".." in href[3:].split("/") or not re.fullmatch(r"(?:logos|icons|favicons|specimens)/[A-Za-z0-9._@/-]+", href[3:])):
+            raise ValueError(f"unsafe guideline asset link: {href}")
+        relative = href[3:]
+        target = path.parents[1] / "downloads" / "files" / Path(relative)
+        if not target.is_file():
+            raise ValueError(f"guideline asset link target is missing: {relative}")
+        return f'<a data-kit-asset href="/{slug}/downloads/files/{relative}"'
+
+    content = re.sub(r'<a data-kit-asset href="([^"]+)"', rewrite_asset, content)
+    placeholder = '<span data-host-exit></span>'
+    if content.count(placeholder) != 1:
+        raise ValueError("guideline host exit placeholder must occur exactly once")
+    content = content.replace(placeholder, '<span data-host-exit><a class="host-exit" href="/">All brands</a></span>')
     write_utf8(path, content.replace("<head>", "<head>" + tags, 1))
 
 

@@ -42,6 +42,100 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_guideline_color_references_are_deterministic_and_complete(self):
+        reference = gen_guidelines.color_reference("primary", "#2BCC73")
+        self.assertEqual("#2BCC73", reference["hex"])
+        self.assertEqual("rgb(43 204 115)", reference["rgb"])
+        self.assertIn("hsl(", reference["hsl"])
+        self.assertIn("oklch(", reference["oklch"])
+        self.assertIn("lab(", reference["lab"])
+        self.assertEqual("CMYK: output profile required", reference["print"])
+
+        neutral = gen_guidelines.color_reference("border", "#262626")
+        self.assertEqual("hsl(0.0 0.0% 14.9%)", neutral["hsl"])
+        self.assertEqual("oklch(0.2686 0.0000 0.0)", neutral["oklch"])
+        canonical = gen_guidelines.Color(reference["hex"]).convert("srgb").coords()
+        for format_ in ("hsl", "oklch", "lab"):
+            converted = gen_guidelines.Color(reference[format_].split(" (")[0]).convert("srgb").coords()
+            self.assertLessEqual(max(abs(left - right) * 255 for left, right in zip(canonical, converted)), 0.5)
+
+    def test_guideline_asset_groups_deduplicate_sizes_without_losing_deliveries(self):
+        deliveries = [
+            {"path": "icons/web/favicon-16x16.png", "family": "icon", "platform": "web", "role": "favicon", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 16, "height": 16, "destination": "Web root"},
+            {"path": "icons/web/favicon-32x32.png", "family": "icon", "platform": "web", "role": "favicon", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 32, "height": 32, "destination": "Web root"},
+        ]
+        groups = gen_guidelines.group_asset_deliveries(deliveries)
+        self.assertEqual(1, len(groups))
+        self.assertEqual(2, len(groups[0]["deliveries"]))
+        self.assertEqual("icons/web/favicon-32x32.png", groups[0]["representative"]["path"])
+
+    def test_guideline_catalog_uses_manifests_and_reports_skipped_capabilities(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            (kit / "logos").mkdir()
+            (kit / "icons" / "web").mkdir(parents=True)
+            (kit / "logos" / "provenance.json").write_text(
+                json.dumps({"derivatives": []}), encoding="utf-8")
+            artifacts = []
+            for size in (16, 32):
+                relative = "icons/web/favicon-%dx%d.png" % (size, size)
+                Image.new("RGBA", (size, size), (43, 204, 115, 255)).save(kit / relative)
+                artifacts.append({"path": relative, "platform": "web", "role": "favicon",
+                                  "appearance": "default", "source_variant": "reduced", "format": "png",
+                                  "width": size, "height": size, "destination": "Web root"})
+            (kit / "icons" / "manifest.json").write_text(json.dumps({
+                "artifacts": artifacts,
+                "suites": [{"id": "windows-store", "status": "skipped"}],
+                "aliases": {"favicon.png": "icons/web/favicon-32x32.png"},
+            }), encoding="utf-8")
+            (kit / "favicon.png").write_bytes((kit / "icons" / "web" / "favicon-32x32.png").read_bytes())
+
+            catalog = gen_guidelines._asset_catalog(kit, "Example")
+            self.assertEqual(1, catalog.count('class="asset-card"'))
+            self.assertIn("favicon-16x16.png", catalog)
+            self.assertIn("favicon-32x32.png", catalog)
+            self.assertIn("favicon.png", catalog)
+            self.assertIn("Unavailable at this capability tier: windows-store", catalog)
+            self.assertIn("aliases are listed with their canonical delivery group", catalog)
+
+    def test_guideline_catalog_rejects_manifest_records_for_missing_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            (kit / "logos").mkdir()
+            (kit / "icons").mkdir()
+            (kit / "logos" / "provenance.json").write_text(json.dumps({"derivatives": [{
+                "path": "logos/missing.svg", "kind": "mark", "variant": "full", "colourway": "color",
+            }]}), encoding="utf-8")
+            (kit / "icons" / "manifest.json").write_text(json.dumps({"artifacts": []}), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "missing file"):
+                gen_guidelines.asset_deliveries(kit)
+
+    def test_guideline_catalog_rejects_manifest_dimensions_that_disagree_with_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            (kit / "logos").mkdir()
+            (kit / "icons").mkdir()
+            (kit / "logos" / "provenance.json").write_text(json.dumps({"derivatives": []}), encoding="utf-8")
+            Image.new("RGBA", (32, 32), (43, 204, 115, 255)).save(kit / "icons" / "mark.png")
+            (kit / "icons" / "manifest.json").write_text(json.dumps({"artifacts": [{
+                "path": "icons/mark.png", "platform": "web", "role": "favicon", "format": "png",
+                "width": 16, "height": 16, "appearance": "default", "source_variant": "reduced",
+            }]}), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "dimensions disagree"):
+                gen_guidelines.asset_deliveries(kit)
+
+    def test_guideline_container_sizes_are_listed_from_ico_and_icns_payloads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ico = root / "app.ico"
+            ico.write_bytes(b"\x00\x00\x01\x00\x02\x00" + bytes([16, 16]) + bytes(14) + bytes([0, 0]) + bytes(14))
+            self.assertEqual([16, 256], gen_guidelines._container_sizes(ico, "ico"))
+
+            icns = root / "AppIcon.icns"
+            chunks = b"icp4\x00\x00\x00\x08" + b"ic10\x00\x00\x00\x08"
+            icns.write_bytes(b"icns" + (len(chunks) + 8).to_bytes(4, "big") + chunks)
+            self.assertEqual([16, 1024], gen_guidelines._container_sizes(icns, "icns"))
+
     def test_standalone_mark_ratio_honors_declared_long_edge_clear_space(self):
         brand = {"logo": {"artwork_width": 720, "artwork_height": 900, "clear_space_units": 70}}
         self.assertAlmostEqual(900.0 / 1040.0, gen_logo.standalone_mark_ratio(brand))

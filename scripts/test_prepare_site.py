@@ -97,7 +97,7 @@ class PrepareSiteTests(unittest.TestCase):
     def test_guideline_metadata_is_complete_and_absolute(self):
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp) / "index.html"
-            page.write_text("<html><head><title>Guide</title></head><body></body></html>", encoding="utf-8")
+            page.write_text("<html><head><title>Guide</title></head><body><span data-host-exit></span></body></html>", encoding="utf-8")
             brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "One & only.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
             route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "guidelines")
             prepare_site.add_guideline_metadata(page, route)
@@ -111,6 +111,33 @@ class PrepareSiteTests(unittest.TestCase):
             self.assertIn('type="application/ld+json"', content)
             self.assertIn('"BreadcrumbList"', content)
             self.assertIn("One &amp; only.", content)
+
+    def test_guideline_publication_rewrites_validated_assets_and_adds_one_exit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "alpha"
+            page = root / "guidelines" / "index.html"
+            asset = root / "downloads" / "files" / "logos" / "mark.svg"
+            page.parent.mkdir(parents=True); asset.parent.mkdir(parents=True)
+            asset.write_text("<svg/>", encoding="utf-8")
+            page.write_text('<html><head><title>Guide</title></head><body><a data-kit-asset href="../logos/mark.svg">mark</a><span data-host-exit></span></body></html>', encoding="utf-8")
+            brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Guide.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
+            route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "guidelines")
+            prepare_site.add_guideline_metadata(page, route)
+            content = page.read_text(encoding="utf-8")
+            self.assertIn('href="/alpha/downloads/files/logos/mark.svg"', content)
+            self.assertEqual(1, content.count('class="host-exit"'))
+            self.assertIn('>All brands</a>', content)
+
+    def test_guideline_publication_rejects_unsafe_or_missing_assets(self):
+        brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Guide.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
+        route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "guidelines")
+        for href in ("../../secret.txt", "../logos/missing.svg"):
+            with self.subTest(href=href), tempfile.TemporaryDirectory() as tmp:
+                page = Path(tmp) / "alpha" / "guidelines" / "index.html"
+                page.parent.mkdir(parents=True)
+                page.write_text('<html><head><title>Guide</title></head><body><a data-kit-asset href="%s">bad</a><span data-host-exit></span></body></html>' % href, encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "guideline asset"):
+                    prepare_site.add_guideline_metadata(page, route)
 
     def test_public_markdown_rewrites_prose_and_preserves_literal_code(self):
         source = "# Canon contract\n\nThe canon guides decisions for A ShruggieTech project.\n\n`canon` and `A ShruggieTech project` stay literal.\n\n```json\n{\"canon\": \"1.1.2\", \"endorsement\": \"A ShruggieTech project\"}\n```\n"

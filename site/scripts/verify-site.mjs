@@ -181,6 +181,59 @@ try {
       if (route === '/shruggietech/guidelines/') {
         check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
       }
+      if (contract.kind === 'guidelines') {
+        check(await page.locator('nav.contents').count() === 1, `${route} lacks one compact guideline contents navigation`);
+        for (const id of ['colors', 'themes', 'type-components', 'assets']) check(await page.locator(`#${id}`).count() === 1, `${route} lacks stable section #${id}`);
+        check(await page.locator('.asset-card').count() >= 10, `${route} asset catalog is unexpectedly incomplete`);
+        check(await page.locator('.theme-well').count() === 2, `${route} must contain dark and light theme wells`);
+        check(await page.locator('.host-exit').count() === 1 && await page.locator('.host-exit').getAttribute('href') === '/', `${route} must contain exactly one All brands exit`);
+        check(await page.locator('footer a[href="#top"]').count() === 1, `${route} lacks its no-script top-anchor fallback`);
+        const backTop = page.locator('button.back-top');
+        check(await backTop.count() === 1 && await backTop.getAttribute('tabindex') === '-1' && !(await backTop.getAttribute('class')).includes('visible'), `${route} exposes back-to-top before it is useful`);
+        const assetLinks = page.locator('a[data-kit-asset]');
+        check(await assetLinks.count() > 0, `${route} has no downloadable catalog assets`);
+        const catalogHrefs = await assetLinks.evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+        for (const href of catalogHrefs) check(href.startsWith(`/${contract.brandSlug}/downloads/files/`), `${route} contains an unrewritten kit asset link: ${href}`);
+        const [logoInventory, iconInventory] = await Promise.all([
+          page.request.get(`${base}/${contract.brandSlug}/downloads/files/logos/provenance.json`).then((response) => response.json()),
+          page.request.get(`${base}/${contract.brandSlug}/downloads/files/icons/manifest.json`).then((response) => response.json()),
+        ]);
+        const eligibleIconFormats = new Set(['png', 'svg', 'ico', 'icns', 'json', 'xml']);
+        const expectedPaths = [
+          ...logoInventory.derivatives.map((item) => item.path),
+          ...iconInventory.artifacts.filter((item) => eligibleIconFormats.has(item.format)).map((item) => item.path),
+          ...Object.keys(iconInventory.aliases ?? {}),
+        ].map((path) => `/${contract.brandSlug}/downloads/files/${path}`);
+        check(new Set(catalogHrefs).size === catalogHrefs.length, `${route} repeats a delivery path in the catalog`);
+        check(expectedPaths.length === catalogHrefs.length && expectedPaths.every((path) => catalogHrefs.includes(path)), `${route} catalog does not exactly cover its manifest-derived delivery paths`);
+        const guideCopy = page.locator('button.copy').first();
+        check(await guideCopy.count() === 1, `${route} lacks color copy controls`);
+        if (await guideCopy.count() === 1) {
+          await page.locator('.color-card details').first().locator('summary').click();
+          const size = await guideCopy.evaluate((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }));
+          check(size.width >= 44 && size.height >= 44, `${route} color copy target is smaller than 44px (${JSON.stringify(size)})`);
+          await guideCopy.click();
+          await page.waitForFunction(() => document.querySelector('#copy-status')?.textContent?.length > 0);
+          check((await page.locator('#copy-status').textContent()).startsWith('Copied '), `${route} copy action did not announce success`);
+          await page.evaluate(() => { Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('denied'); } } }); document.querySelector('#copy-status').textContent = ''; });
+          await page.locator('button.copy').nth(1).click();
+          await page.waitForFunction(() => document.querySelector('#copy-status')?.textContent?.length > 0);
+          check((await page.locator('#copy-status').textContent()).startsWith('Copy failed.'), `${route} copy denial did not announce failure`);
+        }
+        await page.locator('#assets').scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => document.querySelector('button.back-top')?.classList.contains('visible'));
+        check(await backTop.getAttribute('tabindex') === '0', `${route} back-to-top remains unfocusable after the opening leaves view`);
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await backTop.click();
+        await page.waitForFunction(() => document.activeElement?.id === 'top' && window.scrollY < 2);
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        if (width === 1280) {
+          await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+          const zoomOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+          check(zoomOverflow <= 1, `${route} overflows horizontally at 200 percent zoom by ${zoomOverflow}px`);
+          await page.evaluate(() => { document.documentElement.style.zoom = ''; });
+        }
+      }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       if (overflow > 1) {
         const offenders = await page.evaluate(() => [...document.querySelectorAll('*')].filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 5).map((element) => `${element.tagName}.${element.className}`));
