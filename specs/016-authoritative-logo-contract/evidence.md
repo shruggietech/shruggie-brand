@@ -30,7 +30,7 @@ ShruggieTech's retained imported path record remains `da15b5819b777ff3c1323d801b
 
 Run on 2026-09-07 from the repository virtual environment:
 
-- `test_brand_contract.py`: 26 passed.
+- `test_brand_contract.py`: 27 passed.
 - `test_pipeline.py`: 29 passed.
 - `test_iconkit.py`: 14 passed.
 - `test_glyphkit.py`: 31 checks, 0 failures.
@@ -61,6 +61,6 @@ Final analysis result: zero material consistency, coverage, ambiguity, constitut
 ## Publication
 
 - Pull request: https://github.com/shruggietech/shruggie-brand/pull/154
-- Automatic Codex review: pending.
+- Automatic Codex review: one P2 identified PNG encodings accepted by preflight but unsupported by the portable recolorer. Contract validation now rejects bound PNG masters unless they are non-interlaced RGBA8, and a regression proves failure occurs before generation.
 - Optional second review round: not requested.
 - Hosted CI: pending.

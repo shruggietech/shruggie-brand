@@ -23,6 +23,7 @@ No mode is inferred. Missing, unknown, or contradictory declarations block the b
 6. Raster placement preserves source aspect ratio. Passive SVG sources embed unchanged bytes.
 7. `build/mk_paths.py` beneath the staged brand source is a contract error and is never executed.
 8. Any later change to a binding, source hash, source artwork, mask method, or visible identity geometry requires a new explicit owner approval before generation.
+9. A bound PNG uses non-interlaced 8-bit RGBA encoding so Core generation and verification can process it without Pillow.
 
 ## Failure timing
 

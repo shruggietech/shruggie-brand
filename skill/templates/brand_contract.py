@@ -463,8 +463,13 @@ def authoritative_inputs(brand, kit):
 
 def _image_dimensions(path):
     data = path.read_bytes()
-    if data.startswith(b"\x89PNG\r\n\x1a\n") and len(data) >= 24:
-        return struct.unpack(">II", data[16:24])
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        if len(data) < 29 or data[12:16] != b"IHDR":
+            raise ContractError("authoritative PNG logo source %s has an invalid header" % path.name)
+        width, height, depth, colour_type, compression, filtering, interlace = struct.unpack(">IIBBBBB", data[16:29])
+        if (depth, colour_type, compression, filtering, interlace) != (8, 6, 0, 0, 0):
+            raise ContractError("authoritative PNG logo source %s must be non-interlaced RGBA8 for portable generation" % path.name)
+        return width, height
     if data.startswith(b"\xff\xd8"):
         offset = 2
         while offset + 9 <= len(data):

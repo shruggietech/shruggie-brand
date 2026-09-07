@@ -73,6 +73,7 @@ As a maintainer, I can continue generating path-authored brands under an explici
 - Full and Reduced may bind to distinct files, but each binding must use the matching unique `mark` or `reduced-mark` role.
 - One file cannot be declared twice under different protected roles, and one authoritative variant cannot fall back to another variant's source.
 - SVG sources must remain passive and self-contained; raster sources must retain measurable transparency when silhouette validation is required.
+- Authoritative PNG logo masters must use the portable non-interlaced RGBA8 profile required by Core generation and topology verification; unsupported PNG encodings fail contract preflight rather than failing during export.
 - A source that permits palette analysis but not generated use cannot satisfy an authoritative logo binding.
 - An authoritative input may coexist with reference artwork, but reference artwork cannot become a logo source through inference.
 - Generated output from an older kit must not satisfy current verification if its provenance index is absent, stale, incomplete, or names an unapproved operation.

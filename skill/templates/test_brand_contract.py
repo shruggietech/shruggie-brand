@@ -390,6 +390,15 @@ class AuthoritativeInputTests(unittest.TestCase):
             with self.assertRaisesRegex(ContractError, "reduced.*exactly one bound image"):
                 validate_brand(brand, kit)
 
+    def test_authoritative_png_requires_portable_rgba8_profile(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, source = self.make_raster_brand(kit)
+            Image.new("RGB", (3, 2), (43, 204, 115)).save(source)
+            brand["authoritative_inputs"][0]["sha256"] = sha256_file(source)
+            with self.assertRaisesRegex(ContractError, "non-interlaced RGBA8"):
+                validate_brand(brand, kit)
+
 
 class FixedFontTests(unittest.TestCase):
     def fixed_brand(self, kit):
