@@ -60,7 +60,7 @@ Final analysis result: zero material consistency, coverage, ambiguity, constitut
 
 ## Publication
 
-- Pull request: pending.
+- Pull request: https://github.com/shruggietech/shruggie-brand/pull/154
 - Automatic Codex review: pending.
 - Optional second review round: not requested.
 - Hosted CI: pending.
