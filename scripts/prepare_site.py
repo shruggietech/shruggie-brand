@@ -310,6 +310,16 @@ def add_guideline_metadata(path: Path, route: dict[str, Any]) -> None:
     write_utf8(path, content.replace("<head>", "<head>" + tags, 1))
 
 
+def contrast_foreground(color: str) -> str:
+    """Return the higher-contrast black or white foreground for a hex surface."""
+    channels = [int(color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+    linear = [value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4 for value in channels]
+    luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+    white_contrast = 1.05 / (luminance + 0.05)
+    black_contrast = (luminance + 0.05) / 0.05
+    return "#FFFFFF" if white_contrast >= black_contrast else "#000000"
+
+
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
     guide = source / "brand-guide.pdf"
@@ -351,6 +361,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
     surface = showcase_surface(brand)
     if surface is not None:
         record["showcaseSurface"] = surface
+        record["showcaseForeground"] = contrast_foreground(surface)
     return record
 
 

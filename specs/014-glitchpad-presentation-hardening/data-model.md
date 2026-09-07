@@ -4,7 +4,7 @@
 
 - **Source field**: Optional `showcase_surface` string on a production brand.
 - **Reference target**: One existing key in the same brand's `surfaces` mapping.
-- **Resolved value**: A six-digit hexadecimal color emitted as optional `showcaseSurface` generated site metadata.
+- **Resolved value**: A six-digit hexadecimal color emitted as optional `showcaseSurface` generated site metadata, plus a computed `showcaseForeground` selecting the higher-contrast value from black and white.
 - **Absent state**: No generated override. Existing site presentation remains active.
 - **Validation**: The field must be a non-empty role name, the role must exist, and the resolved value must be a six-digit hexadecimal color.
 

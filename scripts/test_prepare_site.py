@@ -36,9 +36,14 @@ class PrepareSiteTests(unittest.TestCase):
                 }
                 record = prepare_site.copy_kit(source, brand)
                 self.assertNotIn("showcaseSurface", record)
+                self.assertNotIn("showcaseForeground", record)
                 brand["showcase_surface"] = "card"
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual("#121416", record["showcaseSurface"])
+                self.assertEqual("#FFFFFF", record["showcaseForeground"])
+                brand["surfaces"]["card"] = "#F4F5F6"
+                record = prepare_site.copy_kit(source, brand)
+                self.assertEqual("#000000", record["showcaseForeground"])
             finally:
                 prepare_site.PUBLIC = original_public
 

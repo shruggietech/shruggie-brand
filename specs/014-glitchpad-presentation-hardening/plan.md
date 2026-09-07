@@ -45,7 +45,7 @@ Post-design re-check: PASS. No constitutional exception or identity change is in
 
 1. Add regression tests for visible-bound containment using portrait, landscape, and asymmetric transparent canvases, plus generated-site surface-role validation and browser measurements.
 2. Promote the existing visible-alpha crop and uniform contain behavior into a reusable icon composition function. Use it for standalone square PNG masters while retaining each platform's established occupancy ratio.
-3. Add an optional `showcase_surface` role reference to the brand contract. Resolve it against the brand's `surfaces` mapping and emit its value only when explicitly configured.
+3. Add an optional `showcase_surface` role reference to the brand contract. Resolve it against the brand's `surfaces` mapping, derive the higher-contrast black or white foreground, and emit both values only when explicitly configured.
 4. Set Glitchpad's role reference to `card`, pass the resolved value through generated site metadata, and apply it to the landing card and portfolio hero through one optional CSS custom property. Preserve the existing fallback treatment for all other brands.
 5. Constrain the landing icon's grid item and image content box so intrinsic portrait dimensions cannot expand its square track. Remove the optional showcase shadow only where an explicit neutral showcase surface is present.
 6. Inventory the rebuilt Glitchpad master and platform outputs using measured visible bounds, dimensions, transparency, backgrounds, and manifest roles. Record already-correct outputs without rewriting them.
@@ -54,6 +54,7 @@ Post-design re-check: PASS. No constitutional exception or identity change is in
 ## Architecture Decisions
 
 - Represent a showcase surface as a role name that resolves through the brand's existing `surfaces` object. This avoids a duplicate color literal and lets other brands opt in without changing their current presentation.
+- Derive the showcase foreground during site preparation by comparing WCAG contrast for black and white against the resolved surface. This supports valid light and dark governed surfaces without site-owned color assumptions.
 - Keep the absence of `showcase_surface` meaningful. The generated record omits the optional override and site CSS retains the existing accent treatment, which prevents an incidental sibling-brand redesign.
 - Center visible ink for standalone square raster masters through the shared containment primitive. Do not modify SVG canvas geometry or path strings to compensate for presentation behavior.
 - Preserve platform occupancy values of 0.72, 66/108, and 0.75. A website content-box correction and a standalone master clear-space ratio do not replace platform-specific safe areas.

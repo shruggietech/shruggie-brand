@@ -24,6 +24,12 @@
 
 **Alternatives considered**: Add brand-specific CSS classes or slug conditions, which encode identity policy in the site; emit the value for every brand, which changes sibling presentation.
 
+## Decision: Derive the showcase foreground at the generated-data boundary
+
+**Rationale**: A governed surface may be light or dark. Site preparation compares WCAG contrast for black and white and emits the higher-contrast foreground beside the resolved surface, so configured cards remain readable without hard-coded dark-surface assumptions.
+
+**Alternatives considered**: Restrict `showcase_surface` to dark colors, which needlessly narrows the reusable contract; force white in CSS, which fails on valid light surfaces; blend a muted foreground toward the surface, which can reduce contrast below the AA floor.
+
 ## Decision: Preserve current Glitchpad identity colors
 
 **Rationale**: #146 is an explicit owner decision about color allocation. #144 and #145 can be completed by correcting containment and surfaces while retaining the existing role maps and protected paths.
