@@ -840,8 +840,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_generated_anchor_default_does_not_force_hover_underlines(self):
         source = (HERE / "gen_vanilla.py").read_text(encoding="utf-8")
-        self.assertNotIn("a:hover {{ text-decoration: underline; }}", source)
-        self.assertIn("a:hover {{ color: var(--{p}-link); }}", source)
+        self.assertNotIn("a:hover {{", source)
 
     def test_ico_output_follows_its_measured_capability(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -287,7 +287,6 @@ h3 {{ font-size: var(--{p}-display-xs); font-weight: var(--{p}-weight-medium); }
 p {{ margin: 0 0 var(--{p}-space-4); }}
 code, pre, kbd, samp {{ font-family: var(--{p}-font-mono); line-height: var(--{p}-leading-code); font-variant-ligatures: none; font-feature-settings: "liga" 0, "clig" 0, "calt" 0; }}
 a {{ color: var(--{p}-link); text-decoration: none; }}
-a:hover {{ color: var(--{p}-link); }}
 :focus-visible {{ outline: var(--{p}-stroke-focus) solid var(--{p}-focus); outline-offset: 2px; }}
 .{p}-eyebrow {{ color: var(--{p}-accent); font-family: var(--{p}-font-mono); font-size: var(--{p}-body-xs); letter-spacing: var(--{p}-tracking-eyebrow); text-transform: uppercase; }}
 .{p}-endorsement {{ color: var(--{p}-fg-muted); font-family: var(--{p}-font-mono); font-size: var(--{p}-body-xs); letter-spacing: var(--{p}-tracking-eyebrow); text-transform: uppercase; }}

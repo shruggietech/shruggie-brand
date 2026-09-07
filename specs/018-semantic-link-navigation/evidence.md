@@ -30,3 +30,7 @@ Desktop and mobile captures were inspected for the landing page and documentatio
 - Automatic Codex review: pending.
 - Optional second review round: not yet requested.
 - Hosted CI: pending.
+
+## Review Corrections
+
+- First Codex review identified that a replacement generated global hover color could still override component-owned card colors. The generator now emits no global `a:hover` selector, and the regression rejects any future reintroduction.
