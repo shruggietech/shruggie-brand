@@ -87,7 +87,7 @@
 - [x] T024 Commit and push `codex/014-glitchpad-presentation-hardening`, then open a pull request with `Fixes #144` and `Fixes #145`
 - [x] T025 Process every CI result and first-round review disposition, applying and verifying warranted corrections
 - [x] T026 Trigger at most one authorized `@Codex` second review round and process every resulting disposition
-- [ ] T027 Confirm all required checks are green and all review threads are resolved, update S014 evidence and task state, push the final documentation commit, and halt before merge
+- [x] T027 Confirm all required checks are green and all review threads are resolved, update S014 evidence and task state, push the final documentation commit, and halt before merge
 
 ---
 
