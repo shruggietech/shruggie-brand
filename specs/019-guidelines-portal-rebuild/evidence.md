@@ -34,4 +34,10 @@ The generated portable guideline desktop and 390-pixel sheets were opened for Co
 
 ## Completion state
 
-All S019 tasks are complete locally. Generated kits, site exports, browser captures, caches, and `.specify/feature.json` remain ignored and must not be staged. Pull request, CI, and external review evidence will be appended during the autopilot publication loop.
+All S019 tasks are complete locally. Generated kits, site exports, browser captures, caches, and `.specify/feature.json` remain ignored and were not staged.
+
+## Publication and review
+
+- Implementation commit: `289e3e5` (`feat(S019): rebuild hosted guideline portals`).
+- Pull request: [#162](https://github.com/shruggietech/shruggie-brand/pull/162).
+- CI and external review status: pending.
