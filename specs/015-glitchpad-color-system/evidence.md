@@ -51,3 +51,9 @@
 - Focused tests pass: 23 brand-contract tests, 27 pipeline tests, 13 icon-kit tests, 31 glyphkit checks, 6 decision-study tests, 12 release-contract tests, 20 site-preparation tests, and 11 site payload/origin tests. Markdown prose policy, Python compilation, generated-agent synchronization, strict UTF-8 without BOM, LF-only endings, mojibake scanning, and `git diff --check` also pass.
 - The complete `python scripts/build_all.py` run builds all five production kits with zero reported problems. Release packaging and certification verify all seven versioned assets, including `glitchpad-brand-1.1.0.zip`.
 - The local Windows host denies Turbopack's pooled worker-process spawn with OS error 5 despite the referenced generated MDX file being present. The same prepared site source compiles and statically exports all 26 routes through Next.js webpack, then browser verification passes desktop and mobile widths with zero WCAG 2.1 AA violations. Hosted Linux CI remains the authority for the standard Turbopack command.
+
+## Publication and review
+
+- Implementation commit: `fab16b5` (`feat(S015): approve Glitchpad square identity`).
+- Official pull request: #152, `S015: Approve Glitchpad square identity`.
+- The pull request body records `Fixes #146`, identity approval, accessibility impact, generated contact-sheet inspection, and the local Windows Turbopack limitation.

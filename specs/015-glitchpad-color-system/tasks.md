@@ -92,7 +92,7 @@
 - [x] T027 Run the focused study, brand-contract, generator, icon, pipeline, and site checks from `specs/015-glitchpad-color-system/quickstart.md`
 - [ ] T028 Run the complete five-kit, glyph, release, site, browser, accessibility, Markdown, encoding, mojibake, and repository-hygiene gate
 - [ ] T029 Complete final outcomes, commands, and output dispositions in `specs/015-glitchpad-color-system/evidence.md`
-- [ ] T030 Commit, push, and open the official pull request with `Fixes #146` after explicit publication authorization
+- [x] T030 Commit, push, and open the official pull request with `Fixes #146` after explicit publication authorization
 - [ ] T031 Process every authorized CI and review disposition, applying and verifying warranted corrections
 - [ ] T032 Confirm all required checks are green and all review threads are resolved, then halt before merge
 
