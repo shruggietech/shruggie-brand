@@ -54,14 +54,18 @@ function previewLayoutProblems(sample) {
   const problems = [];
   const contained = (inner, outer) => inner.left >= outer.left - tolerance && inner.top >= outer.top - tolerance && inner.right <= outer.right + tolerance && inner.bottom <= outer.bottom + tolerance;
   if (!contained(sample.media, sample.outer)) problems.push('media crosses preview boundary');
+  if (!contained(sample.imageBox, sample.media) || !contained(sample.media, sample.imageBox)) problems.push('image box disagrees with media boundary');
+  if (sample.objectFit !== 'contain') problems.push('image does not use computed contain fitting');
+  if (sample.objectPosition !== '50% 50%') problems.push('image does not use computed centered positioning');
+  if (sample.transform !== 'none') problems.push('image applies a presentation transform');
   if (!contained(sample.artwork, sample.media)) problems.push('artwork crosses media boundary');
   if (Math.abs((sample.artwork.left - sample.media.left) - (sample.media.right - sample.artwork.right)) > tolerance) problems.push('artwork is not horizontally centered');
   if (Math.abs((sample.artwork.top - sample.media.top) - (sample.media.bottom - sample.artwork.bottom)) > tolerance) problems.push('artwork is not vertically centered');
   if (sample.dividerTop < sample.outer.bottom - tolerance) problems.push('preview crosses metadata divider');
   return problems;
 }
-check(previewLayoutProblems({ outer: { left: 0, top: 0, right: 100, bottom: 100 }, media: { left: 10, top: 10, right: 90, bottom: 90 }, artwork: { left: 20, top: 30, right: 80, bottom: 70 }, dividerTop: 100 }).length === 0, 'preview geometry helper rejects a valid centered fixture');
-check(previewLayoutProblems({ outer: { left: 0, top: 0, right: 100, bottom: 100 }, media: { left: 10, top: 10, right: 90, bottom: 90 }, artwork: { left: 8, top: 10, right: 70, bottom: 90 }, dividerTop: 95 }).length >= 3, 'preview geometry helper accepts overflow, off-center, or divider-crossing fixtures');
+check(previewLayoutProblems({ outer: { left: 0, top: 0, right: 100, bottom: 100 }, media: { left: 10, top: 10, right: 90, bottom: 90 }, imageBox: { left: 10, top: 10, right: 90, bottom: 90 }, artwork: { left: 20, top: 30, right: 80, bottom: 70 }, objectFit: 'contain', objectPosition: '50% 50%', transform: 'none', dividerTop: 100 }).length === 0, 'preview geometry helper rejects a valid centered fixture');
+check(previewLayoutProblems({ outer: { left: 0, top: 0, right: 100, bottom: 100 }, media: { left: 10, top: 10, right: 90, bottom: 90 }, imageBox: { left: 10, top: 10, right: 90, bottom: 90 }, artwork: { left: 8, top: 10, right: 70, bottom: 90 }, objectFit: 'cover', objectPosition: '0% 50%', transform: 'matrix(1, 0, 0, 1, 2, 0)', dividerTop: 95 }).length >= 6, 'preview geometry helper accepts overflow, off-center, transformed, cropped, or divider-crossing fixtures');
 function paeth(left, above, upperLeft) {
   const estimate = left + above - upperLeft;
   const dl = Math.abs(estimate - left); const da = Math.abs(estimate - above); const du = Math.abs(estimate - upperLeft);
@@ -117,11 +121,12 @@ try {
       if (!mediaElement || !imageElement || !dividerElement || !imageElement.naturalWidth || !imageElement.naturalHeight) return null;
       const box = (element) => { const rect = element.getBoundingClientRect(); return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height }; };
       const media = box(mediaElement); const outer = outerElement.matches('.logo-example') ? media : box(outerElement);
+      const imageBox = box(imageElement); const style = getComputedStyle(imageElement);
       const sourceRatio = imageElement.naturalWidth / imageElement.naturalHeight; const mediaRatio = media.width / media.height;
       const width = sourceRatio > mediaRatio ? media.width : media.height * sourceRatio;
       const height = sourceRatio > mediaRatio ? media.width / sourceRatio : media.height;
       const artwork = { left: media.left + (media.width - width) / 2, top: media.top + (media.height - height) / 2, right: media.left + (media.width + width) / 2, bottom: media.top + (media.height + height) / 2 };
-      return { outer, media, artwork, dividerTop: dividerElement.getBoundingClientRect().top, source: imageElement.getAttribute('src') };
+      return { outer, media, imageBox, artwork, objectFit: style.objectFit, objectPosition: style.objectPosition, transform: style.transform, dividerTop: dividerElement.getBoundingClientRect().top, source: imageElement.getAttribute('src') };
     }), dividerSelector);
     check(samples.length > 0 && samples.every(Boolean), `${route} ${label} lacks measurable preview members`);
     for (const sample of samples.filter(Boolean)) for (const problem of previewLayoutProblems(sample)) failures.push(`${route} ${label} ${sample.source}: ${problem}`);

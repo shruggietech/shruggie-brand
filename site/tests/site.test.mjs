@@ -6,7 +6,7 @@ const assetLibrarySource = readFileSync(new URL('../components/guidelines/asset-
 const topicContentSource = readFileSync(new URL('../components/guidelines/topic-content.tsx', import.meta.url), 'utf8');
 const globalStyles = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
 if (!assetLibrarySource.includes('className="asset-preview-media"') || !topicContentSource.includes('className="asset-preview-media"')) throw new Error('both guideline preview surfaces must use the shared media wrapper');
-if (!globalStyles.includes('.asset-preview-media') || !globalStyles.includes('object-fit: contain')) throw new Error('shared preview containment styles are missing');
+if (!/\.asset-preview-media img \{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: contain;[^}]*\}/s.test(globalStyles)) throw new Error('shared preview containment styles must bind full media sizing to contain fitting');
 
 export const routeRecords = routeContract.routes;
 const expectedBrandSlugs = ['covarity', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'shruggietech'];

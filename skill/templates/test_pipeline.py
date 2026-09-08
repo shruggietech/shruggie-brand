@@ -788,6 +788,19 @@ class PipelineTests(unittest.TestCase):
                     report = verify.Report()
                     verify.c_logo_provenance(str(kit), brand, report)
                     self.assertTrue(any("square-knockout mask" in problem for problem in report.problems), report.problems)
+            geometry_mutations = {
+                "missing-mark-path": original_black.replace(protected_paths[0], "M0 0", 1),
+                "missing-wordmark": original_black.replace(
+                    'data-lockup-component="wordmark"', 'data-lockup-component="missing-wordmark"', 1),
+            }
+            for name, mutation in geometry_mutations.items():
+                with self.subTest(lockup_geometry_mutation=name):
+                    black_path.write_text(mutation, encoding="utf-8")
+                    report = verify.Report()
+                    verify.c_logo_provenance(str(kit), brand, report)
+                    self.assertTrue(any("lockup" in problem and "geometry" in problem
+                                        or "lockup must contain" in problem
+                                        for problem in report.problems), report.problems)
 
     def test_full_tier_page_qc_error_is_fatal(self):
         with tempfile.TemporaryDirectory() as tmp:

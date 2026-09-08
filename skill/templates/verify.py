@@ -1051,6 +1051,55 @@ def _square_knockout_problems(root, enclosure):
     return failures
 
 
+def _monochrome_lockup_geometry_problems(kit, root, brand, item):
+    """Compare a square monochrome lockup with its declared mark and wordmark geometry."""
+    local_name = lambda node: node.tag.rsplit("}", 1)[-1]
+    components = {name: [node for node in root.iter()
+                         if node.get("data-lockup-component") == name]
+                  for name in ("mark", "wordmark")}
+    failures = []
+    for name in components:
+        if len(components[name]) != 1:
+            failures.append("lockup must contain exactly one declared %s component" % name)
+    if failures:
+        return failures
+
+    logo = brand.get("logo") or {}
+    paths = logo.get("paths") or {}
+    contextual = logo.get("contextual_variants") or {}
+    selected = contextual.get(item["colourway"])
+    variant = "single-ink" if selected == "single-ink" else item.get("variant") or "full"
+    expected_items = paths.get(variant) or paths.get("full") or []
+    enclosure = logo.get("square_enclosure") or {}
+    if enclosure.get("monochrome_knockout"):
+        knockout_role = enclosure.get("knockout_role")
+        knockout = [entry for entry in expected_items
+                    if entry.get("role", "accent") == knockout_role]
+        expected_items = knockout or expected_items
+    expected_mark = sorted(entry.get("d") for entry in expected_items
+                           if entry.get("element", "path") == "path" and entry.get("d"))
+    actual_mark = sorted(node.get("d") for node in components["mark"][0].iter()
+                         if local_name(node) == "path" and node.get("d"))
+    if not expected_mark or actual_mark != expected_mark:
+        failures.append("lockup mark paths disagree with the declared %s geometry" % variant)
+
+    wordmark_path = os.path.join(kit, "logos", "svg", "%s-wordmark-%s.svg" %
+                                 (brand["slug"], item["colourway"]))
+    try:
+        wordmark_root = ET.parse(wordmark_path).getroot()
+        wordmark_components = [node for node in wordmark_root.iter()
+                               if node.get("data-lockup-component") == "wordmark"]
+        expected_wordmark = sorted(node.get("d") for node in wordmark_components[0].iter()
+                                   if local_name(node) == "path" and node.get("d"))
+    except (IndexError, OSError, ET.ParseError):
+        expected_wordmark = []
+    actual_wordmark = sorted(node.get("d") for node in components["wordmark"][0].iter()
+                             if local_name(node) == "path" and node.get("d"))
+    if not expected_wordmark or actual_wordmark != expected_wordmark:
+        failures.append("lockup wordmark paths disagree with its generated wordmark master")
+    return failures
+
+
 def _transformed_rect_bounds(root, rect):
     """Resolve the generator's translate and scale ancestors for a rectangle."""
     parent = {child: node for node in root.iter() for child in node}
@@ -1283,6 +1332,10 @@ def c_logo_provenance(kit, brand, rep):
                     and item["colourway"] in {"black", "white"}):
                 problems.extend("%s %s" % (relative, failure)
                                 for failure in _square_knockout_problems(root, enclosure))
+                if item["kind"] == "lockup":
+                    problems.extend("%s %s" % (relative, failure)
+                                    for failure in _monochrome_lockup_geometry_problems(
+                                        kit, root, brand, item))
             if source:
                 if root.get("data-authoritative-input-id") != source["record"]["id"] or root.get("data-authoritative-source-sha256") != source["record"]["sha256"]:
                     problems.append("%s authoritative metadata disagrees with index" % relative)

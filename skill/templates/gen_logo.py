@@ -423,7 +423,7 @@ def main():
             mask_roles = {item.get("role", "accent"): "#000000" for item in knockout}
             knocked_out = render_paths(knockout, mask_roles, indent + "      ")
             return (
-                '%s<g data-square-enclosure="true">\n'
+                '%s<g data-square-enclosure="true" data-lockup-component="mark">\n'
                 '%s  <defs><mask id="%s" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width="%g" height="%g">\n'
                 '%s    <rect width="%g" height="%g" fill="#000000"/>\n'
                 '%s    <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="#FFFFFF"/>\n'
@@ -442,7 +442,7 @@ def main():
             )
         content = render_paths(path_list, roles, indent + "    ")
         return (
-            '%s<g data-square-enclosure="true">\n'
+            '%s<g data-square-enclosure="true" data-lockup-component="mark">\n'
             '%s  <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="%s" stroke="%s" stroke-width="%g"/>\n'
             '%s  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s  </g>\n'
             '%s</g>'
@@ -610,15 +610,15 @@ def main():
         def word_group(colourway, roles, x, y, scale, indent="  "):
             if supplied_wordmark:
                 content = render_paths(supplied_wordmark, roles, indent + "  ")
-                return ('%s<g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s</g>'
+                return ('%s<g data-lockup-component="wordmark" transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s</g>'
                         % (indent, x, y, scale, -wordmark_box[0], -wordmark_box[1], content, indent))
             if wordmark_parts:
                 content = "".join('<path d="%s" fill="%s"/>' %
                                   (part, roles.get(role, word_ink(colourway, roles)))
                                   for part, role in wordmark_parts)
-                return '%s<g transform="translate(%g,%g) scale(%g)">%s</g>' % (
+                return '%s<g data-lockup-component="wordmark" transform="translate(%g,%g) scale(%g)">%s</g>' % (
                     indent, x, y, scale, content)
-            return '%s<g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>' % (
+            return '%s<g data-lockup-component="wordmark" transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>' % (
                 indent, x, y, scale, wordmark_d, word_ink(colourway, roles))
 
         pad = 12

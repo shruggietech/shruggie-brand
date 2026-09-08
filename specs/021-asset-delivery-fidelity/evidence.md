@@ -38,6 +38,7 @@
 - Site type-check and 76-page static export passed.
 - Browser verification covered 71 HTML routes plus all-brand preview measurements at 360, 768, and 1280 pixels, both themes, and 200 percent zoom with zero WCAG 2.1 AA violations.
 - The first hosted Python 3.8 run exposed a test-harness capability error: the new regression declared raster support even though the minimum-version job intentionally does not install the Node rasterizer. The test now runs the real capability probe, always verifies SVG structure, and performs rendered PNG assertions only when an SVG renderer is actually available. The focused regression passes locally at full capability and remains valid at the core tier.
+- First-round Codex review requested required-geometry comparison and observation of computed preview presentation. Generated lockups now declare mark and wordmark component boundaries; verification compares monochrome mark paths with the governed source geometry and wordmark paths with the generated wordmark master. Browser verification now checks the actual image/media boxes plus computed `object-fit`, `object-position`, and transform state before measuring content containment and centering. Missing-mark and missing-wordmark regressions, the Glitchpad build, and the complete browser matrix pass after these changes.
 
 ## Hygiene
 
