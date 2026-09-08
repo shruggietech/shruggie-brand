@@ -713,9 +713,11 @@ class PipelineTests(unittest.TestCase):
             brand_path = kit / "brand.json"
             brand = json.loads(brand_path.read_text(encoding="utf-8"))
             protected_paths = [item["d"] for item in brand["logo"]["paths"]["full"]]
-            self.write_probe(kit, raster=True)
             old_argv = sys.argv
             try:
+                sys.argv = ["probe.py", str(kit)]
+                self.assertEqual(probe.main(), 0)
+                raster_available = load_capabilities(str(kit))["svg_raster"]
                 sys.argv = ["gen_logo.py", str(brand_path), str(kit)]
                 self.assertEqual(gen_logo.main(), 0)
             finally:
@@ -761,16 +763,17 @@ class PipelineTests(unittest.TestCase):
             self.assertIn('fill="#F2F5FA"', wordmark)
             self.assertIn('fill="#0A0A0A"', wordmark_light)
 
-            png_dir = kit / "logos" / "png"
-            for layout, crop_box, minimum_height in (
-                    ("horizontal", (0, 0, 230, 258), 130),
-                    ("stacked", (0, 0, 1024, 260), 150)):
-                for colourway in ("black", "white"):
-                    with Image.open(png_dir / ("glitchpad-%s-%s-1024.png" % (layout, colourway))) as image:
-                        alpha = image.convert("RGBA").getchannel("A").crop(crop_box)
-                        bounds = alpha.getbbox()
-                    self.assertIsNotNone(bounds)
-                    self.assertGreaterEqual(bounds[3] - bounds[1], minimum_height)
+            if raster_available:
+                png_dir = kit / "logos" / "png"
+                for layout, crop_box, minimum_height in (
+                        ("horizontal", (0, 0, 230, 258), 130),
+                        ("stacked", (0, 0, 1024, 260), 150)):
+                    for colourway in ("black", "white"):
+                        with Image.open(png_dir / ("glitchpad-%s-%s-1024.png" % (layout, colourway))) as image:
+                            alpha = image.convert("RGBA").getchannel("A").crop(crop_box)
+                            bounds = alpha.getbbox()
+                        self.assertIsNotNone(bounds)
+                        self.assertGreaterEqual(bounds[3] - bounds[1], minimum_height)
 
             black_path = svg_dir / "glitchpad-horizontal-black.svg"
             original_black = black_path.read_text(encoding="utf-8")
