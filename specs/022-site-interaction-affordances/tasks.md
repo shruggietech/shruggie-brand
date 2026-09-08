@@ -107,8 +107,8 @@
 - [X] T032 Commit S022 with Conventional Commit traceability on `codex/022-site-interaction-affordances`
 - [X] T033 Push the authorized feature branch and open an official PR closing #163 and #164
 - [X] T034 Reconcile every CI result and first-round Codex review response with code, tests, replies, and resolved threads
-- [ ] T035 Request at most one authorized second Codex review round and reconcile every response without requesting a third round
-- [ ] T036 Confirm the final PR head is green, every review thread is resolved, the branch is synchronized, and the PR is ready for owner merge review
+- [X] T035 Request at most one authorized second Codex review round and reconcile every response without requesting a third round
+- [X] T036 Confirm the final PR head is green, every review thread is resolved, the branch is synchronized, and the PR is ready for owner merge review
 
 ## Dependencies and Execution Order
 

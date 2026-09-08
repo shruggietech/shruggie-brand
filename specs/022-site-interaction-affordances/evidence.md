@@ -56,3 +56,5 @@
 - Commit `702d5c4` was pushed to `codex/022-site-interaction-affordances` and official pull request #169 was opened with closing references for issues #163 and #164.
 - Both push and pull-request Build workflows completed successfully. The latest-head workflow passed Python 3.8 compatibility, all kit and release gates, generated-agent synchronization, the exact Linux Turbopack export, the browser matrix, and artifact upload.
 - The automatic first-round Codex review completed against implementation commit `702d5c4` with no findings, no inline comments, and no unresolved review threads.
+- One authorized second-round review was requested with `@Codex review`, and no further review was triggered. The second review completed against commit `0e66c5e` with no findings, no requested changes, and no review threads.
+- The second-review head passed both Build jobs, including Python 3.8 compatibility and the complete kit, release, Turbopack export, browser, WCAG, and artifact workflow. The closing ledger commit is documentation-only and is subject to the same required latest-head checks before owner handoff.

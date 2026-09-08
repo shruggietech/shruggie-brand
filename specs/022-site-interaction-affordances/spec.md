@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-08
 
-**Status**: Implementation and local validation complete
+**Status**: Ready for owner merge review
 
 **Input**: User description: "Combine GitHub issues #163 and #164 into S022, preserving browsing context for three named footer destinations while aligning documentation pagination cues and restoring pointer affordances on enabled theme controls."
 
