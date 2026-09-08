@@ -98,8 +98,8 @@ try {
   const page = await context.newPage();
   await page.goto(base + '/');
   check(await page.locator('h1').textContent() === 'We build comprehensive brands', 'homepage headline does not match the approved wording');
-  check(await page.locator('.brand-card').count() === 5, 'homepage must show exactly the five production brand cards');
-  check(await page.locator('.brand-icon img').count() === 5, 'every brand card must include an icon');
+  check(await page.locator('.brand-card').count() === 6, 'homepage must show exactly the six production brand cards');
+  check(await page.locator('.brand-icon img').count() === 6, 'every brand card must include an icon');
   const measurePortfolioIcons = async (label) => {
     for (const card of await page.locator('.brand-card').all()) {
       const title = await card.locator('h3').textContent();
@@ -123,7 +123,8 @@ try {
   for (const card of await page.locator('.brand-card').all()) {
     if ((await card.locator('h3').textContent()) === 'Glitchpad') continue;
     const style = await card.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
-    check(style.surface === null && style.image !== 'none', `${await card.locator('h3').textContent()} lost its existing showcase fallback (${JSON.stringify(style)})`);
+    if (style.surface === 'governed') check(style.image === 'none', `${await card.locator('h3').textContent()} governed showcase added an unapproved background image (${JSON.stringify(style)})`);
+    else check(style.surface === null && style.image !== 'none', `${await card.locator('h3').textContent()} lost its existing showcase fallback (${JSON.stringify(style)})`);
   }
   const homeText = (await page.locator('body').innerText()).toLowerCase();
   for (const rejected of ['a shruggietech project', 'skill 1.', 'canon', 'example brand', 'read the system']) check(!homeText.includes(rejected), `homepage contains retired wording: ${rejected}`);

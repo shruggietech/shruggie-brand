@@ -277,9 +277,22 @@ def c_svg(kit, rep):
     except ImportError:
         rep.skip("svg-viewbox", "svgelements not installed (regex cannot resolve transforms)")
         vb_hits = None
+    authoritative_sources = set()
+    try:
+        brand = json.load(open(os.path.join(kit, "brand.json"), encoding="utf-8"))
+        authoritative_sources = {
+            os.path.normcase(os.path.normpath(record["path"]))
+            for record in brand.get("authoritative_inputs", [])
+            if record.get("format") == "svg"
+        }
+    except Exception:
+        authoritative_sources = set()
     if vb_hits is not None:
         for p in svgs:
             rel = os.path.relpath(p, kit)
+            if os.path.normcase(os.path.normpath(rel)) in authoritative_sources:
+                raster_wrappers.append(rel)
+                continue
             if "<image " in open(p, encoding="utf-8", errors="replace").read():
                 raster_wrappers.append(rel)
                 continue

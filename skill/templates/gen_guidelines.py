@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 from coloraide import Color
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
-from brand_contract import affiliation_text, logo_metrics
+from brand_contract import affiliation_text, logo_metrics, vendor_boundary
 
 def color_reference(token, value):
     color = Color(value).convert("srgb")
@@ -159,7 +159,7 @@ def portal_payload(B, kit):
         topics.append({"key": "integration", "title": "Platform integration", "description": "Rendered instructions for delivered platform assets."})
     return {
         "schema_version": "1.0",
-        "brand": {"slug": B["slug"], "title": B["title"], "descriptor": B.get("descriptor", ""), "idea": B.get("brand_idea", ""), "affiliation": affiliation_text(B)},
+        "brand": {"slug": B["slug"], "title": B["title"], "descriptor": B.get("descriptor", ""), "idea": B.get("brand_idea", ""), "affiliation": affiliation_text(B), "vendorBoundary": (vendor_boundary(B) or {}).get("notice", "")},
         "topics": topics,
         "content": {
             "overview": {"foundation_title": guide.get("foundation_title", "Foundations"), "foundation": guide.get("foundation", ""), "promises": guide.get("promises", []), "in_scope": guide.get("in_scope", []), "out_of_scope": guide.get("out_of_scope", []), "sharp_edge": guide.get("sharp_edge", "")},
@@ -345,6 +345,7 @@ def build(B, kit):
         return "" if not b else '<img class="%s" src="data:image/png;base64,%s" alt="%s">' % (cls, b, escape(alt, quote=True))
     type_ = type_context(B)
     endorsement = affiliation_text(B)
+    boundary = vendor_boundary(B)
     cs, canvas_width, canvas_height, artwork_width = logo_metrics(B)
     color_reference_html = (_swatches("Dark palette", list(D.items()), title)
                             + _swatches("Light palette", list(L.items()), title))
@@ -491,6 +492,7 @@ Below %(red)d px the reduced master takes over.</p>
 %(catalog)s
 </section></main>
 
+%(vendor_boundary)s
 %(endorsement)s
 <footer class="utility"><a href="#top">Back to top</a><span data-host-exit></span></footer>
 <div id="copy-status" class="sr-only" aria-live="polite"></div>
@@ -526,6 +528,7 @@ if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;
         "mini_bars_light": "".join('<span style="--bar:%s;--height:%d%%"></span>' % (L["chart-%d" % i], 36 + i * 10) for i in range(1, 6)),
         "red": (B.get("logo") or {}).get("reduced_below_px", 32),
         "endorsement": "" if not endorsement else '<div class="endorse">%s</div>' % escape(endorsement),
+        "vendor_boundary": "" if not boundary else '<section aria-labelledby="vendor-boundary"><div class="eyebrow">Third-party boundary</div><h2 id="vendor-boundary">Vendor and trademark notice</h2><p class="lead">%s</p></section>' % escape(boundary["notice"]),
         **type_,
     }
 

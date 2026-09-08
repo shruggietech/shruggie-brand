@@ -69,6 +69,14 @@ class PrepareSiteTests(unittest.TestCase):
         self.assertFalse(prepare_site.public_showcase(brand))
         brand["affiliation"]["showcase"] = "public"
         self.assertTrue(prepare_site.public_showcase(brand))
+        brand["approval_ledger"] = {
+            "source_hashes": {"mark": "a" * 64},
+            "gate_1": {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07", "scope": ["mark"]},
+            "gate_2": {"status": "pending", "approved_by": None, "approved_on": None, "derivative_manifest_sha256": None, "surfaces": []},
+        }
+        self.assertFalse(prepare_site.public_showcase(brand))
+        brand["approval_ledger"]["gate_2"] = {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07", "derivative_manifest_sha256": "b" * 64, "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]}
+        self.assertTrue(prepare_site.public_showcase(brand))
         del brand["affiliation"]["showcase"]
         with self.assertRaisesRegex(ValueError, "exactly"):
             prepare_site.public_showcase(brand)

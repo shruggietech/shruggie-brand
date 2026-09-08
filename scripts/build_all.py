@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import subprocess
 import sys
@@ -44,7 +45,19 @@ def clean_destination(destination: Path) -> None:
 def stage(source: Path, destination: Path) -> None:
     clean_destination(destination)
     shutil.copytree(source, destination)
-    shutil.copytree(FONTS, destination / "fonts")
+    brand = json.loads((source / "brand.json").read_text(encoding="utf-8"))
+    if (brand.get("typography") or {}).get("mode") == "fixed":
+        for face in brand["typography"].get("faces", []):
+            target = destination / face["path"]
+            if target.is_file():
+                continue
+            origin = FONTS / Path(face["path"]).relative_to("fonts")
+            if not origin.is_file():
+                raise ValueError(f"shared fixed face is missing: {face['path']}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(origin, target)
+    else:
+        shutil.copytree(FONTS, destination / "fonts")
 
 
 def build(slug: str, source: Path) -> int:

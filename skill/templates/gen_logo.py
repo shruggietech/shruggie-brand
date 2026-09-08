@@ -246,7 +246,7 @@ def svg(width, height, body, metadata=None):
     )
 
 
-def wordmark_outline(text, ttf, size=200):
+def wordmark_outline(text, ttf, size=200, x_offset=0.0):
     from fontTools.misc.transform import Transform
     from fontTools.pens.svgPathPen import SVGPathPen
     from fontTools.pens.transformPen import TransformPen
@@ -265,7 +265,7 @@ def wordmark_outline(text, ttf, size=200):
         if name is None:
             continue
         pen = SVGPathPen(glyphs)
-        transform = Transform(scale, 0, 0, -scale, advance * scale, 0)
+        transform = Transform(scale, 0, 0, -scale, x_offset + advance * scale, 0)
         glyphs[name].draw(TransformPen(pen, transform))
         if pen.getCommands():
             commands.append(pen.getCommands())
@@ -503,17 +503,30 @@ def main():
         }
         write(os.path.join(kit, "logos", "provenance.json"), json.dumps(payload, indent=2, sort_keys=True) + "\n")
 
-    variants = (("mark", paths["full"]), ("mark-reduced", paths.get("reduced") or paths["full"]))
-    for variant, path_list in variants:
-        box = paths_bbox(path_list)
-        if enclosure:
-            square_content_geometry(path_list)
-        else:
-            assert box[0] >= -0.5 and box[1] >= -0.5
-            assert box[2] <= canvas_width + 0.5 and box[3] <= canvas_height + 0.5
+    contextual = logo.get("contextual_variants") or {}
+
+    def contextual_mark(colourway, reduced=False):
+        selected = contextual.get(colourway)
+        if colourway in {"white", "black"} and selected == "single-ink":
+            single = paths.get("single-ink") or []
+            if not single:
+                raise ValueError("contextual single-ink output requires logo.paths.single-ink")
+            return single, None
+        if reduced or selected == "reduced":
+            return paths.get("reduced") or paths["full"], "reduced"
+        return paths["full"], "full"
+
+    variants = (("mark", False), ("mark-reduced", True))
+    for variant, force_reduced in variants:
         for colourway, roles in role_maps.items():
+            path_list, source_variant = contextual_mark(colourway, force_reduced)
+            box = paths_bbox(path_list)
+            if enclosure:
+                square_content_geometry(path_list)
+            else:
+                assert box[0] >= -0.5 and box[1] >= -0.5
+                assert box[2] <= canvas_width + 0.5 and box[3] <= canvas_height + 0.5
             filename = "%s-%s-%s.svg" % (slug, variant, colourway)
-            source_variant = "reduced" if variant == "mark-reduced" else "full"
             record = derivative_record(filename, "mark", source_variant, colourway)
             write(os.path.join(svg_dir, filename), svg(canvas_width, canvas_height, render_mark(path_list, roles, colourway), svg_metadata(record)))
             written.append(filename)
@@ -530,6 +543,7 @@ def main():
 
     wordmark_d = ""
     wordmark_advance = 0
+    wordmark_parts = []
     supplied_wordmark = paths.get("wordmark") or []
     if supplied_wordmark:
         wordmark_box = paths_bbox(supplied_wordmark)
@@ -538,7 +552,19 @@ def main():
         wordmark_cap_raw = max(1.0, wordmark_ink_height_raw)
         wordmark_advance = wordmark_ink_width_raw
     elif ttf:
-        wordmark_d, wordmark_advance = wordmark_outline(brand.get("wordmark_text", slug), ttf, 200)
+        configured_segments = logo.get("wordmark_segments") or []
+        if configured_segments:
+            cursor = 0.0
+            for index, segment in enumerate(configured_segments):
+                if index:
+                    cursor += float(segment.get("gap_units", 0))
+                segment_d, segment_advance = wordmark_outline(segment["text"], ttf, 200, cursor)
+                wordmark_parts.append((segment_d, segment.get("role", "wordmark")))
+                cursor += segment_advance
+            wordmark_d = " ".join(item[0] for item in wordmark_parts)
+            wordmark_advance = cursor
+        else:
+            wordmark_d, wordmark_advance = wordmark_outline(brand.get("wordmark_text", slug), ttf, 200)
         wordmark_box = tuple(float(v) for v in Path(wordmark_d).bbox())
         wordmark_cap_raw = max(1.0, -wordmark_box[1])
         wordmark_ink_width_raw = wordmark_box[2] - wordmark_box[0]
@@ -556,6 +582,12 @@ def main():
                 content = render_paths(supplied_wordmark, roles, indent + "  ")
                 return ('%s<g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s</g>'
                         % (indent, x, y, scale, -wordmark_box[0], -wordmark_box[1], content, indent))
+            if wordmark_parts:
+                content = "".join('<path d="%s" fill="%s"/>' %
+                                  (part, roles.get(role, word_ink(colourway, roles)))
+                                  for part, role in wordmark_parts)
+                return '%s<g transform="translate(%g,%g) scale(%g)">%s</g>' % (
+                    indent, x, y, scale, content)
             return '%s<g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>' % (
                 indent, x, y, scale, wordmark_d, word_ink(colourway, roles))
 
@@ -586,7 +618,15 @@ def main():
             word_y = (horizontal_height - wordmark_ink_height_raw * word_scale) / 2.0 if supplied_wordmark else word_baseline
             word_x = lockup_pad + mark_render_width + gap
             lockup_width = mark_render_width + gap + wordmark_advance * word_scale + lockup_pad * 2.0
-            mark_group = render_mark(paths["full"], roles, colourway, "    ")
+            lockup_paths, lockup_variant = contextual_mark(colourway)
+            lockup_box = paths_bbox(lockup_paths)
+            lockup_mark_width = lockup_box[2] - lockup_box[0]
+            lockup_mark_height = lockup_box[3] - lockup_box[1]
+            mark_scale = mark_render_height / lockup_mark_height
+            mark_render_width = lockup_mark_width * mark_scale
+            word_x = lockup_pad + mark_render_width + gap
+            lockup_width = mark_render_width + gap + wordmark_advance * word_scale + lockup_pad * 2.0
+            mark_group = render_mark(lockup_paths, roles, colourway, "    ")
             body = (
                 '  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n  </g>\n'
                 '%s'
@@ -594,23 +634,24 @@ def main():
                     lockup_pad,
                     mark_y,
                     mark_scale,
-                    -mark_box[0],
-                    -mark_box[1],
+                    -lockup_box[0],
+                    -lockup_box[1],
                     mark_group,
                     word_group(colourway, roles, word_x, word_y, word_scale),
                 )
             )
             filename = "%s-horizontal-%s.svg" % (slug, colourway)
-            record = derivative_record(filename, "lockup", "full", colourway)
+            record = derivative_record(filename, "lockup", lockup_variant, colourway)
             write(os.path.join(svg_dir, filename), svg(lockup_width, horizontal_height, body, svg_metadata(record)))
             written.append(filename)
 
             stacked_spec = lockup_specs.get("stacked") or {}
             stacked_word_scale = float(stacked_spec.get("wordmark_scale", 0.62))
             stacked_cap_height = wordmark_cap_raw * stacked_word_scale
-            stacked_mark_height = stacked_cap_height * float(stacked_spec.get("mark_height_c", 1.8))
-            stacked_mark_scale = stacked_mark_height / mark_height
-            stacked_mark_width = mark_width * stacked_mark_scale
+            ratio_by_colourway = stacked_spec.get("mark_height_c_by_colourway") or {}
+            stacked_mark_height = stacked_cap_height * float(ratio_by_colourway.get(colourway, stacked_spec.get("mark_height_c", 1.8)))
+            stacked_mark_scale = stacked_mark_height / lockup_mark_height
+            stacked_mark_width = lockup_mark_width * stacked_mark_scale
             stacked_word_width = wordmark_ink_width_raw * stacked_word_scale
             stacked_word_height = wordmark_ink_height_raw * stacked_word_scale
             stacked_gap = stacked_cap_height * float(stacked_spec.get("gap_c", 0.45))
@@ -628,8 +669,8 @@ def main():
                     mark_x,
                     stacked_pad,
                     stacked_mark_scale,
-                    -mark_box[0],
-                    -mark_box[1],
+                    -lockup_box[0],
+                    -lockup_box[1],
                     mark_group,
                     word_group(
                         colourway,
@@ -641,7 +682,7 @@ def main():
                 )
             )
             filename = "%s-stacked-%s.svg" % (slug, colourway)
-            record = derivative_record(filename, "lockup", "full", colourway)
+            record = derivative_record(filename, "lockup", lockup_variant, colourway)
             write(os.path.join(svg_dir, filename), svg(stacked_width, stacked_height, stacked, svg_metadata(record)))
             written.append(filename)
 

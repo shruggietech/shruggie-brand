@@ -601,6 +601,33 @@ class PipelineTests(unittest.TestCase):
             verify.c_logo_provenance(str(kit), brand, report)
             self.assertFalse(report.problems, report.problems)
 
+    def test_eso_weave_outputs_keep_one_source_mark_and_contextual_wordmark_contrast(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "eso-weave"
+            shutil.copytree(ROOT / "brands" / "eso-weave", kit)
+            mono = kit / "fonts" / "ttf" / "GeistMono-Regular.ttf"
+            mono.parent.mkdir(parents=True)
+            shutil.copy2(ROOT / "assets" / "fonts" / "ttf" / "GeistMono-Regular.ttf", mono)
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            svg_dir = kit / "logos" / "svg"
+            for name in ("eso-weave-horizontal-color.svg", "eso-weave-horizontal-light.svg",
+                         "eso-weave-stacked-color.svg", "eso-weave-stacked-light.svg"):
+                output = (svg_dir / name).read_text(encoding="utf-8")
+                self.assertEqual(1, output.count("<image "), name)
+            light_wordmark = (svg_dir / "eso-weave-wordmark-light.svg").read_text(encoding="utf-8")
+            self.assertIn('#14110B', light_wordmark)
+            self.assertIn('#986000', light_wordmark)
+            self.assertNotIn('#F2B03C', light_wordmark)
+            single_ink = (svg_dir / "eso-weave-mark-white.svg").read_text(encoding="utf-8")
+            self.assertNotIn("data:image/svg+xml;base64,", single_ink)
+            self.assertEqual(2, single_ink.count("<path "))
+
     def test_authoritative_rasters_icons_and_rendered_placement_are_tamper_evident(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp) / "shruggietech"
