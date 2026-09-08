@@ -608,18 +608,19 @@ def main():
             return roles.get("wordmark", "#F2F5FA" if colourway == "color" else "#0A0A0A")
 
         def word_group(colourway, roles, x, y, scale, indent="  "):
+            component = ' data-lockup-component="wordmark"' if enclosure else ''
             if supplied_wordmark:
                 content = render_paths(supplied_wordmark, roles, indent + "  ")
-                return ('%s<g data-lockup-component="wordmark" transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s</g>'
-                        % (indent, x, y, scale, -wordmark_box[0], -wordmark_box[1], content, indent))
+                return ('%s<g%s transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s</g>'
+                        % (indent, component, x, y, scale, -wordmark_box[0], -wordmark_box[1], content, indent))
             if wordmark_parts:
                 content = "".join('<path d="%s" fill="%s"/>' %
                                   (part, roles.get(role, word_ink(colourway, roles)))
                                   for part, role in wordmark_parts)
-                return '%s<g data-lockup-component="wordmark" transform="translate(%g,%g) scale(%g)">%s</g>' % (
-                    indent, x, y, scale, content)
-            return '%s<g data-lockup-component="wordmark" transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>' % (
-                indent, x, y, scale, wordmark_d, word_ink(colourway, roles))
+                return '%s<g%s transform="translate(%g,%g) scale(%g)">%s</g>' % (
+                    indent, component, x, y, scale, content)
+            return '%s<g%s transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>' % (
+                indent, component, x, y, scale, wordmark_d, word_ink(colourway, roles))
 
         pad = 12
         wordmark_width = (wordmark_ink_width_raw if supplied_wordmark else wordmark_advance) + pad * 2
