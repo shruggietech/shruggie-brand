@@ -100,6 +100,8 @@ try {
   check(await page.locator('h1').textContent() === 'We build comprehensive brands', 'homepage headline does not match the approved wording');
   check(await page.locator('.brand-card').count() === 6, 'homepage must show exactly the six production brand cards');
   check(await page.locator('.brand-icon img').count() === 6, 'every brand card must include an icon');
+  const esoCard = page.locator('.brand-card', { hasText: 'ESO Weave' });
+  check((await esoCard.locator('.vendor-boundary').textContent()) === 'Independent third-party project. Full vendor and trademark notice on brand page.', 'ESO Weave showcase card omits its third-party status and stable notice reference');
   const measurePortfolioIcons = async (label) => {
     for (const card of await page.locator('.brand-card').all()) {
       const title = await card.locator('h3').textContent();
@@ -180,6 +182,12 @@ try {
       check(await page.locator('link[rel="icon"]').count() >= 1, `${route} lacks a favicon`);
       const publicSurface = `${await page.content()}\n${JSON.stringify(contract)}`.toLowerCase();
       for (const rejected of retiredPublicPhrases) check(!publicSurface.includes(rejected), `${route} contains retired public wording in rendered content, metadata, or route data: ${rejected}`);
+      if (contract.brandSlug === 'eso-weave') {
+        check((await page.locator('body').innerText()).includes(contract.vendorBoundary), `${route} does not visibly render the ESO Weave vendor boundary`);
+        check(await oneContent('meta[name="brand-vendor-boundary"]') === contract.vendorBoundary, `${route} omits the ESO Weave vendor-boundary metadata`);
+        const brandEntity = contract.structuredData['@graph'].find((item) => item['@type'] === 'Brand');
+        if (contract.kind === 'brand') check(brandEntity?.disambiguatingDescription === contract.vendorBoundary && brandEntity?.usageInfo === contract.vendorBoundaryUrl, `${route} omits the ESO Weave structured vendor boundary`);
+      }
       if (contract.kind === 'docs-index' || contract.kind === 'docs-page') check(await page.locator('header a').filter({ hasText: /^Documentation$/ }).count() <= 1, `${route} repeats the documentation root in navigation at ${width}px`);
       if (route === '/shruggietech/guidelines/') {
         check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);

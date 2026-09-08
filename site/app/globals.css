@@ -199,6 +199,8 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .guide-table-scroll { max-width: 100%; overflow-x: auto; }
 .guide-table-scroll table { width: 100%; }
 .guide-affiliation { color: var(--muted-foreground); font-size: .8rem; }
+.vendor-boundary { max-width: 78ch; margin-top: 1rem; color: var(--muted-text); font-size: .8rem; line-height: 1.5; }
+.brand-card .vendor-boundary { margin-top: .8rem; color: inherit; opacity: .82; }
 .guide-footer { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; margin-top: 3rem; padding: 1.5rem 0 max(5rem, env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
 .guide-footer a { display: inline-flex; min-height: 44px; align-items: center; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: .4rem; text-decoration: none; }
 .guide-footer .guide-host-exit { background: #fff; color: #000; }

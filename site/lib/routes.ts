@@ -23,6 +23,8 @@ export type RouteRecord = {
   brandSlug: string | null;
   docsSlug: string | null;
   guideTopic: string | null;
+  vendorBoundary: string | null;
+  vendorBoundaryUrl: string | null;
   structuredData: Record<string, unknown>;
 };
 

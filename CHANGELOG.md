@@ -27,6 +27,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Bound Gate 2 approval to every derivative file hash and projected the required ESO Weave vendor and trademark boundary across visible pages, metadata, structured data, registry records, and social previews.
 - Corrected clipped brand landing headings, unstable color disclosure layouts, unbounded asset previews, blank nonvisual asset cards, raw integration Markdown, and conflated guideline footer controls across responsive and 200 percent zoom layouts.
 - Removed the generated global anchor hover underline that could combine with site-owned decoration, and corrected pagination title and description selectors so each retains its intended hierarchy.
 - Rejected square-enclosure configurations whose measured source paths exceed the safe content area, and distinguished composed external clear space from protected internal glyph measurements in generated guidance.

@@ -17,7 +17,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
-from brand_contract import affiliation, application_icon_profile, logo_source_contract
+from brand_contract import affiliation, application_icon_profile, logo_source_contract, sha256_file
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 
 # ------------------------------------------------------------------ utilities
@@ -1118,7 +1118,7 @@ def c_logo_provenance(kit, brand, rep):
             problems.append("provenance names absent derivatives: %s" % ", ".join(extra[:6]))
 
     expected_keys = {"path", "kind", "variant", "colourway", "source_mode", "input_id",
-                     "source_sha256", "transformations", "embedded_metadata"}
+                     "source_sha256", "sha256", "transformations", "embedded_metadata"}
     checked_sources = set()
     for item in records:
         if not isinstance(item, dict) or set(item) != expected_keys:
@@ -1143,6 +1143,10 @@ def c_logo_provenance(kit, brand, rep):
         output = os.path.join(kit, relative.replace("/", os.sep))
         if not os.path.isfile(output):
             continue
+        if not re.fullmatch(r"[0-9a-f]{64}", item["sha256"] or ""):
+            problems.append("%s has an invalid derivative SHA-256" % relative)
+        elif sha256_file(output) != item["sha256"]:
+            problems.append("%s derivative bytes disagree with provenance" % relative)
         if relative.endswith(".png"):
             if source:
                 try:

@@ -499,6 +499,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual("full-mark-master", mark["input_id"])
             self.assertEqual(["recolor-mask", "resize"], mark["transformations"])
             svg_path = kit / mark["path"]
+            self.assertEqual(hashlib.sha256(svg_path.read_bytes()).hexdigest(), mark["sha256"])
             text = svg_path.read_text(encoding="utf-8")
             self.assertIn('data-logo-source-mode="authoritative"', text)
             self.assertIn('data-authoritative-input-id="full-mark-master"', text)
@@ -521,6 +522,9 @@ class PipelineTests(unittest.TestCase):
             stale = copy.deepcopy(provenance)
             stale["derivatives"][0]["source_sha256"] = "0" * 64
             mutations["stale"] = stale
+            changed_output = copy.deepcopy(provenance)
+            changed_output["derivatives"][0]["sha256"] = "0" * 64
+            mutations["changed-output"] = changed_output
             undeclared = copy.deepcopy(provenance)
             authoritative = next(item for item in undeclared["derivatives"] if item["input_id"])
             authoritative["transformations"].append("trace")

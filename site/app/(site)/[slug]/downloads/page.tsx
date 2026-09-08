@@ -12,7 +12,7 @@ export default async function Downloads({ params }: { params: Promise<{ slug: st
   if (!brand) notFound();
   const root = `/${brand.slug}/downloads/files`;
   const route = routeByPath(`/${brand.slug}/downloads/`);
-  return <div className="shell"><StructuredData route={route} /><p className="eyebrow">Brand assets</p><h1>{brand.title} downloads</h1><p className="lede">Clearly organized source files for design, product, and implementation work.</p><ul className="download-list">
+  return <div className="shell"><StructuredData route={route} /><p className="eyebrow">Brand assets</p><h1>{brand.title} downloads</h1><p className="lede">Clearly organized source files for design, product, and implementation work.</p>{brand.vendorBoundary && <p className="vendor-boundary">{brand.vendorBoundary}</p>}<ul className="download-list">
     <li><a href={`${root}/${brand.slug}-brand-guide.pdf`}><strong>Brand guide</strong><span>PDF standards and usage guidance</span></a></li>
     <li><a href={brand.portableGuide}><strong>Portable guidelines</strong><span>Standalone HTML reference for offline use</span></a></li>
     <li><a href={`${root}/logos/svg/${brand.slug}-mark-color.svg`}><strong>Logo mark</strong><span>Primary SVG master</span></a></li>

@@ -895,7 +895,6 @@ def scan_affiliation_output(brand, kit):
     problems = []
     root = Path(kit).resolve()
     boundary = vendor_boundary(brand)
-    boundary_hits = 0
     for path in root.rglob("*"):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
             continue
@@ -906,8 +905,15 @@ def scan_affiliation_output(brand, kit):
             problems.append("%s contains an undeclared ShruggieTech service credit" % path.relative_to(root).as_posix())
         if re.search(r'"parent"\s*:\s*"ShruggieTech"', text, re.I):
             problems.append("%s contains false ShruggieTech parentage" % path.relative_to(root).as_posix())
-        if boundary and boundary["notice"].lower() in text.lower():
-            boundary_hits += 1
-    if boundary and boundary_hits < 3:
-        problems.append("vendor boundary is not projected across at least three generated text surfaces")
+    if boundary:
+        generated_surfaces = (
+            "guidelines/portal.json",
+            "guidelines/index.html",
+            "enforcement/AGENTS.md",
+            "build/brand-guide.print.html",
+        )
+        for relative in generated_surfaces:
+            path = root / relative
+            if not path.is_file() or boundary["notice"].lower() not in path.read_text(encoding="utf-8", errors="replace").lower():
+                problems.append("%s omits the required vendor boundary" % relative)
     return problems

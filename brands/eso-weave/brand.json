@@ -29,7 +29,7 @@
       "status": "approved",
       "approved_by": "identity owner",
       "approved_on": "2026-09-07",
-      "derivative_manifest_sha256": "f99e01a666f9242457742467aeeebd308aae37f8411f32fc52186e2c3f1516c4",
+      "derivative_manifest_sha256": "9ce66b44f9f79a971a62219c73238dc8ad6c2cf1d5a924a8369ca261857394b7",
       "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]
     }
   },

@@ -8,6 +8,7 @@ fallback remains fully compatible with the stock scalar ``logo.grid`` schema.
 """
 import binascii
 import base64
+import hashlib
 import json
 import os
 import shutil
@@ -495,6 +496,13 @@ def main():
         return values
 
     def write_provenance():
+        for item in derivatives:
+            output = os.path.join(kit, item["path"].replace("/", os.sep))
+            digest = hashlib.sha256()
+            with open(output, "rb") as handle:
+                for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            item["sha256"] = digest.hexdigest()
         payload = {
             "schema_version": 1,
             "brand": slug,

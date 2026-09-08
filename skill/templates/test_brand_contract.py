@@ -188,6 +188,24 @@ class AffiliationTests(unittest.TestCase):
             (kit / "README.md").write_text("A ShruggieTech project\n", encoding="utf-8")
             self.assertEqual(1, len(scan_affiliation_output(brand, kit)))
 
+    def test_output_scan_requires_each_generated_vendor_boundary_surface(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            notice = "Acme is independent. Users are responsible."
+            brand = owned_brand()
+            brand["affiliation"] = {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}
+            brand["semantic_colors"] = {"emphasis": "#6750A4", "action": "#5B3F98"}
+            brand["vendor_boundary"] = {"required": True, "notice": notice, "entities": ["Acme"], "trademark_owner": "Acme", "terms_responsibility": "Users are responsible."}
+            (kit / "README.md").write_text(notice, encoding="utf-8")
+            expected = ("guidelines/portal.json", "guidelines/index.html", "enforcement/AGENTS.md", "build/brand-guide.print.html")
+            for relative in expected:
+                path = kit / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(notice, encoding="utf-8")
+            self.assertEqual([], scan_affiliation_output(brand, kit))
+            (kit / expected[0]).write_text("missing", encoding="utf-8")
+            self.assertEqual(["guidelines/portal.json omits the required vendor boundary"], scan_affiliation_output(brand, kit))
+
 
 class ApplicationIconProfileTests(unittest.TestCase):
     def test_shruggietech_uses_canonical_void_background(self):
