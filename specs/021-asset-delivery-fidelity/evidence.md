@@ -31,7 +31,7 @@
 
 ## Full Validation
 
-- `skill/templates/test_pipeline.py`: 45 tests passed.
+- `skill/templates/test_pipeline.py`: 46 tests passed.
 - Glyphkit: 34 checks passed; package-release: 2 tests passed; release-contract: 13 tests passed; prepare-site: 26 tests passed; brand-contract: 35 tests passed; iconkit: 14 tests passed.
 - Markdown prose line policy passed.
 - All six production kits rebuilt with zero reported problems and zero glyph failures.
@@ -42,6 +42,8 @@
 - The authorized second and final Codex review requested transform-aware lockup validation and portable raster comparison. Verification now re-derives horizontal and stacked component transforms, canvas dimensions, scaling, and placement from the declared lockup contract, rejecting collapsed marks and off-canvas wordmarks. Cross-backend SVG-to-PNG comparison now allows only one-pixel antialiasing-edge variance while requiring matching dimensions, visible bounds, coverage, and mutually dilated alpha topology. Focused transform and raster-equivalence regressions pass, and Glitchpad again builds with zero verifier problems.
 - The superseded post-review CI run correctly rejected an over-broad wordmark marker because it changed ESO Weave's approved derivative provenance. Component markers are now emitted only for the square-enclosure feature that consumes them. ESO Weave rebuilds with zero problems, Gate 2 remains current, site preparation succeeds, and the focused S021 regressions remain green.
 - The next Python 3.8 run found two fixture errors in the portable-raster tests: a Pillow image read after context closure and a tamper applied beneath an already-transparent corner. The read now occurs inside its context and the tamper removes visible center pixels. The raster-format, visible-tamper, and backend-tolerance tests all pass together.
+- Pull-request workflow 34189371411 passed on commit `d701258`: Python 3.8 compatibility completed in 3 minutes 48 seconds and the full build completed in 15 minutes 20 seconds. Geometry, capability probes, all-kit verification, release certification, generated-agent contract checks, the complete site type-check/export/browser matrix, and artifact publication were green.
+- The first Codex review produced two findings, both answered with implementation changes and regression coverage. The one authorized second and final Codex review produced two inline findings, both answered, fixed, and marked resolved. No third review round was requested.
 
 ## Hygiene
 

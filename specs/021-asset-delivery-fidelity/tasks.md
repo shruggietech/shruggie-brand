@@ -126,8 +126,8 @@
 - [X] T040 Audit UTF-8 without BOM, LF, mojibake, ignored generated output, and clean source hashes in `specs/021-asset-delivery-fidelity/evidence.md`
 - [X] T041 Commit S021 with Conventional Commit traceability on `codex/021-asset-delivery-fidelity`
 - [X] T042 Push the authorized feature branch and open an official PR closing #166 and #165
-- [ ] T043 Reconcile every CI result and first-round Codex review comment, replying to and resolving all findings
-- [ ] T044 Request at most one authorized second Codex review round, reconcile every response, and return only when CI and reviews are satisfied
+- [X] T043 Reconcile every CI result and first-round Codex review comment, replying to and resolving all findings
+- [X] T044 Request at most one authorized second Codex review round, reconcile every response, and return only when CI and reviews are satisfied
 
 ## Dependencies and Execution Order
 
