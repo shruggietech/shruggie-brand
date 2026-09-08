@@ -116,9 +116,14 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .docs-pagination > a { min-height: 4.5rem; border-color: var(--border); background: var(--card); color: var(--foreground); text-decoration: none; box-shadow: none; transition: border-color var(--sh-motion-normal), color var(--sh-motion-normal); }
 .docs-pagination > a:hover, .docs-pagination > a:focus-visible { border-color: var(--primary); background: var(--card); color: var(--foreground); text-decoration: none; }
 .docs-pagination > a:active { border-color: color-mix(in srgb, var(--primary) 78%, var(--border)); background: var(--card); }
+.docs-pagination > a > div { align-items: center; }
+.docs-pagination > a > div > svg { width: 1rem; height: 1rem; flex: 0 0 1rem; translate: 0 -.0625rem; }
 .docs-pagination > a > div > p { color: var(--foreground); font-size: .875rem; font-weight: 650; line-height: 1.4; }
 .docs-pagination > a > p { overflow: visible; color: var(--color-fd-muted-foreground); font-size: .8125rem; font-weight: 400; line-height: 1.45; text-overflow: clip; white-space: normal; }
-.docs-pagination > a p { text-decoration: none; }
+.docs-pagination > a p { margin: 0; text-decoration: none; }
+:where(button[data-theme-toggle], [data-theme-toggle] button) { min-width: 44px; min-height: 44px; }
+:where(button[data-theme-toggle], [data-theme-toggle] button):not(:disabled) { cursor: pointer; }
+:where(button[data-theme-toggle], [data-theme-toggle] button):disabled { cursor: not-allowed; }
 .docs-page .site-footer { margin: 4rem -1rem 1.5rem; padding: 2rem; }
 #nd-docs-layout :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 #nd-sidebar a[data-active='true'], #nd-sidebar a[aria-current='page'], #nd-toc a[data-active='true'], #nd-toc a[aria-current='true'] { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--foreground); font-weight: 700; box-shadow: inset 3px 0 var(--primary); }

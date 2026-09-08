@@ -66,6 +66,26 @@ function previewLayoutProblems(sample) {
 }
 check(previewLayoutProblems({ outer: { left: 0, top: 0, right: 100, bottom: 100 }, media: { left: 10, top: 10, right: 90, bottom: 90 }, imageBox: { left: 10, top: 10, right: 90, bottom: 90 }, artwork: { left: 20, top: 30, right: 80, bottom: 70 }, objectFit: 'contain', objectPosition: '50% 50%', transform: 'none', dividerTop: 100 }).length === 0, 'preview geometry helper rejects a valid centered fixture');
 check(previewLayoutProblems({ outer: { left: 0, top: 0, right: 100, bottom: 100 }, media: { left: 10, top: 10, right: 90, bottom: 90 }, imageBox: { left: 10, top: 10, right: 90, bottom: 90 }, artwork: { left: 8, top: 10, right: 70, bottom: 90 }, objectFit: 'cover', objectPosition: '0% 50%', transform: 'matrix(1, 0, 0, 1, 2, 0)', dividerTop: 95 }).length >= 6, 'preview geometry helper accepts overflow, off-center, transformed, cropped, or divider-crossing fixtures');
+function paginationCueProblems(sample) {
+  const problems = [];
+  if (Math.abs(sample.iconCenter - sample.labelCenter) > 1.1) problems.push('chevron is not vertically centered with its complete label group');
+  if (Math.abs(sample.iconWidth - 16) > 0.5 || Math.abs(sample.iconHeight - 16) > 0.5) problems.push('chevron dimensions are unstable');
+  if (sample.flexShrink !== '0') problems.push('chevron can shrink');
+  if (!sample.translate.includes('-1')) problems.push('chevron lacks the approved optical lift');
+  return problems;
+}
+check(paginationCueProblems({ iconCenter: 49, labelCenter: 50, iconWidth: 16, iconHeight: 16, flexShrink: '0', translate: '0px -1px' }).length === 0, 'pagination helper rejects the approved centered cue fixture');
+check(paginationCueProblems({ iconCenter: 44, labelCenter: 50, iconWidth: 12, iconHeight: 14, flexShrink: '1', translate: 'none' }).length === 4, 'pagination helper accepts center drift, size collapse, flex shrink, or missing optical correction');
+function themeControlProblems(sample) {
+  const problems = [];
+  if (!sample.disabled && sample.cursor !== 'pointer') problems.push('enabled theme control lacks pointer cursor');
+  if (sample.disabled && sample.cursor !== 'not-allowed') problems.push('disabled theme control lacks disabled cursor');
+  if (sample.role !== 'button' || !sample.name) problems.push('theme control lacks button semantics or accessible name');
+  if (sample.width < 44 || sample.height < 44) problems.push('theme control target is smaller than 44 by 44 CSS pixels');
+  return problems;
+}
+check(themeControlProblems({ disabled: false, cursor: 'pointer', role: 'button', name: 'Toggle Theme', width: 62, height: 44 }).length === 0, 'theme helper rejects a valid enabled control');
+check(themeControlProblems({ disabled: true, cursor: 'pointer', role: 'button', name: '', width: 30, height: 30 }).length === 3, 'theme helper accepts incorrect disabled cursor, missing semantics, or undersized target');
 function paeth(left, above, upperLeft) {
   const estimate = left + above - upperLeft;
   const dl = Math.abs(estimate - left); const da = Math.abs(estimate - above); const du = Math.abs(estimate - upperLeft);
@@ -131,7 +151,53 @@ try {
     check(samples.length > 0 && samples.every(Boolean), `${route} ${label} lacks measurable preview members`);
     for (const sample of samples.filter(Boolean)) for (const problem of previewLayoutProblems(sample)) failures.push(`${route} ${label} ${sample.source}: ${problem}`);
   };
-  await page.goto(base + '/');
+  const verifyFooter = async (route, exerciseKeyboard = false) => {
+    await page.goto(base + route);
+    const links = await page.locator('.site-footer nav a').evaluateAll((elements) => elements.map((element) => ({ label: element.textContent?.trim(), href: element.getAttribute('href'), target: element.getAttribute('target'), rel: element.getAttribute('rel') })));
+    const expected = [
+      { label: 'Brands', href: '/', target: null, rel: null },
+      { label: 'Documentation', href: '/docs/', target: null, rel: null },
+      { label: 'Download the skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', target: '_blank', rel: 'noopener noreferrer' },
+      { label: 'Company', href: 'https://shruggie.tech/', target: null, rel: null },
+      { label: 'Source', href: 'https://github.com/ShruggieTech/shruggie-brand', target: '_blank', rel: 'noopener noreferrer' },
+      { label: 'License', href: 'https://github.com/ShruggieTech/shruggie-brand/blob/main/LICENSE', target: '_blank', rel: 'noopener noreferrer' },
+    ];
+    check(JSON.stringify(links) === JSON.stringify(expected), `${route} footer destination policy differs from the approved contract (${JSON.stringify(links)})`);
+    for (const link of await page.locator('.site-footer nav a').all()) {
+      const box = await link.boundingBox();
+      check(Boolean(box && box.width >= 44 && box.height >= 44), `${route} footer link ${await link.textContent()} is smaller than 44 by 44 CSS pixels`);
+    }
+    const source = page.locator('.site-footer nav a', { hasText: /^Source$/ });
+    await source.focus();
+    const focus = await source.evaluate((element) => { const style = getComputedStyle(element); return { active: document.activeElement === element, outlineStyle: style.outlineStyle, outlineWidth: Number.parseFloat(style.outlineWidth) }; });
+    check(focus.active && focus.outlineStyle !== 'none' && focus.outlineWidth >= 2, `${route} footer link lacks visible keyboard focus (${JSON.stringify(focus)})`);
+    if (exerciseKeyboard) {
+      const popupPromise = context.waitForEvent('page');
+      await source.press('Enter');
+      const popup = await popupPromise;
+      check(Boolean(popup), `${route} keyboard activation did not open Source in a separate context`);
+      await popup.close();
+    }
+    await page.evaluate(() => scrollTo(0, 0));
+  };
+  const measurePagination = async (route, width, theme, forceWrap = false) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(base + route);
+    await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
+    await page.reload({ waitUntil: 'networkidle' });
+    const links = page.locator('.docs-pagination > a');
+    if (forceWrap && await links.count() > 0) await links.first().evaluate((element) => { element.style.width = '9rem'; });
+    const samples = await links.evaluateAll((elements) => elements.map((element) => {
+      const labelGroup = element.querySelector(':scope > div'); const icon = labelGroup?.querySelector('svg'); const label = labelGroup?.querySelector('p');
+      if (!labelGroup || !icon || !label) return null;
+      const iconBox = icon.getBoundingClientRect(); const labelBox = labelGroup.getBoundingClientRect(); const iconStyle = getComputedStyle(icon); const labelStyle = getComputedStyle(label);
+      return { iconCenter: iconBox.top + iconBox.height / 2, labelCenter: labelBox.top + labelBox.height / 2, iconWidth: iconBox.width, iconHeight: iconBox.height, flexShrink: iconStyle.flexShrink, translate: iconStyle.translate, labelLines: labelBox.height / Number.parseFloat(labelStyle.lineHeight) };
+    }));
+    check(samples.length > 0 && samples.every(Boolean), `${route} ${theme} at ${width}px lacks measurable pagination cues`);
+    for (const sample of samples.filter(Boolean)) for (const problem of paginationCueProblems(sample)) failures.push(`${route} ${theme} at ${width}px: ${problem} (${JSON.stringify(sample)})`);
+    if (forceWrap) check(samples.some((sample) => sample && sample.labelLines > 1.5), `${route} ${theme} at ${width}px did not exercise a wrapped pagination label`);
+  };
+  await verifyFooter('/', true);
   check(await page.locator('h1').textContent() === 'We build comprehensive brands', 'homepage headline does not match the approved wording');
   check(await page.locator('.brand-card').count() === 6, 'homepage must show exactly the six production brand cards');
   check(await page.locator('.brand-icon img').count() === 6, 'every brand card must include an icon');
@@ -358,7 +424,7 @@ try {
     }
   }
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto(base + '/docs/04-toolchain/');
+  await verifyFooter('/docs/04-toolchain/');
   check(await page.locator('.docs-page [style*="--callout-color"]').count() === 3, 'toolchain guidance must render the three explicit alert types as callouts');
   check(await page.locator('.docs-page blockquote').count() === 0, 'explicit toolchain alerts must not remain ordinary blockquotes');
   const codeBlocks = page.locator('.docs-page figure:has(pre)');
@@ -414,6 +480,28 @@ try {
     const links = page.locator('.docs-pagination > a');
     check(await links.count() === paginationCase.count, `${paginationCase.route} has the wrong pagination neighbor count`);
     for (const href of await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')))) check(Boolean(href && href.startsWith('/docs/') && href !== paginationCase.route), `${paginationCase.route} has an invalid pagination destination: ${href}`);
+  }
+  for (const route of ['/docs/', '/docs/02-kit-anatomy/', '/docs/09-portability/']) for (const width of visualWidths) for (const theme of visualThemes) await measurePagination(route, width, theme, route === '/docs/02-kit-anatomy/' && width === 360);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(base + '/docs/');
+  for (const theme of visualThemes) {
+    await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
+    await page.reload({ waitUntil: 'networkidle' });
+    const control = page.locator('button[data-theme-toggle]:visible');
+    check(await control.count() === 1, `documentation ${theme} theme lacks the shared light/dark toggle button`);
+    if (await control.count() !== 1) continue;
+    const state = await control.evaluate((element) => { const box = element.getBoundingClientRect(); const style = getComputedStyle(element); return { disabled: element.disabled, cursor: style.cursor, role: element.tagName.toLowerCase(), name: element.getAttribute('aria-label'), width: box.width, height: box.height }; });
+    for (const problem of themeControlProblems(state)) failures.push(`documentation ${theme} theme control: ${problem} (${JSON.stringify(state)})`);
+    await control.focus();
+    const focus = await control.evaluate((element) => { const style = getComputedStyle(element); return { active: document.activeElement === element, outlineStyle: style.outlineStyle, outlineWidth: Number.parseFloat(style.outlineWidth) }; });
+    check(focus.active && focus.outlineStyle !== 'none' && focus.outlineWidth >= 2, `documentation ${theme} theme control lacks visible keyboard focus (${JSON.stringify(focus)})`);
+    const wasDark = await page.locator('html').evaluate((element) => element.classList.contains('dark'));
+    await control.press('Enter');
+    try { await page.waitForFunction((previous) => document.documentElement.classList.contains('dark') !== previous, wasDark, { timeout: 5000 }); }
+    catch { check(false, `documentation ${theme} theme control did not change theme after keyboard activation`); }
+    await control.evaluate((element) => { element.disabled = true; });
+    const disabled = await control.evaluate((element) => { const box = element.getBoundingClientRect(); const style = getComputedStyle(element); return { disabled: element.disabled, cursor: style.cursor, role: element.tagName.toLowerCase(), name: element.getAttribute('aria-label'), width: box.width, height: box.height }; });
+    for (const problem of themeControlProblems(disabled)) failures.push(`documentation disabled theme control: ${problem} (${JSON.stringify(disabled)})`);
   }
   const themeSurfaces = new Map();
   for (const route of visualRoutes) {
