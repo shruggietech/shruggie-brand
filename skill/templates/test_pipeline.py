@@ -7,6 +7,7 @@ import copy
 import hashlib
 from io import BytesIO
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -426,6 +427,16 @@ class PipelineTests(unittest.TestCase):
                         self.assertEqual("PNG", rendered.format)
                         self.assertEqual((18, 52, 86), rendered.convert("RGBA").getpixel((0, 0))[:3])
 
+    def test_logo_raster_equivalence_allows_antialias_edges_but_rejects_drift(self):
+        expected = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+        expected.paste((255, 255, 255, 255), (8, 8, 24, 24))
+        one_pixel_edge = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+        one_pixel_edge.paste((255, 255, 255, 255), (9, 8, 25, 24))
+        shifted = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+        shifted.paste((255, 255, 255, 255), (12, 8, 28, 24))
+        self.assertTrue(verify._portable_raster_equivalent(expected, one_pixel_edge))
+        self.assertFalse(verify._portable_raster_equivalent(expected, shifted))
+
     def test_pdf_heading_weights_follow_typography_contract(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "input"
@@ -672,7 +683,7 @@ class PipelineTests(unittest.TestCase):
                     original_png = logo_png.read_bytes()
                     with Image.open(logo_png) as image:
                         changed = image.convert("RGBA")
-                    changed.putpixel((0, 0), (255, 0, 0, 0))
+                    changed.paste((255, 0, 0, 0), (508, 508, 516, 516))
                     changed.save(logo_png)
                     logo_report = verify.Report()
                     verify.c_logo_provenance(str(kit), brand, logo_report)
@@ -713,9 +724,11 @@ class PipelineTests(unittest.TestCase):
             brand_path = kit / "brand.json"
             brand = json.loads(brand_path.read_text(encoding="utf-8"))
             protected_paths = [item["d"] for item in brand["logo"]["paths"]["full"]]
-            self.write_probe(kit)
             old_argv = sys.argv
             try:
+                sys.argv = ["probe.py", str(kit)]
+                self.assertEqual(probe.main(), 0)
+                raster_available = load_capabilities(str(kit))["svg_raster"]
                 sys.argv = ["gen_logo.py", str(brand_path), str(kit)]
                 self.assertEqual(gen_logo.main(), 0)
             finally:
@@ -726,6 +739,7 @@ class PipelineTests(unittest.TestCase):
             reduced_color = (svg_dir / "glitchpad-mark-reduced-color.svg").read_text(encoding="utf-8")
             reduced_light = (svg_dir / "glitchpad-mark-reduced-light.svg").read_text(encoding="utf-8")
             black = (svg_dir / "glitchpad-mark-black.svg").read_text(encoding="utf-8")
+            white = (svg_dir / "glitchpad-mark-white.svg").read_text(encoding="utf-8")
             horizontal = (svg_dir / "glitchpad-horizontal-color.svg").read_text(encoding="utf-8")
             horizontal_light = (svg_dir / "glitchpad-horizontal-light.svg").read_text(encoding="utf-8")
             wordmark = (svg_dir / "glitchpad-wordmark-color.svg").read_text(encoding="utf-8")
@@ -747,10 +761,63 @@ class PipelineTests(unittest.TestCase):
             self.assertIn('fill="#FFD900"', reduced_light)
             self.assertNotIn('fill="#667788"', reduced_light)
             self.assertIn("<mask", black)
+            for name in ("mark", "horizontal", "stacked"):
+                for colourway in ("black", "white"):
+                    output = (svg_dir / ("glitchpad-%s-%s.svg" % (name, colourway))).read_text(encoding="utf-8")
+                    self.assertIn('maskUnits="userSpaceOnUse"', output)
+                    self.assertIn('maskContentUnits="userSpaceOnUse"', output)
+                    self.assertIn('x="0" y="0" width="1000" height="1000"', output)
+                    self.assertIn(protected_paths[0], output)
+            self.assertIn(protected_paths[0], white)
             self.assertIn('fill="#F2F5FA"', horizontal)
             self.assertIn('fill="#0A0A0A"', horizontal_light)
             self.assertIn('fill="#F2F5FA"', wordmark)
             self.assertIn('fill="#0A0A0A"', wordmark_light)
+
+            if raster_available:
+                png_dir = kit / "logos" / "png"
+                for layout, crop_box, minimum_height in (
+                        ("horizontal", (0, 0, 230, 258), 130),
+                        ("stacked", (0, 0, 1024, 260), 150)):
+                    for colourway in ("black", "white"):
+                        with Image.open(png_dir / ("glitchpad-%s-%s-1024.png" % (layout, colourway))) as image:
+                            alpha = image.convert("RGBA").getchannel("A").crop(crop_box)
+                            bounds = alpha.getbbox()
+                        self.assertIsNotNone(bounds)
+                        self.assertGreaterEqual(bounds[3] - bounds[1], minimum_height)
+
+            black_path = svg_dir / "glitchpad-horizontal-black.svg"
+            original_black = black_path.read_text(encoding="utf-8")
+            mutations = {
+                "missing-region": original_black.replace(' maskContentUnits="userSpaceOnUse"', '', 1),
+                "undersized-region": original_black.replace('width="1000" height="1000"', 'width="1000" height="200"', 1),
+                "missing-reference": original_black.replace('mask="url(#glitchpad-black-square-knockout)"', '', 1),
+            }
+            for name, mutation in mutations.items():
+                with self.subTest(square_knockout_mutation=name):
+                    black_path.write_text(mutation, encoding="utf-8")
+                    report = verify.Report()
+                    verify.c_logo_provenance(str(kit), brand, report)
+                    self.assertTrue(any("square-knockout mask" in problem for problem in report.problems), report.problems)
+            geometry_mutations = {
+                "missing-mark-path": original_black.replace(protected_paths[0], "M0 0", 1),
+                "missing-wordmark": original_black.replace(
+                    'data-lockup-component="wordmark"', 'data-lockup-component="missing-wordmark"', 1),
+                "collapsed-mark": re.sub(
+                    r'(<g transform="translate\([^)]+\) )scale\([^)]+\)',
+                    r'\1scale(0.001)', original_black, count=1),
+                "shifted-wordmark": re.sub(
+                    r'(data-lockup-component="wordmark" transform=")translate\([^)]+\)',
+                    r'\1translate(9999,9999)', original_black, count=1),
+            }
+            for name, mutation in geometry_mutations.items():
+                with self.subTest(lockup_geometry_mutation=name):
+                    black_path.write_text(mutation, encoding="utf-8")
+                    report = verify.Report()
+                    verify.c_logo_provenance(str(kit), brand, report)
+                    self.assertTrue(any("lockup" in problem and any(
+                                        keyword in problem for keyword in ("geometry", "contain", "transform"))
+                                        for problem in report.problems), report.problems)
 
     def test_full_tier_page_qc_error_is_fatal(self):
         with tempfile.TemporaryDirectory() as tmp:

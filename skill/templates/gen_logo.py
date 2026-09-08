@@ -423,15 +423,16 @@ def main():
             mask_roles = {item.get("role", "accent"): "#000000" for item in knockout}
             knocked_out = render_paths(knockout, mask_roles, indent + "      ")
             return (
-                '%s<g data-square-enclosure="true">\n'
-                '%s  <defs><mask id="%s" maskUnits="userSpaceOnUse">\n'
+                '%s<g data-square-enclosure="true" data-lockup-component="mark">\n'
+                '%s  <defs><mask id="%s" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width="%g" height="%g">\n'
                 '%s    <rect width="%g" height="%g" fill="#000000"/>\n'
                 '%s    <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="#FFFFFF"/>\n'
                 '%s    <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s    </g>\n'
                 '%s  </mask></defs>\n'
                 '%s  <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="%s" mask="url(#%s)"/>\n'
                 '%s</g>'
-                % (indent, indent, mask_id, indent, canvas_width, canvas_height,
+                % (indent, indent, mask_id, canvas_width, canvas_height,
+                   indent, canvas_width, canvas_height,
                    indent, enclosure["inset"], enclosure["inset"], enclosure["size"],
                    enclosure["size"], enclosure["corner_radius"], indent, x, y, scale,
                    -source_box[0], -source_box[1], knocked_out, indent, indent, indent,
@@ -441,7 +442,7 @@ def main():
             )
         content = render_paths(path_list, roles, indent + "    ")
         return (
-            '%s<g data-square-enclosure="true">\n'
+            '%s<g data-square-enclosure="true" data-lockup-component="mark">\n'
             '%s  <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="%s" stroke="%s" stroke-width="%g"/>\n'
             '%s  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s  </g>\n'
             '%s</g>'
@@ -607,18 +608,19 @@ def main():
             return roles.get("wordmark", "#F2F5FA" if colourway == "color" else "#0A0A0A")
 
         def word_group(colourway, roles, x, y, scale, indent="  "):
+            component = ' data-lockup-component="wordmark"' if enclosure else ''
             if supplied_wordmark:
                 content = render_paths(supplied_wordmark, roles, indent + "  ")
-                return ('%s<g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s</g>'
-                        % (indent, x, y, scale, -wordmark_box[0], -wordmark_box[1], content, indent))
+                return ('%s<g%s transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s</g>'
+                        % (indent, component, x, y, scale, -wordmark_box[0], -wordmark_box[1], content, indent))
             if wordmark_parts:
                 content = "".join('<path d="%s" fill="%s"/>' %
                                   (part, roles.get(role, word_ink(colourway, roles)))
                                   for part, role in wordmark_parts)
-                return '%s<g transform="translate(%g,%g) scale(%g)">%s</g>' % (
-                    indent, x, y, scale, content)
-            return '%s<g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>' % (
-                indent, x, y, scale, wordmark_d, word_ink(colourway, roles))
+                return '%s<g%s transform="translate(%g,%g) scale(%g)">%s</g>' % (
+                    indent, component, x, y, scale, content)
+            return '%s<g%s transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>' % (
+                indent, component, x, y, scale, wordmark_d, word_ink(colourway, roles))
 
         pad = 12
         wordmark_width = (wordmark_ink_width_raw if supplied_wordmark else wordmark_advance) + pad * 2
