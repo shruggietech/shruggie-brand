@@ -40,6 +40,24 @@ TEXT_SUFFIXES = {".css", ".html", ".js", ".json", ".jsx", ".md", ".mjs", ".svg",
 HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
 DIGEST = re.compile(r"^[0-9a-f]{64}$")
 ID = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+PUBLICATION_SURFACES = {
+    "showcase-card", "brand-landing-page", "guideline-topics", "downloads",
+    "registry-endpoints", "public-metadata", "structured-data", "social-preview",
+}
+DERIVATIVE_FAMILIES = {
+    "reduced-and-platform", "horizontal-lockup", "stacked-lockup", "wordmark-only", "single-ink",
+}
+
+
+def derivative_configuration_sha256(brand):
+    """Hash every source-contract value that can change approved identity output."""
+    keys = (
+        "slug", "wordmark_text", "accent", "semantic_colors", "surfaces", "typography",
+        "palette_approvals", "logo",
+    )
+    payload = {key: brand.get(key) for key in keys}
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 class ContractError(ValueError):
@@ -57,6 +75,45 @@ def sha256_file(path):
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def validate_source_inventory(path, repository_root):
+    """Validate a provenance inventory against its contained repository files."""
+    inventory_path = Path(path).resolve()
+    root = Path(repository_root).resolve()
+    _require(inventory_path.is_file(), "source inventory is missing: %s" % inventory_path)
+    try:
+        inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ContractError("source inventory is not valid UTF-8 JSON: %s" % error) from error
+    _require(isinstance(inventory, dict) and inventory.get("schema_version") == 1,
+             "source inventory schema_version must be 1")
+    records = inventory.get("records")
+    _require(isinstance(records, list) and records, "source inventory records are required")
+    identifiers = set()
+    contained_paths = set()
+    for index, record in enumerate(records):
+        _require(isinstance(record, dict), "source inventory record %d must be an object" % index)
+        required = {"id", "contained_path", "bytes", "sha256"}
+        _require(required.issubset(record), "source inventory record %d lacks a required field" % index)
+        identifier = record["id"]
+        relative = record["contained_path"]
+        _require(isinstance(identifier, str) and ID.fullmatch(identifier or ""),
+                 "source inventory record %d has an invalid id" % index)
+        _require(identifier not in identifiers, "duplicate source inventory id: %s" % identifier)
+        _require(relative not in contained_paths, "duplicate source inventory path: %s" % relative)
+        identifiers.add(identifier)
+        contained_paths.add(relative)
+        source = contained_path(root, relative)
+        _require(isinstance(record["bytes"], int) and record["bytes"] >= 0,
+                 "source inventory record %s has an invalid byte count" % identifier)
+        _require(source.stat().st_size == record["bytes"],
+                 "source inventory byte drift: %s" % relative)
+        _require(isinstance(record["sha256"], str) and DIGEST.fullmatch(record["sha256"] or ""),
+                 "source inventory record %s has an invalid SHA-256" % identifier)
+        _require(sha256_file(source) == record["sha256"],
+                 "source inventory hash drift: %s" % relative)
+    return inventory
 
 
 def _require(condition, message):
@@ -278,8 +335,105 @@ def affiliation_text(brand):
     return ""
 
 
-def public_showcase(brand):
-    return affiliation(brand)["showcase"] == "public"
+def vendor_boundary(brand):
+    value = brand.get("vendor_boundary")
+    if value is None:
+        return None
+    required = {"required", "notice", "entities", "trademark_owner", "terms_responsibility"}
+    _require(isinstance(value, dict) and set(value) == required,
+             "vendor_boundary must contain exactly %s" % ", ".join(sorted(required)))
+    _require(value["required"] is True, "vendor_boundary.required must be true")
+    _require(isinstance(value["notice"], str) and value["notice"].strip(),
+             "vendor_boundary.notice is required")
+    entities = value["entities"]
+    _require(isinstance(entities, list) and entities and len(entities) == len(set(entities))
+             and all(isinstance(item, str) and item.strip() for item in entities),
+             "vendor_boundary.entities must be a non-empty unique string array")
+    _require(isinstance(value["trademark_owner"], str) and value["trademark_owner"].strip(),
+             "vendor_boundary.trademark_owner is required")
+    _require(isinstance(value["terms_responsibility"], str) and value["terms_responsibility"].strip(),
+             "vendor_boundary.terms_responsibility is required")
+    for required_text in entities + [value["trademark_owner"], value["terms_responsibility"]]:
+        _require(required_text.lower() in value["notice"].lower(),
+                 "vendor boundary notice omits required text: %s" % required_text)
+    return value
+
+
+def approval_ledger(brand, normalized_inputs=None):
+    value = brand.get("approval_ledger")
+    if value is None:
+        return None
+    _require(isinstance(value, dict) and set(value) == {"source_hashes", "gate_1", "gate_2"},
+             "approval_ledger must contain exactly source_hashes, gate_1, and gate_2")
+    hashes = value["source_hashes"]
+    _require(isinstance(hashes, dict) and hashes, "approval_ledger.source_hashes is required")
+    _require(all(ID.fullmatch(key or "") and DIGEST.fullmatch(digest or "")
+                 for key, digest in hashes.items()),
+             "approval_ledger.source_hashes contains an invalid binding")
+    if normalized_inputs is not None:
+        current = {record["id"]: record["sha256"] for record, _path in normalized_inputs
+                   if record["usage_status"] == "approved" and record["role"] != "reference-art"}
+        _require(hashes == current, "approval ledger is stale because authoritative source hashes changed")
+
+    gate_1 = value["gate_1"]
+    _require(isinstance(gate_1, dict)
+             and set(gate_1) == {"status", "approved_by", "approved_on", "scope", "derivative_config_sha256"},
+             "approval_ledger.gate_1 has an invalid structure")
+    _require(gate_1["status"] == "approved", "Gate 1 approval is required before derivative generation")
+    _require(isinstance(gate_1["approved_by"], str) and gate_1["approved_by"].strip(),
+             "Gate 1 approval lacks an approver")
+    _require(re.fullmatch(r"\d{4}-\d{2}-\d{2}", gate_1["approved_on"] or ""),
+             "Gate 1 approval has an invalid date")
+    _require(isinstance(gate_1["scope"], list) and gate_1["scope"]
+             and len(gate_1["scope"]) == len(set(gate_1["scope"]))
+             and all(ID.fullmatch(item or "") for item in gate_1["scope"]),
+             "Gate 1 approval scope must be a non-empty unique id array")
+    _require(set(gate_1["scope"]) == DERIVATIVE_FAMILIES,
+             "Gate 1 approval scope does not cover every derivative family")
+    _require(DIGEST.fullmatch(gate_1["derivative_config_sha256"] or "")
+             and gate_1["derivative_config_sha256"] == derivative_configuration_sha256(brand),
+             "Gate 1 approval is stale because derivative-producing configuration changed")
+
+    gate_2 = value["gate_2"]
+    required_gate_2 = {"status", "approved_by", "approved_on", "derivative_manifest_sha256", "surfaces"}
+    _require(isinstance(gate_2, dict) and set(gate_2) == required_gate_2,
+             "approval_ledger.gate_2 has an invalid structure")
+    _require(gate_2["status"] in {"pending", "approved", "rejected"},
+             "Gate 2 status is invalid")
+    if gate_2["status"] == "approved":
+        _require(isinstance(gate_2["approved_by"], str) and gate_2["approved_by"].strip(),
+                 "Gate 2 approval lacks an approver")
+        _require(re.fullmatch(r"\d{4}-\d{2}-\d{2}", gate_2["approved_on"] or ""),
+                 "Gate 2 approval has an invalid date")
+        _require(DIGEST.fullmatch(gate_2["derivative_manifest_sha256"] or ""),
+                 "Gate 2 approval lacks a derivative manifest hash")
+        surfaces = gate_2["surfaces"]
+        _require(isinstance(surfaces, list) and surfaces and len(surfaces) == len(set(surfaces))
+                 and set(surfaces).issubset(PUBLICATION_SURFACES),
+                 "Gate 2 approval contains missing, duplicate, or unsupported publication surfaces")
+    else:
+        _require(gate_2["approved_by"] is None and gate_2["approved_on"] is None
+                 and gate_2["derivative_manifest_sha256"] is None and gate_2["surfaces"] == [],
+                 "pending or rejected Gate 2 must not carry approval evidence")
+    return value
+
+
+def public_showcase(brand, kit=None):
+    if affiliation(brand)["showcase"] != "public":
+        return False
+    ledger = brand.get("approval_ledger")
+    if ledger is None:
+        return True
+    gate_2 = approval_ledger(brand)["gate_2"]
+    if gate_2["status"] != "approved":
+        return False
+    _require(set(gate_2["surfaces"]) == PUBLICATION_SURFACES,
+             "Gate 2 approval does not authorize the complete public surface set")
+    if kit is not None:
+        approval = contained_path(kit, "logos/approval.json")
+        _require(sha256_file(approval) == gate_2["derivative_manifest_sha256"],
+                 "Gate 2 approval is stale because derivative provenance changed")
+    return True
 
 
 def typography_families(brand):
@@ -734,6 +888,12 @@ def validate_brand(brand, kit):
     wordmark_role_colors(brand)
     showcase_surface(brand)
     normalized_inputs = authoritative_inputs(brand, kit)
+    if aff["ownership"] == THIRD_PARTY and aff["showcase"] == "public":
+        _require(brand.get("approval_ledger") is not None,
+                 "public third-party brands require an approval ledger")
+        _require(vendor_boundary(brand) is not None,
+                 "public third-party brands require a vendor boundary")
+    approval_ledger(brand, normalized_inputs)
     logo_source_contract(brand, kit, normalized_inputs)
     evidence = [evidence for record, path in normalized_inputs
                 for evidence in [analyze_input(record, path)] if evidence is not None]
@@ -753,6 +913,7 @@ def scan_affiliation_output(brand, kit):
         return []
     problems = []
     root = Path(kit).resolve()
+    boundary = vendor_boundary(brand)
     for path in root.rglob("*"):
         if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
             continue
@@ -763,4 +924,15 @@ def scan_affiliation_output(brand, kit):
             problems.append("%s contains an undeclared ShruggieTech service credit" % path.relative_to(root).as_posix())
         if re.search(r'"parent"\s*:\s*"ShruggieTech"', text, re.I):
             problems.append("%s contains false ShruggieTech parentage" % path.relative_to(root).as_posix())
+    if boundary:
+        generated_surfaces = (
+            "guidelines/portal.json",
+            "guidelines/index.html",
+            "enforcement/AGENTS.md",
+            "build/brand-guide.print.html",
+        )
+        for relative in generated_surfaces:
+            path = root / relative
+            if not path.is_file() or boundary["notice"].lower() not in path.read_text(encoding="utf-8", errors="replace").lower():
+                problems.append("%s omits the required vendor boundary" % relative)
     return problems

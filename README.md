@@ -1,6 +1,6 @@
 # Shruggie Brand
 
-This repository is the source of the ShruggieTech brand system. It contains the `shruggie-brandbuilder` skill, source-only definitions for five production brand kits, a synthetic fixture, the regression pipeline that rebuilds every kit, and the static site published at [brand.shruggie.tech](https://brand.shruggie.tech).
+This repository is the source of the ShruggieTech brand system. It contains the `shruggie-brandbuilder` skill, source-only definitions for six production brand kits, a synthetic fixture, the regression pipeline that rebuilds every kit, and the static site published at [brand.shruggie.tech](https://brand.shruggie.tech).
 
 | You are | Take |
 | --- | --- |
@@ -14,6 +14,7 @@ This repository is the source of the ShruggieTech brand system. It contains the 
 - [Go Schedule](https://brand.shruggie.tech/go-schedule/)
 - [Glitchpad](https://brand.shruggie.tech/glitchpad/)
 - [Covarity](https://brand.shruggie.tech/covarity/)
+- [ESO Weave](https://brand.shruggie.tech/eso-weave/)
 
 Each brand page links to a generated multi-page guideline portal with focused voice, logo, color, typography, component, asset, and platform-integration topics. The downloads page also carries a standalone HTML guideline for offline use.
 

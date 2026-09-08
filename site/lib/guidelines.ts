@@ -17,7 +17,7 @@ export type PortalResource = Delivery & { id: string; title: string; resource_ki
 export type GuidelineTopic = { key: string; title: string; description: string };
 export type GuidelinePortal = {
   schema_version: string;
-  brand: { slug: string; title: string; descriptor: string; idea: string; affiliation: string };
+  brand: { slug: string; title: string; descriptor: string; idea: string; affiliation: string; vendorBoundary: string };
   topics: GuidelineTopic[];
   content: {
     overview: { foundation_title?: string; foundation?: string; promises?: string[]; in_scope?: string[]; out_of_scope?: string[]; sharp_edge?: string };

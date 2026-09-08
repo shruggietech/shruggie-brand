@@ -29,7 +29,7 @@ SITE_DESCRIPTION = "Explore ShruggieTech brand identities, standards, assets, an
 SOCIAL_SIZE = (1280, 640)
 ALERT_TYPES = {"NOTE": "info", "WARNING": "warn", "CAUTION": "error"}
 sys.path.insert(0, str(TEMPLATES))
-from brand_contract import affiliation, public_showcase, showcase_surface
+from brand_contract import affiliation, public_showcase, showcase_surface, vendor_boundary
 DOC_DESCRIPTIONS = {
     "00-variance-contract": "The rules that keep every identity distinct while preserving a shared standard.",
     "01-canon": "Machine-readable defaults and constraints used by the brand generator.",
@@ -124,7 +124,8 @@ def remove_stale_public_brands(public: Path, expected: set[str]) -> list[str]:
 
 def make_route(key: str, kind: str, pathname: str, title: str, description: str, eyebrow: str,
                breadcrumbs: list[dict[str, str]], brand_slug: Optional[str] = None,
-               docs_slug: Optional[str] = None, guide_topic: Optional[str] = None) -> dict[str, Any]:
+               docs_slug: Optional[str] = None, guide_topic: Optional[str] = None,
+               vendor_notice: Optional[str] = None) -> dict[str, Any]:
     canonical = f"{SITE_URL}{pathname}"
     social_path = f"/social/{key}.png"
     return {
@@ -141,13 +142,15 @@ def make_route(key: str, kind: str, pathname: str, title: str, description: str,
             "width": SOCIAL_SIZE[0],
             "height": SOCIAL_SIZE[1],
             "type": "image/png",
-            "alt": f"{title} page preview on Brands | ShruggieTech",
+            "alt": f"{title} page preview on Brands | ShruggieTech" + (", independent third-party project" if vendor_notice else ""),
             "eyebrow": eyebrow,
         },
         "breadcrumbs": breadcrumbs,
         "brandSlug": brand_slug,
         "docsSlug": docs_slug,
         "guideTopic": guide_topic,
+        "vendorBoundary": vendor_notice,
+        "vendorBoundaryUrl": f"{SITE_URL}/{brand_slug}/guidelines/" if vendor_notice and brand_slug else None,
     }
 
 
@@ -205,7 +208,11 @@ def structured_data(route: dict[str, Any], routes: list[dict[str, Any]], brands:
         brand = next(item for item in brands if item["slug"] == route["brandSlug"])
         brand_id = f"{route['canonical']}#brand"
         page["mainEntity"] = {"@id": brand_id}
-        graph.append({"@type": "Brand", "@id": brand_id, "name": brand["title"], "description": brand["descriptor"], "url": route["canonical"], "logo": f"{SITE_URL}{brand['icon']}"})
+        entity = {"@type": "Brand", "@id": brand_id, "name": brand["title"], "description": brand["descriptor"], "url": route["canonical"], "logo": f"{SITE_URL}{brand['icon']}"}
+        if route.get("vendorBoundary"):
+            entity["disambiguatingDescription"] = route["vendorBoundary"]
+            entity["usageInfo"] = route["vendorBoundaryUrl"]
+        graph.append(entity)
     if route["breadcrumbs"]:
         breadcrumb_id = f"{route['canonical']}#breadcrumb"
         page["breadcrumb"] = {"@id": breadcrumb_id}
@@ -223,16 +230,17 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
         brand_path = f"/{slug}/"
         brand_crumb = {"name": brand["title"], "url": f"{SITE_URL}{brand_path}"}
         portal = portal_by_slug.get(slug)
+        vendor_notice = brand.get("vendorBoundary")
         topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "description": brand["descriptor"]}]
         overview = topics[0]
         routes.extend([
-            make_route(f"brand-{slug}", "brand", brand_path, brand["title"], brand["descriptor"], "Brand portfolio", [home, brand_crumb], brand_slug=slug),
-            make_route(f"downloads-{slug}", "downloads", f"/{slug}/downloads/", f"{brand['title']} downloads", f"Download the {brand['title']} brand guide and asset collections.", "Brand assets", [home, brand_crumb, {"name": "Downloads", "url": f"{SITE_URL}/{slug}/downloads/"}], brand_slug=slug),
-            make_route(f"guidelines-{slug}", "guidelines", f"/{slug}/guidelines/", f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}], brand_slug=slug, guide_topic=overview["key"]),
+            make_route(f"brand-{slug}", "brand", brand_path, brand["title"], brand["descriptor"], "Brand portfolio", [home, brand_crumb], brand_slug=slug, vendor_notice=vendor_notice),
+            make_route(f"downloads-{slug}", "downloads", f"/{slug}/downloads/", f"{brand['title']} downloads", f"Download the {brand['title']} brand guide and asset collections.", "Brand assets", [home, brand_crumb, {"name": "Downloads", "url": f"{SITE_URL}/{slug}/downloads/"}], brand_slug=slug, vendor_notice=vendor_notice),
+            make_route(f"guidelines-{slug}", "guidelines", f"/{slug}/guidelines/", f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice),
         ])
         for topic in topics[1:]:
             pathname = f"/{slug}/guidelines/{topic['key']}/"
-            routes.append(make_route(f"guidelines-{slug}-{topic['key']}", "guidelines-topic", pathname, f"{topic['title']} | {brand['title']}", topic["description"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}, {"name": topic["title"], "url": f"{SITE_URL}{pathname}"}], brand_slug=slug, guide_topic=topic["key"]))
+            routes.append(make_route(f"guidelines-{slug}-{topic['key']}", "guidelines-topic", pathname, f"{topic['title']} | {brand['title']}", topic["description"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}, {"name": topic["title"], "url": f"{SITE_URL}{pathname}"}], brand_slug=slug, guide_topic=topic["key"], vendor_notice=vendor_notice))
     routes.append(make_route("docs", "docs-index", "/docs/", "Documentation", "The repeatable ShruggieTech system for building complete, usable brand identities.", "Documentation", [home, docs_root]))
     for doc in sorted(docs, key=lambda item: item["slug"]):
         pathname = f"/docs/{doc['slug']}/"
@@ -405,7 +413,10 @@ def generate_social_previews(routes: list[dict[str, Any]], public: Path, mark_pa
         mark_x = 1160 - mark.width
         mark_y = 92
         canvas.alpha_composite(mark, (mark_x, mark_y))
-        draw.text((120, 530), "brand.shruggie.tech", font=footer_font, fill=(154, 154, 154, 255))
+        footer = "brand.shruggie.tech"
+        if route.get("vendorBoundary"):
+            footer = f"Independent third-party project. Vendor notice: brand.shruggie.tech/{route['brandSlug']}/guidelines/"
+        draw.text((120, 530), footer, font=footer_font, fill=(154, 154, 154, 255))
         canvas.save(destination, format="PNG", optimize=False)
 
 
@@ -419,6 +430,12 @@ def add_guideline_metadata(path: Path, route: dict[str, Any]) -> None:
     preview_height = preview["height"]
     preview_type = preview["type"]
     preview_alt = escape(preview["alt"], quote=True)
+    boundary_tags = ""
+    if route.get("vendorBoundary"):
+        boundary_tags = (
+            f'<meta name="brand-vendor-boundary" content="{escape(route["vendorBoundary"], quote=True)}">'
+            f'<link rel="help" href="{route["vendorBoundaryUrl"]}" title="Vendor and trademark notice">'
+        )
     json_ld = json.dumps(route["structuredData"], ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     tags = (
         f'<meta name="description" content="{escape(description, quote=True)}">'
@@ -431,7 +448,7 @@ def add_guideline_metadata(path: Path, route: dict[str, Any]) -> None:
         f'<meta property="og:image:alt" content="{preview_alt}"><meta name="twitter:card" content="summary_large_image">'
         f'<meta name="twitter:title" content="{escape(title, quote=True)}"><meta name="twitter:description" content="{escape(description, quote=True)}">'
         f'<meta name="twitter:image" content="{preview_url}"><meta name="twitter:image:alt" content="{preview_alt}">'
-        f'<script type="application/ld+json">{json_ld}</script>'
+        f'{boundary_tags}<script type="application/ld+json">{json_ld}</script>'
     )
     content = path.read_text(encoding="utf-8")
     if "<head>" not in content:
@@ -495,6 +512,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
     specimen_name = next((source / "specimens").glob("*.svg")).name
     logo_root = f"/{slug}/downloads/files/logos/svg"
     aff = affiliation(brand)
+    boundary = vendor_boundary(brand)
     record = {
         "slug": slug,
         "title": brand["title"],
@@ -514,6 +532,8 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "parent": aff["parent"],
         "endorsement": aff["endorsement"],
         "serviceCredit": aff["service_credit"],
+        "vendorBoundary": boundary["notice"] if boundary else None,
+        "vendorBoundarySummary": "Independent third-party project. Full vendor and trademark notice on brand page." if boundary else None,
     }
     surface = showcase_surface(brand)
     if surface is not None:
@@ -698,7 +718,7 @@ def main() -> int:
         validate_source_identity(source, brand, seen)
         validate_registry(source, brand)
         loaded.append((source, brand))
-    public_sources = [(source, brand) for source, brand in loaded if public_showcase(brand)]
+    public_sources = [(source, brand) for source, brand in loaded if public_showcase(brand, source)]
     remove_stale_public_brands(PUBLIC, {source.name for source, _ in public_sources})
     for source, brand in public_sources:
         brands.append(copy_kit(source, brand))

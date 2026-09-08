@@ -17,7 +17,7 @@ Usage:  python3 gen_enforcement.py <brand-spec.json> <output-dir>
 """
 import json, os, sys
 from coloraide import Color
-from brand_contract import affiliation, affiliation_text, semantic_colors, typography_families
+from brand_contract import affiliation, affiliation_text, semantic_colors, typography_families, vendor_boundary
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -182,6 +182,7 @@ def agents_md(canon, brand):
     aff = affiliation(brand)
     semantic = semantic_colors(brand, canon)
     claim = affiliation_text(brand)
+    boundary = vendor_boundary(brand)
     affiliation_rule = ("This is a ShruggieTech-owned child brand. The only approved ownership endorsement is `%s`. Keep it outside the logo clear space." % claim
                         if aff["parent"] else
                         (("This is a third-party identity. It has no ShruggieTech parent or ownership endorsement. The only approved service credit is `%s`." % claim)
@@ -246,6 +247,8 @@ Asking for an undeclared weight makes the renderer synthesise or substitute a fa
 
 {affiliation_rule}
 
+{vendor_rule}
+
 ## Density
 
 Two settings ship, and both are correct in the right place. Default for
@@ -301,6 +304,7 @@ A build that fails any of these is not finished, whatever it looks like.
         body_weights="/".join(str(weight) for weight in fams["body"]["weights"]),
         mono_weights="/".join(str(weight) for weight in fams["mono"]["weights"]),
         affiliation_rule=affiliation_rule,
+        vendor_rule=("Vendor and trademark boundary: " + boundary["notice"] if boundary else ""),
         copy=copy_block(brand))
 
 def main():

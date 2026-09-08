@@ -499,6 +499,10 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual("full-mark-master", mark["input_id"])
             self.assertEqual(["recolor-mask", "resize"], mark["transformations"])
             svg_path = kit / mark["path"]
+            self.assertEqual(hashlib.sha256(svg_path.read_bytes()).hexdigest(), mark["sha256"])
+            approval_path = kit / "logos" / "approval.json"
+            approval = json.loads(approval_path.read_text(encoding="utf-8"))
+            self.assertEqual(paths, [item["path"] for item in approval["derivatives"]])
             text = svg_path.read_text(encoding="utf-8")
             self.assertIn('data-logo-source-mode="authoritative"', text)
             self.assertIn('data-authoritative-input-id="full-mark-master"', text)
@@ -521,6 +525,9 @@ class PipelineTests(unittest.TestCase):
             stale = copy.deepcopy(provenance)
             stale["derivatives"][0]["source_sha256"] = "0" * 64
             mutations["stale"] = stale
+            changed_output = copy.deepcopy(provenance)
+            changed_output["derivatives"][0]["sha256"] = "0" * 64
+            mutations["changed-output"] = changed_output
             undeclared = copy.deepcopy(provenance)
             authoritative = next(item for item in undeclared["derivatives"] if item["input_id"])
             authoritative["transformations"].append("trace")
@@ -533,6 +540,13 @@ class PipelineTests(unittest.TestCase):
                     self.assertTrue(report.problems)
 
             index_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+            changed_approval = copy.deepcopy(approval)
+            changed_approval["derivatives"][0]["sha256"] = "0" * 64
+            approval_path.write_text(json.dumps(changed_approval, indent=2) + "\n", encoding="utf-8")
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+            self.assertTrue(any("approval manifest" in problem for problem in report.problems))
+            approval_path.write_text(json.dumps(approval, indent=2) + "\n", encoding="utf-8")
             svg_path.write_text(text.replace('data-authoritative-input-id="full-mark-master"',
                                              'data-authoritative-input-id="substitute"'), encoding="utf-8")
             report = verify.Report()
@@ -600,6 +614,33 @@ class PipelineTests(unittest.TestCase):
             report = verify.Report()
             verify.c_logo_provenance(str(kit), brand, report)
             self.assertFalse(report.problems, report.problems)
+
+    def test_eso_weave_outputs_keep_one_source_mark_and_contextual_wordmark_contrast(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp) / "eso-weave"
+            shutil.copytree(ROOT / "brands" / "eso-weave", kit)
+            mono = kit / "fonts" / "ttf" / "GeistMono-Regular.ttf"
+            mono.parent.mkdir(parents=True)
+            shutil.copy2(ROOT / "assets" / "fonts" / "ttf" / "GeistMono-Regular.ttf", mono)
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            svg_dir = kit / "logos" / "svg"
+            for name in ("eso-weave-horizontal-color.svg", "eso-weave-horizontal-light.svg",
+                         "eso-weave-stacked-color.svg", "eso-weave-stacked-light.svg"):
+                output = (svg_dir / name).read_text(encoding="utf-8")
+                self.assertEqual(1, output.count("<image "), name)
+            light_wordmark = (svg_dir / "eso-weave-wordmark-light.svg").read_text(encoding="utf-8")
+            self.assertIn('#14110B', light_wordmark)
+            self.assertIn('#986000', light_wordmark)
+            self.assertNotIn('#F2B03C', light_wordmark)
+            single_ink = (svg_dir / "eso-weave-mark-white.svg").read_text(encoding="utf-8")
+            self.assertNotIn("data:image/svg+xml;base64,", single_ink)
+            self.assertEqual(2, single_ink.count("<path "))
 
     def test_authoritative_rasters_icons_and_rendered_placement_are_tamper_evident(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -11,5 +11,6 @@ export function pageMetadata(route: RouteRecord): Metadata {
     alternates: { canonical: route.canonical },
     openGraph: { type: 'website', url: route.canonical, title: route.documentTitle, description: route.description, siteName: 'ShruggieTech', images: [{ url: route.social.url, width: route.social.width, height: route.social.height, type: route.social.type, alt: route.social.alt }] },
     twitter: { card: 'summary_large_image', title: route.documentTitle, description: route.description, images: [{ url: route.social.url, alt: route.social.alt }] },
+    other: route.vendorBoundary ? { 'brand-vendor-boundary': route.vendorBoundary, 'brand-vendor-boundary-url': route.vendorBoundaryUrl ?? '' } : undefined,
   };
 }

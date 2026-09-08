@@ -24,7 +24,7 @@ import argparse, json, os, sys
 from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
-from brand_contract import affiliation, affiliation_text, logo_metrics
+from brand_contract import affiliation, affiliation_text, logo_metrics, vendor_boundary
 
 def chips(t, keys, light=False):
     o = ""
@@ -177,6 +177,7 @@ def build(B, kit):
     aff = affiliation(B)
     inherits_house = aff["inheritance"] == "shruggietech-house"
     endorsement = affiliation_text(B)
+    boundary = vendor_boundary(B)
     F = faces(kit, B)
     css = """
 %s
@@ -257,13 +258,13 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
                  '<div class="sys">Brand &amp; design system</div>%s'
                  '<div class="message" style="border-color:%s"><div class="tag">%s</div><div class="idea">%s</div></div>'
                  '<div class="base">%sVersion %s &nbsp;·&nbsp; '
-                 'Canon %s &nbsp;·&nbsp; %s</div></div></div>'
+                 'Canon %s &nbsp;·&nbsp; %s</div>%s</div></div>'
                  % (img(mono_logo, "lockup"), A,
                     copy_for(B, "idea", B.get("brand_idea", B["title"])),
                     copy_for(B, "descriptor", B.get("descriptor", "")),
                     ((endorsement + " &nbsp;·&nbsp; ") if endorsement else ""),
                     B.get("version", "1.0.0"), B.get("canon", "1.0.0"),
-                    B.get("homepage", "").replace("https://", "")))
+                    B.get("homepage", "").replace("https://", ""), foot(1)))
 
     # DEVIATION: this sheet used to open with a product summary and an
     # in-scope / out-of-scope trio. A brand guide that pitches the product goes
@@ -410,12 +411,13 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             % img(mono_logo, "", "height:8mm")), 7))
     else:
         pages.append(pg("Affiliation", "Independent identity",
-            '<p>This brand has no ShruggieTech parent or ownership endorsement.</p>%s'
+            '<p>This brand has no ShruggieTech parent or ownership endorsement.</p>%s%s'
             '<div class="rule"></div><h3>Load the system</h3><div class="card"><div class="m" style="line-height:2">'
             'npx shadcn@latest registry add @%s=%s/r/{name}.json<br>'
             'npx shadcn@latest add @%s/theme @%s/fonts<br>npm i next-themes</div></div>%s' % (
                 (('<div class="card" style="text-align:center;padding:7mm;margin:4mm 0"><div class="m" '
                   'style="letter-spacing:.2em;text-transform:uppercase;color:%s">%s</div></div>' % (MU, endorsement)) if endorsement else ""),
+                (('<div class="callout acc"><div class="ey">Vendor and trademark boundary</div><p style="margin:0" class="dim">%s</p></div>' % boundary["notice"]) if boundary else ""),
                 slug, B.get("registry_base", B.get("homepage", "").rstrip("/") + "/brand"), slug, slug,
                 _ships(kit)), 7))
 

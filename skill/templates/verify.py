@@ -17,7 +17,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
-from brand_contract import affiliation, application_icon_profile, logo_source_contract
+from brand_contract import affiliation, application_icon_profile, logo_source_contract, sha256_file
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 
 # ------------------------------------------------------------------ utilities
@@ -277,9 +277,22 @@ def c_svg(kit, rep):
     except ImportError:
         rep.skip("svg-viewbox", "svgelements not installed (regex cannot resolve transforms)")
         vb_hits = None
+    authoritative_sources = set()
+    try:
+        brand = json.load(open(os.path.join(kit, "brand.json"), encoding="utf-8"))
+        authoritative_sources = {
+            os.path.normcase(os.path.normpath(record["path"]))
+            for record in brand.get("authoritative_inputs", [])
+            if record.get("format") == "svg"
+        }
+    except Exception:
+        authoritative_sources = set()
     if vb_hits is not None:
         for p in svgs:
             rel = os.path.relpath(p, kit)
+            if os.path.normcase(os.path.normpath(rel)) in authoritative_sources:
+                raster_wrappers.append(rel)
+                continue
             if "<image " in open(p, encoding="utf-8", errors="replace").read():
                 raster_wrappers.append(rel)
                 continue
@@ -1105,7 +1118,7 @@ def c_logo_provenance(kit, brand, rep):
             problems.append("provenance names absent derivatives: %s" % ", ".join(extra[:6]))
 
     expected_keys = {"path", "kind", "variant", "colourway", "source_mode", "input_id",
-                     "source_sha256", "transformations", "embedded_metadata"}
+                     "source_sha256", "sha256", "transformations", "embedded_metadata"}
     checked_sources = set()
     for item in records:
         if not isinstance(item, dict) or set(item) != expected_keys:
@@ -1130,6 +1143,10 @@ def c_logo_provenance(kit, brand, rep):
         output = os.path.join(kit, relative.replace("/", os.sep))
         if not os.path.isfile(output):
             continue
+        if not re.fullmatch(r"[0-9a-f]{64}", item["sha256"] or ""):
+            problems.append("%s has an invalid derivative SHA-256" % relative)
+        elif sha256_file(output) != item["sha256"]:
+            problems.append("%s derivative bytes disagree with provenance" % relative)
         if relative.endswith(".png"):
             if source:
                 try:
@@ -1195,6 +1212,33 @@ def c_logo_provenance(kit, brand, rep):
                     checked_sources.add(variant)
         except Exception as error:
             problems.append("%s provenance metadata cannot be verified: %s" % (relative, error))
+    approval_path = os.path.join(kit, "logos", "approval.json")
+    expected_approval_records = []
+    by_path = {item.get("path"): item for item in records if isinstance(item, dict)}
+    for item in sorted((item for item in records if isinstance(item, dict)), key=lambda record: record.get("path", "")):
+        relative = item.get("path", "")
+        if relative.endswith(".svg"):
+            expected_approval_records.append({"path": relative, "sha256": item.get("sha256")})
+            continue
+        match = re.match(r"logos/png/(.+)-[0-9]+\.png$", relative)
+        source_path = "logos/svg/%s.svg" % match.group(1) if match else ""
+        source = by_path.get(source_path)
+        if not match or source is None:
+            problems.append("%s lacks a deterministic SVG approval source" % relative)
+            continue
+        expected_approval_records.append({
+            "path": relative,
+            "rendered_from": source_path,
+            "rendered_from_sha256": source.get("sha256"),
+        })
+    expected_approval = {"schema_version": 1, "brand": brand.get("slug"), "derivatives": expected_approval_records}
+    try:
+        with open(approval_path, encoding="utf-8") as handle:
+            approval = json.load(handle)
+        if approval != expected_approval:
+            problems.append("approval manifest does not cover the verified derivative set")
+    except Exception as error:
+        problems.append("logos/approval.json cannot be verified: %s" % error)
     if authority["source_mode"] == "authoritative" and checked_sources != {"full", "reduced"}:
         problems.append("authoritative Full and Reduced sources were not both verified")
     if problems:
@@ -1247,6 +1291,8 @@ def c_glyph(kit, brand, rep):
     if (lg.get("paths") or {}).get("reduced"):
         VG.measure(lg["paths"]["reduced"], grid, "reduced", sub, reduced=True,
                    provenance=provenance, provenance_reason=reason)
+    if (lg.get("paths") or {}).get("single-ink"):
+        VG.measure_strokes(lg["paths"]["single-ink"], grid, "single-ink", sub)
     if sub.fails:
         rep.bad("glyph-geometry", "; ".join(
             "%s %s" % (n, d) for st, n, d in sub.rows if st == "FAIL")[:280])

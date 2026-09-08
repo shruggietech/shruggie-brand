@@ -1,0 +1,177 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "eso-weave",
+  "kind": "independent-brand",
+  "title": "ESO Weave",
+  "slug": "eso-weave",
+  "version": "1.0.0",
+  "showcase_surface": "card",
+  "affiliation": {
+    "ownership": "third-party",
+    "showcase": "public",
+    "parent": null,
+    "inheritance": "independent",
+    "endorsement": "none",
+    "service_credit": "brand-system-by-shruggietech"
+  },
+  "approval_ledger": {
+    "source_hashes": {
+      "eso-weave-glyph": "552f3203f0001b15e3adea9b720cb2f78be1427a12410f3e304170d973fef5ea",
+      "eso-weave-mark": "696d256c4ec0eae9aed315a1b489bbf5115ec33827e966a6e993708bf3f3109f"
+    },
+    "gate_1": {
+      "status": "approved",
+      "approved_by": "identity owner",
+      "approved_on": "2026-09-07",
+      "scope": ["reduced-and-platform", "horizontal-lockup", "stacked-lockup", "wordmark-only", "single-ink"],
+      "derivative_config_sha256": "759802b32ea908c9f2585b76cdcd3943c4e0e3175c2437ab315679863ebeea58"
+    },
+    "gate_2": {
+      "status": "approved",
+      "approved_by": "identity owner",
+      "approved_on": "2026-09-07",
+      "derivative_manifest_sha256": "86ead2c4f4dae3d065045db4cbe292db8ee05cf8fad7a5b819a6610bce6c906b",
+      "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]
+    }
+  },
+  "vendor_boundary": {
+    "required": true,
+    "notice": "ESO Weave is an independent third-party project and is not affiliated with, endorsed by, maintained by, or supported by ZeniMax Online Studios, ZeniMax Media Inc., Bethesda Softworks, or Microsoft. The Elder Scrolls and related marks are property of ZeniMax Media Inc. Users are responsible for applicable terms and consequences.",
+    "entities": ["ZeniMax Online Studios", "ZeniMax Media Inc.", "Bethesda Softworks", "Microsoft"],
+    "trademark_owner": "ZeniMax Media Inc.",
+    "terms_responsibility": "Users are responsible for applicable terms and consequences."
+  },
+  "homepage": "https://github.com/h8rt3rmin8r/eso-weave",
+  "registry_base": "https://brand.shruggie.tech/eso-weave/brand",
+  "descriptor": "Cross-platform desktop companion for The Elder Scrolls Online",
+  "functional_descriptor": "Cross-platform desktop companion for The Elder Scrolls Online",
+  "category": "Cross-platform desktop game companion",
+  "role": "Run beside ESO to provide focus-scoped combat weaving, PixelBeacon-assisted fishing and Auto Potion, and live status without reading game memory or network traffic.",
+  "audience": "ESO players evaluating or using operator-controlled, game-adjacent automation who understand account and Terms of Service risks.",
+  "brand_idea": "Unofficial automation for ESO",
+  "governing_principle": "Keep assistance focus-scoped, observable, operator-controlled, and closed whenever required game state is unsafe or unknown.",
+  "voice": {
+    "qualities": ["direct", "measured", "procedural", "candid"],
+    "lead_with": ["the current game and application state", "the available capability", "the safety condition governing an action"],
+    "avoid": ["claims of official game support", "guarantees about account safety", "hidden automation behavior", "urgency or hype"]
+  },
+  "register": "precise-procedural",
+  "shruggie_flourish": false,
+  "wordmark_text": "ESO Weave",
+  "assumptions": [
+    "ESO Weave is an independent third-party identity with no ShruggieTech parent or ownership claim.",
+    "The authoritative badge-less glyph and badged mark remain byte-for-byte source data.",
+    "Users remain responsible for game terms, account consequences, and automation choices."
+  ],
+  "accent": {
+    "bright": "#2DD4BF",
+    "deep": "#F2B03C",
+    "accessible": "#986000",
+    "dim": "#87909E"
+  },
+  "semantic_colors": {
+    "emphasis": "#2DD4BF",
+    "action": "#986000"
+  },
+  "chart_palette": {
+    "dark_target_lightness": 0.68,
+    "rationale": "Derived chart colors remain secondary to the teal status signal and accessible gold action role."
+  },
+  "surfaces": {
+    "base": "#0E1116",
+    "card": "#171C24",
+    "popover": "#0A0D12",
+    "secondary": "#1D2430",
+    "hover": "#252E3B"
+  },
+  "typography": {
+    "mode": "fixed",
+    "families": {
+      "display": {"name": "Inter", "weights": [500, 600]},
+      "body": {"name": "Inter", "weights": [400, 500]},
+      "mono": {"name": "Geist Mono", "weights": [400]}
+    },
+    "faces": [
+      {"role": "display", "path": "fonts/Inter-Medium.ttf", "weight": 500, "style": "normal", "format": "ttf", "sha256": "6df88fcb83ac96582350f801355c6eff55f15710093e9627fb431caa40521151", "license": "OFL-1.1", "provenance": "Current ESO Weave upstream default branch", "usage_status": "approved"},
+      {"role": "display", "path": "fonts/Inter-SemiBold.ttf", "weight": 600, "style": "normal", "format": "ttf", "sha256": "2de533bda937a063c595b07c6bd9b70c8c5087d0649a1c8330f7ac11fcc05602", "license": "OFL-1.1", "provenance": "Current ESO Weave upstream default branch", "usage_status": "approved"},
+      {"role": "body", "path": "fonts/Inter-Regular.ttf", "weight": 400, "style": "normal", "format": "ttf", "sha256": "529be850e06f62f8904f22bda77e45bde4834498fdbec4ff4201fa3177447a3a", "license": "OFL-1.1", "provenance": "Current ESO Weave upstream default branch", "usage_status": "approved"},
+      {"role": "body", "path": "fonts/Inter-Medium.ttf", "weight": 500, "style": "normal", "format": "ttf", "sha256": "6df88fcb83ac96582350f801355c6eff55f15710093e9627fb431caa40521151", "license": "OFL-1.1", "provenance": "Current ESO Weave upstream default branch", "usage_status": "approved"},
+      {"role": "mono", "path": "fonts/ttf/GeistMono-Regular.ttf", "weight": 400, "style": "normal", "format": "ttf", "sha256": "990f0e094fe02b8872429209c09abf4c03d22183c33c2a2ddb891dc7f086271c", "license": "OFL-1.1", "provenance": "Shruggie Brand shared licensed font", "usage_status": "approved"}
+    ]
+  },
+  "authoritative_inputs": [
+    {"id": "eso-weave-glyph", "role": "mark", "path": "assets/source/eso-weave-glyph.svg", "format": "svg", "sha256": "552f3203f0001b15e3adea9b720cb2f78be1427a12410f3e304170d973fef5ea", "color_profile": "none", "usage_status": "approved", "license": "Owner-supplied ESO Weave identity source", "approved_transformations": ["embed-unchanged", "resize", "place-in-lockup", "palette-analysis"]},
+    {"id": "eso-weave-mark", "role": "reduced-mark", "path": "assets/source/eso-weave-mark.svg", "format": "svg", "sha256": "696d256c4ec0eae9aed315a1b489bbf5115ec33827e966a6e993708bf3f3109f", "color_profile": "none", "usage_status": "approved", "license": "Owner-supplied ESO Weave identity source", "approved_transformations": ["embed-unchanged", "resize", "place-in-lockup", "palette-analysis"]}
+  ],
+  "palette_approvals": [
+    {"input_id": "eso-weave-glyph", "source_sha256": "552f3203f0001b15e3adea9b720cb2f78be1427a12410f3e304170d973fef5ea", "selected_candidate": "#2DD4BF", "canonical_tokens": ["accent.bright", "semantic_colors.emphasis"], "approved_by": "identity owner", "approved_on": "2026-09-07"},
+    {"input_id": "eso-weave-glyph", "source_sha256": "552f3203f0001b15e3adea9b720cb2f78be1427a12410f3e304170d973fef5ea", "selected_candidate": "#F2B03C", "canonical_tokens": ["accent.deep"], "approved_by": "identity owner", "approved_on": "2026-09-07"}
+  ],
+  "domain_components": {
+    "GameStateRow": ["label", "value", "freshness", "status"],
+    "ResourceMeter": ["resource", "current", "maximum", "threshold", "availability"],
+    "SkillSlot": ["slot", "enabled", "weave_type", "timing_override", "cooldown"],
+    "InputGate": ["boundary", "observation", "authorization"]
+  },
+  "logo": {
+    "source_mode": "authoritative",
+    "authoritative_input_ids": {"full": "eso-weave-glyph", "reduced": "eso-weave-mark"},
+    "grid": 100,
+    "canvas_width": 100,
+    "canvas_height": 100,
+    "artwork_width": 63,
+    "artwork_height": 55,
+    "clear_space_units": 8,
+    "reduced_below_px": 32,
+    "min_px": {"mark": 32, "horizontal": 160, "stacked": 144, "wordmark": 120},
+    "application_icon": {"background": "#0E1116"},
+    "contextual_variants": {"color": "full", "light": "reduced", "white": "single-ink", "black": "single-ink"},
+    "wordmark_segments": [
+      {"text": "ESO", "role": "wordmark"},
+      {"text": "Weave", "role": "wordmark_accent", "gap_units": 10}
+    ],
+    "lockups": {
+      "horizontal": {"wordmark_scale": 0.62, "mark_height_units": 160, "gap_units": 34, "canvas_height_units": 200, "wordmark_baseline_units": 144.64, "alignment": "optical center"},
+      "stacked": {"wordmark_scale": 0.62, "mark_height_c": 1.7, "mark_height_c_by_colourway": {"color": 2.35, "light": 1.7, "white": 2.35, "black": 2.35}, "gap_c": 0.45}
+    },
+    "role_colors": {
+      "color": {"wordmark": "#E6EDF3", "wordmark_accent": "#F2B03C"},
+      "light": {"wordmark": "#14110B", "wordmark_accent": "#986000"},
+      "white": {"wordmark": "#FFFFFF", "wordmark_accent": "#FFFFFF"},
+      "black": {"wordmark": "#000000", "wordmark_accent": "#000000"}
+    },
+    "paths": {
+      "full": [{"element": "image", "role": "accent", "source": "assets/source/eso-weave-glyph.svg", "x": 0, "y": 0, "width": 100, "height": 100}],
+      "reduced": [{"element": "image", "role": "accent", "source": "assets/source/eso-weave-mark.svg", "x": 0, "y": 0, "width": 100, "height": 100}],
+      "single-ink": [
+        {"role": "accent", "fill": "none", "stroke_width": 11, "stroke_linecap": "round", "stroke_linejoin": "round", "d": "M24 74 L50 42 L76 74"},
+        {"role": "accent", "fill": "none", "stroke_width": 11, "stroke_linecap": "round", "stroke_linejoin": "round", "d": "M24 30 L50 62 L76 30"}
+      ]
+    },
+    "prohibitions": [
+      "Do not edit, normalize, trace, simplify, or replace the authoritative source paths.",
+      "Do not add a crossing overlay, knockout, outline, or substrate separator to the single-ink mark.",
+      "Do not use the badge-less glyph directly on light surfaces.",
+      "Do not combine the ESO Weave and ShruggieTech marks into one lockup.",
+      "Do not imply official game-vendor status or account safety."
+    ],
+    "geometry_provenance": "imported",
+    "geometry_provenance_reason": "The full and reduced masters embed the two owner-approved authoritative SVG sources unchanged. The single-ink derivative preserves their approved centerlines, stroke widths, caps, joins, and silhouette."
+  },
+  "guide": {
+    "idea": "Unofficial automation for ESO",
+    "descriptor": "Cross-platform desktop companion for The Elder Scrolls Online",
+    "foundation_title": "Observable, operator-controlled assistance",
+    "foundation": "ESO Weave is an offline-first desktop companion. Combat weaving works without an addon. Fishing, Auto Potion, weapon-bar timing, and latency adaptation consume visible PixelBeacon telemetry, while uncertain or unsafe state closes action gates.",
+    "personality": [["Direct", "Names the observed game or application state", "Vague automation claims"], ["Procedural", "Explains controls, prerequisites, and recovery", "Hidden transitions"], ["Candid", "States technical, vendor, and account boundaries", "Safety guarantees"]],
+    "promises": ["Configured weaving remains scoped to ESO focus.", "PixelBeacon-assisted features act only on current observable state.", "Missing or unsafe evidence blocks synthesized input instead of inventing certainty."],
+    "in_scope": ["Combat weaving", "Fishing assistance", "Auto Potion", "Live game and application status", "PixelBeacon lifecycle"],
+    "out_of_scope": ["Official ESO support", "Authorization by game terms", "Account-safety guarantees", "Concealed automation"],
+    "sharp_edge": "Automation may conflict with applicable game terms or lead to account consequences. ESO Weave provides controls and information, while users retain responsibility for use.",
+    "logo": "The badge-less woven carets identify dark lockups. The existing self-contained badge protects reduced and light-surface uses. Single-ink reproduction uses uninterrupted source centerlines without an artificial crossing segment.",
+    "palette": "Teal identifies active state and emphasis. Accessible gold identifies actions on light surfaces. Dark ink surfaces keep game and application status primary.",
+    "specimen_line": "Unofficial automation for ESO",
+    "specimen_body": "Combat weaving, fishing assistance, Auto Potion, and live status stay visible and operator-controlled without reading game memory or network traffic."
+  },
+  "canon": "1.2.1"
+}

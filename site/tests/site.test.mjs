@@ -2,6 +2,12 @@ import brands from '../generated/brands.json' with { type: 'json' };
 import routeContract from '../generated/routes.json' with { type: 'json' };
 
 export const routeRecords = routeContract.routes;
+const expectedBrandSlugs = ['covarity', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'shruggietech'];
+if (JSON.stringify(brands.map((brand) => brand.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated brand inventory does not contain the six production brands');
+const esoWeave = brands.find((brand) => brand.slug === 'eso-weave');
+if (esoWeave?.idea !== 'Unofficial automation for ESO' || esoWeave?.descriptor !== 'Cross-platform desktop companion for The Elder Scrolls Online') throw new Error('ESO Weave public wording differs from the Gate 2 approval');
+if (!esoWeave?.vendorBoundary?.includes('not affiliated with')) throw new Error('ESO Weave public record omits the required vendor boundary');
+for (const route of routeRecords.filter((route) => route.brandSlug === 'eso-weave')) if (route.vendorBoundary !== esoWeave.vendorBoundary || route.vendorBoundaryUrl !== 'https://brand.shruggie.tech/eso-weave/guidelines/') throw new Error(`${route.pathname} omits the ESO Weave vendor-boundary metadata`);
 export const brandRoutes = routeRecords.filter((route) => ['brand', 'downloads', 'guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
 export const docRoutes = routeRecords.filter((route) => ['docs-index', 'docs-page'].includes(route.kind)).map((route) => route.pathname);
 export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolchain', '05-shadcn-binding', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability'].map((slug) => `/docs/${slug}/`);

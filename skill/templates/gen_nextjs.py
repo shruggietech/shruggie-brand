@@ -22,7 +22,11 @@ Usage:  python3 gen_nextjs.py <brand-spec.json> <output-dir>
 """
 import json, re, os, sys
 from coloraide import Color
-from brand_contract import font_faces, semantic_colors, typography_families
+from brand_contract import font_faces, semantic_colors, typography_families, vendor_boundary
+
+def governed_description(brand, description):
+    boundary = vendor_boundary(brand)
+    return "%s %s" % (description, boundary["notice"]) if boundary else description
 
 # ---------------------------------------------------------------- colour utils
 def oklch(hexv):
@@ -231,8 +235,8 @@ def emit_theme_item(canon, brand, dark, light):
         "name": "theme",
         "type": "registry:theme",
         "title": "%s Theme" % brand["title"],
-        "description": "%s design tokens. Dark-first, WCAG AA, and brand-contract compliant."
-                       % brand["title"],
+        "description": governed_description(
+            brand, "%s design tokens. Dark-first, WCAG AA, and brand-contract compliant." % brand["title"]),
         "cssVars": {
             "theme": theme,
             "light": {k: oklch(light[k]) for k in SEMANTIC},
@@ -251,8 +255,8 @@ def emit_font_item(brand):
         "$schema": "https://ui.shadcn.com/schema/registry-item.json",
         "name": "fonts", "type": "registry:font",
         "title": "%s Typography" % brand["title"],
-        "description": "%s display, %s body, %s code." % (
-            families["display"]["name"], families["body"]["name"], families["mono"]["name"]),
+        "description": governed_description(brand, "%s display, %s body, %s code." % (
+            families["display"]["name"], families["body"]["name"], families["mono"]["name"])),
         "font": {"family": "'%s', system-ui, sans-serif" % families["body"]["name"],
                  "provider": "local", "variable": "--font-body"},
         "docs": "Use the bundled local files through nextjs/fonts.ts. Routine builds make no font-network requests."
@@ -346,7 +350,8 @@ def domain_row_items(brand):
             "name": kebab,
             "type": "registry:ui",
             "title": "%s %s" % (brand["title"], re.sub(r"(?<!^)(?=[A-Z])", " ", comp)),
-            "description": "A dense, keyboard-friendly row for %s surfaces." % brand["slug"],
+            "description": governed_description(
+                brand, "A dense, keyboard-friendly row for %s surfaces." % brand["slug"]),
             "files": [{"path": "components/%s/%s.jsx" % (brand["slug"], kebab),
                        "type": "registry:ui", "content": jsx}],
         }))
@@ -387,6 +392,7 @@ def main():
         "$schema": "https://ui.shadcn.com/schema/registry.json",
         "name": brand["slug"],
         "homepage": brand.get("homepage", "https://shruggie.tech"),
+        "description": governed_description(brand, "%s registry." % brand["title"]),
         "items": [
             {"name": "theme", "type": "registry:theme", "files": []},
             {"name": "fonts", "type": "registry:font", "files": []},

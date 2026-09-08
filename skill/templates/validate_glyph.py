@@ -362,6 +362,53 @@ def measure(paths, grid, label, rep, reduced=False, provenance="glyphkit",
             "components_16": len(small[16][0]), "counters_16": small[16][1]}
 
 
+def measure_strokes(paths, grid, label, rep):
+    """Fail closed on constructed open-stroke derivatives before emission."""
+    prefix = "%s " % label
+    if not isinstance(paths, list) or not paths:
+        rep.bad(prefix + "structure", "must be a non-empty path array")
+        return
+    widths = []
+    length = 0.0
+    points = []
+    for entry in paths:
+        if (not isinstance(entry, dict) or entry.get("element", "path") != "path"
+                or entry.get("fill") != "none" or not G.path_commands_ok(entry.get("d", ""))):
+            rep.bad(prefix + "structure", "must contain only absolute M, L, C, Z stroked paths with fill none")
+            return
+        width = entry.get("stroke_width")
+        if not isinstance(width, (int, float)) or isinstance(width, bool) or width <= 0:
+            rep.bad(prefix + "structure", "every path requires a positive stroke_width")
+            return
+        widths.append(float(width))
+        for poly in G.flatten(entry["d"], steps=12):
+            points.extend(poly)
+            for index in range(1, len(poly)):
+                length += math.hypot(poly[index][0] - poly[index - 1][0], poly[index][1] - poly[index - 1][1])
+    rep.ok(prefix + "structure", "%d measurable stroked paths" % len(paths))
+    if not points:
+        rep.bad(prefix + "nondegenerate", "no centerline geometry can be measured")
+        return
+    x0 = min(point[0] for point in points)
+    y0 = min(point[1] for point in points)
+    x1 = max(point[0] for point in points)
+    y1 = max(point[1] for point in points)
+    margin = max(widths) / 2.0
+    if x0 - margin < -0.5 or y0 - margin < -0.5 or x1 + margin > grid + 0.5 or y1 + margin > grid + 0.5:
+        rep.bad(prefix + "ink-inside-grid", "visible stroke bounds leave the %g grid and will be clipped" % grid)
+    else:
+        rep.ok(prefix + "ink-inside-grid", "visible stroke bounds remain inside the %g grid" % grid)
+    if length <= max(widths):
+        rep.bad(prefix + "nondegenerate", "total centerline length is too short to form a mark")
+    else:
+        rep.ok(prefix + "nondegenerate", "%.1f units of centerline geometry" % length)
+    smallest_px = min(widths) / grid * 16.0
+    if smallest_px < 1.5:
+        rep.bad(prefix + "minimum-thickness", "thinnest stroke is %.2f px at 16 px" % smallest_px)
+    else:
+        rep.ok(prefix + "minimum-thickness", "thinnest stroke is %.2f px at 16 px" % smallest_px)
+
+
 def load(spec):
     """Accept a brand.json, or a mk_paths.py exposing `full` and `reduced`."""
     if spec.endswith(".py"):
@@ -380,6 +427,7 @@ def load(spec):
     return {"grid": lg.get("grid", 1000),
             "full": paths.get("full"),
             "reduced": paths.get("reduced"),
+            "single_ink": paths.get("single-ink"),
             "provenance": lg.get("geometry_provenance", "glyphkit"),
             "provenance_reason": lg.get("geometry_provenance_reason", "")}
 
@@ -427,6 +475,9 @@ def main():
                        "%d pieces at %.0f units thick, against %d at %.0f for the full"
                        % (red["components"], red["thickness"],
                           full["components"], full["thickness"]))
+
+    if data.get("single_ink"):
+        measure_strokes(data["single_ink"], grid, "single-ink", rep)
 
     print(rep.render())
     return min(rep.fails, 125)

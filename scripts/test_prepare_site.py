@@ -12,6 +12,7 @@ from pathlib import Path
 from PIL import Image
 
 import prepare_site
+from brand_contract import derivative_configuration_sha256
 
 
 def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha") -> None:
@@ -61,6 +62,10 @@ class PrepareSiteTests(unittest.TestCase):
                 brand["surfaces"]["card"] = "#F4F5F6"
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual("#000000", record["showcaseForeground"])
+                brand["vendor_boundary"] = {"required": True, "notice": "Acme is independent. Users are responsible.", "entities": ["Acme"], "trademark_owner": "Acme", "terms_responsibility": "Users are responsible."}
+                record = prepare_site.copy_kit(source, brand)
+                self.assertEqual(brand["vendor_boundary"]["notice"], record["vendorBoundary"])
+                self.assertIn("notice on brand page", record["vendorBoundarySummary"])
             finally:
                 prepare_site.PUBLIC = original_public
 
@@ -68,6 +73,15 @@ class PrepareSiteTests(unittest.TestCase):
         brand = {"kind": "sub-brand", "affiliation": {"ownership": "third-party", "showcase": "private", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
         self.assertFalse(prepare_site.public_showcase(brand))
         brand["affiliation"]["showcase"] = "public"
+        self.assertTrue(prepare_site.public_showcase(brand))
+        brand["approval_ledger"] = {
+            "source_hashes": {"mark": "a" * 64},
+            "gate_1": {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07", "scope": sorted(["reduced-and-platform", "horizontal-lockup", "stacked-lockup", "wordmark-only", "single-ink"]), "derivative_config_sha256": ""},
+            "gate_2": {"status": "pending", "approved_by": None, "approved_on": None, "derivative_manifest_sha256": None, "surfaces": []},
+        }
+        brand["approval_ledger"]["gate_1"]["derivative_config_sha256"] = derivative_configuration_sha256(brand)
+        self.assertFalse(prepare_site.public_showcase(brand))
+        brand["approval_ledger"]["gate_2"] = {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07", "derivative_manifest_sha256": "b" * 64, "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]}
         self.assertTrue(prepare_site.public_showcase(brand))
         del brand["affiliation"]["showcase"]
         with self.assertRaisesRegex(ValueError, "exactly"):
@@ -132,6 +146,16 @@ class PrepareSiteTests(unittest.TestCase):
         guide_routes = [route for route in routes if route["kind"] in {"guidelines", "guidelines-topic"}]
         self.assertEqual(["/alpha/guidelines/", "/alpha/guidelines/color/", "/alpha/guidelines/assets/"], [route["pathname"] for route in guide_routes])
         self.assertEqual(["overview", "color", "assets"], [route["guideTopic"] for route in guide_routes])
+
+    def test_vendor_boundary_reaches_routes_metadata_and_structured_data(self):
+        notice = "Acme is independent. Users are responsible."
+        brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73", "vendorBoundary": notice}]
+        route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "brand")
+        self.assertEqual(notice, route["vendorBoundary"])
+        self.assertEqual("https://brand.shruggie.tech/alpha/guidelines/", route["vendorBoundaryUrl"])
+        entity = next(item for item in route["structuredData"]["@graph"] if item.get("@type") == "Brand")
+        self.assertEqual(notice, entity["disambiguatingDescription"])
+        self.assertEqual(route["vendorBoundaryUrl"], entity["usageInfo"])
 
     def test_stale_generated_public_brand_is_removed(self):
         with tempfile.TemporaryDirectory() as tmp:

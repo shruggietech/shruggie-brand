@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, logo_source_contract, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, derivative_configuration_sha256, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, vendor_boundary, wordmark_role_colors
 from ingest_font import ingest_font
 
 
@@ -50,6 +50,114 @@ def owned_brand():
 
 def stage_house_fonts(kit):
     shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+
+
+def approval_brand(status="pending"):
+    gate_2 = {"status": status, "approved_by": None, "approved_on": None,
+              "derivative_manifest_sha256": None, "surfaces": []}
+    if status == "approved":
+        gate_2 = {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07",
+                  "derivative_manifest_sha256": "b" * 64,
+                  "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads",
+                               "registry-endpoints", "public-metadata", "structured-data", "social-preview"]}
+    brand = {
+        "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None,
+                        "inheritance": "independent", "endorsement": "none", "service_credit": "none"},
+        "approval_ledger": {
+            "source_hashes": {"source-mark": "a" * 64},
+            "gate_1": {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07",
+                       "scope": sorted(["reduced-and-platform", "horizontal-lockup", "stacked-lockup", "wordmark-only", "single-ink"]),
+                       "derivative_config_sha256": ""},
+            "gate_2": gate_2,
+        },
+    }
+    brand["approval_ledger"]["gate_1"]["derivative_config_sha256"] = derivative_configuration_sha256(brand)
+    return brand
+
+
+class ApprovalLedgerTests(unittest.TestCase):
+    def test_gate_1_is_required_and_hash_bound(self):
+        brand = approval_brand()
+        missing = copy.deepcopy(brand)
+        del missing["approval_ledger"]["gate_1"]
+        with self.assertRaisesRegex(ContractError, "approval_ledger"):
+            approval_ledger(missing)
+        with self.assertRaisesRegex(ContractError, "stale"):
+            approval_ledger(brand, [({"id": "source-mark", "sha256": "c" * 64,
+                                     "usage_status": "approved", "role": "mark"}, Path("unused"))])
+        changed = copy.deepcopy(brand)
+        changed["logo"] = {"paths": {"single-ink": [{"d": "M0 0 L1 1"}]}}
+        with self.assertRaisesRegex(ContractError, "derivative-producing configuration"):
+            approval_ledger(changed)
+        incomplete = copy.deepcopy(brand)
+        incomplete["approval_ledger"]["gate_1"]["scope"].pop()
+        with self.assertRaisesRegex(ContractError, "every derivative family"):
+            approval_ledger(incomplete)
+
+    def test_publication_waits_for_gate_2(self):
+        self.assertFalse(public_showcase(approval_brand("pending")))
+        self.assertTrue(public_showcase(approval_brand("approved")))
+
+    def test_publication_rejects_partial_surfaces_and_stale_derivative_provenance(self):
+        brand = approval_brand("approved")
+        brand["approval_ledger"]["gate_2"]["surfaces"].pop()
+        with self.assertRaisesRegex(ContractError, "complete public surface"):
+            public_showcase(brand)
+        brand = approval_brand("approved")
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            approval = kit / "logos" / "approval.json"
+            approval.parent.mkdir()
+            approval.write_text("{}\n", encoding="utf-8")
+            with self.assertRaisesRegex(ContractError, "stale"):
+                public_showcase(brand, kit)
+
+    def test_vendor_boundary_requires_every_named_party_and_responsibility(self):
+        brand = {"vendor_boundary": {"required": True, "notice": "Acme is independent. Users are responsible.",
+                                     "entities": ["Acme"], "trademark_owner": "Acme",
+                                     "terms_responsibility": "Users are responsible."}}
+        self.assertEqual("Acme", vendor_boundary(brand)["entities"][0])
+        brand["vendor_boundary"]["entities"].append("Missing Corp")
+        with self.assertRaisesRegex(ContractError, "omits"):
+            vendor_boundary(brand)
+
+
+class SourceInventoryTests(unittest.TestCase):
+    def test_inventory_is_deterministic_and_byte_preserving(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "brands" / "example" / "source.svg"
+            source.parent.mkdir(parents=True)
+            source.write_bytes(b"<svg/>\n")
+            inventory = root / "inventory.json"
+            record = {
+                "schema_version": 1,
+                "records": [{
+                    "id": "source-svg",
+                    "contained_path": "brands/example/source.svg",
+                    "bytes": source.stat().st_size,
+                    "sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+                }],
+            }
+            inventory.write_text(json.dumps(record), encoding="utf-8")
+            self.assertEqual(record, validate_source_inventory(inventory, root))
+            source.write_bytes(b"<svg>changed</svg>\n")
+            with self.assertRaisesRegex(ContractError, "byte drift"):
+                validate_source_inventory(inventory, root)
+
+    def test_inventory_rejects_duplicate_contained_paths(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "source.txt"
+            source.write_bytes(b"evidence\n")
+            digest = hashlib.sha256(source.read_bytes()).hexdigest()
+            inventory = root / "inventory.json"
+            inventory.write_text(json.dumps({"schema_version": 1, "records": [
+                {"id": "first", "contained_path": "source.txt", "bytes": 9, "sha256": digest},
+                {"id": "second", "contained_path": "source.txt", "bytes": 9, "sha256": digest},
+            ]}), encoding="utf-8")
+            with self.assertRaisesRegex(ContractError, "duplicate source inventory path"):
+                validate_source_inventory(inventory, root)
 
 
 class AffiliationTests(unittest.TestCase):
@@ -90,6 +198,24 @@ class AffiliationTests(unittest.TestCase):
             brand["semantic_colors"] = {"emphasis": "#6750A4", "action": "#5B3F98"}
             (kit / "README.md").write_text("A ShruggieTech project\n", encoding="utf-8")
             self.assertEqual(1, len(scan_affiliation_output(brand, kit)))
+
+    def test_output_scan_requires_each_generated_vendor_boundary_surface(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            notice = "Acme is independent. Users are responsible."
+            brand = owned_brand()
+            brand["affiliation"] = {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}
+            brand["semantic_colors"] = {"emphasis": "#6750A4", "action": "#5B3F98"}
+            brand["vendor_boundary"] = {"required": True, "notice": notice, "entities": ["Acme"], "trademark_owner": "Acme", "terms_responsibility": "Users are responsible."}
+            (kit / "README.md").write_text(notice, encoding="utf-8")
+            expected = ("guidelines/portal.json", "guidelines/index.html", "enforcement/AGENTS.md", "build/brand-guide.print.html")
+            for relative in expected:
+                path = kit / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(notice, encoding="utf-8")
+            self.assertEqual([], scan_affiliation_output(brand, kit))
+            (kit / expected[0]).write_text("missing", encoding="utf-8")
+            self.assertEqual(["guidelines/portal.json omits the required vendor boundary"], scan_affiliation_output(brand, kit))
 
 
 class ApplicationIconProfileTests(unittest.TestCase):

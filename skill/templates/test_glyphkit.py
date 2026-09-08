@@ -120,6 +120,16 @@ try:
 except ValueError:
     check("unclosed subpath raises", True)
 
+stroke_report = V.Report()
+V.measure_strokes([{"d": "M240 740 L500 420 L760 740", "fill": "none", "stroke_width": 110}], GRID, "single-ink", stroke_report)
+check("constructed stroke derivative passes", stroke_report.fails == 0, "%d failures" % stroke_report.fails)
+clipped_report = V.Report()
+V.measure_strokes([{"d": "M0 0 L500 500", "fill": "none", "stroke_width": 110}], GRID, "single-ink", clipped_report)
+check("clipped stroke derivative fails", clipped_report.fails == 1, "%d failures" % clipped_report.fails)
+thin_report = V.Report()
+V.measure_strokes([{"d": "M100 100 L900 900", "fill": "none", "stroke_width": 20}], GRID, "single-ink", thin_report)
+check("undersized stroke derivative fails", thin_report.fails == 1, "%d failures" % thin_report.fails)
+
 print("")
-print("%d checks, %d failures" % (16 + 7 + 5 + 3, len(fails)))
+print("%d checks, %d failures" % (16 + 7 + 5 + 6, len(fails)))
 sys.exit(1 if fails else 0)
