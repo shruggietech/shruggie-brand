@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Added hash-bound Gate 1 and Gate 2 approval contracts, deterministic source-inventory validation, byte-complete derivative-bound public projection, and required vendor-boundary propagation for independent third-party identities.
+- Added hash-bound Gate 1 and Gate 2 approval contracts, deterministic source-inventory validation, portable derivative-bound public projection, required vendor-boundary propagation, and constructed single-ink geometry validation for independent third-party identities.
 - Added a deterministic `guidelines/portal.json` publication contract with semantic topics, exact manifest-derived deliveries, bounded visual representatives, nonvisual resources, rendered instruction blocks, complete dark and light palettes, and a separate portable HTML reference.
 - Removed the generated global anchor hover underline so consuming applications can assign link treatment by semantic component without duplicate decoration.
 - Added a manifest-derived complete asset reference, deterministic HEX/RGB/HSL/OKLCH/Lab D50 values, profile-honest print guidance, scoped theme examples, and accessible progressive guide navigation.

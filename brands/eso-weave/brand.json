@@ -23,7 +23,8 @@
       "status": "approved",
       "approved_by": "identity owner",
       "approved_on": "2026-09-07",
-      "scope": ["reduced-and-platform", "horizontal-lockup", "stacked-lockup", "wordmark-only", "single-ink"]
+      "scope": ["reduced-and-platform", "horizontal-lockup", "stacked-lockup", "wordmark-only", "single-ink"],
+      "derivative_config_sha256": "759802b32ea908c9f2585b76cdcd3943c4e0e3175c2437ab315679863ebeea58"
     },
     "gate_2": {
       "status": "approved",

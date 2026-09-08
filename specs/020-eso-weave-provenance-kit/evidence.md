@@ -105,7 +105,7 @@ The ignored manifest records every exact context and confirms `production_deriva
 
 ## Gate 1 Decision
 
-Approved by the identity owner on 2026-09-07 after three proof corrections: comparison sources were isolated from proposal outputs, the artificial single-ink crossing overlay was removed, stacked visible-source placement was enlarged to 1.6 times the base proof size, and wordmark-only proofs were composited onto their declared surfaces. The approval binds the five named derivative proposals, canonical palette, AA light-role gold, Inter display and body roles, Geist Mono technical role, transformation boundaries, and authoritative SVG hashes recorded above.
+Approved by the identity owner on 2026-09-07 after three proof corrections: comparison sources were isolated from proposal outputs, the artificial single-ink crossing overlay was removed, stacked visible-source placement was enlarged to 1.6 times the base proof size, and wordmark-only proofs were composited onto their declared surfaces. The approval binds the five named derivative proposals, canonical palette, AA light-role gold, Inter display and body roles, Geist Mono technical role, transformation boundaries, and authoritative SVG hashes recorded above. Post-review enforcement binds those derivative-producing settings to canonical SHA-256 `759802b32ea908c9f2585b76cdcd3943c4e0e3175c2437ab315679863ebeea58` and requires the approval scope to name all five generated families.
 
 ## Private Kit Verification
 
@@ -141,7 +141,7 @@ After Gate 2 approval, site preparation produced six public kits and nine refere
 
 The public wording is exactly “Unofficial automation for ESO” and “Cross-platform desktop companion for The Elder Scrolls Online”. Desktop and mobile inspection covered the ESO Weave landing page in light and dark themes and the six-card home page. The final layouts preserve one mark per lockup, the approved contextual mark treatment, legible status rows, and the AA light-role gold.
 
-The complete local matrix passed 31 glyph-kit checks, 2 package-release checks, 13 release-contract checks, 26 site-preparation checks, 35 brand-contract checks, 14 icon-kit checks, 45 pipeline tests, Markdown validation, six clean production-kit builds, site lint, a 76-page static production build, and 71 desktop-and-mobile HTML route checks with zero WCAG 2.1 AA violations. The ordinary local Turbopack build encountered a Windows process-spawn `Access is denied` error; the equivalent Next.js webpack production build completed successfully, and hosted Linux CI remains the authoritative canonical-build result.
+The complete local matrix passed 34 glyph-kit checks, 2 package-release checks, 13 release-contract checks, 26 site-preparation checks, 35 brand-contract checks, 14 icon-kit checks, 45 pipeline tests, Markdown validation, six clean production-kit builds, site lint, a 76-page static production build, and 71 desktop-and-mobile HTML route checks with zero WCAG 2.1 AA violations. The ordinary local Turbopack build encountered a Windows process-spawn `Access is denied` error; the equivalent Next.js webpack production build completed successfully, and hosted Linux CI remains the authoritative canonical-build result.
 
 Spec Kit cross-artifact analysis mapped all 25 functional requirements and 9 success criteria across the 51 implementation tasks. It found zero CRITICAL or HIGH inconsistencies, ambiguities, or coverage gaps.
 

@@ -1291,6 +1291,8 @@ def c_glyph(kit, brand, rep):
     if (lg.get("paths") or {}).get("reduced"):
         VG.measure(lg["paths"]["reduced"], grid, "reduced", sub, reduced=True,
                    provenance=provenance, provenance_reason=reason)
+    if (lg.get("paths") or {}).get("single-ink"):
+        VG.measure_strokes(lg["paths"]["single-ink"], grid, "single-ink", sub)
     if sub.fails:
         rep.bad("glyph-geometry", "; ".join(
             "%s %s" % (n, d) for st, n, d in sub.rows if st == "FAIL")[:280])

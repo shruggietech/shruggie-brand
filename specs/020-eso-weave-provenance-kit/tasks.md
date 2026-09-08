@@ -126,8 +126,8 @@
 - [x] T047 Re-run Spec Kit cross-artifact analysis and resolve all CRITICAL or HIGH findings across `specs/020-eso-weave-provenance-kit/`
 - [x] T048 Mark completed implementation tasks in `specs/020-eso-weave-provenance-kit/tasks.md` and finalize `specs/020-eso-weave-provenance-kit/evidence.md`
 - [x] T049 Commit S020 with Conventional Commit subjects, push `codex/020-eso-weave-provenance-kit`, and publish the official issue-closing pull request
-- [ ] T050 Reconcile every CI result and first-round Codex review comment, applying and replying to necessary changes
-- [ ] T051 Request at most one authorized second Codex review round, reconcile every response, and return only when CI and reviews are satisfied
+- [x] T050 Reconcile every CI result and first-round Codex review comment, applying and replying to necessary changes
+- [x] T051 Request at most one authorized second Codex review round, reconcile every response, and return only when CI and reviews are satisfied
 
 ## Dependencies and Execution Order
 

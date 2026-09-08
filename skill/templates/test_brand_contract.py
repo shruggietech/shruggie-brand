@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, vendor_boundary, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, derivative_configuration_sha256, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, vendor_boundary, wordmark_role_colors
 from ingest_font import ingest_font
 
 
@@ -60,16 +60,19 @@ def approval_brand(status="pending"):
                   "derivative_manifest_sha256": "b" * 64,
                   "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads",
                                "registry-endpoints", "public-metadata", "structured-data", "social-preview"]}
-    return {
+    brand = {
         "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None,
                         "inheritance": "independent", "endorsement": "none", "service_credit": "none"},
         "approval_ledger": {
             "source_hashes": {"source-mark": "a" * 64},
             "gate_1": {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07",
-                       "scope": ["horizontal-lockup"]},
+                       "scope": sorted(["reduced-and-platform", "horizontal-lockup", "stacked-lockup", "wordmark-only", "single-ink"]),
+                       "derivative_config_sha256": ""},
             "gate_2": gate_2,
         },
     }
+    brand["approval_ledger"]["gate_1"]["derivative_config_sha256"] = derivative_configuration_sha256(brand)
+    return brand
 
 
 class ApprovalLedgerTests(unittest.TestCase):
@@ -82,6 +85,14 @@ class ApprovalLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "stale"):
             approval_ledger(brand, [({"id": "source-mark", "sha256": "c" * 64,
                                      "usage_status": "approved", "role": "mark"}, Path("unused"))])
+        changed = copy.deepcopy(brand)
+        changed["logo"] = {"paths": {"single-ink": [{"d": "M0 0 L1 1"}]}}
+        with self.assertRaisesRegex(ContractError, "derivative-producing configuration"):
+            approval_ledger(changed)
+        incomplete = copy.deepcopy(brand)
+        incomplete["approval_ledger"]["gate_1"]["scope"].pop()
+        with self.assertRaisesRegex(ContractError, "every derivative family"):
+            approval_ledger(incomplete)
 
     def test_publication_waits_for_gate_2(self):
         self.assertFalse(public_showcase(approval_brand("pending")))

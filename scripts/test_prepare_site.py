@@ -12,6 +12,7 @@ from pathlib import Path
 from PIL import Image
 
 import prepare_site
+from brand_contract import derivative_configuration_sha256
 
 
 def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha") -> None:
@@ -75,9 +76,10 @@ class PrepareSiteTests(unittest.TestCase):
         self.assertTrue(prepare_site.public_showcase(brand))
         brand["approval_ledger"] = {
             "source_hashes": {"mark": "a" * 64},
-            "gate_1": {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07", "scope": ["mark"]},
+            "gate_1": {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07", "scope": sorted(["reduced-and-platform", "horizontal-lockup", "stacked-lockup", "wordmark-only", "single-ink"]), "derivative_config_sha256": ""},
             "gate_2": {"status": "pending", "approved_by": None, "approved_on": None, "derivative_manifest_sha256": None, "surfaces": []},
         }
+        brand["approval_ledger"]["gate_1"]["derivative_config_sha256"] = derivative_configuration_sha256(brand)
         self.assertFalse(prepare_site.public_showcase(brand))
         brand["approval_ledger"]["gate_2"] = {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07", "derivative_manifest_sha256": "b" * 64, "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]}
         self.assertTrue(prepare_site.public_showcase(brand))

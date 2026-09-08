@@ -44,6 +44,20 @@ PUBLICATION_SURFACES = {
     "showcase-card", "brand-landing-page", "guideline-topics", "downloads",
     "registry-endpoints", "public-metadata", "structured-data", "social-preview",
 }
+DERIVATIVE_FAMILIES = {
+    "reduced-and-platform", "horizontal-lockup", "stacked-lockup", "wordmark-only", "single-ink",
+}
+
+
+def derivative_configuration_sha256(brand):
+    """Hash every source-contract value that can change approved identity output."""
+    keys = (
+        "slug", "wordmark_text", "accent", "semantic_colors", "surfaces", "typography",
+        "palette_approvals", "logo",
+    )
+    payload = {key: brand.get(key) for key in keys}
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 class ContractError(ValueError):
@@ -363,7 +377,7 @@ def approval_ledger(brand, normalized_inputs=None):
 
     gate_1 = value["gate_1"]
     _require(isinstance(gate_1, dict)
-             and set(gate_1) == {"status", "approved_by", "approved_on", "scope"},
+             and set(gate_1) == {"status", "approved_by", "approved_on", "scope", "derivative_config_sha256"},
              "approval_ledger.gate_1 has an invalid structure")
     _require(gate_1["status"] == "approved", "Gate 1 approval is required before derivative generation")
     _require(isinstance(gate_1["approved_by"], str) and gate_1["approved_by"].strip(),
@@ -374,6 +388,11 @@ def approval_ledger(brand, normalized_inputs=None):
              and len(gate_1["scope"]) == len(set(gate_1["scope"]))
              and all(ID.fullmatch(item or "") for item in gate_1["scope"]),
              "Gate 1 approval scope must be a non-empty unique id array")
+    _require(set(gate_1["scope"]) == DERIVATIVE_FAMILIES,
+             "Gate 1 approval scope does not cover every derivative family")
+    _require(DIGEST.fullmatch(gate_1["derivative_config_sha256"] or "")
+             and gate_1["derivative_config_sha256"] == derivative_configuration_sha256(brand),
+             "Gate 1 approval is stale because derivative-producing configuration changed")
 
     gate_2 = value["gate_2"]
     required_gate_2 = {"status", "approved_by", "approved_on", "derivative_manifest_sha256", "surfaces"}

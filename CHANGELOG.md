@@ -16,6 +16,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-07, bound Gate 1 approval to a canonical digest of every derivative-producing brand setting and required its scope to cover all five derivative families.
 - On 2026-09-07, introduced hash-bound two-gate approval for third-party source identities and public surfaces, with fail-closed source-inventory, derivative-provenance, vendor-boundary, and site-publication enforcement.
 - On 2026-09-07, superseded S017's hosted single-page guideline presentation with brand-owned Fumadocs portals backed by one validated typed registry, while retaining generated standalone HTML as a download-only artifact.
 - On 2026-09-07, replaced the superseded universal orange link decoration with explicit editorial, text-action, navigation, utility, card, button, identity, and contextual-navigation roles, and rebuilt documentation pagination with neutral surfaces and restrained green border feedback for issues #142 and #143.
@@ -27,6 +28,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Made Gate 2 approval portable across rendering environments by binding raster derivatives to their verified SVG masters, and added pre-emission and final-verifier checks for constructed single-ink geometry.
 - Bound Gate 2 approval to every derivative file hash and projected the required ESO Weave vendor and trademark boundary across visible pages, metadata, structured data, registry records, and social previews.
 - Corrected clipped brand landing headings, unstable color disclosure layouts, unbounded asset previews, blank nonvisual asset cards, raw integration Markdown, and conflated guideline footer controls across responsive and 200 percent zoom layouts.
 - Removed the generated global anchor hover underline that could combine with site-owned decoration, and corrected pagination title and description selectors so each retains its intended hierarchy.
