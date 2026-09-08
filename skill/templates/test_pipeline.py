@@ -425,7 +425,7 @@ class PipelineTests(unittest.TestCase):
                     gen_logo.recolour_raster(source, target, "#123456", False)
                     with Image.open(target) as rendered:
                         self.assertEqual("PNG", rendered.format)
-                    self.assertEqual((18, 52, 86), rendered.convert("RGBA").getpixel((0, 0))[:3])
+                        self.assertEqual((18, 52, 86), rendered.convert("RGBA").getpixel((0, 0))[:3])
 
     def test_logo_raster_equivalence_allows_antialias_edges_but_rejects_drift(self):
         expected = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
@@ -683,7 +683,7 @@ class PipelineTests(unittest.TestCase):
                     original_png = logo_png.read_bytes()
                     with Image.open(logo_png) as image:
                         changed = image.convert("RGBA")
-                    changed.putpixel((0, 0), (255, 0, 0, 0))
+                    changed.paste((255, 0, 0, 0), (508, 508, 516, 516))
                     changed.save(logo_png)
                     logo_report = verify.Report()
                     verify.c_logo_provenance(str(kit), brand, logo_report)
