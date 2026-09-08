@@ -1003,6 +1003,111 @@ def _png_matches_svg(kit, relative, brand):
             return _same_rgba(expected, actual)
 
 
+def _square_knockout_problems(root, enclosure):
+    """Return structural failures for a locally bounded square knockout."""
+    local_name = lambda node: node.tag.rsplit("}", 1)[-1]
+    masks = [node for node in root.iter()
+             if local_name(node) == "mask" and node.get("id", "").endswith("-square-knockout")]
+    if len(masks) != 1:
+        return ["square-knockout mask count must be exactly one"]
+    mask = masks[0]
+    canvas = float(enclosure["canvas_size"])
+    required = {
+        "maskUnits": "userSpaceOnUse",
+        "maskContentUnits": "userSpaceOnUse",
+        "x": 0.0,
+        "y": 0.0,
+        "width": canvas,
+        "height": canvas,
+    }
+    failures = []
+    for name, expected in required.items():
+        actual = mask.get(name)
+        try:
+            matches = actual == expected if isinstance(expected, str) else float(actual) == expected
+        except (TypeError, ValueError):
+            matches = False
+        if not matches:
+            failures.append("square-knockout mask %s must be %s" % (name, expected))
+    reference = "url(#%s)" % mask.get("id")
+    targets = [node for node in root.iter()
+               if local_name(node) == "rect" and node.get("mask") == reference]
+    if len(targets) != 1:
+        failures.append("square-knockout mask must be referenced by exactly one enclosure rectangle")
+    elif all(mask.get(name) is not None for name in ("x", "y", "width", "height")):
+        target = targets[0]
+        try:
+            mask_box = (float(mask.get("x")), float(mask.get("y")),
+                        float(mask.get("x")) + float(mask.get("width")),
+                        float(mask.get("y")) + float(mask.get("height")))
+            target_box = (float(target.get("x", 0)), float(target.get("y", 0)),
+                          float(target.get("x", 0)) + float(target.get("width")),
+                          float(target.get("y", 0)) + float(target.get("height")))
+            if (target_box[0] < mask_box[0] or target_box[1] < mask_box[1]
+                    or target_box[2] > mask_box[2] or target_box[3] > mask_box[3]):
+                failures.append("square-knockout mask does not cover its enclosure rectangle")
+        except (TypeError, ValueError):
+            failures.append("square-knockout mask or enclosure rectangle has invalid bounds")
+    return failures
+
+
+def _transformed_rect_bounds(root, rect):
+    """Resolve the generator's translate and scale ancestors for a rectangle."""
+    parent = {child: node for node in root.iter() for child in node}
+    chain, node = [], rect
+    while node in parent:
+        node = parent[node]
+        chain.append(node)
+    x = float(rect.get("x", 0))
+    y = float(rect.get("y", 0))
+    points = [(x, y), (x + float(rect.get("width")), y + float(rect.get("height")))]
+    for ancestor in chain:
+        transform = ancestor.get("transform")
+        if not transform:
+            continue
+        operations = re.findall(r"(translate|scale)\(([^)]+)\)", transform)
+        if "".join("%s(%s)" % item for item in operations).replace(" ", "") != transform.replace(" ", ""):
+            raise ValueError("square enclosure has an unsupported ancestor transform")
+        for operation, arguments in reversed(operations):
+            values = [float(value) for value in re.split(r"[ ,]+", arguments.strip())]
+            if operation == "translate":
+                dx, dy = values[0], values[1] if len(values) > 1 else 0.0
+                points = [(px + dx, py + dy) for px, py in points]
+            else:
+                sx, sy = values[0], values[1] if len(values) > 1 else values[0]
+                points = [(px * sx, py * sy) for px, py in points]
+    return points
+
+
+def _monochrome_lockup_mark_complete(kit, relative):
+    """Measure that a rendered monochrome lockup spans its declared square mark."""
+    match = re.fullmatch(r"logos/png/(.+)-(1024|1280)\.png", relative)
+    if not match:
+        raise ValueError("logo PNG name does not identify its SVG master")
+    svg_path = os.path.join(kit, "logos", "svg", match.group(1) + ".svg")
+    root = ET.parse(svg_path).getroot()
+    rects = [node for node in root.iter()
+             if node.tag.rsplit("}", 1)[-1] == "rect" and node.get("mask", "").startswith("url(#")]
+    if len(rects) != 1:
+        raise ValueError("SVG master lacks one measurable square-knockout target")
+    points = _transformed_rect_bounds(root, rects[0])
+    view_box = [float(value) for value in root.get("viewBox", "").split()]
+    if len(view_box) != 4:
+        raise ValueError("SVG master has an invalid viewBox")
+    from PIL import Image
+    with Image.open(os.path.join(kit, relative.replace("/", os.sep))) as image:
+        alpha = image.convert("RGBA").getchannel("A")
+        scale_x = image.width / view_box[2]
+        scale_y = image.height / view_box[3]
+        left = max(0, int((min(point[0] for point in points) - view_box[0]) * scale_x))
+        top = max(0, int((min(point[1] for point in points) - view_box[1]) * scale_y))
+        right = min(image.width, int((max(point[0] for point in points) - view_box[0]) * scale_x + 0.9999))
+        bottom = min(image.height, int((max(point[1] for point in points) - view_box[1]) * scale_y + 0.9999))
+        bounds = alpha.crop((left, top, right, bottom)).getbbox()
+    return bool(bounds and (bounds[2] - bounds[0]) >= (right - left) * 0.8
+                and (bounds[3] - bounds[1]) >= (bottom - top) * 0.8)
+
+
 def _transformed_image_bounds(root, image):
     """Resolve the generator's translate and uniform-scale ancestors."""
     parent = {child: node for node in root.iter() for child in node}
@@ -1148,12 +1253,20 @@ def c_logo_provenance(kit, brand, rep):
         elif sha256_file(output) != item["sha256"]:
             problems.append("%s derivative bytes disagree with provenance" % relative)
         if relative.endswith(".png"):
-            if source:
+            if capabilities.get("svg_raster"):
                 try:
                     if not _png_matches_svg(kit, relative, brand):
                         problems.append("%s pixels disagree with its verified SVG master" % relative)
                 except Exception as error:
                     problems.append("%s cannot be compared with its SVG master: %s" % (relative, error))
+            enclosure = (brand.get("logo") or {}).get("square_enclosure")
+            if (enclosure and enclosure.get("monochrome_knockout") and item["kind"] == "lockup"
+                    and item["colourway"] in {"black", "white"} and capabilities.get("pillow_composite")):
+                try:
+                    if not _monochrome_lockup_mark_complete(kit, relative):
+                        problems.append("%s rendered square-knockout mark is clipped or incomplete" % relative)
+                except Exception as error:
+                    problems.append("%s rendered square-knockout mark cannot be measured: %s" % (relative, error))
             continue
         if not relative.endswith(".svg"):
             continue
@@ -1164,6 +1277,12 @@ def c_logo_provenance(kit, brand, rep):
             expected_variant = item["variant"]
             if root.get("data-logo-variant") != expected_variant:
                 problems.append("%s variant metadata disagrees with index" % relative)
+            enclosure = (brand.get("logo") or {}).get("square_enclosure")
+            if (enclosure and enclosure.get("monochrome_knockout")
+                    and item["kind"] in {"mark", "lockup"}
+                    and item["colourway"] in {"black", "white"}):
+                problems.extend("%s %s" % (relative, failure)
+                                for failure in _square_knockout_problems(root, enclosure))
             if source:
                 if root.get("data-authoritative-input-id") != source["record"]["id"] or root.get("data-authoritative-source-sha256") != source["record"]["sha256"]:
                     problems.append("%s authoritative metadata disagrees with index" % relative)

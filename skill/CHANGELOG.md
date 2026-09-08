@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed nested square-knockout monochrome lockups by declaring explicit user-space mask content and bounds, and added fail-closed mask-coverage, rendered-mark, and SVG-to-PNG verification.
+- Added a shared bounded preview-media contract for generated portal consumers, including exact-delivery, containment, centering, responsive, theme, and zoom regressions.
 - Added hash-bound Gate 1 and Gate 2 approval contracts, deterministic source-inventory validation, portable derivative-bound public projection, required vendor-boundary propagation, and constructed single-ink geometry validation for independent third-party identities.
 - Added a deterministic `guidelines/portal.json` publication contract with semantic topics, exact manifest-derived deliveries, bounded visual representatives, nonvisual resources, rendered instruction blocks, complete dark and light palettes, and a separate portable HTML reference.
 - Removed the generated global anchor hover underline so consuming applications can assign link treatment by semantic component without duplicate decoration.

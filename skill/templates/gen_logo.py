@@ -424,14 +424,15 @@ def main():
             knocked_out = render_paths(knockout, mask_roles, indent + "      ")
             return (
                 '%s<g data-square-enclosure="true">\n'
-                '%s  <defs><mask id="%s" maskUnits="userSpaceOnUse">\n'
+                '%s  <defs><mask id="%s" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width="%g" height="%g">\n'
                 '%s    <rect width="%g" height="%g" fill="#000000"/>\n'
                 '%s    <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="#FFFFFF"/>\n'
                 '%s    <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n%s    </g>\n'
                 '%s  </mask></defs>\n'
                 '%s  <rect x="%g" y="%g" width="%g" height="%g" rx="%g" fill="%s" mask="url(#%s)"/>\n'
                 '%s</g>'
-                % (indent, indent, mask_id, indent, canvas_width, canvas_height,
+                % (indent, indent, mask_id, canvas_width, canvas_height,
+                   indent, canvas_width, canvas_height,
                    indent, enclosure["inset"], enclosure["inset"], enclosure["size"],
                    enclosure["size"], enclosure["corner_radius"], indent, x, y, scale,
                    -source_box[0], -source_box[1], knocked_out, indent, indent, indent,
