@@ -50,3 +50,7 @@
 - No brand source, identity geometry, generated kit source, dependency version, information architecture, footer destination, documentation order, or theme-selection behavior changed.
 - All 15 changed text files decode as strict UTF-8 without BOM, use LF line endings, and contain no detected mojibake. `git diff --check` passes, generated outputs remain untracked, and the brand, font, and generator-source boundaries have no diff.
 - Final cross-artifact analysis maps all 18 functional requirements and 8 success criteria to the 36-task ledger, with no critical, high-severity, ambiguity, duplication, constitution, or unmapped-task findings.
+
+## Delivery
+
+- Commit `702d5c4` was pushed to `codex/022-site-interaction-affordances` and official pull request #169 was opened with closing references for issues #163 and #164.
