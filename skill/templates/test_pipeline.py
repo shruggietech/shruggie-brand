@@ -7,6 +7,7 @@ import copy
 import hashlib
 from io import BytesIO
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -424,7 +425,17 @@ class PipelineTests(unittest.TestCase):
                     gen_logo.recolour_raster(source, target, "#123456", False)
                     with Image.open(target) as rendered:
                         self.assertEqual("PNG", rendered.format)
-                        self.assertEqual((18, 52, 86), rendered.convert("RGBA").getpixel((0, 0))[:3])
+                    self.assertEqual((18, 52, 86), rendered.convert("RGBA").getpixel((0, 0))[:3])
+
+    def test_logo_raster_equivalence_allows_antialias_edges_but_rejects_drift(self):
+        expected = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+        expected.paste((255, 255, 255, 255), (8, 8, 24, 24))
+        one_pixel_edge = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+        one_pixel_edge.paste((255, 255, 255, 255), (9, 8, 25, 24))
+        shifted = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+        shifted.paste((255, 255, 255, 255), (12, 8, 28, 24))
+        self.assertTrue(verify._portable_raster_equivalent(expected, one_pixel_edge))
+        self.assertFalse(verify._portable_raster_equivalent(expected, shifted))
 
     def test_pdf_heading_weights_follow_typography_contract(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -792,14 +803,20 @@ class PipelineTests(unittest.TestCase):
                 "missing-mark-path": original_black.replace(protected_paths[0], "M0 0", 1),
                 "missing-wordmark": original_black.replace(
                     'data-lockup-component="wordmark"', 'data-lockup-component="missing-wordmark"', 1),
+                "collapsed-mark": re.sub(
+                    r'(<g transform="translate\([^)]+\) )scale\([^)]+\)',
+                    r'\1scale(0.001)', original_black, count=1),
+                "shifted-wordmark": re.sub(
+                    r'(data-lockup-component="wordmark" transform=")translate\([^)]+\)',
+                    r'\1translate(9999,9999)', original_black, count=1),
             }
             for name, mutation in geometry_mutations.items():
                 with self.subTest(lockup_geometry_mutation=name):
                     black_path.write_text(mutation, encoding="utf-8")
                     report = verify.Report()
                     verify.c_logo_provenance(str(kit), brand, report)
-                    self.assertTrue(any("lockup" in problem and "geometry" in problem
-                                        or "lockup must contain" in problem
+                    self.assertTrue(any("lockup" in problem and any(
+                                        keyword in problem for keyword in ("geometry", "contain", "transform"))
                                         for problem in report.problems), report.problems)
 
     def test_full_tier_page_qc_error_is_fatal(self):

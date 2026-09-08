@@ -515,6 +515,30 @@ def _same_rgba(expected, actual):
     return expected_rgba.size == actual_rgba.size and expected_rgba.tobytes() == actual_rgba.tobytes()
 
 
+def _portable_raster_equivalent(expected, actual):
+    """Compare renderer output while allowing one-pixel antialiasing differences."""
+    from PIL import ImageChops, ImageFilter
+    expected_rgba = expected.convert("RGBA")
+    actual_rgba = actual.convert("RGBA")
+    if expected_rgba.size != actual_rgba.size:
+        return False
+    expected_alpha = expected_rgba.getchannel("A").point(lambda value: 255 if value >= 16 else 0)
+    actual_alpha = actual_rgba.getchannel("A").point(lambda value: 255 if value >= 16 else 0)
+    expected_box, actual_box = expected_alpha.getbbox(), actual_alpha.getbbox()
+    if expected_box is None or actual_box is None:
+        return expected_box == actual_box
+    if any(abs(left - right) > 1 for left, right in zip(expected_box, actual_box)):
+        return False
+    expected_pixels = expected_alpha.histogram()[255]
+    actual_pixels = actual_alpha.histogram()[255]
+    if abs(expected_pixels - actual_pixels) > max(expected_pixels, actual_pixels) * 0.02:
+        return False
+    expected_dilated = expected_alpha.filter(ImageFilter.MaxFilter(3))
+    actual_dilated = actual_alpha.filter(ImageFilter.MaxFilter(3))
+    return (ImageChops.subtract(expected_alpha, actual_dilated).getbbox() is None
+            and ImageChops.subtract(actual_alpha, expected_dilated).getbbox() is None)
+
+
 def _expected_authoritative_icon(item, masters, profile):
     from iconkit import _plated, contain_visible
     variant = item.get("source_variant")
@@ -1000,7 +1024,7 @@ def _png_matches_svg(kit, relative, brand):
                         if standalone else source.convert("RGBA"))
             expected.save(expected_path)
         with Image.open(expected_path) as expected, Image.open(os.path.join(kit, relative.replace("/", os.sep))) as actual:
-            return _same_rgba(expected, actual)
+            return _portable_raster_equivalent(expected, actual)
 
 
 def _square_knockout_problems(root, enclosure):
@@ -1051,7 +1075,41 @@ def _square_knockout_problems(root, enclosure):
     return failures
 
 
-def _monochrome_lockup_geometry_problems(kit, root, brand, item):
+def _path_bbox(entries):
+    """Return the union bbox for declared or emitted path data."""
+    from svgelements import Path as SvgPath
+    boxes = [SvgPath(entry).bbox() for entry in entries if entry]
+    if not boxes:
+        raise ValueError("path set has no measurable geometry")
+    return (min(box[0] for box in boxes), min(box[1] for box in boxes),
+            max(box[2] for box in boxes), max(box[3] for box in boxes))
+
+
+def _transform_values(transform):
+    operations = re.findall(r"(translate|scale)\(([^)]+)\)", transform or "")
+    if "".join("%s(%s)" % item for item in operations).replace(" ", "") != (transform or "").replace(" ", ""):
+        raise ValueError("component has an unsupported transform")
+    return [(name, [float(value) for value in re.split(r"[ ,]+", values.strip())])
+            for name, values in operations]
+
+
+def _transform_matches(actual, expected, tolerance=0.01):
+    try:
+        operations = _transform_values(actual)
+    except ValueError:
+        return False
+    if len(operations) != len(expected):
+        return False
+    for (actual_name, actual_values), (expected_name, expected_values) in zip(operations, expected):
+        if actual_name != expected_name or len(actual_values) != len(expected_values):
+            return False
+        if any(abs(actual_value - expected_value) > tolerance
+               for actual_value, expected_value in zip(actual_values, expected_values)):
+            return False
+    return True
+
+
+def _monochrome_lockup_geometry_problems(kit, root, brand, item, relative):
     """Compare a square monochrome lockup with its declared mark and wordmark geometry."""
     local_name = lambda node: node.tag.rsplit("}", 1)[-1]
     components = {name: [node for node in root.iter()
@@ -1097,6 +1155,72 @@ def _monochrome_lockup_geometry_problems(kit, root, brand, item):
                              if local_name(node) == "path" and node.get("d"))
     if not expected_wordmark or actual_wordmark != expected_wordmark:
         failures.append("lockup wordmark paths disagree with its generated wordmark master")
+        return failures
+
+    parent = {child: node for node in root.iter() for child in node}
+    mark_parent = parent.get(components["mark"][0])
+    mark_transform = mark_parent.get("transform") if mark_parent is not None else None
+    wordmark_transform = components["wordmark"][0].get("transform")
+    try:
+        mark_box = _path_bbox(expected_mark)
+        wordmark_box = _path_bbox(expected_wordmark)
+        mark_width = mark_box[2] - mark_box[0]
+        mark_height = mark_box[3] - mark_box[1]
+        wordmark_width = wordmark_box[2] - wordmark_box[0]
+        wordmark_height = wordmark_box[3] - wordmark_box[1]
+        root_box = [float(value) for value in root.get("viewBox", "").split()]
+        lockups = logo.get("lockups") or {}
+        if "-horizontal-" in relative:
+            config = lockups.get("horizontal") or {}
+            scale = float(config.get("mark_height_units", 160.0)) / mark_height
+            word_scale = float(config.get("wordmark_scale", 0.62))
+            canvas_height = float(config.get("canvas_height_units", 200.0))
+            gap = float(config.get("gap_units", 34.0))
+            pad = 24.0
+            mark_y = (canvas_height - float(config.get("mark_height_units", 160.0))) / 2.0
+            word_x = pad + mark_width * scale + gap
+            word_y = float(config.get("wordmark_baseline_units", canvas_height / 2.0 + 200.0 * word_scale * 0.36))
+            wordmark_root = ET.parse(wordmark_path).getroot()
+            wordmark_advance = float(wordmark_root.get("viewBox").split()[2]) - 24.0
+            expected_root = [0.0, 0.0, mark_width * scale + gap + wordmark_advance * word_scale + pad * 2.0, canvas_height]
+            expected_mark_transform = [("translate", [pad, mark_y]), ("scale", [scale]),
+                                       ("translate", [-mark_box[0], -mark_box[1]])]
+            expected_wordmark_transform = [("translate", [word_x, word_y]), ("scale", [word_scale])]
+        elif "-stacked-" in relative:
+            config = lockups.get("stacked") or {}
+            word_scale = float(config.get("wordmark_scale", 0.62))
+            cap_height = max(1.0, -wordmark_box[1]) * word_scale
+            ratio = (config.get("mark_height_c_by_colourway") or {}).get(
+                item["colourway"], config.get("mark_height_c", 1.8))
+            rendered_mark_height = cap_height * float(ratio)
+            scale = rendered_mark_height / mark_height
+            rendered_mark_width = mark_width * scale
+            rendered_word_width = wordmark_width * word_scale
+            rendered_word_height = wordmark_height * word_scale
+            gap = cap_height * float(config.get("gap_c", 0.45))
+            pad = max(20.0, cap_height * 0.35)
+            width = max(rendered_mark_width, rendered_word_width) + pad * 2.0
+            word_top = pad + rendered_mark_height + gap
+            word_baseline = word_top - wordmark_box[1] * word_scale
+            mark_x = (width - rendered_mark_width) / 2.0
+            word_x = (width - rendered_word_width) / 2.0
+            expected_root = [0.0, 0.0, width, word_top + rendered_word_height + pad]
+            expected_mark_transform = [("translate", [mark_x, pad]), ("scale", [scale]),
+                                       ("translate", [-mark_box[0], -mark_box[1]])]
+            expected_wordmark_transform = [("translate", [word_x - wordmark_box[0] * word_scale,
+                                                           word_baseline]),
+                                           ("scale", [word_scale])]
+        else:
+            return failures + ["lockup path does not declare horizontal or stacked placement"]
+        if len(root_box) != 4 or any(abs(actual - expected) > 0.02
+                                     for actual, expected in zip(root_box, expected_root)):
+            failures.append("lockup canvas disagrees with declared measurements")
+        if not _transform_matches(mark_transform, expected_mark_transform):
+            failures.append("lockup mark transform disagrees with declared placement")
+        if not _transform_matches(wordmark_transform, expected_wordmark_transform):
+            failures.append("lockup wordmark transform disagrees with declared placement")
+    except (ET.ParseError, OSError, TypeError, ValueError, IndexError) as error:
+        failures.append("lockup placement cannot be verified: %s" % error)
     return failures
 
 
@@ -1335,7 +1459,7 @@ def c_logo_provenance(kit, brand, rep):
                 if item["kind"] == "lockup":
                     problems.extend("%s %s" % (relative, failure)
                                     for failure in _monochrome_lockup_geometry_problems(
-                                        kit, root, brand, item))
+                                        kit, root, brand, item, relative))
             if source:
                 if root.get("data-authoritative-input-id") != source["record"]["id"] or root.get("data-authoritative-source-sha256") != source["record"]["sha256"]:
                     problems.append("%s authoritative metadata disagrees with index" % relative)
