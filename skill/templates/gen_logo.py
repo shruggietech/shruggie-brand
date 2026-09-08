@@ -11,6 +11,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import shutil
 import struct
 import subprocess
@@ -510,6 +511,26 @@ def main():
             "derivatives": sorted(derivatives, key=lambda item: item["path"]),
         }
         write(os.path.join(kit, "logos", "provenance.json"), json.dumps(payload, indent=2, sort_keys=True) + "\n")
+        by_path = {item["path"]: item for item in derivatives}
+        approval_records = []
+        for item in sorted(derivatives, key=lambda record: record["path"]):
+            if item["path"].endswith(".svg"):
+                approval_records.append({"path": item["path"], "sha256": item["sha256"]})
+                continue
+            match = re.match(r"logos/png/(.+)-[0-9]+\.png$", item["path"])
+            if not match:
+                raise ValueError("raster derivative lacks a deterministic SVG master: %s" % item["path"])
+            source_path = "logos/svg/%s.svg" % match.group(1)
+            source = by_path.get(source_path)
+            if source is None:
+                raise ValueError("raster derivative source is absent from provenance: %s" % source_path)
+            approval_records.append({
+                "path": item["path"],
+                "rendered_from": source_path,
+                "rendered_from_sha256": source["sha256"],
+            })
+        approval = {"schema_version": 1, "brand": slug, "derivatives": approval_records}
+        write(os.path.join(kit, "logos", "approval.json"), json.dumps(approval, indent=2, sort_keys=True) + "\n")
 
     contextual = logo.get("contextual_variants") or {}
 

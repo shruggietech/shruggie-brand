@@ -411,8 +411,8 @@ def public_showcase(brand, kit=None):
     _require(set(gate_2["surfaces"]) == PUBLICATION_SURFACES,
              "Gate 2 approval does not authorize the complete public surface set")
     if kit is not None:
-        provenance = contained_path(kit, "logos/provenance.json")
-        _require(sha256_file(provenance) == gate_2["derivative_manifest_sha256"],
+        approval = contained_path(kit, "logos/approval.json")
+        _require(sha256_file(approval) == gate_2["derivative_manifest_sha256"],
                  "Gate 2 approval is stale because derivative provenance changed")
     return True
 

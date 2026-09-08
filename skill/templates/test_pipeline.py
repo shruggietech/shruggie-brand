@@ -500,6 +500,9 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(["recolor-mask", "resize"], mark["transformations"])
             svg_path = kit / mark["path"]
             self.assertEqual(hashlib.sha256(svg_path.read_bytes()).hexdigest(), mark["sha256"])
+            approval_path = kit / "logos" / "approval.json"
+            approval = json.loads(approval_path.read_text(encoding="utf-8"))
+            self.assertEqual(paths, [item["path"] for item in approval["derivatives"]])
             text = svg_path.read_text(encoding="utf-8")
             self.assertIn('data-logo-source-mode="authoritative"', text)
             self.assertIn('data-authoritative-input-id="full-mark-master"', text)
@@ -537,6 +540,13 @@ class PipelineTests(unittest.TestCase):
                     self.assertTrue(report.problems)
 
             index_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+            changed_approval = copy.deepcopy(approval)
+            changed_approval["derivatives"][0]["sha256"] = "0" * 64
+            approval_path.write_text(json.dumps(changed_approval, indent=2) + "\n", encoding="utf-8")
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
+            self.assertTrue(any("approval manifest" in problem for problem in report.problems))
+            approval_path.write_text(json.dumps(approval, indent=2) + "\n", encoding="utf-8")
             svg_path.write_text(text.replace('data-authoritative-input-id="full-mark-master"',
                                              'data-authoritative-input-id="substitute"'), encoding="utf-8")
             report = verify.Report()

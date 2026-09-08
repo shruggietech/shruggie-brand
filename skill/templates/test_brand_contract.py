@@ -95,9 +95,9 @@ class ApprovalLedgerTests(unittest.TestCase):
         brand = approval_brand("approved")
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary)
-            provenance = kit / "logos" / "provenance.json"
-            provenance.parent.mkdir()
-            provenance.write_text("{}\n", encoding="utf-8")
+            approval = kit / "logos" / "approval.json"
+            approval.parent.mkdir()
+            approval.write_text("{}\n", encoding="utf-8")
             with self.assertRaisesRegex(ContractError, "stale"):
                 public_showcase(brand, kit)
 

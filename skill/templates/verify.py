@@ -1212,6 +1212,33 @@ def c_logo_provenance(kit, brand, rep):
                     checked_sources.add(variant)
         except Exception as error:
             problems.append("%s provenance metadata cannot be verified: %s" % (relative, error))
+    approval_path = os.path.join(kit, "logos", "approval.json")
+    expected_approval_records = []
+    by_path = {item.get("path"): item for item in records if isinstance(item, dict)}
+    for item in sorted((item for item in records if isinstance(item, dict)), key=lambda record: record.get("path", "")):
+        relative = item.get("path", "")
+        if relative.endswith(".svg"):
+            expected_approval_records.append({"path": relative, "sha256": item.get("sha256")})
+            continue
+        match = re.match(r"logos/png/(.+)-[0-9]+\.png$", relative)
+        source_path = "logos/svg/%s.svg" % match.group(1) if match else ""
+        source = by_path.get(source_path)
+        if not match or source is None:
+            problems.append("%s lacks a deterministic SVG approval source" % relative)
+            continue
+        expected_approval_records.append({
+            "path": relative,
+            "rendered_from": source_path,
+            "rendered_from_sha256": source.get("sha256"),
+        })
+    expected_approval = {"schema_version": 1, "brand": brand.get("slug"), "derivatives": expected_approval_records}
+    try:
+        with open(approval_path, encoding="utf-8") as handle:
+            approval = json.load(handle)
+        if approval != expected_approval:
+            problems.append("approval manifest does not cover the verified derivative set")
+    except Exception as error:
+        problems.append("logos/approval.json cannot be verified: %s" % error)
     if authority["source_mode"] == "authoritative" and checked_sources != {"full", "reduced"}:
         problems.append("authoritative Full and Reduced sources were not both verified")
     if problems:
