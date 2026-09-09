@@ -81,6 +81,25 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertEqual(b"last known good", destination.read_bytes())
             self.assertFalse(destination.with_name(f".{destination.name}.tmp").exists())
 
+    def test_brand_archive_preserves_a_manifest_certified_consumer_handoff(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = self.make_brand_source(root)
+            handoff = b'{"brand":"cueson","sha256":"approved"}\n'
+            (source / "consumer-handoff.json").write_bytes(handoff)
+            manifest_path = source / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["files"].append({
+                "path": "consumer-handoff.json",
+                "bytes": len(handoff),
+                "sha256": hashlib.sha256(handoff).hexdigest(),
+            })
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            archive_path = root / "release" / "alpha-brand-1.0.0.zip"
+            package_release.write_brand_archive(source, archive_path, root=root, expected_canon="1.2.1")
+            with zipfile.ZipFile(archive_path) as archive:
+                self.assertEqual(handoff, archive.read("consumer-handoff.json"))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

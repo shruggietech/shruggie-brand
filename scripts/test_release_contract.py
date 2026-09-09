@@ -49,6 +49,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
 class ReleaseContractTests(unittest.TestCase):
     def test_production_logo_source_modes_and_identity_fingerprints_are_pinned(self):
         expected = {
+            "cueson": ("constructed", "e9731717f34f149f78b221a857d127cad60e09ae1e3c8cf2f09d3de0ae0624f9"),
             "covarity": ("constructed", "b9846d9b00e393092678164a7d5f1c24cfd4186e2d2490b3d8a87be8e3b8e40c"),
             "fragcap": ("constructed", "47877d1667ac44ab6c81ed41ab675cf8831b7644e4926c4df93eeca024805e3b"),
             "glitchpad": ("constructed", "3115a137763ff75ab64a036282f9bc5bf683a3b4d68ffda6d0d5839da030c95e"),
@@ -99,6 +100,7 @@ class ReleaseContractTests(unittest.TestCase):
             "glitchpad-brand-1.1.0.zip",
             "covarity-brand-1.0.0.zip",
             "eso-weave-brand-1.0.0.zip",
+            "cueson-brand-1.0.0.zip",
         })
         self.assertEqual(
             {slug: values["version"] for slug, values in metadata["brands"].items()},
@@ -109,6 +111,7 @@ class ReleaseContractTests(unittest.TestCase):
                 "glitchpad": "1.1.0",
                 "covarity": "1.0.0",
                 "eso-weave": "1.0.0",
+                "cueson": "1.0.0",
             },
         )
 

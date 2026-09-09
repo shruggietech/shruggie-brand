@@ -574,6 +574,9 @@ def copy_kit(source: Path, brand: dict) -> dict:
     shutil.copy2(portable_guide, downloads / f"{slug}-portable-guidelines.html")
     for name in ("logos", "favicons", "icons", "specimens"):
         replace_tree(source / name, downloads / name)
+    handoff = source / "consumer-handoff.json"
+    if handoff.is_file():
+        shutil.copy2(handoff, downloads / handoff.name)
     archive_filename = f"{slug}-brand-{brand['version']}.zip"
     archive_path = target / "downloads" / archive_filename
     write_brand_archive(

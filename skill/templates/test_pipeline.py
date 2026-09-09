@@ -43,6 +43,41 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_cueson_source_is_bound_to_both_approved_gates(self):
+        from brand_contract import approval_ledger, derivative_configuration_sha256, public_showcase, validate_brand
+
+        path = ROOT / "brands" / "cueson" / "brand.json"
+        brand = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual("Cueson", brand["wordmark_text"])
+        self.assertEqual("Universal captions and subtitles", brand["brand_idea"])
+        self.assertEqual("A lossless, structured interchange layer for subtitle and caption content.", brand["descriptor"])
+        self.assertEqual("shruggietech-owned", brand["affiliation"]["ownership"])
+        self.assertEqual("house", brand["typography"]["mode"])
+        self.assertEqual("#62BEB2", brand["logo"]["role_colors"]["color"]["accent"])
+        self.assertEqual("#005D55", brand["logo"]["role_colors"]["light"]["accent"])
+        self.assertEqual({"#000000"}, set(brand["logo"]["role_colors"]["black"].values()))
+        self.assertEqual({"#FFFFFF"}, set(brand["logo"]["role_colors"]["white"].values()))
+        self.assertEqual("glyphkit", brand["logo"]["geometry_provenance"])
+        ledger = approval_ledger(brand, [])
+        self.assertEqual({}, ledger["source_hashes"])
+        self.assertEqual(derivative_configuration_sha256(brand), ledger["gate_1"]["derivative_config_sha256"])
+        self.assertEqual("approved", ledger["gate_2"]["status"])
+        self.assertEqual(
+            "e9f3aef341ed8910426abd6d7876dac1f39f69afe370efc9c1cddb7af41f9dc5",
+            ledger["gate_2"]["derivative_manifest_sha256"],
+        )
+        self.assertEqual(
+            {"showcase-card", "brand-landing-page", "guideline-topics", "downloads",
+             "registry-endpoints", "public-metadata", "structured-data", "social-preview"},
+            set(ledger["gate_2"]["surfaces"]),
+        )
+        self.assertTrue(public_showcase(brand))
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "cueson"
+            shutil.copytree(ROOT / "brands" / "cueson", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            validate_brand(brand, str(kit))
+
     def test_guideline_color_references_are_deterministic_and_complete(self):
         reference = gen_guidelines.color_reference("primary", "#2BCC73")
         self.assertEqual("#2BCC73", reference["hex"])
@@ -246,6 +281,17 @@ class PipelineTests(unittest.TestCase):
         self.assertAlmostEqual(900.0 / 1040.0, gen_logo.standalone_mark_ratio(brand))
         brand["logo"]["artwork_width"] = 1200
         self.assertAlmostEqual(1200.0 / 1340.0, gen_logo.standalone_mark_ratio(brand))
+
+    def test_standalone_mark_ratio_can_preserve_approved_concept_framing(self):
+        brand = {"logo": {
+            "artwork_width": 330,
+            "artwork_height": 338,
+            "clear_space_units": 48,
+            "standalone_padding_units": {"full": 87, "reduced": 97},
+        }}
+        self.assertAlmostEqual(338.0 / 512.0, gen_logo.standalone_mark_ratio(brand))
+        brand["logo"].update({"reduced_artwork_width": 318, "reduced_artwork_height": 302})
+        self.assertAlmostEqual(318.0 / 512.0, gen_logo.standalone_mark_ratio(brand, "reduced"))
 
     def test_guide_metrics_describe_the_composed_square(self):
         brand = json.loads((ROOT / "brands" / "glitchpad" / "brand.json").read_text(encoding="utf-8"))

@@ -28,8 +28,8 @@ NODE = os.environ.get("GP_NODE") or shutil.which("node")
 RESVG = os.environ.get("GP_RESVG_RENDERER") or os.path.join(os.path.dirname(__file__), "rsvg-convert.js")
 
 
-def standalone_mark_ratio(brand):
-    """Return the visible long-edge occupancy that preserves declared clear space."""
+def standalone_mark_ratio(brand, source_variant="full"):
+    """Return visible long-edge occupancy using framing padding when declared."""
     enclosure = square_enclosure_profile(brand)
     if enclosure:
         visible = enclosure["size"] + enclosure["stroke_width"]
@@ -37,7 +37,13 @@ def standalone_mark_ratio(brand):
     logo = brand.get("logo") or {}
     width = float(logo.get("artwork_width", logo.get("grid", 1000)))
     height = float(logo.get("artwork_height", logo.get("grid", 1000)))
-    clear_space = float(logo.get("clear_space_units", 0))
+    if source_variant == "reduced":
+        width = float(logo.get("reduced_artwork_width", width))
+        height = float(logo.get("reduced_artwork_height", height))
+    padding = logo.get("standalone_padding_units", logo.get("clear_space_units", 0))
+    if isinstance(padding, dict):
+        padding = padding.get(source_variant, padding.get("full"))
+    clear_space = float(padding)
     long_edge = max(width, height)
     if long_edge <= 0 or clear_space < 0:
         raise ValueError("standalone mark dimensions and clear space must be non-negative")
@@ -838,7 +844,8 @@ def main():
             raster(["-h", str(width), source, "-o", output])
             with Image.open(output) as rendered:
                 mark_image = rendered.convert("RGBA")
-                square_image = contain_visible(mark_image, width, standalone_mark_ratio(brand))
+                source_variant = "reduced" if filename.startswith(slug + "-mark-reduced-") else "full"
+                square_image = contain_visible(mark_image, width, standalone_mark_ratio(brand, source_variant))
                 square_image.save(output)
             with Image.open(output) as squared:
                 assert squared.size == (width, width), "%s is not square" % output

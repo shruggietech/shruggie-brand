@@ -13,7 +13,15 @@ from typing import Dict, Iterable, Mapping, Optional
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PRODUCTION = ("shruggietech", "fragcap", "go-schedule", "glitchpad", "covarity", "eso-weave")
+PRODUCTION = (
+    "shruggietech",
+    "fragcap",
+    "go-schedule",
+    "glitchpad",
+    "covarity",
+    "eso-weave",
+    "cueson",
+)
 LICENSES = ("LICENSE", "NOTICE", "LICENSE-BRAND.md")
 REQUIRED_HISTORY = {
     "1.1.0": ("glyph construction", "portability tiers", "chart", "generators", "Apache-2.0"),

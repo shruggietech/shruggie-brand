@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added optional variant-specific standalone mark framing while preserving the existing clear-space default, and verified the selected Full or Reduced source variant during independent PNG reproduction.
 - Fixed nested square-knockout monochrome lockups by declaring explicit user-space mask content and bounds, and added fail-closed mask-coverage, rendered-mark, and SVG-to-PNG verification.
 - Added a shared bounded preview-media contract for generated portal consumers, including exact-delivery, containment, centering, responsive, theme, and zoom regressions.
 - Added hash-bound Gate 1 and Gate 2 approval contracts, deterministic source-inventory validation, portable derivative-bound public projection, required vendor-boundary propagation, and constructed single-ink geometry validation for independent third-party identities.

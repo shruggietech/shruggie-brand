@@ -76,6 +76,52 @@ def approval_brand(status="pending"):
 
 
 class ApprovalLedgerTests(unittest.TestCase):
+    def test_cueson_source_preserves_exact_verbal_identity_and_approval_hashes(self):
+        brand = json.loads((ROOT / "brands" / "cueson" / "brand.json").read_text(encoding="utf-8"))
+        self.assertEqual("Cueson", brand["title"])
+        self.assertEqual("Universal captions and subtitles", brand["brand_idea"])
+        self.assertEqual(
+            "A lossless, structured interchange layer for subtitle and caption content.",
+            brand["descriptor"],
+        )
+        self.assertEqual(
+            ["A lossless, structured interchange layer", "for subtitle and caption content."],
+            brand["description_lines"],
+        )
+        self.assertEqual("shruggietech-owned", brand["affiliation"]["ownership"])
+        self.assertEqual("#62BEB2", brand["accent"]["bright"])
+        self.assertEqual("house", brand["typography"]["mode"])
+        ledger = approval_ledger(brand, [])
+        self.assertEqual(
+            "4c71cbf518a6de9d8861eea203e882469461feae18f576ea03e8c435ea71ab7c",
+            ledger["gate_1"]["derivative_config_sha256"],
+        )
+        self.assertEqual(
+            "e9f3aef341ed8910426abd6d7876dac1f39f69afe370efc9c1cddb7af41f9dc5",
+            ledger["gate_2"]["derivative_manifest_sha256"],
+        )
+
+    def test_constructed_identity_may_bind_gate_one_without_imported_sources(self):
+        brand = approval_brand()
+        brand["logo"] = {"source_mode": "constructed", "paths": {
+            "full": [{"d": "M0 0 L1 0 L1 1 Z", "role": "accent"}],
+            "reduced": [{"d": "M0 0 L1 0 L1 1 Z", "role": "accent"}],
+        }}
+        brand["approval_ledger"]["source_hashes"] = {}
+        brand["approval_ledger"]["gate_1"]["derivative_config_sha256"] = derivative_configuration_sha256(brand)
+        self.assertEqual({}, approval_ledger(brand, [])["source_hashes"])
+
+        authoritative = copy.deepcopy(brand)
+        authoritative["logo"]["source_mode"] = "authoritative"
+        authoritative["approval_ledger"]["gate_1"]["derivative_config_sha256"] = derivative_configuration_sha256(authoritative)
+        with self.assertRaisesRegex(ContractError, "constructed identity"):
+            approval_ledger(authoritative, [])
+
+        with_input = [({"id": "source-mark", "sha256": "a" * 64,
+                        "usage_status": "approved", "role": "mark"}, Path("unused"))]
+        with self.assertRaisesRegex(ContractError, "stale"):
+            approval_ledger(brand, with_input)
+
     def test_gate_1_is_required_and_hash_bound(self):
         brand = approval_brand()
         missing = copy.deepcopy(brand)

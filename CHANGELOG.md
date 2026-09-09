@@ -6,7 +6,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
-- Added deterministic, manifest-certified complete brand-kit downloads for all six public production brands, with staged verification and atomic publication shared by release and static-site builds.
+- Added the approved Cueson production identity and seventh public brand kit for issue #184, including exact Cueframe source continuity, Cue Teal color governance, complete lockups and application icons, generated guidelines and specimen, and a manifest-certified future consumer handoff.
+- Added deterministic, manifest-certified complete brand-kit downloads for all seven public production brands, with staged verification and atomic publication shared by release and static-site builds.
 - Added the independent ESO Weave production brand kit and public showcase for issue #153, with byte-preserved authoritative SVG sources, fixed Inter typography, approved lockups and single-ink derivatives, complete provenance evidence, native platform assets, guidelines, UI specimen, and vendor-safe public metadata.
 - Added generated portal payloads, canonical multi-page brand guideline routes, focused topic navigation, compact HEX-first color references, purpose-led asset libraries, rendered platform instructions, and portable offline guide downloads for issues #157 through #161.
 - Added manifest-derived guideline asset catalogs, copyable governed color references, scoped dark/light specimens, compact section navigation, and progressive back-to-top behavior for issues #147, #148, and #149.
@@ -17,6 +18,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-09, separated external clear-space governance from optional variant-specific standalone presentation padding so approved Full and Reduced concept framing can survive deterministic production export.
 - On 2026-09-09, consolidated each brand portal into the approved Overview, Voice, Identity, Components, Assets, and Integration hierarchy, grouped project documentation into its approved five-section table of contents, and removed redundant brand-root pages while preserving every nested guideline, download, registry, and asset endpoint for issues #175, #179, and #180.
 - On 2026-09-09, replaced implicit homepage card navigation with explicit Guidelines and Download Kit actions, native compact mobile disclosures, stable desktop geometry, and one generated shared third-party notice for issues #173 and #174.
 - On 2026-09-08, made the six shared footer destinations an explicit ordered policy, preserving Company as same-tab while limiting safe separate-context navigation to Download the skill, Source, and License.
@@ -33,6 +35,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Prevented approved constructed glyphs from being redrawn during production handoff by reusing the exact Gate 1 centerlines through `glyphkit.capsule`, binding the result to source hashes, and adding cross-renderer silhouette, bounds, and centroid checks.
 - Centered documentation pagination chevrons with wrapped and unwrapped labels, preserved right-to-left rotation through independent optical translation, and restored pointer plus disabled cursor treatment and minimum targets for shared theme controls.
 - Restored complete Glitchpad black and white horizontal and stacked lockups by giving the shared square-knockout mask an explicit local coordinate extent, then added structural, rendered-height, and SVG-to-PNG verification for the failure.
 - Made Gate 2 approval portable across rendering environments by binding raster derivatives to their verified SVG masters, and added pre-emission and final-verifier checks for constructed single-ink geometry.

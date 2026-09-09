@@ -41,6 +41,22 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
 
 
 class PrepareSiteTests(unittest.TestCase):
+    def test_cueson_source_exposes_only_the_approved_public_surface_set(self):
+        path = prepare_site.ROOT / "brands" / "cueson" / "brand.json"
+        brand = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual("Universal captions and subtitles", brand["brand_idea"])
+        self.assertEqual(
+            "A lossless, structured interchange layer for subtitle and caption content.",
+            brand["descriptor"],
+        )
+        self.assertEqual("public", brand["affiliation"]["showcase"])
+        self.assertEqual(
+            {"showcase-card", "brand-landing-page", "guideline-topics", "downloads",
+             "registry-endpoints", "public-metadata", "structured-data", "social-preview"},
+            set(brand["approval_ledger"]["gate_2"]["surfaces"]),
+        )
+        self.assertTrue(prepare_site.public_showcase(brand))
+
     def test_copy_kit_emits_only_explicit_governed_showcase_surface(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
