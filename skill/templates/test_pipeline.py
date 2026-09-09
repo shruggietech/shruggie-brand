@@ -132,7 +132,7 @@ class PipelineTests(unittest.TestCase):
                 {"path": "icons/web/README.md", "platform": "web", "role": "instructions", "appearance": "default", "source_variant": "reduced", "format": "markdown", "destination": "Web integration guide"},
             ]
             (kit / "icons" / "manifest.json").write_text(json.dumps({"artifacts": artifacts, "suites": [], "aliases": {}}), encoding="utf-8")
-            brand = {"slug": "alpha", "title": "Alpha", "descriptor": "Alpha tools.", "brand_idea": "Work clearly.", "guide": {}, "voice": {}, "typography": {"families": {}}, "domain_components": {}, "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
+            brand = {"slug": "alpha", "title": "Alpha", "version": "1.2.3", "descriptor": "Alpha tools.", "brand_idea": "Work clearly.", "guide": {}, "voice": {}, "typography": {"families": {}}, "domain_components": {}, "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
             palettes = ({"primary": "#2BCC73", "background": "#080B0D"}, {"primary": "#167A45", "background": "#FFFFFF"})
             with mock.patch.object(gen_guidelines, "tokens", return_value=palettes):
                 payload = gen_guidelines.portal_payload(brand, kit)
@@ -142,6 +142,20 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(3, len(set(paths)))
             self.assertEqual("# Web icons", payload["instructions"][0]["markdown"].splitlines()[0])
             self.assertEqual("1.0", payload["schema_version"])
+            self.assertEqual("1.2.3", payload["brand"]["version"])
+            self.assertEqual(
+                [
+                    ("overview", "Overview", "Overview", 0, "/alpha/guidelines/"),
+                    ("voice", "Voice", "Voice", 0, "/alpha/guidelines/voice/"),
+                    ("logos", "Logo", "Identity", 0, "/alpha/guidelines/logos/"),
+                    ("color", "Color", "Identity", 1, "/alpha/guidelines/color/"),
+                    ("typography", "Typography", "Identity", 2, "/alpha/guidelines/typography/"),
+                    ("components", "Components", "Components", 0, "/alpha/guidelines/components/"),
+                    ("assets", "Assets", "Assets", 0, "/alpha/downloads/"),
+                    ("integration", "Integration", "Integration", 0, "/alpha/guidelines/integration/"),
+                ],
+                [(topic["key"], topic["label"], topic["section"], topic["order"], topic["path"]) for topic in payload["topics"]],
+            )
 
     def test_guideline_swatches_cover_every_role_and_deduplicate_equal_values(self):
         html = gen_guidelines._swatches("Dark palette", [

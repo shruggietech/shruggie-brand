@@ -1,6 +1,8 @@
 import brands from '../generated/brands.json' with { type: 'json' };
+import guidelinePortals from '../generated/guidelines.json' with { type: 'json' };
+import documentation from '../generated/documentation.json' with { type: 'json' };
 import routeContract from '../generated/routes.json' with { type: 'json' };
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const assetLibrarySource = readFileSync(new URL('../components/guidelines/asset-library-client.tsx', import.meta.url), 'utf8');
 const topicContentSource = readFileSync(new URL('../components/guidelines/topic-content.tsx', import.meta.url), 'utf8');
@@ -9,6 +11,12 @@ const brandPortfolioSource = readFileSync(new URL('../components/brand-portfolio
 const homepageSource = readFileSync(new URL('../app/(site)/page.tsx', import.meta.url), 'utf8');
 const layoutSource = readFileSync(new URL('../lib/layout.shared.tsx', import.meta.url), 'utf8');
 const globalStyles = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+const guidelineLayoutSource = readFileSync(new URL('../app/(guidelines)/[slug]/layout.tsx', import.meta.url), 'utf8');
+const guidelinePageSource = readFileSync(new URL('../app/(guidelines)/[slug]/guidelines/[[...topic]]/page.tsx', import.meta.url), 'utf8');
+const downloadsSource = readFileSync(new URL('../components/guidelines/downloads-content.tsx', import.meta.url), 'utf8');
+const documentationLayoutSource = readFileSync(new URL('../app/docs/layout.tsx', import.meta.url), 'utf8');
+const documentationTreeSource = readFileSync(new URL('../lib/documentation.ts', import.meta.url), 'utf8');
+const noScriptHierarchySource = readFileSync(new URL('../components/hierarchy-no-script.tsx', import.meta.url), 'utf8');
 if (!assetLibrarySource.includes('className="asset-preview-media"') || !topicContentSource.includes('className="asset-preview-media"')) throw new Error('both guideline preview surfaces must use the shared media wrapper');
 if (!/\.asset-preview-media img \{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: contain;[^}]*\}/s.test(globalStyles)) throw new Error('shared preview containment styles must bind full media sizing to contain fitting');
 
@@ -70,6 +78,31 @@ for (const brand of brands) {
   if (brand.guidelinesPath !== `/${brand.slug}/guidelines/` || brand.kitArchive !== expectedArchive || brand.kitArchiveFilename !== expectedArchive.split('/').at(-1)) throw new Error(`${brand.slug} generated action destinations are incomplete or inconsistent`);
   if ('vendorBoundarySummary' in brand) throw new Error(`${brand.slug} retains obsolete card-level vendor summary copy`);
 }
+const expectedBrandNavigation = [
+  ['overview', 'Overview', 'Overview', 0], ['voice', 'Voice', 'Voice', 0], ['logos', 'Logo', 'Identity', 0], ['color', 'Color', 'Identity', 1],
+  ['typography', 'Typography', 'Identity', 2], ['components', 'Components', 'Components', 0], ['assets', 'Assets', 'Assets', 0], ['integration', 'Integration', 'Integration', 0],
+];
+for (const portal of guidelinePortals) {
+  const actual = portal.topics.map(({ key, label, section, order }) => [key, label, section, order]);
+  if (JSON.stringify(actual) !== JSON.stringify(expectedBrandNavigation)) throw new Error(`${portal.brand.slug} guideline hierarchy differs from the approved contract`);
+  if (portal.brand.version !== brands.find((brand) => brand.slug === portal.brand.slug)?.version) throw new Error(`${portal.brand.slug} portal omits the brand version needed by the consolidated Overview`);
+  const assets = portal.topics.find((topic) => topic.key === 'assets');
+  if (assets?.path !== `/${portal.brand.slug}/downloads/`) throw new Error(`${portal.brand.slug} Assets does not use the stable downloads route`);
+}
+const expectedDocumentationNavigation = [
+  ['Overview', 'Overview', '/docs/'], ['Foundation', 'Contract', '/docs/00-variance-contract/'], ['Foundation', 'Kit', '/docs/02-kit-anatomy/'],
+  ['Discovery', 'Interview', '/docs/03-interview/'], ['Identity', 'Logo', '/docs/06-logo-protocol/'], ['Identity', 'Glyphs', '/docs/08-glyph-construction/'],
+  ['Identity', 'Voice', '/docs/07-voice/'], ['Implementation', 'Toolchain', '/docs/04-toolchain/'], ['Implementation', 'shadcn', '/docs/05-shadcn-binding/'],
+  ['Implementation', 'Portability', '/docs/09-portability/'],
+];
+if (JSON.stringify(documentation.map((record) => [record.navigation.section, record.navigation.label, record.navigation.path])) !== JSON.stringify(expectedDocumentationNavigation)) throw new Error('documentation hierarchy differs from the approved contract');
+if (!guidelineLayoutSource.includes('tree={guidelineTree(portal)}') || !guidelinePageSource.includes('<GuidelineNoScriptNav')) throw new Error('brand routes do not share the generated hierarchy and no-script fallback');
+if (!documentationLayoutSource.includes('tree={documentationTree()}') || !noScriptHierarchySource.includes('DocumentationNoScriptNav')) throw new Error('documentation routes do not share the generated hierarchy and no-script fallback');
+if (!documentationTreeSource.includes("type: 'folder' as const") || !noScriptHierarchySource.includes('<ul>') || !noScriptHierarchySource.includes('aria-current=')) throw new Error('grouped navigation lacks semantic nested structure or no-script current state');
+if (!guidelinePageSource.includes("topic.key !== 'assets'") || !guidelinePageSource.includes('dynamicParams = false')) throw new Error('obsolete guidelines Assets route is still statically generated');
+if (!downloadsSource.includes('<AssetLibrary portal={portal} />') || !downloadsSource.includes('Direct downloads')) throw new Error('Assets does not combine direct downloads and the generated asset library');
+if (!topicContentSource.includes('id="brand-overview"') || !topicContentSource.includes('portal.brand.idea') || !topicContentSource.includes('id="built-to-ship"') || !topicContentSource.includes('/brand/r/registry.json')) throw new Error('consolidated Overview does not preserve the retired brand-page content and registry entry point');
+if (existsSync(new URL('../app/(site)/[slug]/page.tsx', import.meta.url))) throw new Error('retired brand-root page source still exists');
 if (!brandPortfolioSource.includes('className="brand-card"') || !brandPortfolioSource.includes('className="brand-accordion"') || !brandPortfolioSource.includes('<summary>')) throw new Error('portfolio component lacks the required desktop article and native mobile disclosure structures');
 if (!brandPortfolioSource.includes("event.key === 'Escape'") || !brandPortfolioSource.includes("data-actions-dismissed={dismissed ? 'true' : undefined}") || !brandPortfolioSource.includes('<noscript><style>')) throw new Error('desktop action reveal lacks Escape dismissal or its no-script visible-action fallback');
 if (!/@media \(hover: none\), \(pointer: coarse\) \{[^}]*\.brand-grid-desktop \{ display: none; \}[^}]*\.brand-accordion-list \{ display: block; \}/s.test(globalStyles)) throw new Error('wide touch-only devices do not receive the native disclosure presentation');
@@ -77,12 +110,13 @@ if (!brandPortfolioSource.includes('<a href={brand.guidelinesPath}>Guidelines</a
 if (!brandPortfolioSource.includes("const noticeId = 'portfolio-third-party-notice'") || !brandPortfolioSource.includes('id={noticeId}') || !brandPortfolioSource.includes('aria-describedby={noticeId}')) throw new Error('portfolio component lacks one accessible shared vendor-notice association');
 if (brandPortfolioSource.includes('vendorBoundarySummary') || homepageSource.includes('vendorBoundarySummary') || homepageSource.includes('href={`/${brand.slug}/`}')) throw new Error('portfolio retains retired repeated disclaimer or implicit full-card navigation');
 for (const route of routeRecords.filter((route) => route.brandSlug === 'eso-weave')) if (route.vendorBoundary !== esoWeave.vendorBoundary || route.vendorBoundaryUrl !== 'https://brand.shruggie.tech/eso-weave/guidelines/') throw new Error(`${route.pathname} omits the ESO Weave vendor-boundary metadata`);
-export const brandRoutes = routeRecords.filter((route) => ['brand', 'downloads', 'guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
+if (routeRecords.some((route) => route.kind === 'brand' || brands.some((brand) => route.pathname === `/${brand.slug}/`) || route.pathname.endsWith('/guidelines/assets/'))) throw new Error('route contract retains a removed brand root or duplicate Assets route');
+export const brandRoutes = routeRecords.filter((route) => ['downloads', 'guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
 export const docRoutes = routeRecords.filter((route) => ['docs-index', 'docs-page'].includes(route.kind)).map((route) => route.pathname);
 export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolchain', '05-shadcn-binding', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability'].map((slug) => `/docs/${slug}/`);
 export const htmlRoutes = routeRecords.map((route) => route.pathname);
 export const guidelineRoutes = routeRecords.filter((route) => ['guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
-export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/`, `/${brand.slug}/guidelines/`]), '/glitchpad/guidelines/color/', '/glitchpad/guidelines/assets/', '/docs/', '/docs/00-variance-contract/'];
+export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/`, `/${brand.slug}/downloads/`]), '/glitchpad/guidelines/color/', '/docs/', '/docs/00-variance-contract/'];
 export const visualThemes = ['light', 'dark'];
 export const visualWidths = [360, 1280];
 export const requiredFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/shruggietech-logo-dark.svg', '/shruggietech-logo-light.svg', '/site.webmanifest', '/robots.txt', '/sitemap.xml', '/static.json', ...routeRecords.map((route) => route.social.path)];

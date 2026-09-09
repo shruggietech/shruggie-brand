@@ -1,6 +1,6 @@
 import contract from '@/generated/routes.json';
 
-export type RouteKind = 'home' | 'brand' | 'downloads' | 'guidelines' | 'guidelines-topic' | 'docs-index' | 'docs-page';
+export type RouteKind = 'home' | 'downloads' | 'guidelines' | 'guidelines-topic' | 'docs-index' | 'docs-page';
 
 export type RouteRecord = {
   key: string;

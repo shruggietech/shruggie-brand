@@ -17,6 +17,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-09, consolidated each brand portal into the approved Overview, Voice, Identity, Components, Assets, and Integration hierarchy, grouped project documentation into its approved five-section table of contents, and removed redundant brand-root pages while preserving every nested guideline, download, registry, and asset endpoint for issues #175, #179, and #180.
 - On 2026-09-09, replaced implicit homepage card navigation with explicit Guidelines and Download Kit actions, native compact mobile disclosures, stable desktop geometry, and one generated shared third-party notice for issues #173 and #174.
 - On 2026-09-08, made the six shared footer destinations an explicit ordered policy, preserving Company as same-tab while limiting safe separate-context navigation to Download the skill, Source, and License.
 - On 2026-09-08, established one bounded, clipped media viewport for guideline logo examples and asset-library previews, with measured centering and divider containment across all production brands, themes, responsive widths, and 200 percent zoom.

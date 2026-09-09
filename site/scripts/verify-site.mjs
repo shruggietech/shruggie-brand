@@ -7,6 +7,7 @@ import { inflateSync } from 'node:zlib';
 import { downloadFiles, htmlRoutes, iconFiles, iconRoutes, requiredFiles, routeRecords, tableRoutes, visualRoutes, visualThemes, visualWidths } from '../tests/site.test.mjs';
 import guidelinePortals from '../generated/guidelines.json' with { type: 'json' };
 import brands from '../generated/brands.json' with { type: 'json' };
+import documentationRecords from '../generated/documentation.json' with { type: 'json' };
 import { payloadFailures } from './payload-contract.mjs';
 import { isCanonicalRedirect, selectVerificationOrigin } from './verification-origin.mjs';
 
@@ -16,6 +17,7 @@ rmSync(visualRoot, { recursive: true, force: true });
 mkdirSync(visualRoot, { recursive: true });
 const routeByPath = new Map(routeRecords.map((route) => [route.pathname, route]));
 const portalBySlug = new Map(guidelinePortals.map((portal) => [portal.brand.slug, portal]));
+const documentationByPath = new Map(documentationRecords.map((record) => [record.navigation.path, record]));
 const types = { '.css': 'text/css', '.html': 'text/html', '.ico': 'image/x-icon', '.json': 'application/json', '.pdf': 'application/pdf', '.png': 'image/png', '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.woff2': 'font/woff2', '.zip': 'application/zip' };
 function diskPath(url) {
   const pathname = decodeURIComponent(new URL(url, 'http://local').pathname);
@@ -232,7 +234,7 @@ try {
     await targetPage.reload({ waitUntil: 'networkidle' });
   };
   const verifyStableGeometry = async () => {
-    const downloadRoutes = routeRecords.filter((route) => route.kind === 'downloads').map((route) => route.pathname);
+    const brandPortalPairs = brands.map((brand) => ({ overview: `/${brand.slug}/guidelines/`, assets: `/${brand.slug}/downloads/` }));
     for (const scale of [1, 2]) {
       const geometryContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: scale });
       const geometryPage = await geometryContext.newPage();
@@ -241,8 +243,6 @@ try {
         const gutter = await geometryPage.locator('html').evaluate((element) => getComputedStyle(element).scrollbarGutter);
         check(gutter.includes('stable'), `shared document shell lacks stable scrollbar allocation at scale ${scale}`);
         const headerReference = await box(geometryPage, '#nd-nav nav');
-        const logoReference = await box(geometryPage, '.header-logo:visible');
-        const shellReference = await box(geometryPage, '.shell');
         const controlReferences = await namedBoxes(geometryPage, '#nd-nav nav a:visible');
         const tallState = await geometryPage.evaluate(() => ({ clientHeight: document.documentElement.clientHeight, scrollHeight: document.documentElement.scrollHeight }));
         check(tallState.scrollHeight > tallState.clientHeight, `/ ${theme} scale ${scale} does not exercise the asserted tall-page scrollbar state (${JSON.stringify(tallState)})`);
@@ -252,13 +252,15 @@ try {
         for (const problem of geometryProblems(headerReference, await box(geometryPage, '#nd-nav nav'))) failures.push(`/ ${theme} scale ${scale} short-to-tall header ${problem}`);
         const shortControls = await namedBoxes(geometryPage, '#nd-nav nav a:visible');
         for (const [label, reference] of Object.entries(controlReferences)) for (const problem of geometryProblems(reference, shortControls[label])) failures.push(`/ ${theme} scale ${scale} short-to-tall ${label} control ${problem}`);
-        for (const route of downloadRoutes) {
-          await settleTheme(geometryPage, route, theme);
-          for (const problem of geometryProblems(headerReference, await box(geometryPage, '#nd-nav nav'))) failures.push(`${route} ${theme} scale ${scale} header ${problem}`);
-          for (const problem of geometryProblems(logoReference, await box(geometryPage, '.header-logo:visible'), ['left', 'right', 'width', 'center'])) failures.push(`${route} ${theme} scale ${scale} logo ${problem}`);
-          for (const problem of geometryProblems(shellReference, await box(geometryPage, '.shell'))) failures.push(`${route} ${theme} scale ${scale} content shell ${problem}`);
-          const controls = await namedBoxes(geometryPage, '#nd-nav nav a:visible');
-          for (const [label, reference] of Object.entries(controlReferences)) for (const problem of geometryProblems(reference, controls[label])) failures.push(`${route} ${theme} scale ${scale} ${label} control ${problem}`);
+        for (const routes of brandPortalPairs) {
+          await settleTheme(geometryPage, routes.overview, theme);
+          const portalShellReference = await box(geometryPage, '#nd-docs-layout');
+          const portalPageReference = await box(geometryPage, '.guideline-page');
+          const portalSidebarReference = await box(geometryPage, '#nd-sidebar');
+          await settleTheme(geometryPage, routes.assets, theme);
+          for (const problem of geometryProblems(portalShellReference, await box(geometryPage, '#nd-docs-layout'))) failures.push(`${routes.assets} ${theme} scale ${scale} portal shell ${problem}`);
+          for (const problem of geometryProblems(portalPageReference, await box(geometryPage, '.guideline-page'), ['left', 'width', 'center'])) failures.push(`${routes.assets} ${theme} scale ${scale} portal page ${problem}`);
+          for (const problem of geometryProblems(portalSidebarReference, await box(geometryPage, '#nd-sidebar'))) failures.push(`${routes.assets} ${theme} scale ${scale} portal navigation ${problem}`);
         }
         await settleTheme(geometryPage, '/docs/', theme);
         const docsShellReference = await box(geometryPage, '#nd-docs-layout');
@@ -277,7 +279,7 @@ try {
       }
       for (const viewport of [{ width: 1280, height: 900 }, { width: 360, height: 800 }, { width: 640, height: 450 }]) {
         await geometryPage.setViewportSize(viewport);
-        for (const route of ['/', ...downloadRoutes, '/docs/', '/docs/04-toolchain/']) {
+        for (const route of ['/', ...brandPortalPairs.flatMap(({ overview, assets }) => [overview, assets]), '/docs/', '/docs/04-toolchain/']) {
           await geometryPage.goto(base + route);
           const overflow = await geometryPage.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
           check(overflow <= 1, `${route} overflows horizontally by ${overflow}px at ${viewport.width}x${viewport.height} scale ${scale}`);
@@ -292,7 +294,7 @@ try {
     await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
     await page.reload({ waitUntil: 'networkidle' });
     const links = page.locator('.docs-pagination > a');
-    if (forceWrap && await links.count() > 0) await links.first().evaluate((element) => { element.style.width = '9rem'; });
+    if (forceWrap && await links.count() > 0) await links.first().locator('p').first().evaluate((element) => { element.style.width = '3rem'; element.style.whiteSpace = 'normal'; element.style.overflowWrap = 'anywhere'; });
     const samples = await links.evaluateAll((elements) => elements.map((element) => {
       const labelGroup = element.querySelector(':scope > div'); const icon = labelGroup?.querySelector('svg'); const label = labelGroup?.querySelector('p');
       if (!labelGroup || !icon || !label) return null;
@@ -448,18 +450,24 @@ try {
         check((await page.locator('body').innerText()).includes(contract.vendorBoundary), `${route} does not visibly render the ESO Weave vendor boundary`);
         check(await oneContent('meta[name="brand-vendor-boundary"]') === contract.vendorBoundary, `${route} omits the ESO Weave vendor-boundary metadata`);
         const brandEntity = contract.structuredData['@graph'].find((item) => item['@type'] === 'Brand');
-        if (contract.kind === 'brand') check(brandEntity?.disambiguatingDescription === contract.vendorBoundary && brandEntity?.usageInfo === contract.vendorBoundaryUrl, `${route} omits the ESO Weave structured vendor boundary`);
+        if (contract.kind === 'guidelines') check(brandEntity?.disambiguatingDescription === contract.vendorBoundary && brandEntity?.usageInfo === contract.vendorBoundaryUrl, `${route} omits the ESO Weave structured vendor boundary`);
       }
       if (contract.kind === 'docs-index' || contract.kind === 'docs-page') check(await page.locator('header a').filter({ hasText: /^Documentation$/ }).count() <= 1, `${route} repeats the documentation root in navigation at ${width}px`);
+      if (contract.kind === 'docs-page' && width === 1280) {
+        const record = documentationByPath.get(route);
+        check(Boolean(record), `${route} lacks generated documentation navigation metadata`);
+        if (record) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: new RegExp(`^${record.navigation.section}$`) }).count() === 1, `${route} does not keep its ${record.navigation.section} parent identifiable and expanded`);
+      }
       if (route === '/shruggietech/guidelines/') {
         check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
       }
-      if (['guidelines', 'guidelines-topic'].includes(contract.kind)) {
+      if (['guidelines', 'guidelines-topic', 'downloads'].includes(contract.kind)) {
         const portal = portalBySlug.get(contract.brandSlug);
         check(Boolean(portal), `${route} lacks a generated portal record`);
         check(await page.locator('.guideline-page').count() === 1, `${route} lacks one guideline document`);
         check(await page.locator('.guide-nav-title').count() >= 1, `${route} lacks the brand-specific guideline identity`);
         if (width === 1280) check(await page.locator('#nd-sidebar a[data-active="true"], #nd-sidebar a[aria-current="page"]').count() >= 1, `${route} lacks an active desktop guideline topic`);
+        if (width === 1280 && ['logos', 'color', 'typography'].includes(contract.guideTopic)) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: /^Identity$/ }).count() === 1, `${route} does not keep its Identity parent identifiable and expanded`);
         check(await page.locator('.guide-footer a[href="#guide-title"]').count() === 1, `${route} lacks a separate Back to top link`);
         check(await page.locator('.guide-footer .guide-host-exit[href="/"]').count() === 1, `${route} lacks a separate All brands exit`);
         check(await page.locator('.shell, .site-footer').count() === 0, `${route} leaks the marketing-site shell into the guideline portal`);
@@ -510,25 +518,9 @@ try {
       for (const violation of results.violations) failures.push(`${route} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
     }
   }
-  for (const contract of routeRecords.filter((route) => route.kind === 'brand')) {
-    for (const width of [360, 768, 1024, 1280]) {
-      await page.setViewportSize({ width, height: 900 });
-      await page.goto(base + contract.pathname);
-      const heading = page.locator('.brand-hero h1');
-      const measure = await heading.evaluate((element) => { const style = getComputedStyle(element); const box = element.getBoundingClientRect(); return { lines: Math.round(box.height / Number.parseFloat(style.lineHeight)), overflow: element.scrollWidth - element.clientWidth, wordBreak: style.wordBreak }; });
-      check(measure.overflow <= 1 && measure.wordBreak === 'normal', `${contract.pathname} hero heading breaks within words at ${width}px (${JSON.stringify(measure)})`);
-      check(measure.lines <= (width < 768 ? 3 : 2), `${contract.pathname} hero heading wraps to ${measure.lines} lines at ${width}px`);
-      if (width === 1280) {
-        await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
-        const zoomOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-        check(zoomOverflow <= 1, `${contract.pathname} hero overflows horizontally at 200 percent zoom by ${zoomOverflow}px`);
-        await page.evaluate(() => { document.documentElement.style.zoom = ''; });
-      }
-    }
-  }
   for (const portal of guidelinePortals) {
     for (const topic of ['assets', 'logos']) {
-      const route = `/${portal.brand.slug}/guidelines/${topic}/`;
+      const route = topic === 'assets' ? `/${portal.brand.slug}/downloads/` : `/${portal.brand.slug}/guidelines/${topic}/`;
       for (const width of [360, 768, 1280]) {
         for (const theme of visualThemes) {
           await page.setViewportSize({ width, height: 900 });
@@ -547,15 +539,34 @@ try {
       }
     }
   }
+  await page.setViewportSize({ width: 1280, height: 900 });
+  for (const sample of [{ route: '/glitchpad/guidelines/logos/', child: '/glitchpad/guidelines/logos/' }, { route: '/docs/06-logo-protocol/', child: '/docs/06-logo-protocol/' }]) {
+    await page.goto(base + sample.route);
+    const identity = page.locator('#nd-sidebar button').filter({ hasText: /^Identity$/ });
+    check(await identity.count() === 1, `${sample.route} lacks the keyboard-operable Identity disclosure`);
+    if (await identity.count() !== 1) continue;
+    await identity.focus();
+    await identity.press('Enter');
+    check(await identity.getAttribute('data-state') === 'closed', `${sample.route} Identity disclosure does not collapse from the keyboard`);
+    await identity.press('Enter');
+    check(await identity.getAttribute('data-state') === 'open' && await page.locator(`#nd-sidebar a[href="${sample.child}"]`).isVisible(), `${sample.route} Identity disclosure does not restore its active child from the keyboard`);
+  }
   const noScriptContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });
   const noScriptPage = await noScriptContext.newPage();
   await noScriptPage.goto(base + '/');
   check(await noScriptPage.locator('.brand-card a').count() === 12 && await noScriptPage.locator('.brand-card a').first().isVisible() && await noScriptPage.locator('.brand-accordion summary').count() === 6, 'no-script homepage does not retain visible guidelines, downloads, and disclosures');
-  await noScriptPage.goto(base + '/glitchpad/guidelines/assets/');
-  check(await noScriptPage.locator('.guide-noscript-nav a').count() === 8, 'no-script guideline fallback does not expose all topic routes');
-  check(await noScriptPage.locator('.guide-noscript-nav a[aria-current="page"]').count() === 1, 'no-script guideline fallback does not identify the current topic');
+  await noScriptPage.goto(base + '/glitchpad/downloads/');
+  check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 8, 'no-script guideline fallback does not expose the complete navigation hierarchy');
+  check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script guideline fallback does not identify the current topic');
   check(await noScriptPage.locator('.asset-tile').count() > 0 && await noScriptPage.locator('.resource-list a[data-kit-asset]').count() > 0, 'no-script asset route does not retain complete server-rendered browsing and downloads');
   check((await noScriptPage.locator('body').innerText()).includes('Search and filters require JavaScript'), 'no-script asset route does not explain its progressive enhancement boundary');
+  await noScriptPage.goto(base + '/docs/06-logo-protocol/');
+  check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 10, 'no-script documentation fallback does not expose the complete navigation hierarchy');
+  check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script documentation fallback does not identify the current page');
+  for (const brand of brands) {
+    const removedRoot = await noScriptPage.goto(`${base}/${brand.slug}/`);
+    check(removedRoot?.status() === 404, `/${brand.slug}/ remains reachable after removing brand landing pages`);
+  }
   await noScriptContext.close();
   const touchContext = await browser.newContext({ viewport: { width: 1024, height: 900 }, hasTouch: true });
   const touchPage = await touchContext.newPage();
@@ -564,6 +575,22 @@ try {
   check(await touchPage.locator('.brand-accordion-list').evaluate((element) => getComputedStyle(element).display) === 'block', 'wide touch-only viewport does not expose native disclosures');
   await touchPage.locator('.brand-accordion summary').first().tap();
   check(await touchPage.locator('.brand-accordion').first().locator('.brand-actions a').first().isVisible(), 'wide touch-only disclosure does not reveal its actions');
+  await touchPage.goto(base + '/glitchpad/guidelines/logos/');
+  const touchIdentity = touchPage.locator('#nd-sidebar button').filter({ hasText: /^Identity$/ });
+  check(await touchIdentity.count() === 1, 'touch guideline navigation lacks the Identity disclosure');
+  if (await touchIdentity.count() === 1) {
+    if (await touchIdentity.getAttribute('data-state') === 'open') await touchIdentity.tap();
+    await touchIdentity.tap();
+    check(await touchPage.locator('#nd-sidebar a[href="/glitchpad/guidelines/logos/"]').isVisible(), 'touch guideline navigation cannot reveal the active Identity child');
+  }
+  await touchPage.goto(base + '/docs/06-logo-protocol/');
+  const touchDocsIdentity = touchPage.locator('#nd-sidebar button').filter({ hasText: /^Identity$/ });
+  check(await touchDocsIdentity.count() === 1, 'touch documentation navigation lacks the Identity disclosure');
+  if (await touchDocsIdentity.count() === 1) {
+    if (await touchDocsIdentity.getAttribute('data-state') === 'open') await touchDocsIdentity.tap();
+    await touchDocsIdentity.tap();
+    check(await touchPage.locator('#nd-sidebar a[href="/docs/06-logo-protocol/"]').isVisible(), 'touch documentation navigation cannot reveal the active Identity child');
+  }
   await touchContext.close();
   const sitemapResponse = await page.request.get(base + '/sitemap.xml');
   check(sitemapResponse.ok(), 'sitemap.xml cannot be fetched');
@@ -686,7 +713,7 @@ try {
         check(await page.locator('html').evaluate((element, selectedTheme) => element.classList.contains('dark') === (selectedTheme === 'dark'), theme), `${route} did not settle in the requested ${theme} theme`);
         const surface = await page.evaluate(() => { const style = getComputedStyle(document.body); return `${style.backgroundColor}|${style.color}`; });
         themeSurfaces.set(`${route}:${width}:${theme}`, surface);
-        if (route.includes('/guidelines/')) {
+        if (['guidelines', 'guidelines-topic', 'downloads'].includes(routeByPath.get(route)?.kind)) {
           check(await page.locator('.header-logo:visible').count() === 0, `${route} leaks the host ShruggieTech lockup into the brand-owned portal`);
           check(await page.locator('.guide-nav-title').count() >= 1, `${route} lacks its brand-owned portal identity at ${width}px`);
         } else {
@@ -738,9 +765,6 @@ try {
   const reducedStyle = await textLink.evaluate((element) => ({ duration: getComputedStyle(element).transitionDuration, decoration: getComputedStyle(element).textDecorationLine, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }));
   check(reducedStyle.reduced && Number.parseFloat(reducedStyle.duration) <= 0.001 && reducedStyle.decoration === 'none', `reduced-motion text action contract failed (${JSON.stringify(reducedStyle)})`);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.goto(base + '/glitchpad/');
-  const glitchpadHeroStyle = await page.locator('.brand-logo').evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
-  check(glitchpadHeroStyle.surface === 'governed' && glitchpadHeroStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadHeroStyle.backgroundImage === 'none', `Glitchpad hero does not use its governed charcoal surface (${JSON.stringify(glitchpadHeroStyle)})`);
   await page.goto(base + '/');
   for (const action of await page.locator('.brand-card a').all()) { const box = await action.boundingBox(); check(Boolean(box && box.width >= 44 && box.height >= 44), 'portfolio action target is smaller than 44 by 44 CSS pixels'); }
   for (const file of [...requiredFiles, ...downloadFiles]) {
