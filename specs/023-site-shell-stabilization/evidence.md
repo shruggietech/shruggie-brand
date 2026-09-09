@@ -8,7 +8,7 @@ S023 implements GitHub issues #170, #171, #172, #176, #177, and #178. It changes
 
 After adding the S023 source contract but before production changes, `node --test site/tests/site.test.mjs` failed because the footer still contained Brands and the old `Download the skill` label. The contract also covered the pending homepage, shared-navigation, removed-content, and scrollbar requirements. After implementation, the same source test passed.
 
-During rendered-test development, the first geometry run identified that the site intentionally passes `id="content"` to Fumadocs' page container for skip-link behavior. The measurement selector was corrected from the library default `#nd-page` to the actual `.docs-page` class. No production offset or selector workaround was introduced.
+During rendered-test development, the first geometry run identified that the site intentionally passes `id="content"` to Fumadocs' page container for skip-link behavior. The measurement selector was corrected from the library default `#nd-page` to the actual `.docs-page` class. No production offset or selector workaround was introduced. The final review also required a proven short-to-tall transition, so the browser contract now asserts an overflowing natural homepage and a controlled non-overflowing header-only state before comparing the same header and controls.
 
 ## Implementation evidence
 
@@ -42,4 +42,9 @@ During rendered-test development, the first geometry run identified that the sit
 
 ## Review ledger
 
-Pending pull request publication, CI, initial third-party Codex review, and the single authorized second review round.
+- **Pull request**: #181, `feat(S023): stabilize site shell and homepage`
+- **Initial Codex review**: Completed on commit `92a424e` with no findings and a thumbs-up reaction.
+- **Second and final Codex review**: Requested once with `@Codex review`. One P2 finding required an asserted short-to-tall scrollbar transition.
+- **Response**: Added explicit overflowing and non-overflowing states plus header/control comparisons, reran all 71 rendered routes with zero WCAG or geometry failures, replied with evidence, and resolved the thread.
+- **Review limit**: No third review was requested.
+- **Final remote gate**: The review-fix commit is the final branch revision. GitHub CI, zero unresolved threads, mergeability, and synchronization with `origin/main` are verified before owner handoff.

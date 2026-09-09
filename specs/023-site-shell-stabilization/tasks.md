@@ -101,10 +101,10 @@
 - [x] T027 Run `git diff --check`, UTF-8/BOM/LF, mojibake, prohibited-artifact, and machine-local-state checks
 - [x] T028 Update `specs/023-site-shell-stabilization/evidence.md` with commands, results, accessibility impact, identity impact, documentation impact, and changelog decision
 - [x] T029 Mark implemented work complete in `specs/023-site-shell-stabilization/tasks.md` without modifying reviewer-owned checklist markers
-- [ ] T030 Commit S023 with a Conventional Commit subject, push the branch, and open an official PR that closes #170, #171, #172, #176, #177, and #178
-- [ ] T031 Wait for initial CI and third-party Codex review, address every comment, reply with evidence, and resolve every completed thread
-- [ ] T032 Request exactly one second review with `@Codex review`, then address and resolve every resulting comment without requesting a third round
-- [ ] T033 Confirm final required CI is green, unresolved review thread count is zero, the PR is mergeable, and the branch is synchronized with `origin/main`
+- [x] T030 Commit S023 with a Conventional Commit subject, push the branch, and open an official PR that closes #170, #171, #172, #176, #177, and #178
+- [x] T031 Wait for initial CI and third-party Codex review, address every comment, reply with evidence, and resolve every completed thread
+- [x] T032 Request exactly one second review with `@Codex review`, then address and resolve every resulting comment without requesting a third round
+- [x] T033 Confirm final required CI is green, unresolved review thread count is zero, the PR is mergeable, and the branch is synchronized with `origin/main`
 
 ## Dependencies & Execution Order
 

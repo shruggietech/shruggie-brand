@@ -243,6 +243,14 @@ try {
         const logoReference = await box(geometryPage, '.header-logo:visible');
         const shellReference = await box(geometryPage, '.shell');
         const controlReferences = await namedBoxes(geometryPage, '#nd-nav nav a:visible');
+        const tallState = await geometryPage.evaluate(() => ({ clientHeight: document.documentElement.clientHeight, scrollHeight: document.documentElement.scrollHeight }));
+        check(tallState.scrollHeight > tallState.clientHeight, `/ ${theme} scale ${scale} does not exercise the asserted tall-page scrollbar state (${JSON.stringify(tallState)})`);
+        await geometryPage.evaluate(() => { document.querySelector('#content')?.setAttribute('hidden', ''); document.querySelector('.site-footer')?.setAttribute('hidden', ''); });
+        const shortState = await geometryPage.evaluate(() => ({ clientHeight: document.documentElement.clientHeight, scrollHeight: document.documentElement.scrollHeight }));
+        check(shortState.scrollHeight <= shortState.clientHeight, `/ ${theme} scale ${scale} does not exercise the asserted short-page scrollbar state (${JSON.stringify(shortState)})`);
+        for (const problem of geometryProblems(headerReference, await box(geometryPage, '#nd-nav nav'))) failures.push(`/ ${theme} scale ${scale} short-to-tall header ${problem}`);
+        const shortControls = await namedBoxes(geometryPage, '#nd-nav nav a:visible');
+        for (const [label, reference] of Object.entries(controlReferences)) for (const problem of geometryProblems(reference, shortControls[label])) failures.push(`/ ${theme} scale ${scale} short-to-tall ${label} control ${problem}`);
         for (const route of downloadRoutes) {
           await settleTheme(geometryPage, route, theme);
           for (const problem of geometryProblems(headerReference, await box(geometryPage, '#nd-nav nav'))) failures.push(`${route} ${theme} scale ${scale} header ${problem}`);

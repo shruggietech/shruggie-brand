@@ -20,6 +20,8 @@ At identical desktop conditions, compare the shared navigation header, visible l
 
 Exercise light and dark themes, 1280px and narrow 360px widths, short and tall content, and browser contexts with device scale factors 1 and 2. Assert `scrollWidth <= clientWidth + 1` for every measured route. Desktop TOC pages retain a visible sticky `#nd-toc`; pages without items retain equivalent right-track allocation. Narrow routes expose no desktop rail and no hidden or clipped article content.
 
+The short-to-tall case must assert that the natural homepage exceeds the viewport, create a controlled header-only state that does not exceed the viewport, and compare the same header and visible navigation-control boxes across those two proven scrollbar states.
+
 ## Isolation contract
 
 Neutral `/<brand-slug>/guidelines/` routes must not render `.site-footer`, `.header-logo`, or the shared ShruggieTech promotional Company and Download Skill navigation.
