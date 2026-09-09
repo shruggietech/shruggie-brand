@@ -156,10 +156,10 @@ description: "Task list for the S026 Cueson brand kit"
 - [X] T047 Complete task states and final local evidence in `specs/026-cueson-brand-kit/tasks.md` and `specs/026-cueson-brand-kit/evidence.md`
 - [X] T048 Commit S026 with a Conventional Commit subject that references S026 and verify the committed branch head
 - [X] T049 Push `codex/026-cueson-brand-kit` and open the official pull request closing #184 under the explicit kickoff authorization
-- [ ] T050 Record the pull request, branch head, automatic review signals, security feedback, and required check runs in `specs/026-cueson-brand-kit/evidence.md`
-- [ ] T051 Process every actionable and non-actionable round-1 Codex, security-bot, CI, and human review item with evidence-backed replies, necessary changes, verification, pushes, and thread resolution
-- [ ] T052 Post at most one `@Codex review` comment for round 2 after round-1 findings are resolved, then process every resulting item with the same evidence and never request a third round
-- [ ] T053 Verify all required checks are green, all received reviews are satisfied, the exact branch head is recorded, and the pull request remains unmerged in `specs/026-cueson-brand-kit/evidence.md`
+- [X] T050 Record the pull request, branch head, automatic review signals, security feedback, and required check runs in `specs/026-cueson-brand-kit/evidence.md`
+- [X] T051 Process every actionable and non-actionable round-1 Codex, security-bot, CI, and human review item with evidence-backed replies, necessary changes, verification, pushes, and thread resolution
+- [X] T052 Post at most one `@Codex review` comment for round 2 after round-1 findings are resolved, then process every resulting item with the same evidence and never request a third round
+- [X] T053 Verify all required checks are green, all received reviews are satisfied, the exact branch head is recorded, and the pull request remains unmerged in `specs/026-cueson-brand-kit/evidence.md`
 - [ ] T054 HALT and ask the owner to perform the final review and merge ritual for the verified official pull request
 
 ---
