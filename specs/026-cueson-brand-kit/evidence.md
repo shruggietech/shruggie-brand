@@ -91,7 +91,9 @@ Repository hygiene passed `git diff --check`; no file under `dist/`, `site/out/`
 
 ## Pull request and review ledger
 
-**Status**: Awaiting official pull request publication
+**Status**: Official pull request published; hosted checks and reviews in progress
 
 - Implementation commit: `7563ab60d08d05cbb2b63e5459c6f5cc61a472bf`, subject `feat(S026): add Cueson brand kit`
 - Commit verification: branch `codex/026-cueson-brand-kit` points at the implementation commit and the working tree contains only this post-commit evidence update.
+- Official pull request: [#186](https://github.com/shruggietech/shruggie-brand/pull/186), head branch `codex/026-cueson-brand-kit`, base `main`, closes #184.
+- Publication authorization: the operator's kickoff explicitly authorized automatic push and official pull-request creation after both halt gates; both gates were approved before publication.
