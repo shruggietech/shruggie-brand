@@ -166,6 +166,7 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .hierarchy-noscript-nav li { min-width: 0; }
 .hierarchy-noscript-nav span { font-weight: 700; }
 .hierarchy-noscript-nav a { display: inline-flex; min-height: 44px; align-items: center; color: var(--primary); overflow-wrap: anywhere; }
+.hierarchy-noscript-nav a[aria-current='page'] { padding-inline: .75rem; background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--foreground); font-weight: 700; box-shadow: inset 3px 0 var(--primary); }
 .guideline-page h1 { max-width: 24ch; scroll-margin-top: 6rem; font-size: clamp(2.25rem, 5vw, 3.75rem); line-height: 1; }
 .guideline-page h2, .guideline-page h3, .guideline-page h4 { scroll-margin-top: 6rem; }
 .guideline-page h2 { font-size: clamp(1.45rem, 3vw, 2rem); }

@@ -25,6 +25,7 @@
 - `pnpm --dir site build`: Next.js production export compiled successfully and emitted 64 static pages. The route list contains Guidelines, Assets, Documentation, and machine endpoints without public brand-root pages or `/guidelines/assets/` duplicates.
 - `pnpm --dir site test`: verified 59 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations. The suite also passed canonical metadata, structured data, sitemap, resource, payload, active-parent, keyboard, touch, no-script, narrow-width, 200 percent zoom, theme, geometry, and intentional brand-root 404 checks.
 - First-round Codex review identified that the grouped sidebar had also reordered Documentation pagination. The fix now emits a separate established pagination ordinal, passes explicit prior-neighbor assertions for Overview, Kit Anatomy, Toolchain, and Portability, and leaves the grouped sidebar hierarchy unchanged.
+- Second-round Codex review identified that the no-script hierarchy exposed its current page only semantically. The final follow-up restores a visible current-page treatment and verifies its computed styling for brand and documentation routes.
 - All 24 required production QC sheets were opened and inspected across the six brands. No identity, logo, guideline, PDF, or representative product-surface regression was found.
 - Representative exported Overview, Identity child, Assets, and Documentation pages were inspected in light and dark themes at desktop and mobile widths. The approved hierarchies, active states, content consolidation, and layout remained clear.
 

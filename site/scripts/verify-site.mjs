@@ -558,11 +558,13 @@ try {
   await noScriptPage.goto(base + '/glitchpad/downloads/');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 8, 'no-script guideline fallback does not expose the complete navigation hierarchy');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script guideline fallback does not identify the current topic');
+  check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').evaluate((element) => { const style = getComputedStyle(element); return Number.parseInt(style.fontWeight, 10) >= 700 && style.boxShadow !== 'none'; }), 'no-script guideline fallback does not visibly distinguish the current topic');
   check(await noScriptPage.locator('.asset-tile').count() > 0 && await noScriptPage.locator('.resource-list a[data-kit-asset]').count() > 0, 'no-script asset route does not retain complete server-rendered browsing and downloads');
   check((await noScriptPage.locator('body').innerText()).includes('Search and filters require JavaScript'), 'no-script asset route does not explain its progressive enhancement boundary');
   await noScriptPage.goto(base + '/docs/06-logo-protocol/');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 10, 'no-script documentation fallback does not expose the complete navigation hierarchy');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script documentation fallback does not identify the current page');
+  check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').evaluate((element) => { const style = getComputedStyle(element); return Number.parseInt(style.fontWeight, 10) >= 700 && style.boxShadow !== 'none'; }), 'no-script documentation fallback does not visibly distinguish the current page');
   for (const brand of brands) {
     const removedRoot = await noScriptPage.goto(`${base}/${brand.slug}/`);
     check(removedRoot?.status() === 404, `/${brand.slug}/ remains reachable after removing brand landing pages`);
