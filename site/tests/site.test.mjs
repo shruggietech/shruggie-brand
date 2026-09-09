@@ -5,15 +5,16 @@ import { readFileSync } from 'node:fs';
 const assetLibrarySource = readFileSync(new URL('../components/guidelines/asset-library-client.tsx', import.meta.url), 'utf8');
 const topicContentSource = readFileSync(new URL('../components/guidelines/topic-content.tsx', import.meta.url), 'utf8');
 const footerSource = readFileSync(new URL('../components/footer.tsx', import.meta.url), 'utf8');
+const homepageSource = readFileSync(new URL('../app/(site)/page.tsx', import.meta.url), 'utf8');
+const layoutSource = readFileSync(new URL('../lib/layout.shared.tsx', import.meta.url), 'utf8');
 const globalStyles = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
 if (!assetLibrarySource.includes('className="asset-preview-media"') || !topicContentSource.includes('className="asset-preview-media"')) throw new Error('both guideline preview surfaces must use the shared media wrapper');
 if (!/\.asset-preview-media img \{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: contain;[^}]*\}/s.test(globalStyles)) throw new Error('shared preview containment styles must bind full media sizing to contain fitting');
 
 const footerRecords = [...footerSource.matchAll(/\{ label: '([^']+)', href: '([^']+)', kind: '([^']+)' \}/g)].map((match) => ({ label: match[1], href: match[2], kind: match[3] }));
 const expectedFooterRecords = [
-  { label: 'Brands', href: '/', kind: 'internal' },
   { label: 'Documentation', href: '/docs', kind: 'internal' },
-  { label: 'Download the skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', kind: 'new-tab' },
+  { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', kind: 'new-tab' },
   { label: 'Company', href: 'https://shruggie.tech/', kind: 'same-tab' },
   { label: 'Source', href: 'https://github.com/ShruggieTech/shruggie-brand', kind: 'new-tab' },
   { label: 'License', href: 'https://github.com/ShruggieTech/shruggie-brand/blob/main/LICENSE', kind: 'new-tab' },
@@ -29,6 +30,23 @@ if (footerPolicyProblems(footerRecords).length > 0) throw new Error(`footer dest
 if (!footerSource.includes("target={link.kind === 'new-tab' ? '_blank' : undefined}") || !footerSource.includes("rel={link.kind === 'new-tab' ? 'noopener noreferrer' : undefined}")) throw new Error('footer separate-context records lack conditional target and relationship attributes');
 if (footerPolicyProblems(expectedFooterRecords.map((record) => record.label === 'Source' ? { ...record, kind: 'same-tab' } : record)).length === 0) throw new Error('footer policy helper accepts missing separate-context safety metadata');
 if (footerPolicyProblems(expectedFooterRecords.map((record) => record.label === 'Company' ? { ...record, kind: 'new-tab' } : record)).length === 0) throw new Error('footer policy helper accepts accidental new-tab behavior on Company');
+
+const navigationRecords = [...layoutSource.matchAll(/\{ text: '([^']+)', url: '([^']+)'(?:, external: (true))?(?:, on: 'menu')? \}/g)].map((match) => ({ label: match[1], href: match[2], external: match[3] === 'true' }));
+const expectedNavigationRecords = [
+  { label: 'Documentation', href: '/docs', external: false },
+  { label: 'Company', href: 'https://shruggie.tech/', external: true },
+  { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', external: true },
+  { label: 'View on GitHub', href: 'https://github.com/ShruggieTech/shruggie-brand', external: true },
+];
+if (JSON.stringify(navigationRecords) !== JSON.stringify(expectedNavigationRecords)) throw new Error(`shared navigation records differ from the approved ordered policy: ${JSON.stringify(navigationRecords)}`);
+if (!homepageSource.includes('<Link className="button primary" href="/docs">Documentation</Link>')) throw new Error('homepage lacks the approved Documentation primary action');
+if (!homepageSource.includes('className="button" href="https://github.com/ShruggieTech/shruggie-brand/releases/latest" target="_blank" rel="noopener noreferrer">Download Skill</a>')) throw new Error('homepage lacks the safely isolated Download Skill secondary action');
+if (!homepageSource.includes('<a className="text-action hero-portfolio-link" href="#portfolio">Explore Our Portfolio<span aria-hidden="true">↓</span></a>')) throw new Error('homepage lacks the approved portfolio supporting action and decorative cue');
+if (!homepageSource.includes('<h2 id="portfolio-heading">Our Portfolio</h2>') || !homepageSource.includes('Explore our identity spectrum: a portfolio of distinct brands, each built with its own system, voice, and purpose.')) throw new Error('homepage portfolio wording differs from the approved contract');
+for (const retired of ['The system underneath', 'Strategy, standards, assets, and implementation.', 'system-callout']) if (homepageSource.includes(retired)) throw new Error(`homepage retains removed callout source: ${retired}`);
+if (/\.system-callout\b/.test(globalStyles)) throw new Error('global styles retain obsolete system callout selectors');
+if (!/html \{[^}]*scrollbar-gutter: stable;/s.test(globalStyles)) throw new Error('shared document root does not reserve a stable scrollbar gutter');
+if (!/\.hero-portfolio-link \{[^}]*margin-top:/s.test(globalStyles)) throw new Error('portfolio supporting action lacks deliberate shared hero spacing');
 
 export function interactionStyleProblems(styles) {
   const problems = [];
