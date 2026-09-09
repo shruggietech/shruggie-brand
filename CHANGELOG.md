@@ -16,6 +16,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-08, made the six shared footer destinations an explicit ordered policy, preserving Company as same-tab while limiting safe separate-context navigation to Download the skill, Source, and License.
 - On 2026-09-08, established one bounded, clipped media viewport for guideline logo examples and asset-library previews, with measured centering and divider containment across all production brands, themes, responsive widths, and 200 percent zoom.
 - On 2026-09-07, bound Gate 1 approval to a canonical digest of every derivative-producing brand setting and required its scope to cover all five derivative families.
 - On 2026-09-07, introduced hash-bound two-gate approval for third-party source identities and public surfaces, with fail-closed source-inventory, derivative-provenance, vendor-boundary, and site-publication enforcement.
@@ -29,6 +30,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Centered documentation pagination chevrons with wrapped and unwrapped labels, preserved right-to-left rotation through independent optical translation, and restored pointer plus disabled cursor treatment and minimum targets for shared theme controls.
 - Restored complete Glitchpad black and white horizontal and stacked lockups by giving the shared square-knockout mask an explicit local coordinate extent, then added structural, rendered-height, and SVG-to-PNG verification for the failure.
 - Made Gate 2 approval portable across rendering environments by binding raster derivatives to their verified SVG masters, and added pre-emission and final-verifier checks for constructed single-ink geometry.
 - Bound Gate 2 approval to every derivative file hash and projected the required ESO Weave vendor and trademark boundary across visible pages, metadata, structured data, registry records, and social previews.
