@@ -135,4 +135,10 @@ Task: Add mobile disclosure source assertions in site/tests/site.test.mjs
 
 ## Format Validation
 
-All 28 tasks use the required checkbox, sequential task ID, optional parallel marker, required user-story label in story phases, and explicit file paths.
+All 28 initial tasks and 3 convergence tasks use the required checkbox, sequential task ID, optional parallel marker, required user-story label in story phases, and explicit file paths.
+
+## Phase 8: Convergence
+
+- [x] T029 Add Escape dismissal and a visible no-script fallback for desktop action overlays per FR-010 and WCAG 2.1 SC 1.4.13 (partial)
+- [x] T030 Route wide touch-only input to native disclosures and verify action activation in site/app/globals.css and site/scripts/verify-site.mjs per FR-018 (partial)
+- [x] T031 Validate site archives against the authoritative canon in scripts/prepare_site.py and scripts/test_prepare_site.py per FR-007 (contradicts)

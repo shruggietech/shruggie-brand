@@ -34,6 +34,7 @@ These fields are derived from the same slug and version that were verified insid
 - The actions target the generated guidelines and archive paths. Download Kit declares the generated filename through the anchor download attribute.
 - Unused space, mark, name, and descriptor do not navigate.
 - Revealing actions does not change the outer card bounds or grid position.
+- Escape dismisses revealed actions without requiring pointer or focus movement; without scripting, actions remain visibly available instead of using a hover-triggered overlay.
 - Reduced motion removes animated displacement.
 
 ## Mobile interaction contract
@@ -44,6 +45,7 @@ These fields are derived from the same slug and version that were verified insid
 - The summary has a visible focus indicator and at least a 44 by 44 CSS-pixel target.
 - Closed panel anchors are not visible, clickable, or sequentially focusable.
 - The mobile and desktop variants use the same generated record and exact destinations.
+- Touch-only input receives the native disclosure presentation even when viewport width exceeds the narrow-screen breakpoint.
 
 ## Vendor-boundary contract
 

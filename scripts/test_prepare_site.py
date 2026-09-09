@@ -60,6 +60,7 @@ class PrepareSiteTests(unittest.TestCase):
                 self.assertEqual("/alpha/guidelines/", record["guidelinesPath"])
                 self.assertEqual("/alpha/downloads/alpha-brand-1.0.0.zip", record["kitArchive"])
                 self.assertEqual("alpha-brand-1.0.0.zip", record["kitArchiveFilename"])
+                self.assertEqual("1.2.1", archive_writer.call_args.kwargs["expected_canon"])
                 brand["showcase_surface"] = "card"
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual("#121416", record["showcaseSurface"])
@@ -75,6 +76,14 @@ class PrepareSiteTests(unittest.TestCase):
             finally:
                 mock.patch.stopall()
                 prepare_site.PUBLIC = original_public
+
+    def test_authoritative_canon_is_not_derived_from_brand_metadata(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            reference = root / "skill" / "references"
+            reference.mkdir(parents=True)
+            (reference / "01-canon.json").write_text('{"version":"9.4.0"}\n', encoding="utf-8")
+            self.assertEqual("9.4.0", prepare_site.authoritative_canon(root))
 
     def test_showcase_permission_is_independent_and_fail_closed(self):
         brand = {"kind": "sub-brand", "affiliation": {"ownership": "third-party", "showcase": "private", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}

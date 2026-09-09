@@ -8,7 +8,7 @@
 
 - `python scripts/test_package_release.py`: 4 tests passed, including byte-identical deterministic output and preservation of the prior destination after staged verification failure.
 - `python scripts/test_release_contract.py`: 14 tests passed, including the six-brand production inventory, manifest coverage, empty-delivery rejection, checksum drift, canon drift, path safety, and release-directory exactness.
-- `python scripts/test_prepare_site.py`: 26 tests passed, including generated archive destinations and removal of repeated vendor-summary data.
+- `python scripts/test_prepare_site.py`: 27 tests passed, including authoritative-canon selection, generated archive destinations, and removal of repeated vendor-summary data.
 - `node site/tests/site.test.mjs`: passed source contracts for six archive records, exact action labels and targets, native disclosure markup, non-interactive card containers, and one shared vendor notice.
 - `node --test site/tests/production-origin.test.mjs site/tests/payload-contract.test.mjs`: 11 tests passed, including ZIP media type and structural signature validation.
 
@@ -27,6 +27,10 @@
 - `pnpm --dir site exec next build --webpack`: produced 76 static pages. The documented webpack path was used after the environment denied a Turbopack child process.
 - `pnpm --dir site test`: verified 71 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations.
 - Rendered checks covered pointer and keyboard action reveal, exact download attributes, card geometry, mobile disclosure state and targets, hidden closed-panel actions, 200 percent zoom, reduced motion, themes, no-script destinations, archive content type, and ZIP payload structure.
+
+## Review remediation
+
+- Initial Codex review findings were addressed with Escape dismissal for hover/focus action panels, an always-visible no-script desktop fallback, capability-based native disclosures for wide touch-only devices, and site archive validation against `skill/references/01-canon.json` rather than the kit's own metadata.
 
 ## Hygiene
 

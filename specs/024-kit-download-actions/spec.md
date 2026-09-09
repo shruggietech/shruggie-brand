@@ -101,7 +101,7 @@ A visitor sees concise markers on applicable brands and one legally meaningful s
 - **FR-007**: The site's published archive MUST correspond to the same verified brand-kit revision used for the rest of that brand's published content.
 - **FR-008**: Desktop brand cards MUST preserve their current outer height and grid alignment while replacing the description with exactly two explicit actions, `Guidelines` followed by `Download Kit`, on hover or focus within.
 - **FR-009**: Only the two explicit actions inside a desktop card MUST be interactive; the card container, mark, name, and unused space MUST NOT form an implicit navigation target.
-- **FR-010**: Desktop action transitions MUST keep actions available while the pointer moves onto them, MUST NOT mirror readable content or expose an excessive blank interval, and MUST become non-rotational under reduced-motion preferences.
+- **FR-010**: Desktop action transitions MUST keep actions available while the pointer moves onto them, MUST be dismissible without moving pointer or focus, MUST NOT mirror readable content or expose an excessive blank interval, and MUST become non-rotational under reduced-motion preferences.
 - **FR-011**: Mobile brand cards MUST render as a vertical accordion whose collapsed rows show only the brand mark and brand name.
 - **FR-012**: Every mobile accordion header MUST be a semantic control with accurate expanded and controlled-region relationships, visible focus, an adequate touch target, and predictable reading order.
 - **FR-013**: An expanded mobile row MUST reveal the brand description followed by `Guidelines` and `Download Kit`; a collapsed panel MUST not expose invisible interactive controls.
@@ -109,7 +109,7 @@ A visitor sees concise markers on applicable brands and one legally meaningful s
 - **FR-015**: Each `Guidelines` action MUST open the correct brand guidelines destination, and each `Download Kit` action MUST download that brand's complete archive.
 - **FR-016**: The repeated third-party disclaimer copy MUST be replaced with exactly one section-level disclaimer after the portfolio list while preserving its legally meaningful wording.
 - **FR-017**: Applicable brand names MUST carry an accessible marker associated with the shared disclaimer; non-applicable brands MUST not carry a marker.
-- **FR-018**: The portfolio MUST remain fully usable with keyboard, pointer, and touch-equivalent input at supported desktop and mobile widths, 200% zoom, light and dark themes, and reduced-motion settings.
+- **FR-018**: The portfolio MUST remain fully usable with keyboard, pointer, and touch-equivalent input at supported desktop and mobile widths, including wide touch-only viewports, 200% zoom, light and dark themes, and reduced-motion settings.
 - **FR-019**: Core guidelines and download destinations MUST remain available without JavaScript; enhancement state MUST not make a destination unreachable when scripting is unavailable.
 - **FR-020**: Automated coverage MUST verify archive completeness and integrity, correct brand-to-archive mapping, desktop and mobile interaction behavior, focus and disclosure state, breakpoint transitions, browser history stability, disclaimer placement, static export, accessibility, and repository hygiene.
 

@@ -360,6 +360,9 @@ try {
     await card.locator('.brand-actions a').first().focus();
     const focused = await card.boundingBox();
     check(Boolean(before && hovered && focused && Math.abs(before.width - hovered.width) <= .5 && Math.abs(before.height - hovered.height) <= .5 && Math.abs(before.width - focused.width) <= .5 && Math.abs(before.height - focused.height) <= .5), `${brands[index].slug} card geometry changes across interaction states`);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity) === '0' && await card.locator('.brand-card-description').evaluate((element) => getComputedStyle(element).opacity) === '1', `${brands[index].slug} action panel is not dismissible with Escape`);
   }
   const glitchpadCard = page.locator('.brand-card', { hasText: 'Glitchpad' });
   const glitchpadCardStyle = await glitchpadCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-showcase-surface'), shadow: getComputedStyle(element.querySelector('.brand-icon')).boxShadow }));
@@ -544,16 +547,24 @@ try {
       }
     }
   }
-  const noScriptContext = await browser.newContext({ viewport: { width: 360, height: 900 }, javaScriptEnabled: false });
+  const noScriptContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });
   const noScriptPage = await noScriptContext.newPage();
   await noScriptPage.goto(base + '/');
-  check(await noScriptPage.locator('.brand-card a').count() === 12 && await noScriptPage.locator('.brand-accordion summary').count() === 6, 'no-script homepage does not retain complete guidelines, downloads, and disclosures');
+  check(await noScriptPage.locator('.brand-card a').count() === 12 && await noScriptPage.locator('.brand-card a').first().isVisible() && await noScriptPage.locator('.brand-accordion summary').count() === 6, 'no-script homepage does not retain visible guidelines, downloads, and disclosures');
   await noScriptPage.goto(base + '/glitchpad/guidelines/assets/');
   check(await noScriptPage.locator('.guide-noscript-nav a').count() === 8, 'no-script guideline fallback does not expose all topic routes');
   check(await noScriptPage.locator('.guide-noscript-nav a[aria-current="page"]').count() === 1, 'no-script guideline fallback does not identify the current topic');
   check(await noScriptPage.locator('.asset-tile').count() > 0 && await noScriptPage.locator('.resource-list a[data-kit-asset]').count() > 0, 'no-script asset route does not retain complete server-rendered browsing and downloads');
   check((await noScriptPage.locator('body').innerText()).includes('Search and filters require JavaScript'), 'no-script asset route does not explain its progressive enhancement boundary');
   await noScriptContext.close();
+  const touchContext = await browser.newContext({ viewport: { width: 1024, height: 900 }, hasTouch: true });
+  const touchPage = await touchContext.newPage();
+  await touchPage.goto(base + '/');
+  check(await touchPage.locator('.brand-grid-desktop').evaluate((element) => getComputedStyle(element).display) === 'none', 'wide touch-only viewport exposes hover-dependent desktop cards');
+  check(await touchPage.locator('.brand-accordion-list').evaluate((element) => getComputedStyle(element).display) === 'block', 'wide touch-only viewport does not expose native disclosures');
+  await touchPage.locator('.brand-accordion summary').first().tap();
+  check(await touchPage.locator('.brand-accordion').first().locator('.brand-actions a').first().isVisible(), 'wide touch-only disclosure does not reveal its actions');
+  await touchContext.close();
   const sitemapResponse = await page.request.get(base + '/sitemap.xml');
   check(sitemapResponse.ok(), 'sitemap.xml cannot be fetched');
   if (sitemapResponse.ok()) {

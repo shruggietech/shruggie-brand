@@ -490,6 +490,14 @@ def contrast_foreground(color: str) -> str:
     return "#FFFFFF" if white_contrast >= black_contrast else "#000000"
 
 
+def authoritative_canon(root: Path = ROOT) -> str:
+    canon = json.loads((root / "skill" / "references" / "01-canon.json").read_text(encoding="utf-8"))
+    version = canon.get("version")
+    if not isinstance(version, str) or not version:
+        raise ValueError("authoritative canon lacks a version")
+    return version
+
+
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
     guide = source / "brand-guide.pdf"
@@ -516,7 +524,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
         source,
         archive_path,
         root=ROOT,
-        expected_canon=brand.get("canon"),
+        expected_canon=authoritative_canon(),
     )
     specimen_name = next((source / "specimens").glob("*.svg")).name
     logo_root = f"/{slug}/downloads/files/logos/svg"
