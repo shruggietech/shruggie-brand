@@ -43,6 +43,27 @@ DOC_DESCRIPTIONS = {
     "08-glyph-construction": "Geometry and validation rules for constructing brand marks.",
     "09-portability": "Requirements that keep brand assets useful across platforms and teams.",
 }
+DOC_NAVIGATION = {
+    "00-variance-contract": ("Foundation", 1, "Contract", 0),
+    "02-kit-anatomy": ("Foundation", 1, "Kit", 1),
+    "03-interview": ("Discovery", 2, "Interview", 0),
+    "06-logo-protocol": ("Identity", 3, "Logo", 0),
+    "08-glyph-construction": ("Identity", 3, "Glyphs", 1),
+    "07-voice": ("Identity", 3, "Voice", 2),
+    "04-toolchain": ("Implementation", 4, "Toolchain", 0),
+    "05-shadcn-binding": ("Implementation", 4, "shadcn", 1),
+    "09-portability": ("Implementation", 4, "Portability", 2),
+}
+BRAND_TOPIC_CONTRACT = [
+    ("overview", "Overview", "Overview", 0),
+    ("voice", "Voice", "Voice", 0),
+    ("logos", "Logo", "Identity", 0),
+    ("color", "Color", "Identity", 1),
+    ("typography", "Typography", "Identity", 2),
+    ("components", "Components", "Components", 0),
+    ("assets", "Assets", "Assets", 0),
+    ("integration", "Integration", "Integration", 0),
+]
 
 
 def write_utf8(path: Path, content: str) -> None:
@@ -89,14 +110,46 @@ def validate_registry(source: Path, brand: dict) -> None:
     catalog = json.loads((registry_dir / "registry.json").read_text(encoding="utf-8"))
     if catalog.get("$schema") != "https://ui.shadcn.com/schema/registry.json":
         raise ValueError(f"{brand['slug']}: registry schema is missing")
-    names = {item["name"] for item in catalog.get("items", [])}
-    if not {"theme", "fonts"}.issubset(names) or not (registry_dir / "theme.json").is_file() or not (registry_dir / "fonts.json").is_file():
+    items = catalog.get("items", [])
+    if not isinstance(items, list) or not items:
+        raise ValueError(f"{brand['slug']}: registry catalog is empty")
+    names = [item.get("name") for item in items if isinstance(item, dict)]
+    if len(names) != len(items) or any(not isinstance(name, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name) for name in names):
+        raise ValueError(f"{brand['slug']}: registry catalog contains an unsafe item")
+    if len(set(names)) != len(names):
+        raise ValueError(f"{brand['slug']}: registry catalog contains a duplicate item")
+    if not {"theme", "fonts"}.issubset(set(names)):
         raise ValueError(f"{brand['slug']}: registry theme or fonts item is missing")
     expected = f"https://brand.shruggie.tech/{brand['slug']}/brand"
     if brand.get("registry_base") != expected:
         raise ValueError(f"{brand['slug']}: registry_base must be {expected}")
-    for path in registry_dir.glob("*.json"):
-        json.loads(path.read_text(encoding="utf-8"))
+    for item in items:
+        path = registry_dir / f"{item['name']}.json"
+        if not path.is_file():
+            raise ValueError(f"{brand['slug']}: advertised registry item is missing: {item['name']}")
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if payload.get("$schema") != "https://ui.shadcn.com/schema/registry-item.json":
+            raise ValueError(f"{brand['slug']}: registry item schema is invalid: {item['name']}")
+        if payload.get("name") != item["name"]:
+            raise ValueError(f"{brand['slug']}: registry item name mismatch: {item['name']}")
+        if payload.get("type") != item.get("type"):
+            raise ValueError(f"{brand['slug']}: registry item type mismatch: {item['name']}")
+
+
+def validate_portal_navigation(portal: dict[str, Any], slug: str) -> None:
+    topics = portal.get("topics")
+    if not isinstance(topics, list):
+        raise ValueError(f"{slug}: guideline topics are missing")
+    actual = [(topic.get("key"), topic.get("label"), topic.get("section"), topic.get("order")) for topic in topics]
+    if actual != BRAND_TOPIC_CONTRACT:
+        raise ValueError(f"{slug}: guideline navigation differs from the authoritative hierarchy")
+    expected_paths = {
+        key: f"/{slug}/downloads/" if key == "assets" else f"/{slug}/guidelines/" if key == "overview" else f"/{slug}/guidelines/{key}/"
+        for key, _, _, _ in BRAND_TOPIC_CONTRACT
+    }
+    paths = [topic.get("path") for topic in topics]
+    if paths != [expected_paths[topic["key"]] for topic in topics] or len(paths) != len(set(paths)):
+        raise ValueError(f"{slug}: guideline navigation contains an invalid or duplicate destination")
 
 
 def validate_source_identity(source: Path, brand: dict, seen: set[str]) -> None:
@@ -196,16 +249,16 @@ def structured_data(route: dict[str, Any], routes: list[dict[str, Any]], brands:
     organization = {"@type": "Organization", "@id": ORGANIZATION_URL, "name": "ShruggieTech", "url": ORGANIZATION_URL}
     website_id = f"{SITE_URL}/#website"
     website = {"@type": "WebSite", "@id": website_id, "url": f"{SITE_URL}/", "name": "Brands | ShruggieTech", "publisher": {"@id": ORGANIZATION_URL}}
-    kind_types = {"home": "CollectionPage", "brand": "WebPage", "downloads": "CollectionPage", "guidelines": "WebPage", "guidelines-topic": "WebPage", "docs-index": "CollectionPage", "docs-page": "TechArticle"}
+    kind_types = {"home": "CollectionPage", "downloads": "CollectionPage", "guidelines": "WebPage", "guidelines-topic": "WebPage", "docs-index": "CollectionPage", "docs-page": "TechArticle"}
     page_id = f"{route['canonical']}#webpage"
     page: dict[str, Any] = {"@type": kind_types[route["kind"]], "@id": page_id, "url": route["canonical"], "name": route["documentTitle"], "description": route["description"], "isPartOf": {"@id": website_id}, "publisher": {"@id": ORGANIZATION_URL}}
     graph: list[dict[str, Any]] = [organization, website, page]
     if route["kind"] == "home":
-        brand_urls = [item["canonical"] for item in routes if item["kind"] == "brand"]
+        brand_urls = [item["canonical"] for item in routes if item["kind"] == "guidelines"]
         page["mainEntity"] = {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": index, "url": url} for index, url in enumerate(brand_urls, 1)]}
     if route["kind"] == "docs-page":
         page["mainEntityOfPage"] = {"@id": page_id}
-    if route["kind"] == "brand":
+    if route["kind"] == "guidelines":
         brand = next(item for item in brands if item["slug"] == route["brandSlug"])
         brand_id = f"{route['canonical']}#brand"
         page["mainEntity"] = {"@id": brand_id}
@@ -228,20 +281,23 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
     portal_by_slug = {portal["brand"]["slug"]: portal for portal in (portals or [])}
     for brand in sorted(brands, key=lambda item: item["slug"]):
         slug = brand["slug"]
-        brand_path = f"/{slug}/"
-        brand_crumb = {"name": brand["title"], "url": f"{SITE_URL}{brand_path}"}
+        guidelines_path = f"/{slug}/guidelines/"
+        brand_crumb = {"name": brand["title"], "url": f"{SITE_URL}{guidelines_path}"}
         portal = portal_by_slug.get(slug)
         vendor_notice = brand.get("vendorBoundary")
         topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "description": brand["descriptor"]}]
+        if portal:
+            validate_portal_navigation(portal, slug)
         overview = topics[0]
         routes.extend([
-            make_route(f"brand-{slug}", "brand", brand_path, brand["title"], brand["descriptor"], "Brand portfolio", [home, brand_crumb], brand_slug=slug, vendor_notice=vendor_notice),
-            make_route(f"downloads-{slug}", "downloads", f"/{slug}/downloads/", f"{brand['title']} downloads", f"Download the {brand['title']} brand guide and asset collections.", "Brand assets", [home, brand_crumb, {"name": "Downloads", "url": f"{SITE_URL}/{slug}/downloads/"}], brand_slug=slug, vendor_notice=vendor_notice),
-            make_route(f"guidelines-{slug}", "guidelines", f"/{slug}/guidelines/", f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice),
+            make_route(f"downloads-{slug}", "downloads", f"/{slug}/downloads/", f"{brand['title']} assets", f"Browse and download the complete {brand['title']} brand asset collection.", "Brand assets", [home, brand_crumb, {"name": "Assets", "url": f"{SITE_URL}/{slug}/downloads/"}], brand_slug=slug, guide_topic="assets", vendor_notice=vendor_notice),
+            make_route(f"guidelines-{slug}", "guidelines", guidelines_path, f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice),
         ])
         for topic in topics[1:]:
-            pathname = f"/{slug}/guidelines/{topic['key']}/"
-            routes.append(make_route(f"guidelines-{slug}-{topic['key']}", "guidelines-topic", pathname, f"{topic['title']} | {brand['title']}", topic["description"], "Brand guidelines", [home, brand_crumb, {"name": "Guidelines", "url": f"{SITE_URL}/{slug}/guidelines/"}, {"name": topic["title"], "url": f"{SITE_URL}{pathname}"}], brand_slug=slug, guide_topic=topic["key"], vendor_notice=vendor_notice))
+            if topic["key"] == "assets":
+                continue
+            pathname = topic.get("path", f"/{slug}/guidelines/{topic['key']}/")
+            routes.append(make_route(f"guidelines-{slug}-{topic['key']}", "guidelines-topic", pathname, f"{topic['title']} | {brand['title']}", topic["description"], "Brand guidelines", [home, brand_crumb, {"name": topic.get("label", topic["title"]), "url": f"{SITE_URL}{pathname}"}], brand_slug=slug, guide_topic=topic["key"], vendor_notice=vendor_notice))
     routes.append(make_route("docs", "docs-index", "/docs/", "Documentation", "The repeatable ShruggieTech system for building complete, usable brand identities.", "Documentation", [home, docs_root]))
     for doc in sorted(docs, key=lambda item: item["slug"]):
         pathname = f"/docs/{doc['slug']}/"
@@ -657,18 +713,22 @@ def derive_public_markdown(content: str) -> tuple[str, str]:
     return title, convert_documentation_alerts("\n".join(normalized)).strip() + "\n"
 
 
-def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DOC_DESCRIPTIONS) -> list[dict[str, str]]:
+def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DOC_DESCRIPTIONS,
+               navigation: dict[str, tuple[str, int, str, int]] = DOC_NAVIGATION) -> list[dict[str, Any]]:
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
     records = []
     pages = ["index"]
-    for path in sorted(references.glob("*.md")):
+    for pagination_order, path in enumerate(sorted(references.glob("*.md")), 1):
         title, body = derive_public_markdown(path.read_text(encoding="utf-8"))
         description = descriptions.get(path.stem, f"ShruggieTech guidance for {title.lower()}.")
         frontmatter = f"---\ntitle: {json.dumps(title)}\ndescription: {json.dumps(description)}\n---\n\n"
         write_utf8(output / f"{path.stem}.mdx", frontmatter + body)
-        records.append({"slug": path.stem, "title": title, "description": description})
+        if path.stem not in navigation:
+            raise ValueError(f"documentation page lacks a navigation assignment: {path.stem}")
+        section, section_order, label, order = navigation[path.stem]
+        records.append({"slug": path.stem, "title": title, "description": description, "navigation": {"section": section, "sectionOrder": section_order, "label": label, "order": order, "path": f"/docs/{path.stem}/", "paginationOrder": pagination_order}})
         pages.append(path.stem)
     index = """---
 title: "Documentation"
@@ -681,6 +741,12 @@ We turn strategy into a complete identity, then package the standards, assets, a
 """
     write_utf8(output / "index.mdx", index)
     write_utf8(output / "meta.json", json.dumps({"title": "Documentation", "pages": pages}, indent=2) + "\n")
+    overview = {"slug": "index", "title": "Documentation", "description": "The repeatable ShruggieTech system for building complete, usable brand identities.", "navigation": {"section": "Overview", "sectionOrder": 0, "label": "Overview", "order": 0, "path": "/docs/", "paginationOrder": 0}}
+    navigation_records = sorted([overview, *records], key=lambda record: (record["navigation"]["sectionOrder"], record["navigation"]["order"]))
+    identities = [(record["navigation"]["sectionOrder"], record["navigation"]["order"]) for record in navigation_records]
+    if len(identities) != len(set(identities)):
+        raise ValueError("documentation navigation contains duplicate positions")
+    write_utf8(output.parent / "documentation.json", json.dumps(navigation_records, ensure_ascii=False, indent=2) + "\n")
     return records
 
 

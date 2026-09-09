@@ -23,7 +23,16 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
     (guideline / "portal.json").write_text(json.dumps({
         "schema_version": "1.0",
         "brand": {"slug": slug, "title": title, "descriptor": "Alpha.", "idea": "Alpha.", "affiliation": ""},
-        "topics": [{"key": "overview", "title": "Overview and foundations", "description": "Start here."}, {"key": "color", "title": "Color", "description": "Palette."}],
+        "topics": [
+            {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "path": f"/{slug}/guidelines/", "description": "Start here."},
+            {"key": "voice", "title": "Voice and messaging", "label": "Voice", "section": "Voice", "order": 0, "path": f"/{slug}/guidelines/voice/", "description": "Voice."},
+            {"key": "logos", "title": "Logo system and usage", "label": "Logo", "section": "Identity", "order": 0, "path": f"/{slug}/guidelines/logos/", "description": "Logo."},
+            {"key": "color", "title": "Color", "label": "Color", "section": "Identity", "order": 1, "path": f"/{slug}/guidelines/color/", "description": "Palette."},
+            {"key": "typography", "title": "Typography", "label": "Typography", "section": "Identity", "order": 2, "path": f"/{slug}/guidelines/typography/", "description": "Type."},
+            {"key": "components", "title": "Components and examples", "label": "Components", "section": "Components", "order": 0, "path": f"/{slug}/guidelines/components/", "description": "Components."},
+            {"key": "assets", "title": "Assets", "label": "Assets", "section": "Assets", "order": 0, "path": f"/{slug}/downloads/", "description": "Downloads."},
+            {"key": "integration", "title": "Platform integration", "label": "Integration", "section": "Integration", "order": 0, "path": f"/{slug}/guidelines/integration/", "description": "Integration."},
+        ],
         "content": {"overview": {}, "voice": {}, "logos": {}, "typography": {}, "components": {}},
         "palettes": {"dark": [], "light": []},
         "asset_families": [], "resources": [], "instructions": [], "capability_suites": [], "aliases": {},
@@ -157,16 +166,21 @@ class PrepareSiteTests(unittest.TestCase):
 
     def test_topic_routes_are_generated_for_every_portal_topic(self):
         brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
-        portals = [{"brand": {"slug": "alpha"}, "topics": [{"key": "overview", "title": "Overview and foundations", "description": "Start."}, {"key": "color", "title": "Color", "description": "Palette."}, {"key": "assets", "title": "Asset library", "description": "Downloads."}]}]
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "alpha"
+            write_minimal_portal(source)
+            portals = [json.loads((source / "guidelines" / "portal.json").read_text(encoding="utf-8"))]
         routes = prepare_site.build_routes(brands, [], portals)
         guide_routes = [route for route in routes if route["kind"] in {"guidelines", "guidelines-topic"}]
-        self.assertEqual(["/alpha/guidelines/", "/alpha/guidelines/color/", "/alpha/guidelines/assets/"], [route["pathname"] for route in guide_routes])
-        self.assertEqual(["overview", "color", "assets"], [route["guideTopic"] for route in guide_routes])
+        self.assertEqual(["/alpha/guidelines/", "/alpha/guidelines/voice/", "/alpha/guidelines/logos/", "/alpha/guidelines/color/", "/alpha/guidelines/typography/", "/alpha/guidelines/components/", "/alpha/guidelines/integration/"], [route["pathname"] for route in guide_routes])
+        self.assertEqual(["overview", "voice", "logos", "color", "typography", "components", "integration"], [route["guideTopic"] for route in guide_routes])
+        self.assertFalse(any(route["kind"] == "brand" or route["pathname"] in {"/alpha/", "/alpha/guidelines/assets/"} for route in routes))
+        self.assertEqual("assets", next(route for route in routes if route["kind"] == "downloads")["guideTopic"])
 
     def test_vendor_boundary_reaches_routes_metadata_and_structured_data(self):
         notice = "Acme is independent. Users are responsible."
         brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73", "vendorBoundary": notice}]
-        route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "brand")
+        route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "guidelines")
         self.assertEqual(notice, route["vendorBoundary"])
         self.assertEqual("https://brand.shruggie.tech/alpha/guidelines/", route["vendorBoundaryUrl"])
         entity = next(item for item in route["structuredData"]["@graph"] if item.get("@type") == "Brand")
@@ -283,8 +297,8 @@ class PrepareSiteTests(unittest.TestCase):
                 "# Start here\n\nUse this reference.\n\n| A | B |\n| --- | --- |\n| one | two |\n",
                 encoding="utf-8",
             )
-            records = prepare_site.write_docs(references, output, {"00-start": "Start description."})
-            self.assertEqual(records, [{"slug": "00-start", "title": "Start here", "description": "Start description."}])
+            records = prepare_site.write_docs(references, output, {"00-start": "Start description."}, {"00-start": ("Foundation", 1, "Contract", 0)})
+            self.assertEqual(records, [{"slug": "00-start", "title": "Start here", "description": "Start description.", "navigation": {"section": "Foundation", "sectionOrder": 1, "label": "Contract", "order": 0, "path": "/docs/00-start/", "paginationOrder": 1}}])
             page = (output / "00-start.mdx").read_text(encoding="utf-8")
             self.assertIn('title: "Start here"', page)
             self.assertIn("| one | two |", page)
@@ -292,6 +306,10 @@ class PrepareSiteTests(unittest.TestCase):
             meta = json.loads((output / "meta.json").read_text(encoding="utf-8"))
             self.assertEqual("Documentation", meta["title"])
             self.assertEqual(meta["pages"], ["index", "00-start"])
+            navigation = json.loads((output.parent / "documentation.json").read_text(encoding="utf-8"))
+            self.assertEqual("Overview", navigation[0]["navigation"]["label"])
+            self.assertEqual("Contract", navigation[1]["navigation"]["label"])
+            self.assertEqual([0, 1], sorted(record["navigation"]["paginationOrder"] for record in navigation))
             index = (output / "index.mdx").read_text(encoding="utf-8")
             self.assertIn('title: "Documentation"', index)
             self.assertNotRegex(index, r"(?i)how we build(?: brands)?")
@@ -300,9 +318,9 @@ class PrepareSiteTests(unittest.TestCase):
         brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
         docs = [{"slug": "04-toolchain", "title": "Toolchain", "description": "Tools and gates."}]
         routes = prepare_site.build_routes(brands, docs)
-        self.assertEqual(6, len(routes))
-        self.assertEqual(6, len({route["key"] for route in routes}))
-        self.assertEqual(6, len({route["canonical"] for route in routes}))
+        self.assertEqual(5, len(routes))
+        self.assertEqual(5, len({route["key"] for route in routes}))
+        self.assertEqual(5, len({route["canonical"] for route in routes}))
         for route in routes:
             self.assertTrue(route["pathname"].startswith("/"))
             self.assertTrue(route["pathname"].endswith("/"))
@@ -314,10 +332,28 @@ class PrepareSiteTests(unittest.TestCase):
         docs_root = next(route for route in routes if route["kind"] == "docs-index")
         self.assertEqual("Documentation | ShruggieTech", docs_root["documentTitle"])
         self.assertEqual("TechArticle", doc["structuredData"]["@graph"][2]["@type"])
-        brand = next(route for route in routes if route["kind"] == "brand")
+        brand = next(route for route in routes if route["kind"] == "guidelines")
         graph_text = json.dumps(brand["structuredData"])
         self.assertIn('"@type": "Brand"', graph_text)
         self.assertNotIn("owner", graph_text.lower())
+
+    def test_registry_catalog_resolves_every_unique_typed_item(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp)
+            registry = source / "nextjs" / "registry"
+            registry.mkdir(parents=True)
+            brand = {"slug": "alpha", "registry_base": "https://brand.shruggie.tech/alpha/brand"}
+            items = [{"name": "theme", "type": "registry:theme", "files": []}, {"name": "fonts", "type": "registry:font", "files": []}]
+            (registry / "registry.json").write_text(json.dumps({"$schema": "https://ui.shadcn.com/schema/registry.json", "items": items}), encoding="utf-8")
+            for item in items:
+                (registry / f"{item['name']}.json").write_text(json.dumps({"$schema": "https://ui.shadcn.com/schema/registry-item.json", "name": item["name"], "type": item["type"]}), encoding="utf-8")
+            prepare_site.validate_registry(source, brand)
+            (registry / "fonts.json").unlink()
+            with self.assertRaisesRegex(ValueError, "advertised registry item is missing"):
+                prepare_site.validate_registry(source, brand)
+            (registry / "fonts.json").write_text(json.dumps({"$schema": "https://ui.shadcn.com/schema/registry-item.json", "name": "fonts", "type": "registry:ui"}), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "type mismatch"):
+                prepare_site.validate_registry(source, brand)
 
     def test_route_contract_rejects_unsafe_or_duplicate_records(self):
         route = {"key": "duplicate", "kind": "home", "pathname": "/", "canonical": "https://brand.shruggie.tech/", "title": "Brands", "documentTitle": "Brands | ShruggieTech", "description": "Description", "social": {"path": "/social/duplicate.png", "url": "https://brand.shruggie.tech/social/duplicate.png", "width": 1280, "height": 640, "type": "image/png", "alt": "Preview", "eyebrow": "Portfolio"}, "breadcrumbs": [], "brandSlug": None, "docsSlug": None}

@@ -146,20 +146,20 @@ def portal_payload(B, kit):
                 "source_path": resource["path"], "markdown": Path(kit, resource["path"]).read_text(encoding="utf-8"),
             })
     guide = B.get("guide") or {}
+    slug = B["slug"]
     topics = [
-        {"key": "overview", "title": "Overview and foundations", "description": str(guide.get("foundation_title") or B.get("descriptor") or "Brand foundations")},
-        {"key": "voice", "title": "Voice and messaging", "description": "Principles for writing in the brand voice."},
-        {"key": "logos", "title": "Logo system and usage", "description": "Approved marks, lockups, clear space, and reduction rules."},
-        {"key": "color", "title": "Color", "description": "Canonical palette values and semantic roles."},
-        {"key": "typography", "title": "Typography", "description": "Approved type families, weights, and roles."},
-        {"key": "components", "title": "Components and examples", "description": "Representative interface patterns for this identity."},
-        {"key": "assets", "title": "Asset library and downloads", "description": "Task-oriented access to every verified delivery."},
+        {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "path": "/%s/guidelines/" % slug, "description": str(guide.get("foundation_title") or B.get("descriptor") or "Brand foundations")},
+        {"key": "voice", "title": "Voice and messaging", "label": "Voice", "section": "Voice", "order": 0, "path": "/%s/guidelines/voice/" % slug, "description": "Principles for writing in the brand voice."},
+        {"key": "logos", "title": "Logo system and usage", "label": "Logo", "section": "Identity", "order": 0, "path": "/%s/guidelines/logos/" % slug, "description": "Approved marks, lockups, clear space, and reduction rules."},
+        {"key": "color", "title": "Color", "label": "Color", "section": "Identity", "order": 1, "path": "/%s/guidelines/color/" % slug, "description": "Canonical palette values and semantic roles."},
+        {"key": "typography", "title": "Typography", "label": "Typography", "section": "Identity", "order": 2, "path": "/%s/guidelines/typography/" % slug, "description": "Approved type families, weights, and roles."},
+        {"key": "components", "title": "Components and examples", "label": "Components", "section": "Components", "order": 0, "path": "/%s/guidelines/components/" % slug, "description": "Representative interface patterns for this identity."},
+        {"key": "assets", "title": "Assets", "label": "Assets", "section": "Assets", "order": 0, "path": "/%s/downloads/" % slug, "description": "Task-oriented access to every verified delivery."},
+        {"key": "integration", "title": "Platform integration", "label": "Integration", "section": "Integration", "order": 0, "path": "/%s/guidelines/integration/" % slug, "description": "Rendered instructions for delivered platform assets."},
     ]
-    if instructions:
-        topics.append({"key": "integration", "title": "Platform integration", "description": "Rendered instructions for delivered platform assets."})
     return {
         "schema_version": "1.0",
-        "brand": {"slug": B["slug"], "title": B["title"], "descriptor": B.get("descriptor", ""), "idea": B.get("brand_idea", ""), "affiliation": affiliation_text(B), "vendorBoundary": (vendor_boundary(B) or {}).get("notice", "")},
+        "brand": {"slug": B["slug"], "title": B["title"], "version": B["version"], "descriptor": B.get("descriptor", ""), "idea": B.get("brand_idea", ""), "affiliation": affiliation_text(B), "vendorBoundary": (vendor_boundary(B) or {}).get("notice", "")},
         "topics": topics,
         "content": {
             "overview": {"foundation_title": guide.get("foundation_title", "Foundations"), "foundation": guide.get("foundation", ""), "promises": guide.get("promises", []), "in_scope": guide.get("in_scope", []), "out_of_scope": guide.get("out_of_scope", []), "sharp_edge": guide.get("sharp_edge", "")},

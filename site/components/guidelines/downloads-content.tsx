@@ -1,18 +1,11 @@
-import { notFound } from 'next/navigation';
-import { brands, brandBySlug } from '@/lib/brands';
-import { pageMetadata } from '@/lib/metadata';
-import { routeByPath } from '@/lib/routes';
-import { StructuredData } from '@/components/structured-data';
+import type { GuidelinePortal } from '@/lib/guidelines';
+import type { Brand } from '@/lib/brands';
+import { AssetLibrary } from './asset-library';
 
-export function generateStaticParams() { return brands.map(({ slug }) => ({ slug })); }
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) { const brand = brandBySlug((await params).slug); if (!brand) notFound(); return pageMetadata(routeByPath(`/${brand.slug}/downloads/`)); }
-
-export default async function Downloads({ params }: { params: Promise<{ slug: string }> }) {
-  const brand = brandBySlug((await params).slug);
-  if (!brand) notFound();
+export function DownloadsContent({ brand, portal }: { brand: Brand; portal: GuidelinePortal }) {
   const root = `/${brand.slug}/downloads/files`;
-  const route = routeByPath(`/${brand.slug}/downloads/`);
-  return <div className="shell"><StructuredData route={route} /><p className="eyebrow">Brand assets</p><h1>{brand.title} downloads</h1><p className="lede">Clearly organized source files for design, product, and implementation work.</p>{brand.vendorBoundary && <p className="vendor-boundary">{brand.vendorBoundary}</p>}<ul className="download-list">
+  return <><section className="guide-section" aria-labelledby="direct-downloads"><h2 id="direct-downloads">Direct downloads</h2><ul className="download-list">
+    <li><a href={brand.kitArchive} download={brand.kitArchiveFilename}><strong>Complete brand kit</strong><span>Verified archive containing every distributable delivery</span></a></li>
     <li><a href={`${root}/${brand.slug}-brand-guide.pdf`}><strong>Brand guide</strong><span>PDF standards and usage guidance</span></a></li>
     <li><a href={brand.portableGuide}><strong>Portable guidelines</strong><span>Standalone HTML reference for offline use</span></a></li>
     <li><a href={`${root}/logos/svg/${brand.slug}-mark-color.svg`}><strong>Logo mark</strong><span>Primary SVG master</span></a></li>
@@ -22,5 +15,5 @@ export default async function Downloads({ params }: { params: Promise<{ slug: st
     <li><a href={`${root}/icons/windows/classic/app.ico`}><strong>Windows application icon</strong><span>Classic multi-size desktop ICO</span></a></li>
     <li><a href={brand.specimen}><strong>Type specimen</strong><span>Outlined SVG reference</span></a></li>
     <li><a href={`/${brand.slug}/brand/r/theme.json`}><strong>shadcn theme</strong><span>Installable registry JSON</span></a></li>
-  </ul></div>;
+  </ul></section><section className="guide-section" aria-labelledby="asset-library"><h2 id="asset-library">Asset library</h2><AssetLibrary portal={portal} /></section></>;
 }
