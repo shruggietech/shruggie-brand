@@ -720,7 +720,7 @@ def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DO
     output.mkdir(parents=True)
     records = []
     pages = ["index"]
-    for path in sorted(references.glob("*.md")):
+    for pagination_order, path in enumerate(sorted(references.glob("*.md")), 1):
         title, body = derive_public_markdown(path.read_text(encoding="utf-8"))
         description = descriptions.get(path.stem, f"ShruggieTech guidance for {title.lower()}.")
         frontmatter = f"---\ntitle: {json.dumps(title)}\ndescription: {json.dumps(description)}\n---\n\n"
@@ -728,7 +728,7 @@ def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DO
         if path.stem not in navigation:
             raise ValueError(f"documentation page lacks a navigation assignment: {path.stem}")
         section, section_order, label, order = navigation[path.stem]
-        records.append({"slug": path.stem, "title": title, "description": description, "navigation": {"section": section, "sectionOrder": section_order, "label": label, "order": order, "path": f"/docs/{path.stem}/"}})
+        records.append({"slug": path.stem, "title": title, "description": description, "navigation": {"section": section, "sectionOrder": section_order, "label": label, "order": order, "path": f"/docs/{path.stem}/", "paginationOrder": pagination_order}})
         pages.append(path.stem)
     index = """---
 title: "Documentation"
@@ -741,7 +741,7 @@ We turn strategy into a complete identity, then package the standards, assets, a
 """
     write_utf8(output / "index.mdx", index)
     write_utf8(output / "meta.json", json.dumps({"title": "Documentation", "pages": pages}, indent=2) + "\n")
-    overview = {"slug": "index", "title": "Documentation", "description": "The repeatable ShruggieTech system for building complete, usable brand identities.", "navigation": {"section": "Overview", "sectionOrder": 0, "label": "Overview", "order": 0, "path": "/docs/"}}
+    overview = {"slug": "index", "title": "Documentation", "description": "The repeatable ShruggieTech system for building complete, usable brand identities.", "navigation": {"section": "Overview", "sectionOrder": 0, "label": "Overview", "order": 0, "path": "/docs/", "paginationOrder": 0}}
     navigation_records = sorted([overview, *records], key=lambda record: (record["navigation"]["sectionOrder"], record["navigation"]["order"]))
     identities = [(record["navigation"]["sectionOrder"], record["navigation"]["order"]) for record in navigation_records]
     if len(identities) != len(set(identities)):

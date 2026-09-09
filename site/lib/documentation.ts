@@ -5,7 +5,7 @@ export type DocumentationRecord = {
   slug: string;
   title: string;
   description: string;
-  navigation: { section: string; sectionOrder: number; label: string; order: number; path: string };
+  navigation: { section: string; sectionOrder: number; label: string; order: number; path: string; paginationOrder: number };
 };
 
 export const documentationRecords = records as DocumentationRecord[];
@@ -24,4 +24,12 @@ export function documentationTree(): Root {
       ? { type: 'page' as const, name: pages[0].navigation.label, url: pages[0].navigation.path }
       : { type: 'folder' as const, name: label, defaultOpen: true, collapsible: true, children: pages.map((page) => ({ type: 'page' as const, name: page.navigation.label, url: page.navigation.path })) }),
   };
+}
+
+export function documentationPagination(path: string) {
+  const ordered = [...documentationRecords].sort((left, right) => left.navigation.paginationOrder - right.navigation.paginationOrder);
+  const index = ordered.findIndex((record) => record.navigation.path === path);
+  if (index < 0) throw new Error(`Missing documentation pagination record for ${path}`);
+  const item = (record?: DocumentationRecord) => record ? { name: record.title, description: record.description, url: record.navigation.path } : undefined;
+  return { previous: item(ordered[index - 1]), next: item(ordered[index + 1]) };
 }

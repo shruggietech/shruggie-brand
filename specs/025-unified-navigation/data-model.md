@@ -31,7 +31,7 @@ All six public portals expose the same topic keys and ordered hierarchy. Missing
 ## Documentation Record
 
 - Existing `slug`, `title`, `description`, and `content` remain unchanged.
-- `navigation` contains `section`, `sectionOrder`, `label`, `order`, and `path`.
+- `navigation` contains `section`, `sectionOrder`, `label`, `order`, `path`, and the established `paginationOrder`.
 - The synthetic documentation index maps to Overview; nine reference documents map exactly once to approved child groups.
 
 ## Route Record

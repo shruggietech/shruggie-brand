@@ -673,11 +673,11 @@ try {
   }
   const editorial = page.locator('.docs-page :where(p, li, td, blockquote) > a').first();
   check(await editorial.count() === 1 && await editorial.evaluate((element) => getComputedStyle(element).textDecorationLine.includes('underline')), 'editorial links lack a persistent resting underline');
-  for (const paginationCase of [{ route: '/docs/', count: 1 }, { route: '/docs/02-kit-anatomy/', count: 2 }, { route: '/docs/09-portability/', count: 1 }]) {
+  for (const paginationCase of [{ route: '/docs/', hrefs: ['/docs/00-variance-contract/'] }, { route: '/docs/02-kit-anatomy/', hrefs: ['/docs/00-variance-contract/', '/docs/03-interview/'] }, { route: '/docs/04-toolchain/', hrefs: ['/docs/03-interview/', '/docs/05-shadcn-binding/'] }, { route: '/docs/09-portability/', hrefs: ['/docs/08-glyph-construction/'] }]) {
     await page.goto(base + paginationCase.route);
     const links = page.locator('.docs-pagination > a');
-    check(await links.count() === paginationCase.count, `${paginationCase.route} has the wrong pagination neighbor count`);
-    for (const href of await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')))) check(Boolean(href && href.startsWith('/docs/') && href !== paginationCase.route), `${paginationCase.route} has an invalid pagination destination: ${href}`);
+    const hrefs = await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')));
+    check(JSON.stringify(hrefs) === JSON.stringify(paginationCase.hrefs), `${paginationCase.route} changed its established pagination neighbors (${JSON.stringify(hrefs)})`);
   }
   for (const route of ['/docs/', '/docs/02-kit-anatomy/', '/docs/09-portability/']) for (const width of visualWidths) for (const theme of visualThemes) await measurePagination(route, width, theme, route === '/docs/02-kit-anatomy/' && width === 360);
   await page.setViewportSize({ width: 1280, height: 900 });

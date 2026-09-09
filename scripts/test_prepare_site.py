@@ -298,7 +298,7 @@ class PrepareSiteTests(unittest.TestCase):
                 encoding="utf-8",
             )
             records = prepare_site.write_docs(references, output, {"00-start": "Start description."}, {"00-start": ("Foundation", 1, "Contract", 0)})
-            self.assertEqual(records, [{"slug": "00-start", "title": "Start here", "description": "Start description.", "navigation": {"section": "Foundation", "sectionOrder": 1, "label": "Contract", "order": 0, "path": "/docs/00-start/"}}])
+            self.assertEqual(records, [{"slug": "00-start", "title": "Start here", "description": "Start description.", "navigation": {"section": "Foundation", "sectionOrder": 1, "label": "Contract", "order": 0, "path": "/docs/00-start/", "paginationOrder": 1}}])
             page = (output / "00-start.mdx").read_text(encoding="utf-8")
             self.assertIn('title: "Start here"', page)
             self.assertIn("| one | two |", page)
@@ -309,6 +309,7 @@ class PrepareSiteTests(unittest.TestCase):
             navigation = json.loads((output.parent / "documentation.json").read_text(encoding="utf-8"))
             self.assertEqual("Overview", navigation[0]["navigation"]["label"])
             self.assertEqual("Contract", navigation[1]["navigation"]["label"])
+            self.assertEqual([0, 1], sorted(record["navigation"]["paginationOrder"] for record in navigation))
             index = (output / "index.mdx").read_text(encoding="utf-8")
             self.assertIn('title: "Documentation"', index)
             self.assertNotRegex(index, r"(?i)how we build(?: brands)?")
