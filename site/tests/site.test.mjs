@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 const assetLibrarySource = readFileSync(new URL('../components/guidelines/asset-library-client.tsx', import.meta.url), 'utf8');
 const topicContentSource = readFileSync(new URL('../components/guidelines/topic-content.tsx', import.meta.url), 'utf8');
 const footerSource = readFileSync(new URL('../components/footer.tsx', import.meta.url), 'utf8');
+const brandPortfolioSource = readFileSync(new URL('../components/brand-portfolio.tsx', import.meta.url), 'utf8');
 const homepageSource = readFileSync(new URL('../app/(site)/page.tsx', import.meta.url), 'utf8');
 const layoutSource = readFileSync(new URL('../lib/layout.shared.tsx', import.meta.url), 'utf8');
 const globalStyles = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
@@ -64,6 +65,17 @@ if (JSON.stringify(brands.map((brand) => brand.slug).sort()) !== JSON.stringify(
 const esoWeave = brands.find((brand) => brand.slug === 'eso-weave');
 if (esoWeave?.idea !== 'Unofficial automation for ESO' || esoWeave?.descriptor !== 'Cross-platform desktop companion for The Elder Scrolls Online') throw new Error('ESO Weave public wording differs from the Gate 2 approval');
 if (!esoWeave?.vendorBoundary?.includes('not affiliated with')) throw new Error('ESO Weave public record omits the required vendor boundary');
+for (const brand of brands) {
+  const expectedArchive = `/${brand.slug}/downloads/${brand.slug}-brand-${brand.version}.zip`;
+  if (brand.guidelinesPath !== `/${brand.slug}/guidelines/` || brand.kitArchive !== expectedArchive || brand.kitArchiveFilename !== expectedArchive.split('/').at(-1)) throw new Error(`${brand.slug} generated action destinations are incomplete or inconsistent`);
+  if ('vendorBoundarySummary' in brand) throw new Error(`${brand.slug} retains obsolete card-level vendor summary copy`);
+}
+if (!brandPortfolioSource.includes('className="brand-card"') || !brandPortfolioSource.includes('className="brand-accordion"') || !brandPortfolioSource.includes('<summary>')) throw new Error('portfolio component lacks the required desktop article and native mobile disclosure structures');
+if (!brandPortfolioSource.includes("event.key === 'Escape'") || !brandPortfolioSource.includes("data-actions-dismissed={dismissed ? 'true' : undefined}") || !brandPortfolioSource.includes('<noscript><style>')) throw new Error('desktop action reveal lacks Escape dismissal or its no-script visible-action fallback');
+if (!/@media \(hover: none\), \(pointer: coarse\) \{[^}]*\.brand-grid-desktop \{ display: none; \}[^}]*\.brand-accordion-list \{ display: block; \}/s.test(globalStyles)) throw new Error('wide touch-only devices do not receive the native disclosure presentation');
+if (!brandPortfolioSource.includes('<a href={brand.guidelinesPath}>Guidelines</a>') || !brandPortfolioSource.includes('<a href={brand.kitArchive} download={brand.kitArchiveFilename}>Download Kit</a>')) throw new Error('portfolio component lacks exact generated Guidelines and Download Kit actions');
+if (!brandPortfolioSource.includes("const noticeId = 'portfolio-third-party-notice'") || !brandPortfolioSource.includes('id={noticeId}') || !brandPortfolioSource.includes('aria-describedby={noticeId}')) throw new Error('portfolio component lacks one accessible shared vendor-notice association');
+if (brandPortfolioSource.includes('vendorBoundarySummary') || homepageSource.includes('vendorBoundarySummary') || homepageSource.includes('href={`/${brand.slug}/`}')) throw new Error('portfolio retains retired repeated disclaimer or implicit full-card navigation');
 for (const route of routeRecords.filter((route) => route.brandSlug === 'eso-weave')) if (route.vendorBoundary !== esoWeave.vendorBoundary || route.vendorBoundaryUrl !== 'https://brand.shruggie.tech/eso-weave/guidelines/') throw new Error(`${route.pathname} omits the ESO Weave vendor-boundary metadata`);
 export const brandRoutes = routeRecords.filter((route) => ['brand', 'downloads', 'guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
 export const docRoutes = routeRecords.filter((route) => ['docs-index', 'docs-page'].includes(route.kind)).map((route) => route.pathname);
@@ -76,4 +88,4 @@ export const visualWidths = [360, 1280];
 export const requiredFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/shruggietech-logo-dark.svg', '/shruggietech-logo-light.svg', '/site.webmanifest', '/robots.txt', '/sitemap.xml', '/static.json', ...routeRecords.map((route) => route.social.path)];
 export const iconFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png'];
 export const iconRoutes = ['/', '/docs/', '/docs/04-toolchain/'];
-export const downloadFiles = brands.flatMap((brand) => { const root = `/${brand.slug}/downloads/files`; return [`${root}/${brand.slug}-brand-guide.pdf`, `${root}/logos/svg/${brand.slug}-mark-color.svg`, `${root}/logos/svg/${brand.slug}-horizontal-color.svg`, `${root}/icons/manifest.json`, `${root}/icons/web/favicon.ico`, `${root}/icons/android/manifest.json`, `${root}/icons/apple/ios/manifest.json`, `${root}/icons/apple/macos/manifest.json`, `${root}/icons/windows/manifest.json`, `${root}/icons/windows/classic/app.ico`, brand.specimen, `/${brand.slug}/brand/r/theme.json`]; });
+export const downloadFiles = brands.flatMap((brand) => { const root = `/${brand.slug}/downloads/files`; return [brand.kitArchive, `${root}/${brand.slug}-brand-guide.pdf`, `${root}/logos/svg/${brand.slug}-mark-color.svg`, `${root}/logos/svg/${brand.slug}-horizontal-color.svg`, `${root}/icons/manifest.json`, `${root}/icons/web/favicon.ico`, `${root}/icons/android/manifest.json`, `${root}/icons/apple/ios/manifest.json`, `${root}/icons/apple/macos/manifest.json`, `${root}/icons/windows/manifest.json`, `${root}/icons/windows/classic/app.ico`, brand.specimen, `/${brand.slug}/brand/r/theme.json`]; });

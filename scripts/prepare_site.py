@@ -30,6 +30,7 @@ SOCIAL_SIZE = (1280, 640)
 ALERT_TYPES = {"NOTE": "info", "WARNING": "warn", "CAUTION": "error"}
 sys.path.insert(0, str(TEMPLATES))
 from brand_contract import affiliation, public_showcase, showcase_surface, vendor_boundary
+from package_release import write_brand_archive
 DOC_DESCRIPTIONS = {
     "00-variance-contract": "The rules that keep every identity distinct while preserving a shared standard.",
     "01-canon": "Machine-readable defaults and constraints used by the brand generator.",
@@ -489,6 +490,14 @@ def contrast_foreground(color: str) -> str:
     return "#FFFFFF" if white_contrast >= black_contrast else "#000000"
 
 
+def authoritative_canon(root: Path = ROOT) -> str:
+    canon = json.loads((root / "skill" / "references" / "01-canon.json").read_text(encoding="utf-8"))
+    version = canon.get("version")
+    if not isinstance(version, str) or not version:
+        raise ValueError("authoritative canon lacks a version")
+    return version
+
+
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
     guide = source / "brand-guide.pdf"
@@ -509,6 +518,14 @@ def copy_kit(source: Path, brand: dict) -> dict:
     shutil.copy2(portable_guide, downloads / f"{slug}-portable-guidelines.html")
     for name in ("logos", "favicons", "icons", "specimens"):
         replace_tree(source / name, downloads / name)
+    archive_filename = f"{slug}-brand-{brand['version']}.zip"
+    archive_path = target / "downloads" / archive_filename
+    write_brand_archive(
+        source,
+        archive_path,
+        root=ROOT,
+        expected_canon=authoritative_canon(),
+    )
     specimen_name = next((source / "specimens").glob("*.svg")).name
     logo_root = f"/{slug}/downloads/files/logos/svg"
     aff = affiliation(brand)
@@ -526,6 +543,9 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "icon": f"{logo_root}/{slug}-mark-color.svg",
         "specimen": f"/{slug}/downloads/files/specimens/{specimen_name}",
         "portableGuide": f"/{slug}/downloads/files/{slug}-portable-guidelines.html",
+        "guidelinesPath": f"/{slug}/guidelines/",
+        "kitArchive": f"/{slug}/downloads/{archive_filename}",
+        "kitArchiveFilename": archive_filename,
         "ownership": aff["ownership"],
         "showcase": aff["showcase"],
         "inheritance": aff["inheritance"],
@@ -533,7 +553,6 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "endorsement": aff["endorsement"],
         "serviceCredit": aff["service_credit"],
         "vendorBoundary": boundary["notice"] if boundary else None,
-        "vendorBoundarySummary": "Independent third-party project. Full vendor and trademark notice on brand page." if boundary else None,
     }
     surface = showcase_surface(brand)
     if surface is not None:

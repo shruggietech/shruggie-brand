@@ -13,7 +13,7 @@ from typing import Dict, Iterable, Mapping, Optional
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PRODUCTION = ("shruggietech", "fragcap", "go-schedule", "glitchpad", "covarity")
+PRODUCTION = ("shruggietech", "fragcap", "go-schedule", "glitchpad", "covarity", "eso-weave")
 LICENSES = ("LICENSE", "NOTICE", "LICENSE-BRAND.md")
 REQUIRED_HISTORY = {
     "1.1.0": ("glyph construction", "portability tiers", "chart", "generators", "Apache-2.0"),
@@ -274,6 +274,8 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                 value = archive.read(name)
             except KeyError:
                 raise ValueError("%s manifest path is missing: %s" % (path.name, name))
+            if not value:
+                raise ValueError("%s manifest path is unexpectedly empty: %s" % (path.name, name))
             if len(value) != item.get("bytes"):
                 raise ValueError("%s byte count mismatch: %s" % (path.name, name))
             if hashlib.sha256(value).hexdigest() != item.get("sha256"):

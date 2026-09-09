@@ -6,6 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added deterministic, manifest-certified complete brand-kit downloads for all six public production brands, with staged verification and atomic publication shared by release and static-site builds.
 - Added the independent ESO Weave production brand kit and public showcase for issue #153, with byte-preserved authoritative SVG sources, fixed Inter typography, approved lockups and single-ink derivatives, complete provenance evidence, native platform assets, guidelines, UI specimen, and vendor-safe public metadata.
 - Added generated portal payloads, canonical multi-page brand guideline routes, focused topic navigation, compact HEX-first color references, purpose-led asset libraries, rendered platform instructions, and portable offline guide downloads for issues #157 through #161.
 - Added manifest-derived guideline asset catalogs, copyable governed color references, scoped dark/light specimens, compact section navigation, and progressive back-to-top behavior for issues #147, #148, and #149.
@@ -16,6 +17,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-09, replaced implicit homepage card navigation with explicit Guidelines and Download Kit actions, native compact mobile disclosures, stable desktop geometry, and one generated shared third-party notice for issues #173 and #174.
 - On 2026-09-08, made the six shared footer destinations an explicit ordered policy, preserving Company as same-tab while limiting safe separate-context navigation to Download the skill, Source, and License.
 - On 2026-09-08, established one bounded, clipped media viewport for guideline logo examples and asset-library previews, with measured centering and divider containment across all production brands, themes, responsive widths, and 200 percent zoom.
 - On 2026-09-07, bound Gate 1 approval to a canonical digest of every derivative-producing brand setting and required its scope to cover all five derivative families.

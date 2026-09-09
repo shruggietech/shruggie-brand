@@ -6,6 +6,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { inflateSync } from 'node:zlib';
 import { downloadFiles, htmlRoutes, iconFiles, iconRoutes, requiredFiles, routeRecords, tableRoutes, visualRoutes, visualThemes, visualWidths } from '../tests/site.test.mjs';
 import guidelinePortals from '../generated/guidelines.json' with { type: 'json' };
+import brands from '../generated/brands.json' with { type: 'json' };
 import { payloadFailures } from './payload-contract.mjs';
 import { isCanonicalRedirect, selectVerificationOrigin } from './verification-origin.mjs';
 
@@ -15,7 +16,7 @@ rmSync(visualRoot, { recursive: true, force: true });
 mkdirSync(visualRoot, { recursive: true });
 const routeByPath = new Map(routeRecords.map((route) => [route.pathname, route]));
 const portalBySlug = new Map(guidelinePortals.map((portal) => [portal.brand.slug, portal]));
-const types = { '.css': 'text/css', '.html': 'text/html', '.ico': 'image/x-icon', '.json': 'application/json', '.pdf': 'application/pdf', '.png': 'image/png', '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.woff2': 'font/woff2' };
+const types = { '.css': 'text/css', '.html': 'text/html', '.ico': 'image/x-icon', '.json': 'application/json', '.pdf': 'application/pdf', '.png': 'image/png', '.svg': 'image/svg+xml', '.txt': 'text/plain', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.woff2': 'font/woff2', '.zip': 'application/zip' };
 function diskPath(url) {
   const pathname = decodeURIComponent(new URL(url, 'http://local').pathname);
   const safe = normalize(pathname).replace(/^([/\\])+/, '');
@@ -320,13 +321,18 @@ try {
   const portfolioAction = page.locator('.hero-portfolio-link');
   const portfolioSpacing = await portfolioAction.evaluate((element) => { const previous = element.previousElementSibling; const link = element.getBoundingClientRect(); const prior = previous?.getBoundingClientRect(); const cue = element.querySelector('[aria-hidden="true"]'); const cueBox = cue?.getBoundingClientRect(); return { gap: prior ? link.top - prior.bottom : 0, linkCenter: link.top + link.height / 2, cueCenter: cueBox ? cueBox.top + cueBox.height / 2 : 0, cue: cue?.textContent, hidden: cue?.getAttribute('aria-hidden') }; });
   check(portfolioSpacing.gap >= 20 && Math.abs(portfolioSpacing.linkCenter - portfolioSpacing.cueCenter) <= 1 && portfolioSpacing.cue === '↓' && portfolioSpacing.hidden === 'true', `homepage portfolio supporting action spacing or cue alignment failed (${JSON.stringify(portfolioSpacing)})`);
-  check(await page.locator('.brand-card').count() === 6, 'homepage must show exactly the six production brand cards');
-  check(await page.locator('.brand-icon img').count() === 6, 'every brand card must include an icon');
-  const esoCard = page.locator('.brand-card', { hasText: 'ESO Weave' });
-  check((await esoCard.locator('.vendor-boundary').textContent()) === 'Independent third-party project. Full vendor and trademark notice on brand page.', 'ESO Weave showcase card omits its third-party status and stable notice reference');
-  const measurePortfolioIcons = async (label) => {
-    for (const card of await page.locator('.brand-card').all()) {
-      const title = await card.locator('h3').textContent();
+  check(await page.locator('.brand-card').count() === 6, 'homepage must render exactly six desktop brand cards');
+  check(await page.locator('.brand-accordion').count() === 6, 'homepage must render exactly six mobile brand disclosures');
+  check(await page.locator('.brand-card a').count() === 12, 'desktop cards must expose exactly two actions per brand');
+  check(await page.locator('.portfolio-vendor-notice').count() === 1, 'portfolio must render exactly one shared third-party notice');
+  check(await page.locator('.vendor-boundary').count() === 0, 'portfolio must not repeat card-level vendor notices');
+  const applicableBrands = new Set((await page.locator('.brand-card .vendor-marker').evaluateAll((markers) => markers.map((marker) => marker.closest('.brand-card')?.querySelector('h3')?.textContent?.replace(' Independent third-party project', '').replace('*', '').trim()))).filter(Boolean));
+  check(JSON.stringify([...applicableBrands].sort()) === JSON.stringify(brands.filter((brand) => brand.vendorBoundary).map((brand) => brand.title).sort()), `portfolio vendor markers differ from generated applicability (${JSON.stringify([...applicableBrands])})`);
+  const sharedNoticeText = await page.locator('.portfolio-vendor-notice').innerText();
+  for (const notice of [...new Set(brands.flatMap((brand) => brand.vendorBoundary ? [brand.vendorBoundary] : []))]) check(sharedNoticeText.includes(notice), 'shared third-party notice does not preserve generated wording');
+  const measurePortfolioIcons = async (selector, label) => {
+    for (const card of await page.locator(selector).all()) {
+      const title = await card.locator(selector === '.brand-card' ? 'h3' : '.mobile-brand-title').textContent();
       const wrapper = await card.locator('.brand-icon').boundingBox();
       const image = await card.locator('.brand-icon img').boundingBox();
       check(Boolean(wrapper && image), `${title} ${label} icon lacks measurable bounds`);
@@ -338,9 +344,28 @@ try {
       check(Math.abs((image.y - wrapper.y) - (wrapper.y + wrapper.height - image.y - image.height)) <= 0.5, `${title} ${label} icon has asymmetric vertical margins`);
     }
   };
-  await measurePortfolioIcons('desktop');
+  await measurePortfolioIcons('.brand-card', 'desktop');
+  for (const [index, card] of (await page.locator('.brand-card').all()).entries()) {
+    check(await card.evaluate((element) => element.tagName === 'ARTICLE' && !element.hasAttribute('href')), `${brands[index].slug} desktop card is an implicit navigation target`);
+    const before = await card.boundingBox();
+    const links = await card.locator('.brand-actions a').evaluateAll((anchors) => anchors.map((anchor) => ({ label: anchor.textContent?.trim(), href: anchor.getAttribute('href'), download: anchor.getAttribute('download') })));
+    check(JSON.stringify(links) === JSON.stringify([
+      { label: 'Guidelines', href: brands[index].guidelinesPath, download: null },
+      { label: 'Download Kit', href: brands[index].kitArchive, download: brands[index].kitArchiveFilename },
+    ]), `${brands[index].slug} desktop actions differ from generated destinations (${JSON.stringify(links)})`);
+    await card.hover();
+    await page.waitForTimeout(200);
+    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity) === '1', `${brands[index].slug} desktop actions do not remain revealed on hover`);
+    const hovered = await card.boundingBox();
+    await card.locator('.brand-actions a').first().focus();
+    const focused = await card.boundingBox();
+    check(Boolean(before && hovered && focused && Math.abs(before.width - hovered.width) <= .5 && Math.abs(before.height - hovered.height) <= .5 && Math.abs(before.width - focused.width) <= .5 && Math.abs(before.height - focused.height) <= .5), `${brands[index].slug} card geometry changes across interaction states`);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity) === '0' && await card.locator('.brand-card-description').evaluate((element) => getComputedStyle(element).opacity) === '1', `${brands[index].slug} action panel is not dismissible with Escape`);
+  }
   const glitchpadCard = page.locator('.brand-card', { hasText: 'Glitchpad' });
-  const glitchpadCardStyle = await glitchpadCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector(':scope > p')).color, surface: element.getAttribute('data-showcase-surface'), shadow: getComputedStyle(element.querySelector('.brand-icon')).boxShadow }));
+  const glitchpadCardStyle = await glitchpadCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-showcase-surface'), shadow: getComputedStyle(element.querySelector('.brand-icon')).boxShadow }));
   check(glitchpadCardStyle.surface === 'governed' && glitchpadCardStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadCardStyle.backgroundImage === 'none', `Glitchpad card does not use its governed charcoal surface (${JSON.stringify(glitchpadCardStyle)})`);
   check(glitchpadCardStyle.foreground === 'rgb(255, 255, 255)' && glitchpadCardStyle.bodyForeground === 'rgb(255, 255, 255)', `Glitchpad card does not use its generated contrast foreground (${JSON.stringify(glitchpadCardStyle)})`);
   check(glitchpadCardStyle.shadow === 'none', `Glitchpad card retains an accent showcase glow (${glitchpadCardStyle.shadow})`);
@@ -356,9 +381,24 @@ try {
   const desktopLinks = await visibleHeaderLinks();
   check(JSON.stringify(desktopLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Company', href: 'https://shruggie.tech/' }, { text: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest' }]), `desktop landing navigation differs from the approved order (${JSON.stringify(desktopLinks)})`);
   await page.setViewportSize({ width: 360, height: 900 });
-  await measurePortfolioIcons('mobile');
+  check(await page.locator('.brand-grid-desktop').evaluate((element) => getComputedStyle(element).display) === 'none', 'desktop card grid remains exposed at the mobile breakpoint');
+  check(await page.locator('.brand-accordion-list').evaluate((element) => getComputedStyle(element).display) === 'block', 'mobile disclosures are not exposed at the mobile breakpoint');
+  for (const [index, disclosure] of (await page.locator('.brand-accordion').all()).entries()) {
+    check(!(await disclosure.evaluate((element) => element.open)), `${brands[index].slug} mobile disclosure does not begin collapsed`);
+    check(!(await disclosure.locator('.brand-actions a').first().isVisible()), `${brands[index].slug} collapsed disclosure exposes hidden actions`);
+    const summary = disclosure.locator('summary');
+    const summaryBox = await summary.boundingBox();
+    check(Boolean(summaryBox && summaryBox.width >= 44 && summaryBox.height >= 44), `${brands[index].slug} disclosure target is smaller than 44 by 44 CSS pixels`);
+  }
+  const firstDisclosure = page.locator('.brand-accordion').first();
+  await firstDisclosure.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  check(await firstDisclosure.evaluate((element) => element.open), 'keyboard activation does not expand a mobile disclosure');
+  check(await firstDisclosure.locator('.brand-actions a').count() === 2 && await firstDisclosure.locator('.brand-actions a').first().isVisible(), 'expanded mobile disclosure lacks both visible actions');
+  await measurePortfolioIcons('.brand-accordion', 'mobile');
   await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
-  await measurePortfolioIcons('200-percent zoom');
+  await measurePortfolioIcons('.brand-accordion', '200-percent zoom');
+  check(await firstDisclosure.evaluate((element) => element.scrollWidth <= element.clientWidth + 2), 'expanded mobile disclosure clips horizontally at 200 percent zoom');
   await page.evaluate(() => { document.documentElement.style.zoom = ''; });
   await page.getByRole('button', { name: 'Toggle Menu' }).click();
   const mobileLinks = await visibleHeaderLinks();
@@ -507,14 +547,24 @@ try {
       }
     }
   }
-  const noScriptContext = await browser.newContext({ viewport: { width: 360, height: 900 }, javaScriptEnabled: false });
+  const noScriptContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });
   const noScriptPage = await noScriptContext.newPage();
+  await noScriptPage.goto(base + '/');
+  check(await noScriptPage.locator('.brand-card a').count() === 12 && await noScriptPage.locator('.brand-card a').first().isVisible() && await noScriptPage.locator('.brand-accordion summary').count() === 6, 'no-script homepage does not retain visible guidelines, downloads, and disclosures');
   await noScriptPage.goto(base + '/glitchpad/guidelines/assets/');
   check(await noScriptPage.locator('.guide-noscript-nav a').count() === 8, 'no-script guideline fallback does not expose all topic routes');
   check(await noScriptPage.locator('.guide-noscript-nav a[aria-current="page"]').count() === 1, 'no-script guideline fallback does not identify the current topic');
   check(await noScriptPage.locator('.asset-tile').count() > 0 && await noScriptPage.locator('.resource-list a[data-kit-asset]').count() > 0, 'no-script asset route does not retain complete server-rendered browsing and downloads');
   check((await noScriptPage.locator('body').innerText()).includes('Search and filters require JavaScript'), 'no-script asset route does not explain its progressive enhancement boundary');
   await noScriptContext.close();
+  const touchContext = await browser.newContext({ viewport: { width: 1024, height: 900 }, hasTouch: true });
+  const touchPage = await touchContext.newPage();
+  await touchPage.goto(base + '/');
+  check(await touchPage.locator('.brand-grid-desktop').evaluate((element) => getComputedStyle(element).display) === 'none', 'wide touch-only viewport exposes hover-dependent desktop cards');
+  check(await touchPage.locator('.brand-accordion-list').evaluate((element) => getComputedStyle(element).display) === 'block', 'wide touch-only viewport does not expose native disclosures');
+  await touchPage.locator('.brand-accordion summary').first().tap();
+  check(await touchPage.locator('.brand-accordion').first().locator('.brand-actions a').first().isVisible(), 'wide touch-only disclosure does not reveal its actions');
+  await touchContext.close();
   const sitemapResponse = await page.request.get(base + '/sitemap.xml');
   check(sitemapResponse.ok(), 'sitemap.xml cannot be fetched');
   if (sitemapResponse.ok()) {
@@ -682,7 +732,7 @@ try {
   const textLink = page.locator('.hero .text-action');
   const linkBackground = await textLink.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, decoration: getComputedStyle(element).textDecorationLine, height: element.getBoundingClientRect().height, cue: element.querySelector('[aria-hidden="true"]')?.textContent }));
   check(linkBackground.image === 'none' && linkBackground.decoration === 'none' && linkBackground.height >= 44 && linkBackground.cue === '↓', `landing text action violates its semantic treatment (${JSON.stringify(linkBackground)})`);
-  for (const selector of ['.hero .button', '.brand-card', '.header-identity', '.site-footer a']) check(await page.locator(selector).first().evaluate((element) => getComputedStyle(element).textDecorationLine) === 'none', `${selector} inherits an ordinary-link underline`);
+  for (const selector of ['.hero .button', '.brand-card a', '.header-identity', '.site-footer a']) check(await page.locator(selector).first().evaluate((element) => getComputedStyle(element).textDecorationLine) === 'none', `${selector} inherits an ordinary-link underline`);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await textLink.hover();
   const reducedStyle = await textLink.evaluate((element) => ({ duration: getComputedStyle(element).transitionDuration, decoration: getComputedStyle(element).textDecorationLine, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }));
@@ -692,7 +742,7 @@ try {
   const glitchpadHeroStyle = await page.locator('.brand-logo').evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
   check(glitchpadHeroStyle.surface === 'governed' && glitchpadHeroStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadHeroStyle.backgroundImage === 'none', `Glitchpad hero does not use its governed charcoal surface (${JSON.stringify(glitchpadHeroStyle)})`);
   await page.goto(base + '/');
-  for (const card of await page.locator('.brand-card').all()) { const box = await card.boundingBox(); check(Boolean(box && box.width >= 44 && box.height >= 44), 'portfolio card target is smaller than 44 by 44 CSS pixels'); }
+  for (const action of await page.locator('.brand-card a').all()) { const box = await action.boundingBox(); check(Boolean(box && box.width >= 44 && box.height >= 44), 'portfolio action target is smaller than 44 by 44 CSS pixels'); }
   for (const file of [...requiredFiles, ...downloadFiles]) {
     const response = await page.request.get(base + file);
     check(response.ok(), `${file} is missing from the export`);
