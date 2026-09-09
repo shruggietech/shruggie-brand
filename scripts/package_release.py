@@ -9,14 +9,19 @@ import shutil
 import zipfile
 from pathlib import Path
 
-from release_contract import current_version, load_metadata, verify_release_directory
+from release_contract import (
+    LICENSES,
+    PRODUCTION,
+    current_version,
+    load_metadata,
+    verify_brand_archive,
+    verify_release_directory,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "skill"
 OUTPUT = ROOT / "release"
-PRODUCTION = ("shruggietech", "fragcap", "go-schedule", "glitchpad", "covarity")
-LICENSES = ("LICENSE", "NOTICE", "LICENSE-BRAND.md")
 ZIP_TIME = (2026, 9, 3, 0, 0, 0)
 
 
@@ -45,6 +50,60 @@ def assert_licenses(path: Path) -> None:
 
 def resolve_version(root: Path, requested: str | None) -> str:
     return requested if requested is not None else current_version(root)
+
+
+def write_brand_archive(
+    source: Path,
+    archive_path: Path,
+    *,
+    root: Path = ROOT,
+    expected_canon: str | None = None,
+) -> Path:
+    """Write and certify a complete brand archive before atomically publishing it."""
+    source = source.resolve()
+    archive_path = archive_path.resolve()
+    if not source.is_dir():
+        raise ValueError(f"missing built kit: {source.name}")
+    brand_path = source / "brand.json"
+    if not brand_path.is_file():
+        raise ValueError(f"missing built kit metadata: {source.name}")
+    brand = json.loads(brand_path.read_text(encoding="utf-8"))
+    slug = brand.get("slug")
+    version = brand.get("version")
+    if slug != source.name or not isinstance(version, str) or not version:
+        raise ValueError(f"built kit identity does not match source directory: {source.name}")
+    expected_name = f"{slug}-brand-{version}.zip"
+    if archive_path.name != expected_name:
+        raise ValueError(f"brand archive filename must be {expected_name}")
+    try:
+        archive_path.relative_to(source)
+    except ValueError:
+        pass
+    else:
+        raise ValueError("brand archive destination must be outside its source kit")
+
+    archive_path.parent.mkdir(parents=True, exist_ok=True)
+    staged = archive_path.with_name(f".{archive_path.name}.tmp")
+    staged.unlink(missing_ok=True)
+    try:
+        with zipfile.ZipFile(staged, "w") as archive:
+            add_tree(archive, source)
+            existing = set(archive.namelist())
+            for name in LICENSES:
+                if name not in existing:
+                    add_bytes(archive, name, (root / name).read_bytes())
+        verify_brand_archive(
+            staged,
+            slug,
+            version,
+            expected_canon=expected_canon,
+            root=root,
+        )
+        staged.replace(archive_path)
+    except Exception:
+        staged.unlink(missing_ok=True)
+        raise
+    return archive_path
 
 
 def main() -> int:
@@ -76,18 +135,13 @@ def main() -> int:
 
     for slug in PRODUCTION:
         source = ROOT / "dist" / slug
-        if not (source / "brand.json").is_file():
-            raise ValueError(f"missing built kit: {slug}")
-        if not (source / "brand-guide.pdf").is_file():
-            raise ValueError(f"missing required brand guide PDF: {slug}")
         brand = json.loads((source / "brand.json").read_text(encoding="utf-8"))
         archive_path = OUTPUT / f"{slug}-brand-{brand['version']}.zip"
-        with zipfile.ZipFile(archive_path, "w") as archive:
-            add_tree(archive, source)
-            for name in LICENSES:
-                if name not in archive.namelist():
-                    add_bytes(archive, name, (ROOT / name).read_bytes())
-        assert_licenses(archive_path)
+        write_brand_archive(
+            source,
+            archive_path,
+            expected_canon=str(metadata["canon_version"]),
+        )
 
     for path in (skill_bundle, portable):
         assert_licenses(path)

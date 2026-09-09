@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from PIL import Image
 
@@ -44,6 +45,7 @@ class PrepareSiteTests(unittest.TestCase):
             public.mkdir()
             original_public = prepare_site.PUBLIC
             prepare_site.PUBLIC = public
+            archive_writer = mock.patch.object(prepare_site, "write_brand_archive").start()
             try:
                 brand = {
                     "slug": "alpha", "title": "Alpha", "kind": "sub-brand",
@@ -55,6 +57,9 @@ class PrepareSiteTests(unittest.TestCase):
                 record = prepare_site.copy_kit(source, brand)
                 self.assertNotIn("showcaseSurface", record)
                 self.assertNotIn("showcaseForeground", record)
+                self.assertEqual("/alpha/guidelines/", record["guidelinesPath"])
+                self.assertEqual("/alpha/downloads/alpha-brand-1.0.0.zip", record["kitArchive"])
+                self.assertEqual("alpha-brand-1.0.0.zip", record["kitArchiveFilename"])
                 brand["showcase_surface"] = "card"
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual("#121416", record["showcaseSurface"])
@@ -65,8 +70,10 @@ class PrepareSiteTests(unittest.TestCase):
                 brand["vendor_boundary"] = {"required": True, "notice": "Acme is independent. Users are responsible.", "entities": ["Acme"], "trademark_owner": "Acme", "terms_responsibility": "Users are responsible."}
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual(brand["vendor_boundary"]["notice"], record["vendorBoundary"])
-                self.assertIn("notice on brand page", record["vendorBoundarySummary"])
+                self.assertNotIn("vendorBoundarySummary", record)
+                self.assertEqual(4, archive_writer.call_count)
             finally:
+                mock.patch.stopall()
                 prepare_site.PUBLIC = original_public
 
     def test_showcase_permission_is_independent_and_fail_closed(self):

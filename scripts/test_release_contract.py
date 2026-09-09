@@ -98,6 +98,7 @@ class ReleaseContractTests(unittest.TestCase):
             "go-schedule-brand-1.0.0.zip",
             "glitchpad-brand-1.1.0.zip",
             "covarity-brand-1.0.0.zip",
+            "eso-weave-brand-1.0.0.zip",
         })
         self.assertEqual(
             {slug: values["version"] for slug, values in metadata["brands"].items()},
@@ -107,6 +108,7 @@ class ReleaseContractTests(unittest.TestCase):
                 "go-schedule": "1.0.0",
                 "glitchpad": "1.1.0",
                 "covarity": "1.0.0",
+                "eso-weave": "1.0.0",
             },
         )
 
@@ -229,6 +231,22 @@ class ReleaseContractTests(unittest.TestCase):
             write_zip(path, entries)
 
             with self.assertRaisesRegex(ValueError, "checksum mismatch.*qc/contact-sheet.png"):
+                release_contract.verify_brand_archive(
+                    path, "fragcap", "1.1.0", expected_canon="1.1.2"
+                )
+
+    def test_production_archive_rejects_recorded_empty_delivery(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            entries = brand_archive_entries(
+                extra_entries={"logos/empty.svg": b""},
+                recorded_entries=(
+                    "brand.json", "VERIFY.md", "brand-guide.pdf", "logos/empty.svg",
+                ),
+            )
+            write_zip(path, entries)
+
+            with self.assertRaisesRegex(ValueError, "unexpectedly empty.*logos/empty.svg"):
                 release_contract.verify_brand_archive(
                     path, "fragcap", "1.1.0", expected_canon="1.1.2"
                 )

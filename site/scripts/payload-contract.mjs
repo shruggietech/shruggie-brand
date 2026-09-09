@@ -9,6 +9,7 @@ const contentTypes = {
   '.txt': ['text/plain'],
   '.webmanifest': ['application/manifest+json', 'application/json'],
   '.xml': ['application/xml', 'text/xml'],
+  '.zip': ['application/zip'],
 };
 
 function decodeUtf8(body) {
@@ -58,6 +59,8 @@ export function payloadFailures(pathname, rawContentType, rawBody) {
     } else if (extension === '.xml') {
       const text = decodeUtf8(body).trim();
       if (!/<urlset(?:\s|>)/i.test(text) || !/<\/urlset>\s*$/i.test(text) || /<html(?:\s|>)/i.test(text)) failures.push('is not a complete XML urlset document');
+    } else if (extension === '.zip') {
+      if (body.length < 22 || !body.subarray(0, 4).equals(Buffer.from([80, 75, 3, 4])) || !body.subarray(-65557).includes(Buffer.from([80, 75, 5, 6]))) failures.push('lacks a valid ZIP signature and end record');
     } else if (extension === '.txt') {
       const text = decodeUtf8(body);
       if (!/^User-agent:/im.test(text) || !/^Sitemap:\s+https:\/\//im.test(text)) failures.push('does not contain the required robots directives');

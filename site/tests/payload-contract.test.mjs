@@ -9,6 +9,7 @@ ico.set([0, 0, 1, 0, 1, 0, 1, 1], 0);
 ico.writeUInt32LE(1, 14);
 ico.writeUInt32LE(22, 18);
 ico[22] = 1;
+const zip = Buffer.concat([Buffer.from([80, 75, 3, 4]), Buffer.alloc(18), Buffer.from([80, 75, 5, 6]), Buffer.alloc(18)]);
 
 test('accepts valid supported payload types and content types', () => {
   const cases = [
@@ -20,6 +21,7 @@ test('accepts valid supported payload types and content types', () => {
     ['/site.webmanifest', 'application/manifest+json; charset=utf-8', Buffer.from('{"icons":[]}')],
     ['/sitemap.xml', 'application/xml', Buffer.from('<?xml version="1.0"?><urlset></urlset>')],
     ['/robots.txt', 'text/plain; charset=utf-8', Buffer.from('User-agent: *\nSitemap: https://example.test/sitemap.xml\n')],
+    ['/kit.zip', 'application/zip', zip],
   ];
 
   for (const [path, type, body] of cases) {
@@ -42,6 +44,7 @@ test('rejects malformed structured and binary payloads', () => {
   assert.match(payloadFailures('/logo.svg', 'image/svg+xml', Buffer.from('<html></html>')).join('\n'), /SVG document/);
   assert.match(payloadFailures('/preview.png', 'image/png', Buffer.from('not png')).join('\n'), /PNG signature/);
   assert.match(payloadFailures('/favicon.ico', 'image/vnd.microsoft.icon', Buffer.from('not ico')).join('\n'), /ICO signature/);
+  assert.match(payloadFailures('/kit.zip', 'application/zip', Buffer.from('not zip')).join('\n'), /ZIP signature/);
 });
 
 test('rejects unsupported file types', () => {
