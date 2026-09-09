@@ -1,9 +1,8 @@
 import Link from 'next/link';
 
 const footerLinks = [
-  { label: 'Brands', href: '/', kind: 'internal' },
   { label: 'Documentation', href: '/docs', kind: 'internal' },
-  { label: 'Download the skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', kind: 'new-tab' },
+  { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', kind: 'new-tab' },
   { label: 'Company', href: 'https://shruggie.tech/', kind: 'same-tab' },
   { label: 'Source', href: 'https://github.com/ShruggieTech/shruggie-brand', kind: 'new-tab' },
   { label: 'License', href: 'https://github.com/ShruggieTech/shruggie-brand/blob/main/LICENSE', kind: 'new-tab' },

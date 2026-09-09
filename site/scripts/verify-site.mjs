@@ -86,6 +86,11 @@ function themeControlProblems(sample) {
 }
 check(themeControlProblems({ disabled: false, cursor: 'pointer', role: 'button', name: 'Toggle Theme', width: 62, height: 44 }).length === 0, 'theme helper rejects a valid enabled control');
 check(themeControlProblems({ disabled: true, cursor: 'pointer', role: 'button', name: '', width: 30, height: 30 }).length === 3, 'theme helper accepts incorrect disabled cursor, missing semantics, or undersized target');
+function geometryProblems(reference, sample, fields = ['left', 'right', 'width', 'center'], tolerance = 1) {
+  return fields.filter((field) => Math.abs(reference[field] - sample[field]) > tolerance).map((field) => `${field} drifted by ${Math.abs(reference[field] - sample[field]).toFixed(2)} CSS pixels`);
+}
+check(geometryProblems({ left: 10, right: 110, width: 100, center: 60 }, { left: 10.5, right: 110.5, width: 100, center: 60.5 }).length === 0, 'geometry helper rejects raster-rounding tolerance');
+check(geometryProblems({ left: 10, right: 110, width: 100, center: 60 }, { left: 13, right: 113, width: 100, center: 63 }).length === 3, 'geometry helper accepts visible horizontal drift');
 function paeth(left, above, upperLeft) {
   const estimate = left + above - upperLeft;
   const dl = Math.abs(estimate - left); const da = Math.abs(estimate - above); const du = Math.abs(estimate - upperLeft);
@@ -155,9 +160,8 @@ try {
     await page.goto(base + route);
     const links = await page.locator('.site-footer nav a').evaluateAll((elements) => elements.map((element) => ({ label: element.textContent?.trim(), href: element.getAttribute('href'), target: element.getAttribute('target'), rel: element.getAttribute('rel') })));
     const expected = [
-      { label: 'Brands', href: '/', target: null, rel: null },
       { label: 'Documentation', href: '/docs/', target: null, rel: null },
-      { label: 'Download the skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', target: '_blank', rel: 'noopener noreferrer' },
+      { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', target: '_blank', rel: 'noopener noreferrer' },
       { label: 'Company', href: 'https://shruggie.tech/', target: null, rel: null },
       { label: 'Source', href: 'https://github.com/ShruggieTech/shruggie-brand', target: '_blank', rel: 'noopener noreferrer' },
       { label: 'License', href: 'https://github.com/ShruggieTech/shruggie-brand/blob/main/LICENSE', target: '_blank', rel: 'noopener noreferrer' },
@@ -180,6 +184,99 @@ try {
     }
     await page.evaluate(() => scrollTo(0, 0));
   };
+  const verifyNavigation = async (route, includeDocumentation) => {
+    const isDocs = route.startsWith('/docs/');
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(base + route);
+    const expected = [
+      ...(includeDocumentation ? [{ label: 'Documentation', href: '/docs/' }] : []),
+      { label: 'Company', href: 'https://shruggie.tech/' },
+      { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest' },
+    ];
+    for (const record of expected) {
+      const link = page.locator(isDocs ? '#nd-sidebar a:visible' : '#nd-nav a:visible').filter({ hasText: new RegExp(`^${record.label}$`) });
+      check(await link.count() === 1, `${route} desktop navigation lacks exactly one visible ${record.label} link`);
+      if (await link.count() !== 1) continue;
+      check(await link.getAttribute('href') === record.href, `${route} ${record.label} destination is not canonical`);
+      const linkBox = await link.boundingBox();
+      check(Boolean(linkBox && linkBox.width >= 44 && linkBox.height >= 44), `${route} desktop ${record.label} target is smaller than 44 by 44 CSS pixels`);
+      if (record.label !== 'Documentation') {
+        const rel = (await link.getAttribute('rel') ?? '').split(/\s+/);
+        check(await link.getAttribute('target') === '_blank' && rel.includes('noopener') && rel.includes('noreferrer'), `${route} ${record.label} lacks safe external navigation behavior`);
+      }
+    }
+    await page.setViewportSize({ width: 360, height: 800 });
+    await page.reload({ waitUntil: 'networkidle' });
+    const toggle = page.getByRole('button', { name: isDocs ? 'Open Sidebar' : 'Toggle Menu' });
+    check(await toggle.count() === 1, `${route} lacks an accessible mobile menu control`);
+    if (await toggle.count() === 1) await toggle.click();
+    for (const record of expected.filter(({ label }) => label !== 'Documentation')) {
+      const link = page.locator(isDocs ? '#nd-sidebar-mobile a:visible' : '#nd-nav a:visible').filter({ hasText: new RegExp(`^${record.label}$`) });
+      check(await link.count() === 1, `${route} mobile navigation lacks exactly one visible ${record.label} link`);
+      if (await link.count() !== 1) continue;
+      const rel = (await link.getAttribute('rel') ?? '').split(/\s+/);
+      check(await link.getAttribute('href') === record.href && await link.getAttribute('target') === '_blank' && rel.includes('noopener') && rel.includes('noreferrer'), `${route} mobile ${record.label} policy differs from desktop`);
+      const linkBox = await link.boundingBox();
+      check(Boolean(linkBox && linkBox.width >= 44 && linkBox.height >= 44), `${route} mobile ${record.label} target is smaller than 44 by 44 CSS pixels`);
+    }
+  };
+  const box = async (targetPage, selector) => {
+    const measured = await targetPage.locator(selector).first().evaluate((element) => { const rect = element.getBoundingClientRect(); return { left: rect.left, right: rect.right, width: rect.width, center: rect.left + rect.width / 2 }; });
+    return measured;
+  };
+  const namedBoxes = async (targetPage, selector) => targetPage.locator(selector).evaluateAll((elements) => Object.fromEntries(elements.map((element) => { const rect = element.getBoundingClientRect(); return [element.textContent?.trim(), { left: rect.left, right: rect.right, width: rect.width, center: rect.left + rect.width / 2 }]; })));
+  const settleTheme = async (targetPage, route, theme) => {
+    await targetPage.goto(base + route);
+    await targetPage.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
+    await targetPage.reload({ waitUntil: 'networkidle' });
+  };
+  const verifyStableGeometry = async () => {
+    const downloadRoutes = routeRecords.filter((route) => route.kind === 'downloads').map((route) => route.pathname);
+    for (const scale of [1, 2]) {
+      const geometryContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: scale });
+      const geometryPage = await geometryContext.newPage();
+      for (const theme of visualThemes) {
+        await settleTheme(geometryPage, '/', theme);
+        const gutter = await geometryPage.locator('html').evaluate((element) => getComputedStyle(element).scrollbarGutter);
+        check(gutter.includes('stable'), `shared document shell lacks stable scrollbar allocation at scale ${scale}`);
+        const headerReference = await box(geometryPage, '#nd-nav nav');
+        const logoReference = await box(geometryPage, '.header-logo:visible');
+        const shellReference = await box(geometryPage, '.shell');
+        const controlReferences = await namedBoxes(geometryPage, '#nd-nav nav a:visible');
+        for (const route of downloadRoutes) {
+          await settleTheme(geometryPage, route, theme);
+          for (const problem of geometryProblems(headerReference, await box(geometryPage, '#nd-nav nav'))) failures.push(`${route} ${theme} scale ${scale} header ${problem}`);
+          for (const problem of geometryProblems(logoReference, await box(geometryPage, '.header-logo:visible'), ['left', 'right', 'width', 'center'])) failures.push(`${route} ${theme} scale ${scale} logo ${problem}`);
+          for (const problem of geometryProblems(shellReference, await box(geometryPage, '.shell'))) failures.push(`${route} ${theme} scale ${scale} content shell ${problem}`);
+          const controls = await namedBoxes(geometryPage, '#nd-nav nav a:visible');
+          for (const [label, reference] of Object.entries(controlReferences)) for (const problem of geometryProblems(reference, controls[label])) failures.push(`${route} ${theme} scale ${scale} ${label} control ${problem}`);
+        }
+        await settleTheme(geometryPage, '/docs/', theme);
+        const docsShellReference = await box(geometryPage, '#nd-docs-layout');
+        const docsPageReference = await box(geometryPage, '.docs-page');
+        const docsSidebarReference = await box(geometryPage, '#nd-sidebar');
+        const placeholderWidth = await geometryPage.locator('#nd-docs-layout').evaluate((element) => getComputedStyle(element).getPropertyValue('--fd-toc-width').trim());
+        check(placeholderWidth === '268px', `/docs/ ${theme} scale ${scale} does not reserve the desktop TOC track (${placeholderWidth})`);
+        for (const route of ['/docs/04-toolchain/', '/docs/09-portability/']) {
+          await settleTheme(geometryPage, route, theme);
+          for (const problem of geometryProblems(docsShellReference, await box(geometryPage, '#nd-docs-layout'))) failures.push(`${route} ${theme} scale ${scale} docs shell ${problem}`);
+          for (const problem of geometryProblems(docsPageReference, await box(geometryPage, '.docs-page'), ['left', 'width', 'center'])) failures.push(`${route} ${theme} scale ${scale} docs page ${problem}`);
+          for (const problem of geometryProblems(docsSidebarReference, await box(geometryPage, '#nd-sidebar'))) failures.push(`${route} ${theme} scale ${scale} docs navigation ${problem}`);
+          const toc = geometryPage.locator('#nd-toc:visible');
+          check(await toc.count() === 1 && await toc.evaluate((element) => getComputedStyle(element).position === 'sticky'), `${route} ${theme} scale ${scale} lacks a usable sticky desktop TOC`);
+        }
+      }
+      for (const viewport of [{ width: 1280, height: 900 }, { width: 360, height: 800 }, { width: 640, height: 450 }]) {
+        await geometryPage.setViewportSize(viewport);
+        for (const route of ['/', ...downloadRoutes, '/docs/', '/docs/04-toolchain/']) {
+          await geometryPage.goto(base + route);
+          const overflow = await geometryPage.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+          check(overflow <= 1, `${route} overflows horizontally by ${overflow}px at ${viewport.width}x${viewport.height} scale ${scale}`);
+        }
+      }
+      await geometryContext.close();
+    }
+  };
   const measurePagination = async (route, width, theme, forceWrap = false) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(base + route);
@@ -198,7 +295,23 @@ try {
     if (forceWrap) check(samples.some((sample) => sample && sample.labelLines > 1.5), `${route} ${theme} at ${width}px did not exercise a wrapped pagination label`);
   };
   await verifyFooter('/', true);
+  await verifyNavigation('/', true);
+  await verifyNavigation('/docs/04-toolchain/', false);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(base + '/');
   check(await page.locator('h1').textContent() === 'We build comprehensive brands', 'homepage headline does not match the approved wording');
+  const heroActions = await page.locator('.hero a').evaluateAll((elements) => elements.map((element) => ({ label: element.textContent?.trim(), href: element.getAttribute('href'), target: element.getAttribute('target'), rel: element.getAttribute('rel') })));
+  check(JSON.stringify(heroActions) === JSON.stringify([
+    { label: 'Documentation', href: '/docs/', target: null, rel: null },
+    { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', target: '_blank', rel: 'noopener noreferrer' },
+    { label: 'Explore Our Portfolio↓', href: '#portfolio', target: null, rel: null },
+  ]), `homepage hero action order or policy differs from the approved contract (${JSON.stringify(heroActions)})`);
+  check(await page.locator('#portfolio-heading').textContent() === 'Our Portfolio', 'homepage portfolio heading is not exact');
+  check((await page.locator('#portfolio .section-heading > p').textContent() ?? '').includes('identity spectrum'), 'homepage portfolio description omits identity spectrum');
+  check(await page.locator('.system-callout').count() === 0 && !(await page.locator('body').innerText()).includes('The system underneath'), 'homepage still emits the removed system callout');
+  const portfolioAction = page.locator('.hero-portfolio-link');
+  const portfolioSpacing = await portfolioAction.evaluate((element) => { const previous = element.previousElementSibling; const link = element.getBoundingClientRect(); const prior = previous?.getBoundingClientRect(); const cue = element.querySelector('[aria-hidden="true"]'); const cueBox = cue?.getBoundingClientRect(); return { gap: prior ? link.top - prior.bottom : 0, linkCenter: link.top + link.height / 2, cueCenter: cueBox ? cueBox.top + cueBox.height / 2 : 0, cue: cue?.textContent, hidden: cue?.getAttribute('aria-hidden') }; });
+  check(portfolioSpacing.gap >= 20 && Math.abs(portfolioSpacing.linkCenter - portfolioSpacing.cueCenter) <= 1 && portfolioSpacing.cue === '↓' && portfolioSpacing.hidden === 'true', `homepage portfolio supporting action spacing or cue alignment failed (${JSON.stringify(portfolioSpacing)})`);
   check(await page.locator('.brand-card').count() === 6, 'homepage must show exactly the six production brand cards');
   check(await page.locator('.brand-icon img').count() === 6, 'every brand card must include an icon');
   const esoCard = page.locator('.brand-card', { hasText: 'ESO Weave' });
@@ -231,9 +344,9 @@ try {
   }
   const homeText = (await page.locator('body').innerText()).toLowerCase();
   for (const rejected of ['a shruggietech project', 'skill 1.', 'canon', 'example brand', 'read the system']) check(!homeText.includes(rejected), `homepage contains retired wording: ${rejected}`);
-  const visibleHeaderLinks = async () => page.locator('a').evaluateAll((links) => links.filter((link) => { const rect = link.getBoundingClientRect(); return ['Documentation', 'Download the Skill', 'View on GitHub', 'Portfolio'].includes(link.textContent?.trim()) && rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth; }).map((link) => ({ text: link.textContent?.trim(), href: new URL(link.href).pathname })));
+  const visibleHeaderLinks = async () => page.locator('#nd-nav a').evaluateAll((links) => links.filter((link) => { const rect = link.getBoundingClientRect(); return ['Documentation', 'Company', 'Download Skill', 'View on GitHub'].includes(link.textContent?.trim()) && rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth; }).map((link) => ({ text: link.textContent?.trim(), href: link.getAttribute('href') })));
   const desktopLinks = await visibleHeaderLinks();
-  check(JSON.stringify(desktopLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }]), `desktop landing navigation must expose only Documentation (${JSON.stringify(desktopLinks)})`);
+  check(JSON.stringify(desktopLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Company', href: 'https://shruggie.tech/' }, { text: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest' }]), `desktop landing navigation differs from the approved order (${JSON.stringify(desktopLinks)})`);
   await page.setViewportSize({ width: 360, height: 900 });
   await measurePortfolioIcons('mobile');
   await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
@@ -241,8 +354,8 @@ try {
   await page.evaluate(() => { document.documentElement.style.zoom = ''; });
   await page.getByRole('button', { name: 'Toggle Menu' }).click();
   const mobileLinks = await visibleHeaderLinks();
-  check(JSON.stringify(mobileLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Download the Skill', href: '/ShruggieTech/shruggie-brand/releases/latest' }, { text: 'View on GitHub', href: '/ShruggieTech/shruggie-brand' }]), `mobile landing menu must expose the three approved destinations in order (${JSON.stringify(mobileLinks)})`);
-  for (const link of await page.getByRole('link').filter({ hasText: /^(Documentation|Download the Skill|View on GitHub)$/ }).all()) { const box = await link.boundingBox(); if (box && box.y < 900) check(box.width >= 44 && box.height >= 44, `${await link.textContent()} mobile navigation target is smaller than 44 by 44 CSS pixels`); }
+  check(JSON.stringify(mobileLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Company', href: 'https://shruggie.tech/' }, { text: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest' }, { text: 'View on GitHub', href: 'https://github.com/ShruggieTech/shruggie-brand' }]), `mobile landing menu differs from the approved order (${JSON.stringify(mobileLinks)})`);
+  for (const link of await page.getByRole('link').filter({ hasText: /^(Documentation|Company|Download Skill|View on GitHub)$/ }).all()) { const box = await link.boundingBox(); if (box && box.y < 900) check(box.width >= 44 && box.height >= 44, `${await link.textContent()} mobile navigation target is smaller than 44 by 44 CSS pixels`); }
   await page.locator('a').filter({ hasText: /^Documentation$/ }).evaluateAll((links) => links.find((link) => { const rect = link.getBoundingClientRect(); return rect.bottom > 0 && rect.top < window.innerHeight; })?.focus());
   await page.keyboard.press('Escape');
   await page.waitForTimeout(100);
@@ -560,7 +673,7 @@ try {
   check(secondaryActionColor === primaryTokenColor, `secondary landing action does not use the generated accessible green token (${secondaryActionColor} != ${primaryTokenColor})`);
   const textLink = page.locator('.hero .text-action');
   const linkBackground = await textLink.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, decoration: getComputedStyle(element).textDecorationLine, height: element.getBoundingClientRect().height, cue: element.querySelector('[aria-hidden="true"]')?.textContent }));
-  check(linkBackground.image === 'none' && linkBackground.decoration === 'none' && linkBackground.height >= 44 && linkBackground.cue === '→', `landing text action violates its semantic treatment (${JSON.stringify(linkBackground)})`);
+  check(linkBackground.image === 'none' && linkBackground.decoration === 'none' && linkBackground.height >= 44 && linkBackground.cue === '↓', `landing text action violates its semantic treatment (${JSON.stringify(linkBackground)})`);
   for (const selector of ['.hero .button', '.brand-card', '.header-identity', '.site-footer a']) check(await page.locator(selector).first().evaluate((element) => getComputedStyle(element).textDecorationLine) === 'none', `${selector} inherits an ordinary-link underline`);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await textLink.hover();
@@ -579,6 +692,7 @@ try {
     const body = Buffer.from(await response.body());
     for (const failure of payloadFailures(file, response.headers()['content-type'], body)) failures.push(`${file} ${failure}`);
   }
+  await verifyStableGeometry();
   const lockupContracts = new Map([['/shruggietech-logo-dark.svg', '#F2F5FA'], ['/shruggietech-logo-light.svg', '#0A0A0A']]);
   for (const [file, wordmarkFill] of lockupContracts) {
     const response = await page.request.get(base + file);
