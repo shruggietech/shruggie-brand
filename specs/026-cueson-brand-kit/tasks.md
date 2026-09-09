@@ -154,7 +154,7 @@ description: "Task list for the S026 Cueson brand kit"
 - [X] T045 Inspect repository hygiene, tracked generated files, UTF-8 without BOM, LF, mojibake, whitespace, and Cueson/domain scope boundaries, then record results in `specs/026-cueson-brand-kit/evidence.md`
 - [X] T046 Update the Unreleased feature and dated approval-architecture decision in `CHANGELOG.md` and any generator-facing entry required in `skill/CHANGELOG.md`
 - [X] T047 Complete task states and final local evidence in `specs/026-cueson-brand-kit/tasks.md` and `specs/026-cueson-brand-kit/evidence.md`
-- [ ] T048 Commit S026 with a Conventional Commit subject that references S026 and verify the committed branch head
+- [X] T048 Commit S026 with a Conventional Commit subject that references S026 and verify the committed branch head
 - [ ] T049 Push `codex/026-cueson-brand-kit` and open the official pull request closing #184 under the explicit kickoff authorization
 - [ ] T050 Record the pull request, branch head, automatic review signals, security feedback, and required check runs in `specs/026-cueson-brand-kit/evidence.md`
 - [ ] T051 Process every actionable and non-actionable round-1 Codex, security-bot, CI, and human review item with evidence-backed replies, necessary changes, verification, pushes, and thread resolution
