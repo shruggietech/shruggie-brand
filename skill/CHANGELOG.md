@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added source-bound canonical identity approval, atomic exact-byte promotion, proof-matrix comparison, generated continuity reports, and historical continuity baselines that cannot fabricate owner approval.
+- Separated nonbinding direction selection from production-source approval and made Gate 2 reject reconstructed or newly introduced master geometry.
 - Added optional variant-specific standalone mark framing while preserving the existing clear-space default, and verified the selected Full or Reduced source variant during independent PNG reproduction.
 - Fixed nested square-knockout monochrome lockups by declaring explicit user-space mask content and bounds, and added fail-closed mask-coverage, rendered-mark, and SVG-to-PNG verification.
 - Added a shared bounded preview-media contract for generated portal consumers, including exact-delivery, containment, centering, responsive, theme, and zoom regressions.

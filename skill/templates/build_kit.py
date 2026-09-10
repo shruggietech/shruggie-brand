@@ -15,6 +15,7 @@ automated gate in this kit can pass on a document that looks wrong.
 import json, os, subprocess, sys
 
 from brand_contract import affiliation
+from identity_continuity import ContinuityError, write_continuity_report
 from process_utils import hidden_process_kwargs
 
 # Contract validation runs before any publishable output. The capability probe
@@ -104,6 +105,14 @@ def main():
                 print("\nThe mark is wrong. Fix build/mk_paths.py and regenerate "
                       "logo.paths before building anything else.")
                 return min(fail, 125)
+    try:
+        with open(brand, encoding="utf-8") as source:
+            write_continuity_report(json.load(source), kit)
+        print("%-5s %-42s %s" % ("ok", "identity continuity evidence", "source-bound report"))
+    except (ContinuityError, OSError, ValueError) as error:
+        print("FAIL  %-42s %s" % ("identity continuity evidence", error))
+        print("\nIdentity continuity failed before derivative generation.")
+        return min(fail + 1, 125)
     for label, argv in STEPS:
         script = argv[0]; args = [a.format(brand=brand, kit=kit) for a in argv[1:]]
         if not os.path.exists(os.path.join(here, script)):

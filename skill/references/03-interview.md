@@ -21,8 +21,7 @@ These are the mandatory facts. Affiliation and showcase permission cannot be inf
 with a computed recommendation, the reasoning behind it, and the option to
 override. A gate that asks "what colour would you like?" has failed.
 
-The operator is allowed to say "yes to all" at gate 1 and skip straight to
-gate 5.
+The operator may accept computed positioning and palette proposals tersely, but canonical identity approval and final derivative approval remain explicit decisions over the actual evidence shown at their gates.
 
 ## Gate 0: Affiliation and authoritative inputs
 
@@ -94,7 +93,7 @@ or orange 38.3°. Present the survivors ranked by fit.
 for the nearest legal value. If the operator names a colour that fails a check,
 say which check and by how much, then offer the nearest passing value.
 
-## Gate 4: The logo
+## Gate 4A: Logo direction selection
 
 Three ways in. One way out.
 
@@ -112,11 +111,13 @@ use of the tool. It produces conversation, never artwork.
 from the governing principle. Usually the strongest option for a technical
 sub-brand and always the fastest.
 
-**The way out for a constructed direction.** The shipped mark is composed in `<kit>/build/mk_paths.py` from `glyphkit` primitives, on a declared grid, with its parameters named. Never traced from a generated image. Never typed as path data. Never a downscaled full mark standing in for a reduced one.
+**What this decision means.** The operator selects a direction, not production source. The decision is nonbinding and cannot authorize permanent source, derivatives, publication, or consumer integration. Record the selected visual idea and the operator wording, then construct the production candidate.
+
+**The way out for a constructed direction.** Before canonical approval, compose the real shipped Full and Reduced marks in `<kit>/build/mk_paths.py` from `glyphkit` primitives on a declared grid, with named parameters. Never trace a generated image, type path data, switch construction methods after approval, or use a downscaled full mark as the reduced one.
 
 **The way out for approved artwork.** Set `logo.source_mode` to `authoritative`; bind Full and Reduced to their exact approved input IDs and hashes; retain one bound image placement per variant; and prohibit `build/mk_paths.py`, tracing, simplification, reconstruction, and replacement. Generation may only recolor, resize, embed, or place the mark in a lockup when that source explicitly approves the operation. Review `logos/provenance.json` with the rendered sheet.
 
-Then run the gate:
+Then run the geometry gate:
 
     python3 templates/validate_glyph.py <kit>/build/mk_paths.py
 
@@ -130,13 +131,15 @@ Change one parameter, or go back and pick a simpler shape. Do not generate a
 third and fourth variant hoping one passes: that is how a run burns out with
 nothing shippable.
 
-**What the operator sees.** The measured report, and, where the tier allows it,
-the mark rendered at three sizes on both surfaces with the reduced master shown
-at 16 and 32 px. They pick, or send it back with a note.
+## Gate 4B: Canonical identity approval
+
+Build the complete source-bound packet described in `identity-continuity.md`. It uses the exact production source and renderer and shows Full and Reduced at 256, 64, 32, and 16 pixels on dark, light, black, and white. Include topology, framing, palette qualification, source hashes, renderer settings, and visual difference evidence.
+
+**What the operator sees.** The measured report and the complete production proof matrix. The operator approves the exact candidate or sends it back with a note. Approval records the owner wording, approver, date, scope, source revision, snapshot hash, and packet hash. Any later governed drift invalidates it.
 
 Full procedure and the failure catalogue: `08-glyph-construction.md`.
 
-## Gate 5: Review
+## Gate 5: Derivative review
 
 The agent generates the full kit and presents:
 
@@ -147,6 +150,8 @@ The agent generates the full kit and presents:
 
 **What the operator does.** Approve, or point at whatever looks wrong. A
 problems count above zero blocks the gate.
+
+Gate 5 reviews only derivatives made from the promoted canonical source. It cannot introduce or reconstruct production geometry. A master change returns to Gate 4B rather than being accepted here.
 
 ## After gate 5
 

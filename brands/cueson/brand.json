@@ -352,5 +352,9 @@
       ]
     }
   },
-  "canon": "1.2.1"
+  "canon": "1.2.1",
+  "identity_continuity": {
+    "record": "identity-continuity.json",
+    "status": "historical-baseline"
+  }
 }

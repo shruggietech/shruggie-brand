@@ -179,7 +179,8 @@
       "Do not alter the 420-unit outer radius, the 168-unit ring, the 84-degree aperture, or the 10-degree slot.",
       "Do not use the full mark below 24 px. The reduced mark takes over at and below 32 px."
     ],
-    "geometry_provenance": "glyphkit"
+    "geometry_provenance": "legacy-constructed",
+    "geometry_provenance_reason": "The custom arc and path serializer predates glyphkit. Its shipped path bytes remain unchanged as historical identity source."
   },
   "guide": {
     "idea": "See what is known.",
@@ -219,5 +220,9 @@
     "written_form": "<span class=\"m\">Covarity</span> in title case in prose. <span class=\"m\">covarity</span> in lowercase for technical identifiers, repositories and package names. <span class=\"m\">covarity.ai</span> in a URL, and anywhere an unrelated company of the same name could be confused with this one. Never set <span class=\"m\">Covarity.ai</span> in a wordmark or a headline: a top-level domain is an address, and it dates a mark.",
     "named": "18 March 2026"
   },
-  "canon": "1.2.1"
+  "canon": "1.2.1",
+  "identity_continuity": {
+    "record": "identity-continuity.json",
+    "status": "historical-baseline"
+  }
 }

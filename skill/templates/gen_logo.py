@@ -283,8 +283,17 @@ def wordmark_outline(text, ttf, size=200, x_offset=0.0):
 
 def main():
     spec_path, kit = sys.argv[1], sys.argv[2]
+    proof_stage_only = "--proof-stage-only" in sys.argv[3:]
     with open(spec_path, encoding="utf-8") as handle:
         brand = json.load(handle)
+    if not proof_stage_only:
+        from identity_continuity import validate_continuity_report, write_continuity_report
+
+        continuity_report = os.path.join(kit, "identity-continuity-report.json")
+        if os.path.isfile(continuity_report):
+            validate_continuity_report(brand, kit)
+        else:
+            write_continuity_report(brand, kit)
     here = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(here, "..", "references", "01-canon.json"), encoding="utf-8") as handle:
         canon = json.load(handle)
@@ -566,6 +575,10 @@ def main():
             record = derivative_record(filename, "mark", source_variant, colourway)
             write(os.path.join(svg_dir, filename), svg(canvas_width, canvas_height, render_mark(path_list, roles, colourway), svg_metadata(record)))
             written.append(filename)
+
+    if proof_stage_only:
+        print("wrote production mark SVGs for identity continuity proofing")
+        return 0
 
     mark_box = ((enclosure["inset"] - enclosure["stroke_width"] / 2.0,) * 2
                 + (enclosure["canvas_size"] - enclosure["inset"] + enclosure["stroke_width"] / 2.0,) * 2

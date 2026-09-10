@@ -1,6 +1,6 @@
 # Logo Protocol
 
-**Image generation is for ideation. Hand-authored vector is what ships.**
+**Image generation is for ideation. The exact approved production source is what ships.**
 
 This is the single rule that separates a kit from a mess. Everything below
 follows from it.
@@ -11,16 +11,17 @@ follows from it.
 | --- | --- | --- |
 | Explore the concept space | frontier image generation, encouraged | conversation, mood, direction |
 | Understand a supplied concept | `potrace`, Inkscape trace, palette extraction | reference geometry, never shipped |
-| Construct the mark | the agent composes glyphkit primitives in `build/mk_paths.py` | the deliverable |
+| Construct the production candidate | the agent composes glyphkit primitives in `build/mk_paths.py` | the exact candidate offered for canonical approval |
+| Approve canonical source | source-bound continuity packet | owner decision over production geometry, palette, framing, renderer, and proofs |
 | Prove the mark | `templates/validate_glyph.py` | a pass or a numbered failure |
 | Export | `rsvg-convert`, `resvg`, Inkscape, Node resvg, `oxipng`; ImageMagick only for ICO assembly | rasters derived from the vector master |
 
-Generated images are how the operator and the agent agree on what the thing
-should feel like. They are input to a conversation. The moment a shape is
-agreed, the agent rebuilds it as clean geometry with stated coordinates.
+Generated images are how the operator and the agent agree on direction. They are nonbinding input to a conversation. After direction selection, the agent builds clean production geometry and presents that exact source through the canonical approval packet before promotion or derivatives.
 
 Never trace a diffusion output into shipped artwork. Never rasterise a large
 logo down at runtime to produce a favicon.
+
+Never switch construction methods after canonical approval. Promotion copies the approved source bytes. If the helper, source binding, path arrays, framing, palette, topology, renderer setting, or governed proof changes, invalidate the approval and present a new canonical candidate.
 
 ## Construction
 
@@ -131,14 +132,18 @@ When the operator brings a logo idea:
    does not override any canon check.
 3. Rebuild the geometry on the declared grid. Trace output is a measuring
    tool.
-4. Show the rebuild next to the original at three sizes and ask whether the
-   character survived.
+4. Show the rebuild next to the original at three sizes and ask whether the character survived. This selects a direction only.
+5. Construct and present the complete production proof matrix before asking for canonical approval.
 
 ## Handling an authoritative supplied master
 
 An approved master is not a concept. Declare its identity role, contained source path, media format, SHA-256, color-profile status, license or usage status, and approved transformations before generation. Logo bindings accept portable non-interlaced RGBA8 PNG or passive SVG. A bound PNG additionally records an owner-approved alpha or luminance mask, current source hash, approver, and approval date. Preserve the original bytes and SVG path data exactly. Do not trace, normalize, reconstruct, or silently replace it. Full and Reduced bind independently; the Full source approves lockup placement even when the wordmark is generated from typography.
 
 Palette analysis of an authoritative master produces review evidence only. A color becomes canonical only after a human approval record binds the exact source hash and selected candidate, followed by the ordinary accessibility gates. Any hash drift makes the approval stale.
+
+## Approval and derivative boundary
+
+Read `identity-continuity.md` before requesting approval. Canonical approval requires the real production Full and Reduced masters, complete palette qualification, exact renderer settings, and all 32 size-and-surface proofs. Gate 2 may approve lockups, wordmarks, icons, and publication surfaces derived from that promoted source. It cannot first reveal, reconstruct, or modify the production master.
 
 ## What verify asserts
 

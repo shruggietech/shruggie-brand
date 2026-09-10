@@ -6,6 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added source-bound identity continuity records, canonical approval packets, exact-byte promotion, pre-derivative drift rejection, calibrated visual comparison evidence, and truthful historical baselines for all seven production brands for issue #185.
 - Added the approved Cueson production identity and seventh public brand kit for issue #184, including exact Cueframe source continuity, Cue Teal color governance, complete lockups and application icons, generated guidelines and specimen, and a manifest-certified future consumer handoff.
 - Added deterministic, manifest-certified complete brand-kit downloads for all seven public production brands, with staged verification and atomic publication shared by release and static-site builds.
 - Added the independent ESO Weave production brand kit and public showcase for issue #153, with byte-preserved authoritative SVG sources, fixed Inter typography, approved lockups and single-ink derivatives, complete provenance evidence, native platform assets, guidelines, UI specimen, and vendor-safe public metadata.
@@ -18,6 +19,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-09, separated nonbinding logo direction selection from canonical production-source approval and prohibited Gate 2 from reconstructing or first revealing identity geometry.
 - On 2026-09-09, separated external clear-space governance from optional variant-specific standalone presentation padding so approved Full and Reduced concept framing can survive deterministic production export.
 - On 2026-09-09, consolidated each brand portal into the approved Overview, Voice, Identity, Components, Assets, and Integration hierarchy, grouped project documentation into its approved five-section table of contents, and removed redundant brand-root pages while preserving every nested guideline, download, registry, and asset endpoint for issues #175, #179, and #180.
 - On 2026-09-09, replaced implicit homepage card navigation with explicit Guidelines and Download Kit actions, native compact mobile disclosures, stable desktop geometry, and one generated shared third-party notice for issues #173 and #174.

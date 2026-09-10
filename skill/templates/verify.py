@@ -18,6 +18,7 @@ import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
 from brand_contract import affiliation, application_icon_profile, logo_source_contract, sha256_file
+from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 
 # ------------------------------------------------------------------ utilities
@@ -1545,6 +1546,15 @@ def c_logo_provenance(kit, brand, rep):
                (len(records), authority["source_mode"]))
 
 # ---------------------------------------------------------------------- main
+def c_identity_continuity(kit, brand, rep):
+    try:
+        report = validate_continuity_report(brand, kit)
+    except (ContinuityError, OSError, ValueError) as error:
+        return rep.bad("identity-continuity", str(error))
+    rep.ok("identity-continuity", "%s %s source and generated report agree" %
+           (report["source_class"], report["status"]))
+
+
 def c_glyph(kit, brand, rep):
     """The measured geometry gate, folded into VERIFY.md.
 
@@ -1567,12 +1577,12 @@ def c_glyph(kit, brand, rep):
 
     provenance = lg.get("geometry_provenance", "glyphkit")
     reason = lg.get("geometry_provenance_reason", "")
-    if provenance not in {"glyphkit", "imported"}:
+    if provenance not in {"glyphkit", "imported", "legacy-constructed"}:
         return rep.bad("glyph-geometry",
-                       "logo.geometry_provenance must be glyphkit or imported")
-    if provenance == "imported" and not reason.strip():
+                       "logo.geometry_provenance must be glyphkit, imported, or legacy-constructed")
+    if provenance in {"imported", "legacy-constructed"} and not reason.strip():
         return rep.bad("glyph-geometry",
-                       "imported geometry requires logo.geometry_provenance_reason")
+                       "%s geometry requires logo.geometry_provenance_reason" % provenance)
 
     bad = [i for i, e in enumerate(paths)
            if e.get("element", "path") != "path"
@@ -1595,8 +1605,8 @@ def c_glyph(kit, brand, rep):
             "%s %s" % (n, d) for st, n, d in sub.rows if st == "FAIL")[:280])
     else:
         note = "%d checks clean" % len(sub.rows)
-        if provenance == "imported":
-            note = "imported geometry (%s); %s" % (reason, note)
+        if provenance in {"imported", "legacy-constructed"}:
+            note = "%s geometry (%s); %s" % (provenance, reason, note)
         if sub.warns:
             note += ", %d warning(s): %s" % (sub.warns, "; ".join(
                 n for st, n, _ in sub.rows if st == "WARN")[:120])
@@ -1699,6 +1709,7 @@ def main():
     c_rhetoric(kit, rep)
     c_raw_values(kit, rep)
     c_font_weights(kit, brand, rep)
+    c_identity_continuity(kit, brand, rep)
     c_glyph(kit, brand, rep)
     c_logo_provenance(kit, brand, rep)
     c_capability_artifacts(kit, rep)

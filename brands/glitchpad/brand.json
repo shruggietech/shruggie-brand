@@ -232,5 +232,9 @@
     "logo": "The rectangular paper and G share one protected construction inside a permanent square. On dark surfaces the square is sulfur with a charcoal page; on light surfaces the square is charcoal with a sulfur page. The slate fold stays consistent across both contexts.",
     "palette": "Near-black surfaces keep controls visually secondary to file content. Pure sulfur provides identity, focus, and selection; cool slate supplies the fold and subdued states. Muddy and darkened yellows are prohibited."
   },
-  "canon": "1.2.1"
+  "canon": "1.2.1",
+  "identity_continuity": {
+    "record": "identity-continuity.json",
+    "status": "historical-baseline"
+  }
 }

@@ -1,0 +1,451 @@
+{
+  "approval": null,
+  "brand": "go-schedule",
+  "framing": {
+    "canvas_height": 512,
+    "canvas_width": 512,
+    "clear_space_units": 54,
+    "grid": 512
+  },
+  "historical_evidence": {
+    "approval_completeness": "unknown",
+    "baseline_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+    "basis": "current-authoritative-source",
+    "limitation": "This migration records current source facts and is not retrospective canonical approval.",
+    "migration_issue": 185
+  },
+  "identity_snapshot": {
+    "derivative_settings": {
+      "canvas_height": 512,
+      "canvas_width": 512,
+      "clear_space_units": 54,
+      "construction": "The imported 512-unit mark is a rounded terminal frame containing a prompt, cursor, five cron-field asterisks, and five neutral rails. The reduced mark preserves the exact prompt and cursor from the shipped favicon and drops the frame and schedule fields.",
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The shipped mark uses native rounded rectangles and stroked SVG paths that predate glyphkit. Their exact element geometry and stroke attributes are preserved.",
+      "grid": 512,
+      "min_px": {
+        "horizontal": 160,
+        "mark": 24,
+        "stacked": 96,
+        "wordmark": 120
+      },
+      "prohibitions": [
+        "Do not rotate, skew, stretch, outline, bevel, or add glow.",
+        "Do not recolor individual schedule cells or lanes.",
+        "Do not set the wordmark in live text or a substitute typeface.",
+        "Do not add a tagline inside the horizontal lockup.",
+        "Do not place the logo over busy imagery.",
+        "Do not combine the go-schedule and ShruggieTech marks into one lockup."
+      ],
+      "reduced_below_px": 32,
+      "role_colors": {
+        "black": {
+          "anchor": "#000000",
+          "interval": "#000000",
+          "neutral": "#000000"
+        },
+        "color": {
+          "anchor": "#58A6FF",
+          "interval": "#62D9B7",
+          "neutral": "#28414B"
+        },
+        "light": {
+          "anchor": "#1160C6",
+          "interval": "#0E7C63",
+          "neutral": "#132027"
+        },
+        "white": {
+          "anchor": "#FFFFFF",
+          "interval": "#FFFFFF",
+          "neutral": "#FFFFFF"
+        }
+      },
+      "source_mode": "constructed"
+    },
+    "framing": {
+      "canvas_height": 512,
+      "canvas_width": 512,
+      "clear_space_units": 54,
+      "grid": 512
+    },
+    "geometry": {
+      "authoritative_input_ids": null,
+      "geometry_provenance": "imported",
+      "paths": {
+        "full": [
+          {
+            "element": "rect",
+            "fill": "none",
+            "height": 308,
+            "role": "neutral",
+            "rx": 54,
+            "stroke_width": 20,
+            "width": 356,
+            "x": 78,
+            "y": 102
+          },
+          {
+            "d": "M124 174l42 38-42 38",
+            "fill": "none",
+            "role": "anchor",
+            "stroke_linecap": "round",
+            "stroke_linejoin": "round",
+            "stroke_width": 22
+          },
+          {
+            "d": "M194 250h172",
+            "fill": "none",
+            "role": "interval",
+            "stroke_linecap": "round",
+            "stroke_width": 22
+          },
+          {
+            "d": "M134.0 309.0L134.0 339.0 M121.0 316.5L147.0 331.5 M147.0 316.5L121.0 331.5",
+            "fill": "none",
+            "role": "interval",
+            "stroke_linecap": "round",
+            "stroke_width": 7
+          },
+          {
+            "d": "M195.0 309.0L195.0 339.0 M182.0 316.5L208.0 331.5 M208.0 316.5L182.0 331.5",
+            "fill": "none",
+            "role": "interval",
+            "stroke_linecap": "round",
+            "stroke_width": 7
+          },
+          {
+            "d": "M256.0 309.0L256.0 339.0 M243.0 316.5L269.0 331.5 M269.0 316.5L243.0 331.5",
+            "fill": "none",
+            "role": "anchor",
+            "stroke_linecap": "round",
+            "stroke_width": 7
+          },
+          {
+            "d": "M317.0 309.0L317.0 339.0 M304.0 316.5L330.0 331.5 M330.0 316.5L304.0 331.5",
+            "fill": "none",
+            "role": "interval",
+            "stroke_linecap": "round",
+            "stroke_width": 7
+          },
+          {
+            "d": "M378.0 309.0L378.0 339.0 M365.0 316.5L391.0 331.5 M391.0 316.5L365.0 331.5",
+            "fill": "none",
+            "role": "interval",
+            "stroke_linecap": "round",
+            "stroke_width": 7
+          },
+          {
+            "element": "rect",
+            "height": 10,
+            "role": "neutral",
+            "rx": 5,
+            "width": 32,
+            "x": 118,
+            "y": 360
+          },
+          {
+            "element": "rect",
+            "height": 10,
+            "role": "neutral",
+            "rx": 5,
+            "width": 32,
+            "x": 179,
+            "y": 360
+          },
+          {
+            "element": "rect",
+            "height": 10,
+            "role": "neutral",
+            "rx": 5,
+            "width": 32,
+            "x": 240,
+            "y": 360
+          },
+          {
+            "element": "rect",
+            "height": 10,
+            "role": "neutral",
+            "rx": 5,
+            "width": 32,
+            "x": 301,
+            "y": 360
+          },
+          {
+            "element": "rect",
+            "height": 10,
+            "role": "neutral",
+            "rx": 5,
+            "width": 32,
+            "x": 362,
+            "y": 360
+          }
+        ],
+        "reduced": [
+          {
+            "d": "M156 168l86 88-86 88",
+            "fill": "none",
+            "role": "anchor",
+            "stroke_linecap": "round",
+            "stroke_linejoin": "round",
+            "stroke_width": 50
+          },
+          {
+            "d": "M280 344h108",
+            "fill": "none",
+            "role": "interval",
+            "stroke_linecap": "round",
+            "stroke_width": 50
+          }
+        ]
+      },
+      "source_mode": "constructed"
+    },
+    "palette": {
+      "accent": {
+        "accessible": "#1160C6",
+        "bright": "#58A6FF",
+        "deep": "#1160C6",
+        "dim": "#9BAEB6"
+      },
+      "chart_palette": {
+        "dark_target_lightness": 0.68,
+        "hue_rotations": [
+          0,
+          70,
+          145,
+          215,
+          285
+        ],
+        "rationale": "Anchor Blue begins the sequence. Rotations keep the series distinct from Interval Mint, Hold Amber, and Stop Red while maintaining usable separation on the Night surface."
+      },
+      "legacy_palette": {
+        "anchor_blue": "#58A6FF",
+        "anchor_deep": "#1160C6",
+        "hold_amber": "#F2B84B",
+        "hold_deep": "#9A6600",
+        "ink": "#132027",
+        "interval_deep": "#0E7C63",
+        "interval_mint": "#62D9B7",
+        "line": "#28414B",
+        "muted": "#9BAEB6",
+        "muted_ink": "#4A5A62",
+        "night": "#071014",
+        "panel": "#0D171C",
+        "paper": "#F6F8F7",
+        "raised": "#13232A",
+        "stop_deep": "#C23B3B",
+        "stop_red": "#E05F5F",
+        "text": "#F3F7F8"
+      },
+      "logo_role_colors": {
+        "black": {
+          "anchor": "#000000",
+          "interval": "#000000",
+          "neutral": "#000000"
+        },
+        "color": {
+          "anchor": "#58A6FF",
+          "interval": "#62D9B7",
+          "neutral": "#28414B"
+        },
+        "light": {
+          "anchor": "#1160C6",
+          "interval": "#0E7C63",
+          "neutral": "#132027"
+        },
+        "white": {
+          "anchor": "#FFFFFF",
+          "interval": "#FFFFFF",
+          "neutral": "#FFFFFF"
+        }
+      },
+      "surfaces": {
+        "base": "#071014",
+        "card": "#0D171C",
+        "hover": "#1A2D36",
+        "popover": "#071014",
+        "secondary": "#13232A"
+      }
+    },
+    "sha256": "a37937371a2d097dad054a59d366c573146a19e0ea21bd987890f976908ebcb0",
+    "source_class": "legacy-constructed",
+    "topology": {
+      "full": {
+        "closed_subpaths": 0,
+        "command_counts": {
+          "H": 1,
+          "L": 16,
+          "M": 17
+        },
+        "fill_rules": {
+          "nonzero": 13
+        },
+        "path_count": 13,
+        "role_counts": {
+          "anchor": 2,
+          "interval": 5,
+          "neutral": 6
+        },
+        "subpath_count": 17
+      },
+      "reduced": {
+        "closed_subpaths": 0,
+        "command_counts": {
+          "H": 1,
+          "L": 1,
+          "M": 2
+        },
+        "fill_rules": {
+          "nonzero": 2
+        },
+        "path_count": 2,
+        "role_counts": {
+          "anchor": 1,
+          "interval": 1
+        },
+        "subpath_count": 2
+      }
+    },
+    "typography": {
+      "typography": {
+        "families": {
+          "body": {
+            "name": "Geist",
+            "weights": [
+              400,
+              500
+            ]
+          },
+          "display": {
+            "name": "Space Grotesk",
+            "weights": [
+              500,
+              700
+            ]
+          },
+          "mono": {
+            "name": "Geist Mono",
+            "weights": [
+              400
+            ]
+          }
+        },
+        "mode": "house"
+      },
+      "wordmark_text": "go-schedule"
+    }
+  },
+  "palette": {
+    "accent": {
+      "accessible": "#1160C6",
+      "bright": "#58A6FF",
+      "deep": "#1160C6",
+      "dim": "#9BAEB6"
+    },
+    "chart_palette": {
+      "dark_target_lightness": 0.68,
+      "hue_rotations": [
+        0,
+        70,
+        145,
+        215,
+        285
+      ],
+      "rationale": "Anchor Blue begins the sequence. Rotations keep the series distinct from Interval Mint, Hold Amber, and Stop Red while maintaining usable separation on the Night surface."
+    },
+    "legacy_palette": {
+      "anchor_blue": "#58A6FF",
+      "anchor_deep": "#1160C6",
+      "hold_amber": "#F2B84B",
+      "hold_deep": "#9A6600",
+      "ink": "#132027",
+      "interval_deep": "#0E7C63",
+      "interval_mint": "#62D9B7",
+      "line": "#28414B",
+      "muted": "#9BAEB6",
+      "muted_ink": "#4A5A62",
+      "night": "#071014",
+      "panel": "#0D171C",
+      "paper": "#F6F8F7",
+      "raised": "#13232A",
+      "stop_deep": "#C23B3B",
+      "stop_red": "#E05F5F",
+      "text": "#F3F7F8"
+    },
+    "logo_role_colors": {
+      "black": {
+        "anchor": "#000000",
+        "interval": "#000000",
+        "neutral": "#000000"
+      },
+      "color": {
+        "anchor": "#58A6FF",
+        "interval": "#62D9B7",
+        "neutral": "#28414B"
+      },
+      "light": {
+        "anchor": "#1160C6",
+        "interval": "#0E7C63",
+        "neutral": "#132027"
+      },
+      "white": {
+        "anchor": "#FFFFFF",
+        "interval": "#FFFFFF",
+        "neutral": "#FFFFFF"
+      }
+    },
+    "surfaces": {
+      "base": "#071014",
+      "card": "#0D171C",
+      "hover": "#1A2D36",
+      "popover": "#071014",
+      "secondary": "#13232A"
+    }
+  },
+  "proofs": [],
+  "record_sha256": "9b8fd1be8f224a177c6c9c1b349eeb20b4a3d8a0223f3c7daa1dbb2753b3a4b3",
+  "recorded_on": "2026-09-09",
+  "renderer": null,
+  "schema_version": 1,
+  "source_class": "legacy-constructed",
+  "source_files": [],
+  "source_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+  "status": "historical-baseline",
+  "topology": {
+    "full": {
+      "closed_subpaths": 0,
+      "command_counts": {
+        "H": 1,
+        "L": 16,
+        "M": 17
+      },
+      "fill_rules": {
+        "nonzero": 13
+      },
+      "path_count": 13,
+      "role_counts": {
+        "anchor": 2,
+        "interval": 5,
+        "neutral": 6
+      },
+      "subpath_count": 17
+    },
+    "reduced": {
+      "closed_subpaths": 0,
+      "command_counts": {
+        "H": 1,
+        "L": 1,
+        "M": 2
+      },
+      "fill_rules": {
+        "nonzero": 2
+      },
+      "path_count": 2,
+      "role_counts": {
+        "anchor": 1,
+        "interval": 1
+      },
+      "subpath_count": 2
+    }
+  }
+}

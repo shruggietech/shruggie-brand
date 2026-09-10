@@ -1,0 +1,392 @@
+{
+  "approval": null,
+  "brand": "eso-weave",
+  "framing": {
+    "artwork_height": 55,
+    "artwork_width": 63,
+    "canvas_height": 100,
+    "canvas_width": 100,
+    "clear_space_units": 8,
+    "grid": 100
+  },
+  "historical_evidence": {
+    "approval_completeness": "partial",
+    "baseline_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+    "basis": "current-authoritative-source",
+    "limitation": "This migration records current source facts and is not retrospective canonical approval.",
+    "migration_issue": 185
+  },
+  "identity_snapshot": {
+    "derivative_settings": {
+      "application_icon": {
+        "background": "#0E1116"
+      },
+      "artwork_height": 55,
+      "artwork_width": 63,
+      "authoritative_input_ids": {
+        "full": "eso-weave-glyph",
+        "reduced": "eso-weave-mark"
+      },
+      "canvas_height": 100,
+      "canvas_width": 100,
+      "clear_space_units": 8,
+      "contextual_variants": {
+        "black": "single-ink",
+        "color": "full",
+        "light": "reduced",
+        "white": "single-ink"
+      },
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The full and reduced masters embed the two owner-approved authoritative SVG sources unchanged. The single-ink derivative preserves their approved centerlines, stroke widths, caps, joins, and silhouette.",
+      "grid": 100,
+      "lockups": {
+        "horizontal": {
+          "alignment": "optical center",
+          "canvas_height_units": 200,
+          "gap_units": 34,
+          "mark_height_units": 160,
+          "wordmark_baseline_units": 144.64,
+          "wordmark_scale": 0.62
+        },
+        "stacked": {
+          "gap_c": 0.45,
+          "mark_height_c": 1.7,
+          "mark_height_c_by_colourway": {
+            "black": 2.35,
+            "color": 2.35,
+            "light": 1.7,
+            "white": 2.35
+          },
+          "wordmark_scale": 0.62
+        }
+      },
+      "min_px": {
+        "horizontal": 160,
+        "mark": 32,
+        "stacked": 144,
+        "wordmark": 120
+      },
+      "prohibitions": [
+        "Do not edit, normalize, trace, simplify, or replace the authoritative source paths.",
+        "Do not add a crossing overlay, knockout, outline, or substrate separator to the single-ink mark.",
+        "Do not use the badge-less glyph directly on light surfaces.",
+        "Do not combine the ESO Weave and ShruggieTech marks into one lockup.",
+        "Do not imply official game-vendor status or account safety."
+      ],
+      "reduced_below_px": 32,
+      "role_colors": {
+        "black": {
+          "wordmark": "#000000",
+          "wordmark_accent": "#000000"
+        },
+        "color": {
+          "wordmark": "#E6EDF3",
+          "wordmark_accent": "#F2B03C"
+        },
+        "light": {
+          "wordmark": "#14110B",
+          "wordmark_accent": "#986000"
+        },
+        "white": {
+          "wordmark": "#FFFFFF",
+          "wordmark_accent": "#FFFFFF"
+        }
+      },
+      "source_mode": "authoritative",
+      "wordmark_segments": [
+        {
+          "role": "wordmark",
+          "text": "ESO"
+        },
+        {
+          "gap_units": 10,
+          "role": "wordmark_accent",
+          "text": "Weave"
+        }
+      ]
+    },
+    "framing": {
+      "artwork_height": 55,
+      "artwork_width": 63,
+      "canvas_height": 100,
+      "canvas_width": 100,
+      "clear_space_units": 8,
+      "grid": 100
+    },
+    "geometry": {
+      "authoritative_input_ids": {
+        "full": "eso-weave-glyph",
+        "reduced": "eso-weave-mark"
+      },
+      "geometry_provenance": "imported",
+      "paths": {
+        "full": [
+          {
+            "element": "image",
+            "height": 100,
+            "role": "accent",
+            "source": "assets/source/eso-weave-glyph.svg",
+            "width": 100,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "reduced": [
+          {
+            "element": "image",
+            "height": 100,
+            "role": "accent",
+            "source": "assets/source/eso-weave-mark.svg",
+            "width": 100,
+            "x": 0,
+            "y": 0
+          }
+        ]
+      },
+      "source_mode": "authoritative"
+    },
+    "palette": {
+      "accent": {
+        "accessible": "#986000",
+        "bright": "#2DD4BF",
+        "deep": "#F2B03C",
+        "dim": "#87909E"
+      },
+      "chart_palette": {
+        "dark_target_lightness": 0.68,
+        "rationale": "Derived chart colors remain secondary to the teal status signal and accessible gold action role."
+      },
+      "logo_role_colors": {
+        "black": {
+          "wordmark": "#000000",
+          "wordmark_accent": "#000000"
+        },
+        "color": {
+          "wordmark": "#E6EDF3",
+          "wordmark_accent": "#F2B03C"
+        },
+        "light": {
+          "wordmark": "#14110B",
+          "wordmark_accent": "#986000"
+        },
+        "white": {
+          "wordmark": "#FFFFFF",
+          "wordmark_accent": "#FFFFFF"
+        }
+      },
+      "semantic_colors": {
+        "action": "#986000",
+        "emphasis": "#2DD4BF"
+      },
+      "surfaces": {
+        "base": "#0E1116",
+        "card": "#171C24",
+        "hover": "#252E3B",
+        "popover": "#0A0D12",
+        "secondary": "#1D2430"
+      }
+    },
+    "sha256": "5feb8dac1c07d513d2621905ef852e146b37e48c4fe2dedf8540690f56fa7870",
+    "source_class": "authoritative",
+    "topology": {
+      "full": {
+        "closed_subpaths": 0,
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        },
+        "path_count": 1,
+        "role_counts": {
+          "accent": 1
+        },
+        "subpath_count": 0
+      },
+      "reduced": {
+        "closed_subpaths": 0,
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        },
+        "path_count": 1,
+        "role_counts": {
+          "accent": 1
+        },
+        "subpath_count": 0
+      }
+    },
+    "typography": {
+      "typography": {
+        "faces": [
+          {
+            "format": "ttf",
+            "license": "OFL-1.1",
+            "path": "fonts/Inter-Medium.ttf",
+            "provenance": "Current ESO Weave upstream default branch",
+            "role": "display",
+            "sha256": "6df88fcb83ac96582350f801355c6eff55f15710093e9627fb431caa40521151",
+            "style": "normal",
+            "usage_status": "approved",
+            "weight": 500
+          },
+          {
+            "format": "ttf",
+            "license": "OFL-1.1",
+            "path": "fonts/Inter-SemiBold.ttf",
+            "provenance": "Current ESO Weave upstream default branch",
+            "role": "display",
+            "sha256": "2de533bda937a063c595b07c6bd9b70c8c5087d0649a1c8330f7ac11fcc05602",
+            "style": "normal",
+            "usage_status": "approved",
+            "weight": 600
+          },
+          {
+            "format": "ttf",
+            "license": "OFL-1.1",
+            "path": "fonts/Inter-Regular.ttf",
+            "provenance": "Current ESO Weave upstream default branch",
+            "role": "body",
+            "sha256": "529be850e06f62f8904f22bda77e45bde4834498fdbec4ff4201fa3177447a3a",
+            "style": "normal",
+            "usage_status": "approved",
+            "weight": 400
+          },
+          {
+            "format": "ttf",
+            "license": "OFL-1.1",
+            "path": "fonts/Inter-Medium.ttf",
+            "provenance": "Current ESO Weave upstream default branch",
+            "role": "body",
+            "sha256": "6df88fcb83ac96582350f801355c6eff55f15710093e9627fb431caa40521151",
+            "style": "normal",
+            "usage_status": "approved",
+            "weight": 500
+          },
+          {
+            "format": "ttf",
+            "license": "OFL-1.1",
+            "path": "fonts/ttf/GeistMono-Regular.ttf",
+            "provenance": "Shruggie Brand shared licensed font",
+            "role": "mono",
+            "sha256": "990f0e094fe02b8872429209c09abf4c03d22183c33c2a2ddb891dc7f086271c",
+            "style": "normal",
+            "usage_status": "approved",
+            "weight": 400
+          }
+        ],
+        "families": {
+          "body": {
+            "name": "Inter",
+            "weights": [
+              400,
+              500
+            ]
+          },
+          "display": {
+            "name": "Inter",
+            "weights": [
+              500,
+              600
+            ]
+          },
+          "mono": {
+            "name": "Geist Mono",
+            "weights": [
+              400
+            ]
+          }
+        },
+        "mode": "fixed"
+      },
+      "wordmark_text": "ESO Weave"
+    }
+  },
+  "palette": {
+    "accent": {
+      "accessible": "#986000",
+      "bright": "#2DD4BF",
+      "deep": "#F2B03C",
+      "dim": "#87909E"
+    },
+    "chart_palette": {
+      "dark_target_lightness": 0.68,
+      "rationale": "Derived chart colors remain secondary to the teal status signal and accessible gold action role."
+    },
+    "logo_role_colors": {
+      "black": {
+        "wordmark": "#000000",
+        "wordmark_accent": "#000000"
+      },
+      "color": {
+        "wordmark": "#E6EDF3",
+        "wordmark_accent": "#F2B03C"
+      },
+      "light": {
+        "wordmark": "#14110B",
+        "wordmark_accent": "#986000"
+      },
+      "white": {
+        "wordmark": "#FFFFFF",
+        "wordmark_accent": "#FFFFFF"
+      }
+    },
+    "semantic_colors": {
+      "action": "#986000",
+      "emphasis": "#2DD4BF"
+    },
+    "surfaces": {
+      "base": "#0E1116",
+      "card": "#171C24",
+      "hover": "#252E3B",
+      "popover": "#0A0D12",
+      "secondary": "#1D2430"
+    }
+  },
+  "proofs": [],
+  "record_sha256": "675f2b841f7e38dc68562e19293f6e0555539f52959103fb766c2cc0d7630b01",
+  "recorded_on": "2026-09-09",
+  "renderer": null,
+  "schema_version": 1,
+  "source_class": "authoritative",
+  "source_files": [
+    {
+      "bytes": 666,
+      "path": "assets/source/eso-weave-glyph.svg",
+      "purpose": "authoritative mark source",
+      "sha256": "552f3203f0001b15e3adea9b720cb2f78be1427a12410f3e304170d973fef5ea"
+    },
+    {
+      "bytes": 995,
+      "path": "assets/source/eso-weave-mark.svg",
+      "purpose": "authoritative reduced-mark source",
+      "sha256": "696d256c4ec0eae9aed315a1b489bbf5115ec33827e966a6e993708bf3f3109f"
+    }
+  ],
+  "source_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+  "status": "historical-baseline",
+  "topology": {
+    "full": {
+      "closed_subpaths": 0,
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      },
+      "path_count": 1,
+      "role_counts": {
+        "accent": 1
+      },
+      "subpath_count": 0
+    },
+    "reduced": {
+      "closed_subpaths": 0,
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      },
+      "path_count": 1,
+      "role_counts": {
+        "accent": 1
+      },
+      "subpath_count": 0
+    }
+  }
+}

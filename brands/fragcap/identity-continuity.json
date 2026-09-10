@@ -1,0 +1,372 @@
+{
+  "approval": null,
+  "brand": "fragcap",
+  "framing": {
+    "canvas_height": 512,
+    "canvas_width": 512,
+    "clear_space_units": 34,
+    "grid": 512
+  },
+  "historical_evidence": {
+    "approval_completeness": "unknown",
+    "baseline_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+    "basis": "current-authoritative-source",
+    "limitation": "This migration records current source facts and is not retrospective canonical approval.",
+    "migration_issue": 185
+  },
+  "identity_snapshot": {
+    "derivative_settings": {
+      "canvas_height": 512,
+      "canvas_width": 512,
+      "clear_space_units": 34,
+      "construction": "The imported 512-unit mark combines four separated capture-frame corners, a triple-bladed F, and three isolated orange packet terminals. The reduced master drops the capture frame and enlarges the F and terminals for favicon use.",
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The shipped Fragcap mark and reduced master predate glyphkit. Their exact filled path data is preserved unchanged.",
+      "grid": 512,
+      "min_px": {
+        "horizontal": 160,
+        "mark": 24,
+        "stacked": 96,
+        "wordmark": 120
+      },
+      "prohibitions": [
+        "Do not rotate, skew, stretch, outline, bevel, or add glow.",
+        "Do not recolor individual packet lanes.",
+        "Do not move the orange terminals or make them appear explosive.",
+        "Do not close the four reticle corners into a box or circle.",
+        "Do not set the wordmark in live text or a substitute typeface.",
+        "Do not place the logo over busy imagery.",
+        "Do not combine the fragcap and ShruggieTech marks into one lockup.",
+        "Do not add skulls, weapons, controllers, shields, or exploit imagery."
+      ],
+      "reduced_below_px": 32,
+      "role_colors": {
+        "color": {
+          "accent": "#27C7E7",
+          "emphasis": "#FF5300"
+        },
+        "light": {
+          "accent": "#006F82",
+          "emphasis": "#C24100"
+        }
+      },
+      "source_mode": "constructed"
+    },
+    "framing": {
+      "canvas_height": 512,
+      "canvas_width": 512,
+      "clear_space_units": 34,
+      "grid": 512
+    },
+    "geometry": {
+      "authoritative_input_ids": null,
+      "geometry_provenance": "imported",
+      "paths": {
+        "full": [
+          {
+            "d": "M72 154V72h82v22H94v60z",
+            "role": "accent"
+          },
+          {
+            "d": "M358 72h82v82h-22V94h-60z",
+            "role": "accent"
+          },
+          {
+            "d": "M72 358h22v60h60v22H72z",
+            "role": "accent"
+          },
+          {
+            "d": "M418 358h22v82h-82v-22h60z",
+            "role": "accent"
+          },
+          {
+            "d": "M156 134l16-16h34v272h-50z",
+            "role": "accent"
+          },
+          {
+            "d": "M188 118h150l14 12-14 12H188z",
+            "role": "accent"
+          },
+          {
+            "d": "M188 220h150l14 12-14 12H188z",
+            "role": "accent"
+          },
+          {
+            "d": "M188 322h92l14 12-14 12h-92z",
+            "role": "accent"
+          },
+          {
+            "d": "M370 118h34v34h-34z",
+            "role": "emphasis"
+          },
+          {
+            "d": "M370 220h34v34h-34z",
+            "role": "emphasis"
+          },
+          {
+            "d": "M312 322h34v34h-34z",
+            "role": "emphasis"
+          }
+        ],
+        "reduced": [
+          {
+            "d": "M120 108l24-24h50v344h-74z",
+            "role": "accent"
+          },
+          {
+            "d": "M168 84h198l20 18-20 18H168z",
+            "role": "accent"
+          },
+          {
+            "d": "M168 220h198l20 18-20 18H168z",
+            "role": "accent"
+          },
+          {
+            "d": "M168 356h122l20 18-20 18H168z",
+            "role": "accent"
+          },
+          {
+            "d": "M398 84h46v46h-46z",
+            "role": "emphasis"
+          },
+          {
+            "d": "M398 220h46v46h-46z",
+            "role": "emphasis"
+          },
+          {
+            "d": "M320 356h46v46h-46z",
+            "role": "emphasis"
+          }
+        ]
+      },
+      "source_mode": "constructed"
+    },
+    "palette": {
+      "accent": {
+        "accessible": "#006F82",
+        "bright": "#27C7E7",
+        "deep": "#006F82",
+        "dim": "#94A8B0"
+      },
+      "chart_palette": {
+        "dark_target_lightness": 0.68,
+        "hue_rotations": [
+          0,
+          72,
+          144,
+          216,
+          288
+        ],
+        "rationale": "Signal Cyan starts an evenly rotated series. The derived colors remain separated from Capture Orange and Fault while keeping equal visual priority on Void."
+      },
+      "legacy_palette": {
+        "capture_orange": "#FF5300",
+        "fault": "#E9505F",
+        "fault_deep": "#C0293A",
+        "light_cyan": "#006F82",
+        "light_line": "#D5DFE3",
+        "light_orange": "#C24100",
+        "light_surface": "#F5F8F9",
+        "light_text": "#102027",
+        "light_text_muted": "#47606B",
+        "line": "#21323A",
+        "signal_cyan": "#27C7E7",
+        "surface": "#0B1115",
+        "surface_raised": "#101A20",
+        "text": "#F2F7F8",
+        "text_muted": "#94A8B0",
+        "void": "#050708"
+      },
+      "logo_role_colors": {
+        "color": {
+          "accent": "#27C7E7",
+          "emphasis": "#FF5300"
+        },
+        "light": {
+          "accent": "#006F82",
+          "emphasis": "#C24100"
+        }
+      },
+      "surfaces": {
+        "base": "#050708",
+        "card": "#0B1115",
+        "hover": "#16242C",
+        "popover": "#050708",
+        "secondary": "#101A20"
+      }
+    },
+    "sha256": "b499a868fa3626e9a281355fc6e2e3b92d4efe93aae36e3ae1ab304199b0afb8",
+    "source_class": "legacy-constructed",
+    "topology": {
+      "full": {
+        "closed_subpaths": 11,
+        "command_counts": {
+          "H": 25,
+          "L": 4,
+          "M": 11,
+          "V": 13,
+          "Z": 11
+        },
+        "fill_rules": {
+          "nonzero": 11
+        },
+        "path_count": 11,
+        "role_counts": {
+          "accent": 8,
+          "emphasis": 3
+        },
+        "subpath_count": 11
+      },
+      "reduced": {
+        "closed_subpaths": 7,
+        "command_counts": {
+          "H": 14,
+          "L": 4,
+          "M": 7,
+          "V": 4,
+          "Z": 7
+        },
+        "fill_rules": {
+          "nonzero": 7
+        },
+        "path_count": 7,
+        "role_counts": {
+          "accent": 4,
+          "emphasis": 3
+        },
+        "subpath_count": 7
+      }
+    },
+    "typography": {
+      "typography": {
+        "families": {
+          "body": {
+            "name": "Geist",
+            "weights": [
+              400,
+              500
+            ]
+          },
+          "display": {
+            "name": "Space Grotesk",
+            "weights": [
+              500,
+              700
+            ]
+          },
+          "mono": {
+            "name": "Geist Mono",
+            "weights": [
+              400
+            ]
+          }
+        },
+        "mode": "house"
+      },
+      "wordmark_text": "fragcap"
+    }
+  },
+  "palette": {
+    "accent": {
+      "accessible": "#006F82",
+      "bright": "#27C7E7",
+      "deep": "#006F82",
+      "dim": "#94A8B0"
+    },
+    "chart_palette": {
+      "dark_target_lightness": 0.68,
+      "hue_rotations": [
+        0,
+        72,
+        144,
+        216,
+        288
+      ],
+      "rationale": "Signal Cyan starts an evenly rotated series. The derived colors remain separated from Capture Orange and Fault while keeping equal visual priority on Void."
+    },
+    "legacy_palette": {
+      "capture_orange": "#FF5300",
+      "fault": "#E9505F",
+      "fault_deep": "#C0293A",
+      "light_cyan": "#006F82",
+      "light_line": "#D5DFE3",
+      "light_orange": "#C24100",
+      "light_surface": "#F5F8F9",
+      "light_text": "#102027",
+      "light_text_muted": "#47606B",
+      "line": "#21323A",
+      "signal_cyan": "#27C7E7",
+      "surface": "#0B1115",
+      "surface_raised": "#101A20",
+      "text": "#F2F7F8",
+      "text_muted": "#94A8B0",
+      "void": "#050708"
+    },
+    "logo_role_colors": {
+      "color": {
+        "accent": "#27C7E7",
+        "emphasis": "#FF5300"
+      },
+      "light": {
+        "accent": "#006F82",
+        "emphasis": "#C24100"
+      }
+    },
+    "surfaces": {
+      "base": "#050708",
+      "card": "#0B1115",
+      "hover": "#16242C",
+      "popover": "#050708",
+      "secondary": "#101A20"
+    }
+  },
+  "proofs": [],
+  "record_sha256": "ab6487a5fca5d12343652480c6c57a67b94d554bbe7e790c5da7e523fa56d816",
+  "recorded_on": "2026-09-09",
+  "renderer": null,
+  "schema_version": 1,
+  "source_class": "legacy-constructed",
+  "source_files": [],
+  "source_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+  "status": "historical-baseline",
+  "topology": {
+    "full": {
+      "closed_subpaths": 11,
+      "command_counts": {
+        "H": 25,
+        "L": 4,
+        "M": 11,
+        "V": 13,
+        "Z": 11
+      },
+      "fill_rules": {
+        "nonzero": 11
+      },
+      "path_count": 11,
+      "role_counts": {
+        "accent": 8,
+        "emphasis": 3
+      },
+      "subpath_count": 11
+    },
+    "reduced": {
+      "closed_subpaths": 7,
+      "command_counts": {
+        "H": 14,
+        "L": 4,
+        "M": 7,
+        "V": 4,
+        "Z": 7
+      },
+      "fill_rules": {
+        "nonzero": 7
+      },
+      "path_count": 7,
+      "role_counts": {
+        "accent": 4,
+        "emphasis": 3
+      },
+      "subpath_count": 7
+    }
+  }
+}
