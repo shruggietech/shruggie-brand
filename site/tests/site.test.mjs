@@ -9,12 +9,14 @@ const topicContentSource = readFileSync(new URL('../components/guidelines/topic-
 const footerSource = readFileSync(new URL('../components/footer.tsx', import.meta.url), 'utf8');
 const brandPortfolioSource = readFileSync(new URL('../components/brand-portfolio.tsx', import.meta.url), 'utf8');
 const homepageSource = readFileSync(new URL('../app/(site)/page.tsx', import.meta.url), 'utf8');
+const marketingLayoutSource = readFileSync(new URL('../app/(site)/layout.tsx', import.meta.url), 'utf8');
 const layoutSource = readFileSync(new URL('../lib/layout.shared.tsx', import.meta.url), 'utf8');
 const globalStyles = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
 const guidelineLayoutSource = readFileSync(new URL('../app/(guidelines)/[slug]/layout.tsx', import.meta.url), 'utf8');
 const guidelinePageSource = readFileSync(new URL('../app/(guidelines)/[slug]/guidelines/[[...topic]]/page.tsx', import.meta.url), 'utf8');
 const downloadsSource = readFileSync(new URL('../components/guidelines/downloads-content.tsx', import.meta.url), 'utf8');
 const documentationLayoutSource = readFileSync(new URL('../app/docs/layout.tsx', import.meta.url), 'utf8');
+const documentationPageSource = readFileSync(new URL('../app/docs/[[...slug]]/page.tsx', import.meta.url), 'utf8');
 const documentationTreeSource = readFileSync(new URL('../lib/documentation.ts', import.meta.url), 'utf8');
 const noScriptHierarchySource = readFileSync(new URL('../components/hierarchy-no-script.tsx', import.meta.url), 'utf8');
 if (!assetLibrarySource.includes('className="asset-preview-media"') || !topicContentSource.includes('className="asset-preview-media"')) throw new Error('both guideline preview surfaces must use the shared media wrapper');
@@ -39,6 +41,10 @@ if (footerPolicyProblems(footerRecords).length > 0) throw new Error(`footer dest
 if (!footerSource.includes("target={link.kind === 'new-tab' ? '_blank' : undefined}") || !footerSource.includes("rel={link.kind === 'new-tab' ? 'noopener noreferrer' : undefined}")) throw new Error('footer separate-context records lack conditional target and relationship attributes');
 if (footerPolicyProblems(expectedFooterRecords.map((record) => record.label === 'Source' ? { ...record, kind: 'same-tab' } : record)).length === 0) throw new Error('footer policy helper accepts missing separate-context safety metadata');
 if (footerPolicyProblems(expectedFooterRecords.map((record) => record.label === 'Company' ? { ...record, kind: 'new-tab' } : record)).length === 0) throw new Error('footer policy helper accepts accidental new-tab behavior on Company');
+if (!marketingLayoutSource.includes('<Footer />')) throw new Error('marketing layout no longer renders the shared footer');
+if (documentationPageSource.includes("@/components/footer") || documentationPageSource.includes('<Footer')) throw new Error('documentation page composes the shared marketing footer');
+if (!documentationPageSource.includes("footer={{ className: 'docs-pagination'")) throw new Error('documentation page no longer provides contextual pagination');
+if (/\.docs-page \.site-footer\b/.test(globalStyles)) throw new Error('documentation styles retain obsolete shared-footer coupling');
 
 const navigationRecords = [...layoutSource.matchAll(/\{ text: '([^']+)', url: '([^']+)'(?:, external: (true))?(?:, on: 'menu')? \}/g)].map((match) => ({ label: match[1], href: match[2], external: match[3] === 'true' }));
 const expectedNavigationRecords = [

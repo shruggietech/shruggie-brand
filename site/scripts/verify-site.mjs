@@ -187,6 +187,10 @@ try {
     }
     await page.evaluate(() => scrollTo(0, 0));
   };
+  const verifyNoGlobalFooter = async (route) => {
+    await page.goto(base + route);
+    check(await page.locator('.site-footer').count() === 0, `${route} renders the shared marketing footer`);
+  };
   const verifyNavigation = async (route, includeDocumentation) => {
     const isDocs = route.startsWith('/docs/');
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -293,6 +297,7 @@ try {
     await page.goto(base + route);
     await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
     await page.reload({ waitUntil: 'networkidle' });
+    check(await page.locator('.site-footer').count() === 0, `${route} ${theme} at ${width}px renders the shared marketing footer`);
     const links = page.locator('.docs-pagination > a');
     if (forceWrap && await links.count() > 0) await links.first().locator('p').first().evaluate((element) => { element.style.width = '3rem'; element.style.whiteSpace = 'normal'; element.style.overflowWrap = 'anywhere'; });
     const samples = await links.evaluateAll((elements) => elements.map((element) => {
@@ -624,7 +629,8 @@ try {
     }
   }
   await page.setViewportSize({ width: 1280, height: 900 });
-  await verifyFooter('/docs/04-toolchain/');
+  for (const record of routeRecords.filter(({ pathname }) => pathname.startsWith('/docs/'))) await verifyNoGlobalFooter(record.pathname);
+  await page.goto(base + '/docs/04-toolchain/');
   check(await page.locator('.docs-page [style*="--callout-color"]').count() === 3, 'toolchain guidance must render the three explicit alert types as callouts');
   check(await page.locator('.docs-page blockquote').count() === 0, 'explicit toolchain alerts must not remain ordinary blockquotes');
   const codeBlocks = page.locator('.docs-page figure:has(pre)');
