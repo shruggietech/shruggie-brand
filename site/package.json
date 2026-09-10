@@ -16,7 +16,7 @@
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "zbsearch": "3.3.4"
+    "zbsearch": "4.0.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
