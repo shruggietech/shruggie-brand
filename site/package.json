@@ -20,14 +20,14 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
-    "@playwright/test": "1.62.1",
-    "@tailwindcss/postcss": "4.2.4",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
     "@types/mdx": "2.0.14",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.5.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "fumadocs-mdx": "15.2.3",
-    "tailwindcss": "4.2.4",
-    "typescript": "^5.9.0"
+    "tailwindcss": "4.3.3",
+    "typescript": "^7.0.2"
   }
 }
