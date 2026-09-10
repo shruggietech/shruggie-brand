@@ -42,6 +42,7 @@ DOC_DESCRIPTIONS = {
     "07-voice": "How strategy becomes a consistent verbal identity.",
     "08-glyph-construction": "Geometry and validation rules for constructing brand marks.",
     "09-portability": "Requirements that keep brand assets useful across platforms and teams.",
+    "identity-continuity": "How direction selection, production-source approval, promotion, and derivative review stay mechanically continuous.",
 }
 DOC_NAVIGATION = {
     "00-variance-contract": ("Foundation", 1, "Contract", 0),
@@ -49,7 +50,8 @@ DOC_NAVIGATION = {
     "03-interview": ("Discovery", 2, "Interview", 0),
     "06-logo-protocol": ("Identity", 3, "Logo", 0),
     "08-glyph-construction": ("Identity", 3, "Glyphs", 1),
-    "07-voice": ("Identity", 3, "Voice", 2),
+    "identity-continuity": ("Identity", 3, "Continuity", 2),
+    "07-voice": ("Identity", 3, "Voice", 3),
     "04-toolchain": ("Implementation", 4, "Toolchain", 0),
     "05-shadcn-binding": ("Implementation", 4, "shadcn", 1),
     "09-portability": ("Implementation", 4, "Portability", 2),

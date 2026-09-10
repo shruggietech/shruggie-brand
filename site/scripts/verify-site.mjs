@@ -562,7 +562,7 @@ try {
   check(await noScriptPage.locator('.asset-tile').count() > 0 && await noScriptPage.locator('.resource-list a[data-kit-asset]').count() > 0, 'no-script asset route does not retain complete server-rendered browsing and downloads');
   check((await noScriptPage.locator('body').innerText()).includes('Search and filters require JavaScript'), 'no-script asset route does not explain its progressive enhancement boundary');
   await noScriptPage.goto(base + '/docs/06-logo-protocol/');
-  check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 10, 'no-script documentation fallback does not expose the complete navigation hierarchy');
+  check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 11, 'no-script documentation fallback does not expose the complete navigation hierarchy');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script documentation fallback does not identify the current page');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').evaluate((element) => { const style = getComputedStyle(element); return Number.parseInt(style.fontWeight, 10) >= 700 && style.boxShadow !== 'none'; }), 'no-script documentation fallback does not visibly distinguish the current page');
   for (const brand of brands) {
@@ -675,7 +675,7 @@ try {
   }
   const editorial = page.locator('.docs-page :where(p, li, td, blockquote) > a').first();
   check(await editorial.count() === 1 && await editorial.evaluate((element) => getComputedStyle(element).textDecorationLine.includes('underline')), 'editorial links lack a persistent resting underline');
-  for (const paginationCase of [{ route: '/docs/', hrefs: ['/docs/00-variance-contract/'] }, { route: '/docs/02-kit-anatomy/', hrefs: ['/docs/00-variance-contract/', '/docs/03-interview/'] }, { route: '/docs/04-toolchain/', hrefs: ['/docs/03-interview/', '/docs/05-shadcn-binding/'] }, { route: '/docs/09-portability/', hrefs: ['/docs/08-glyph-construction/'] }]) {
+  for (const paginationCase of [{ route: '/docs/', hrefs: ['/docs/00-variance-contract/'] }, { route: '/docs/02-kit-anatomy/', hrefs: ['/docs/00-variance-contract/', '/docs/03-interview/'] }, { route: '/docs/04-toolchain/', hrefs: ['/docs/03-interview/', '/docs/05-shadcn-binding/'] }, { route: '/docs/09-portability/', hrefs: ['/docs/08-glyph-construction/', '/docs/identity-continuity/'] }, { route: '/docs/identity-continuity/', hrefs: ['/docs/09-portability/'] }]) {
     await page.goto(base + paginationCase.route);
     const links = page.locator('.docs-pagination > a');
     const hrefs = await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')));

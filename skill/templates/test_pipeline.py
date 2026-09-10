@@ -35,6 +35,7 @@ from brand_contract import sha256_file
 from capabilities import load_capabilities
 from iconkit import generate_icon_suites
 from process_utils import hidden_process_kwargs
+from identity_continuity import ContinuityError, identity_snapshot, record_digest, validate_brand_continuity, write_continuity_report
 
 
 def write_utf8(path, value):
@@ -43,6 +44,56 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_continuity_contract_stops_cueson_source_and_governed_drift(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "cueson"
+            shutil.copytree(ROOT / "brands" / "cueson", kit)
+            brand_path = kit / "brand.json"
+            original = json.loads(brand_path.read_text(encoding="utf-8"))
+            self.assertEqual("historical-baseline", validate_brand_continuity(original, kit)["status"])
+            for label, mutation in (
+                ("geometry", lambda value: value["logo"]["paths"]["full"][0].update({"d": "M0 0 L1 1 Z"})),
+                ("framing", lambda value: value["logo"].update({"artwork_width": 1})),
+                ("palette", lambda value: value["logo"]["role_colors"]["color"].update({"accent": "#FFFFFF"})),
+                ("method", lambda value: value["logo"].update({"geometry_provenance": "legacy-constructed"})),
+            ):
+                changed = copy.deepcopy(original)
+                mutation(changed)
+                with self.subTest(label=label), self.assertRaises(ContinuityError):
+                    validate_brand_continuity(changed, kit)
+            helper = kit / "build" / "mk_paths.py"
+            helper.write_bytes(helper.read_bytes() + b"\n# drift\n")
+            with self.assertRaisesRegex(ContinuityError, "drift"):
+                validate_brand_continuity(original, kit)
+
+    def test_generated_continuity_report_is_independently_verified(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "cueson"
+            shutil.copytree(ROOT / "brands" / "cueson", kit)
+            brand = json.loads((kit / "brand.json").read_text(encoding="utf-8"))
+            write_continuity_report(brand, kit)
+            report = verify.Report()
+            verify.c_identity_continuity(str(kit), brand, report)
+            self.assertFalse(report.problems)
+            generated = kit / "identity-continuity-report.json"
+            payload = json.loads(generated.read_text(encoding="utf-8"))
+            payload["validation"] = "forged"
+            write_utf8(generated, json.dumps(payload) + "\n")
+            report = verify.Report()
+            verify.c_identity_continuity(str(kit), brand, report)
+            self.assertIn("stale", " ".join(report.problems))
+
+    def test_identity_workflow_docs_preserve_the_two_approval_boundaries(self):
+        skill = (ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8")
+        interview = (ROOT / "skill" / "references" / "03-interview.md").read_text(encoding="utf-8")
+        logo = (ROOT / "skill" / "references" / "06-logo-protocol.md").read_text(encoding="utf-8")
+        glyph = (ROOT / "skill" / "references" / "08-glyph-construction.md").read_text(encoding="utf-8")
+        continuity = (ROOT / "skill" / "references" / "identity-continuity.md").read_text(encoding="utf-8")
+        corpus = "\n".join((skill, interview, logo, glyph, continuity)).lower()
+        for phrase in ("direction selection is not canonical approval", "production proof matrix",
+                       "before canonical approval", "gate 2", "invalidates approval"):
+            self.assertIn(phrase, corpus)
+
     def test_cueson_source_is_bound_to_both_approved_gates(self):
         from brand_contract import approval_ledger, derivative_configuration_sha256, public_showcase, validate_brand
 
@@ -444,6 +495,25 @@ class PipelineTests(unittest.TestCase):
                     relative = "fonts/ttf/%s" % filename
                     faces.append({"role": role, "path": relative, "weight": weight, "style": "normal", "format": "ttf", "sha256": sha256_file(kit / relative), "license": "OFL-1.1", "provenance": "Repository licensed integration face", "usage_status": "approved"})
             brand["typography"] = {"mode": "fixed", "families": families, "faces": faces}
+            brand["identity_continuity"] = {"record": "identity-continuity.json", "status": "historical-baseline"}
+            snapshot = identity_snapshot(brand, "legacy-constructed")
+            continuity = {
+                "schema_version": 1, "brand": "client-brand", "status": "historical-baseline",
+                "source_class": "legacy-constructed", "recorded_on": "2026-09-09",
+                "source_revision": "synthetic-pipeline-fixture", "source_files": [],
+                "identity_snapshot": snapshot, "topology": snapshot["topology"],
+                "framing": snapshot["framing"], "palette": snapshot["palette"],
+                "renderer": None, "proofs": [], "approval": None,
+                "historical_evidence": {
+                    "basis": "current-authoritative-source", "baseline_revision": "synthetic-pipeline-fixture",
+                    "approval_completeness": "unknown",
+                    "limitation": "This fixture is not retrospective canonical approval.",
+                    "migration_issue": 185,
+                },
+                "record_sha256": "",
+            }
+            continuity["record_sha256"] = record_digest(continuity)
+            write_utf8(kit / "identity-continuity.json", json.dumps(continuity, indent=2) + "\n")
             write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
             completed = subprocess.run([sys.executable, str(HERE / "build_kit.py"), str(kit)], cwd=ROOT, capture_output=True, text=True, **hidden_process_kwargs())
             self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)

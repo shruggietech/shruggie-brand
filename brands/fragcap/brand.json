@@ -156,5 +156,9 @@
     "specimen_line": "See what your game is actually saying.",
     "specimen_body": "Every captured row is a packet that crossed the wire, timestamped and attributed to a process."
   },
-  "canon": "1.2.1"
+  "canon": "1.2.1",
+  "identity_continuity": {
+    "record": "identity-continuity.json",
+    "status": "historical-baseline"
+  }
 }

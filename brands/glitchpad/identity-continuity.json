@@ -1,0 +1,247 @@
+{
+  "approval": null,
+  "brand": "glitchpad",
+  "framing": {
+    "artwork_height": 900,
+    "artwork_width": 720,
+    "canvas_height": 1000,
+    "canvas_width": 800,
+    "clear_space_units": 70,
+    "grid": 1000
+  },
+  "historical_evidence": {
+    "approval_completeness": "unknown",
+    "baseline_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+    "basis": "current-authoritative-source",
+    "limitation": "This migration records current source facts and is not retrospective canonical approval.",
+    "migration_issue": 185
+  },
+  "identity_snapshot": {
+    "framing": {
+      "artwork_height": 900,
+      "artwork_width": 720,
+      "canvas_height": 1000,
+      "canvas_width": 800,
+      "clear_space_units": 70,
+      "grid": 1000
+    },
+    "geometry": {
+      "authoritative_input_ids": null,
+      "geometry_provenance": "imported",
+      "paths": {
+        "full": [
+          {
+            "d": "M130 50H580L760 230V860C760 909.706 719.706 950 670 950H130C80.294 950 40 909.706 40 860V140C40 90.294 80.294 50 130 50ZM510 120H145C125.67 120 110 135.67 110 155V845C110 864.33 125.67 880 145 880H655C674.33 880 690 864.33 690 845V425C690 405.67 674.33 390 655 390H520V460H620V810H180V190H510Z",
+            "fill_rule": "evenodd",
+            "role": "neutral"
+          },
+          {
+            "d": "M580 50L760 230H580Z",
+            "role": "accent"
+          }
+        ],
+        "reduced": [
+          {
+            "d": "M130 50H580L760 230V860C760 909.706 719.706 950 670 950H130C80.294 950 40 909.706 40 860V140C40 90.294 80.294 50 130 50ZM510 120H145C125.67 120 110 135.67 110 155V845C110 864.33 125.67 880 145 880H655C674.33 880 690 864.33 690 845V425C690 405.67 674.33 390 655 390H520V460H620V810H180V190H510Z",
+            "fill_rule": "evenodd",
+            "role": "neutral"
+          }
+        ]
+      },
+      "source_mode": "constructed"
+    },
+    "palette": {
+      "accent": {
+        "accessible": "#0B0C0D",
+        "bright": "#FFD900",
+        "deep": "#667788",
+        "dim": "#667788"
+      },
+      "chart_palette": {
+        "dark_target_lightness": 0.62,
+        "rationale": "Retain the canon hue rotations and chroma relationship while using a darker, saturated target on the product surface. Chart colors are functional data colors, never decorative brand accents."
+      },
+      "logo_role_colors": {
+        "color": {
+          "accent": "#667788",
+          "frame": "#FFD900",
+          "frame_stroke": "#FFD900",
+          "neutral": "#0B0C0D",
+          "wordmark": "#F2F5FA"
+        },
+        "light": {
+          "accent": "#667788",
+          "frame": "#0B0C0D",
+          "frame_stroke": "#0B0C0D",
+          "neutral": "#FFD900",
+          "wordmark": "#0A0A0A"
+        }
+      },
+      "surfaces": {
+        "base": "#0B0C0D",
+        "card": "#121416",
+        "hover": "#181A1D",
+        "popover": "#090A0B",
+        "secondary": "#151719"
+      }
+    },
+    "sha256": "f35de35378a10f9f5f5f8cd4af08ba76bc5d95882ada0ff6124917a03feb20f9",
+    "source_class": "legacy-constructed",
+    "topology": {
+      "full": {
+        "closed_subpaths": 3,
+        "command_counts": {
+          "C": 7,
+          "H": 9,
+          "L": 2,
+          "M": 3,
+          "V": 7,
+          "Z": 3
+        },
+        "fill_rules": {
+          "evenodd": 1,
+          "nonzero": 1
+        },
+        "path_count": 2,
+        "role_counts": {
+          "accent": 1,
+          "neutral": 1
+        },
+        "subpath_count": 3
+      },
+      "reduced": {
+        "closed_subpaths": 2,
+        "command_counts": {
+          "C": 7,
+          "H": 8,
+          "L": 1,
+          "M": 2,
+          "V": 7,
+          "Z": 2
+        },
+        "fill_rules": {
+          "evenodd": 1
+        },
+        "path_count": 1,
+        "role_counts": {
+          "neutral": 1
+        },
+        "subpath_count": 2
+      }
+    },
+    "typography": {
+      "typography": {
+        "families": {
+          "body": {
+            "name": "Geist",
+            "weights": [
+              400,
+              500
+            ]
+          },
+          "display": {
+            "name": "Space Grotesk",
+            "weights": [
+              500,
+              700
+            ]
+          },
+          "mono": {
+            "name": "Geist Mono",
+            "weights": [
+              400
+            ]
+          }
+        },
+        "mode": "house"
+      },
+      "wordmark_text": "Glitchpad"
+    }
+  },
+  "palette": {
+    "accent": {
+      "accessible": "#0B0C0D",
+      "bright": "#FFD900",
+      "deep": "#667788",
+      "dim": "#667788"
+    },
+    "chart_palette": {
+      "dark_target_lightness": 0.62,
+      "rationale": "Retain the canon hue rotations and chroma relationship while using a darker, saturated target on the product surface. Chart colors are functional data colors, never decorative brand accents."
+    },
+    "logo_role_colors": {
+      "color": {
+        "accent": "#667788",
+        "frame": "#FFD900",
+        "frame_stroke": "#FFD900",
+        "neutral": "#0B0C0D",
+        "wordmark": "#F2F5FA"
+      },
+      "light": {
+        "accent": "#667788",
+        "frame": "#0B0C0D",
+        "frame_stroke": "#0B0C0D",
+        "neutral": "#FFD900",
+        "wordmark": "#0A0A0A"
+      }
+    },
+    "surfaces": {
+      "base": "#0B0C0D",
+      "card": "#121416",
+      "hover": "#181A1D",
+      "popover": "#090A0B",
+      "secondary": "#151719"
+    }
+  },
+  "proofs": [],
+  "record_sha256": "35d9b00f3726d6e9e4eb2650d7141b2d8dd85e8298e85f86f61eeed59761890d",
+  "recorded_on": "2026-09-09",
+  "renderer": null,
+  "schema_version": 1,
+  "source_class": "legacy-constructed",
+  "source_files": [],
+  "source_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+  "status": "historical-baseline",
+  "topology": {
+    "full": {
+      "closed_subpaths": 3,
+      "command_counts": {
+        "C": 7,
+        "H": 9,
+        "L": 2,
+        "M": 3,
+        "V": 7,
+        "Z": 3
+      },
+      "fill_rules": {
+        "evenodd": 1,
+        "nonzero": 1
+      },
+      "path_count": 2,
+      "role_counts": {
+        "accent": 1,
+        "neutral": 1
+      },
+      "subpath_count": 3
+    },
+    "reduced": {
+      "closed_subpaths": 2,
+      "command_counts": {
+        "C": 7,
+        "H": 8,
+        "L": 1,
+        "M": 2,
+        "V": 7,
+        "Z": 2
+      },
+      "fill_rules": {
+        "evenodd": 1
+      },
+      "path_count": 1,
+      "role_counts": {
+        "neutral": 1
+      },
+      "subpath_count": 2
+    }
+  }
+}

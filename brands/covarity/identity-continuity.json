@@ -1,0 +1,236 @@
+{
+  "approval": null,
+  "brand": "covarity",
+  "framing": {
+    "clear_space_units": 100,
+    "grid": 1000
+  },
+  "historical_evidence": {
+    "approval_completeness": "unknown",
+    "baseline_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+    "basis": "current-authoritative-source",
+    "limitation": "This migration records current source facts and is not retrospective canonical approval.",
+    "migration_issue": 185
+  },
+  "identity_snapshot": {
+    "framing": {
+      "clear_space_units": 100,
+      "grid": 1000
+    },
+    "geometry": {
+      "authoritative_input_ids": null,
+      "geometry_provenance": "legacy-constructed",
+      "paths": {
+        "full": [
+          {
+            "d": "M568.66 80.26 C474.17 76.96 381.33 105.64 305.16 161.65 C228.99 217.67 173.95 297.75 148.95 388.94 C123.95 480.12 130.44 577.07 167.39 664.11 C204.33 751.14 269.56 823.16 352.52 868.52 C435.48 913.88 531.32 929.91 624.52 914.04 C717.73 898.16 802.85 851.3 866.12 781.03 L741.27 668.62 C703.31 710.78 652.24 738.9 596.31 748.42 C540.39 757.95 482.89 748.33 433.11 721.11 C383.34 693.9 344.2 650.68 322.03 598.46 C299.87 546.24 295.97 488.07 310.97 433.36 C325.97 378.65 358.99 330.6 404.69 296.99 C450.4 263.38 506.1 246.17 562.79 248.15 Z",
+            "role": "accent"
+          },
+          {
+            "d": "M866.12 218.97 C806.77 153.05 728.08 107.62 641.32 89.18 L606.39 253.51 C658.45 264.57 705.66 291.83 741.27 331.38 Z",
+            "role": "emphasis"
+          }
+        ],
+        "reduced": [
+          {
+            "d": "M866.12 218.97 C801.01 146.65 712.82 99.19 616.6 84.69 C520.38 70.19 422.11 89.54 338.58 139.45 C255.05 189.36 191.44 266.72 158.62 358.32 C125.79 449.92 125.79 550.08 158.62 641.68 C191.44 733.28 255.05 810.64 338.58 860.55 C422.11 910.46 520.38 929.81 616.6 915.31 C712.82 900.81 801.01 853.35 866.12 781.03 L724.92 653.9 C689.27 693.5 640.97 719.49 588.28 727.43 C535.59 735.37 481.78 724.77 436.03 697.44 C390.29 670.11 355.46 627.75 337.48 577.59 C319.51 527.42 319.51 472.58 337.48 422.41 C355.46 372.25 390.29 329.89 436.03 302.56 C481.78 275.23 535.59 264.63 588.28 272.57 C640.97 280.51 689.27 306.5 724.92 346.1 Z",
+            "role": "accent"
+          }
+        ]
+      },
+      "source_mode": "constructed"
+    },
+    "palette": {
+      "accent": {
+        "accessible": "#A000EC",
+        "bright": "#C659FF",
+        "deep": "#BF36FF",
+        "dim": "#A79CB8"
+      },
+      "chart_palette": {
+        "dark_target_lightness": 0.68,
+        "hue_rotations": [
+          0,
+          -57,
+          -113,
+          -170,
+          -226
+        ],
+        "rationale": "The canon rotation set assumes an accent sitting mid-spectrum. From green 153 the canon spread runs 49 to 257 and behaves. From Covariance Purple at 311.8 the +52 entry wraps onto 3.7, a magenta that reads as a lighter accent and sits 15 degrees from the failure red. The five entries sweep one direction across the same arc instead, at an even 57 degrees, holding the canon 0.92 chroma relationship and still solving lightness against the real surface. Minimum pairwise separation is 55.7 degrees and no entry comes within 47 degrees of the warning orange or 67 of the failure red."
+      },
+      "logo_role_colors": {
+        "color": {
+          "accent": "#C659FF",
+          "emphasis": "#FF5300"
+        },
+        "light": {
+          "accent": "#A000EC",
+          "emphasis": "#C24000"
+        }
+      },
+      "surfaces": {
+        "base": "#0A0910",
+        "card": "#13111D",
+        "hover": "#1A1824",
+        "popover": "#08070D",
+        "secondary": "#15131E"
+      }
+    },
+    "sha256": "5eba87ceb105bdeb9a0868d3c6a14ac5507cb5ef3bf0af0968125dd735848069",
+    "source_class": "legacy-constructed",
+    "topology": {
+      "full": {
+        "closed_subpaths": 2,
+        "command_counts": {
+          "C": 14,
+          "L": 2,
+          "M": 2,
+          "Z": 2
+        },
+        "fill_rules": {
+          "nonzero": 2
+        },
+        "path_count": 2,
+        "role_counts": {
+          "accent": 1,
+          "emphasis": 1
+        },
+        "subpath_count": 2
+      },
+      "reduced": {
+        "closed_subpaths": 1,
+        "command_counts": {
+          "C": 14,
+          "L": 1,
+          "M": 1,
+          "Z": 1
+        },
+        "fill_rules": {
+          "nonzero": 1
+        },
+        "path_count": 1,
+        "role_counts": {
+          "accent": 1
+        },
+        "subpath_count": 1
+      }
+    },
+    "typography": {
+      "typography": {
+        "families": {
+          "body": {
+            "name": "Geist",
+            "weights": [
+              400,
+              500
+            ]
+          },
+          "display": {
+            "name": "Space Grotesk",
+            "weights": [
+              500,
+              700
+            ]
+          },
+          "mono": {
+            "name": "Geist Mono",
+            "weights": [
+              400
+            ]
+          }
+        },
+        "mode": "house"
+      },
+      "wordmark_text": "Covarity"
+    }
+  },
+  "palette": {
+    "accent": {
+      "accessible": "#A000EC",
+      "bright": "#C659FF",
+      "deep": "#BF36FF",
+      "dim": "#A79CB8"
+    },
+    "chart_palette": {
+      "dark_target_lightness": 0.68,
+      "hue_rotations": [
+        0,
+        -57,
+        -113,
+        -170,
+        -226
+      ],
+      "rationale": "The canon rotation set assumes an accent sitting mid-spectrum. From green 153 the canon spread runs 49 to 257 and behaves. From Covariance Purple at 311.8 the +52 entry wraps onto 3.7, a magenta that reads as a lighter accent and sits 15 degrees from the failure red. The five entries sweep one direction across the same arc instead, at an even 57 degrees, holding the canon 0.92 chroma relationship and still solving lightness against the real surface. Minimum pairwise separation is 55.7 degrees and no entry comes within 47 degrees of the warning orange or 67 of the failure red."
+    },
+    "logo_role_colors": {
+      "color": {
+        "accent": "#C659FF",
+        "emphasis": "#FF5300"
+      },
+      "light": {
+        "accent": "#A000EC",
+        "emphasis": "#C24000"
+      }
+    },
+    "surfaces": {
+      "base": "#0A0910",
+      "card": "#13111D",
+      "hover": "#1A1824",
+      "popover": "#08070D",
+      "secondary": "#15131E"
+    }
+  },
+  "proofs": [],
+  "record_sha256": "085ec304c38fdaa884d79041d5292c80d883402d66b19b0a68e773dcdd460ade",
+  "recorded_on": "2026-09-09",
+  "renderer": null,
+  "schema_version": 1,
+  "source_class": "legacy-constructed",
+  "source_files": [
+    {
+      "bytes": 3169,
+      "path": "build/mk_paths.py",
+      "purpose": "identity construction source",
+      "sha256": "7b5d73424826e9f747496a7624d8394273782534e69420c9656b45c9cea30fb3"
+    }
+  ],
+  "source_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+  "status": "historical-baseline",
+  "topology": {
+    "full": {
+      "closed_subpaths": 2,
+      "command_counts": {
+        "C": 14,
+        "L": 2,
+        "M": 2,
+        "Z": 2
+      },
+      "fill_rules": {
+        "nonzero": 2
+      },
+      "path_count": 2,
+      "role_counts": {
+        "accent": 1,
+        "emphasis": 1
+      },
+      "subpath_count": 2
+    },
+    "reduced": {
+      "closed_subpaths": 1,
+      "command_counts": {
+        "C": 14,
+        "L": 1,
+        "M": 1,
+        "Z": 1
+      },
+      "fill_rules": {
+        "nonzero": 1
+      },
+      "path_count": 1,
+      "role_counts": {
+        "accent": 1
+      },
+      "subpath_count": 1
+    }
+  }
+}

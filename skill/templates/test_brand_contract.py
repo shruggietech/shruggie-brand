@@ -15,7 +15,8 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, derivative_configuration_sha256, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, vendor_boundary, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, derivative_configuration_sha256, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, vendor_boundary, wordmark_role_colors
+from identity_continuity import canonical_digest, identity_snapshot, record_digest
 from ingest_font import ingest_font
 
 
@@ -166,6 +167,82 @@ class ApprovalLedgerTests(unittest.TestCase):
         brand["vendor_boundary"]["entities"].append("Missing Corp")
         with self.assertRaisesRegex(ContractError, "omits"):
             vendor_boundary(brand)
+
+
+class IdentityContinuityIntegrationTests(unittest.TestCase):
+    def test_canonical_gate_binding_cannot_be_faked_by_direction_or_historical_state(self):
+        brand = approval_brand()
+        approved = {"status": "approved-canonical", "record_sha256": "f" * 64}
+        with self.assertRaisesRegex(ContractError, "canonical source"):
+            canonical_gate_binding(brand, approved)
+        brand["approval_ledger"]["gate_1"]["canonical_source_sha256"] = "f" * 64
+        self.assertTrue(canonical_gate_binding(brand, approved))
+        with self.assertRaisesRegex(ContractError, "historical"):
+            canonical_gate_binding(brand, {"status": "historical-baseline", "record_sha256": "f" * 64})
+
+    def test_schema_requires_a_bounded_continuity_reference_for_brand_sources(self):
+        schema = json.loads((ROOT / "skill" / "references" / "canon.schema.json").read_text(encoding="utf-8"))
+        then_required = schema["allOf"][0]["then"]["required"]
+        self.assertIn("identity_continuity", then_required)
+        reference = schema["$defs"]["identityContinuityReference"]
+        self.assertFalse(reference["additionalProperties"])
+        self.assertEqual(["identity-continuity.json"], reference["properties"]["record"]["enum"])
+        self.assertEqual(
+            ["approved-canonical", "historical-baseline"],
+            reference["properties"]["status"]["enum"],
+        )
+        self.assertEqual(
+            ["authoritative", "glyphkit-constructed", "legacy-constructed"],
+            schema["$defs"]["identityContinuityRecord"]["properties"]["source_class"]["enum"],
+        )
+
+    def test_brand_file_requires_and_validates_continuity_record(self):
+        from brand_contract import validate_brand_file
+
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            stage_house_fonts(kit)
+            brand = owned_brand()
+            brand_path = kit / "brand.json"
+            brand_path.write_text(json.dumps(brand), encoding="utf-8")
+            with self.assertRaisesRegex(ContractError, "identity_continuity"):
+                validate_brand_file(brand_path)
+
+            brand["identity_continuity"] = {
+                "record": "identity-continuity.json",
+                "status": "historical-baseline",
+            }
+            snapshot = identity_snapshot(brand, "legacy-constructed")
+            record = {
+                "schema_version": 1,
+                "brand": "example",
+                "status": "historical-baseline",
+                "source_class": "legacy-constructed",
+                "recorded_on": "2026-09-09",
+                "source_revision": "test-revision",
+                "source_files": [],
+                "identity_snapshot": snapshot,
+                "topology": snapshot["topology"],
+                "framing": snapshot["framing"],
+                "palette": snapshot["palette"],
+                "renderer": None,
+                "proofs": [],
+                "approval": None,
+                "historical_evidence": {
+                    "basis": "current-authoritative-source",
+                    "baseline_revision": "test-revision",
+                    "approval_completeness": "unknown",
+                    "limitation": "This baseline is not retrospective owner approval.",
+                    "migration_issue": 185,
+                },
+                "record_sha256": "",
+            }
+            record["record_sha256"] = record_digest(record)
+            (kit / "identity-continuity.json").write_text(json.dumps(record), encoding="utf-8")
+            brand_path.write_text(json.dumps(brand), encoding="utf-8")
+            loaded, evidence = validate_brand_file(brand_path)
+            self.assertEqual("example", loaded["slug"])
+            self.assertEqual([], evidence)
 
 
 class SourceInventoryTests(unittest.TestCase):

@@ -1062,10 +1062,11 @@
       "default": "glyphkit",
       "allowed": [
         "glyphkit",
-        "imported"
+        "imported",
+        "legacy-constructed"
       ],
       "reason_field": "logo.geometry_provenance_reason",
-      "rule": "glyphkit geometry must use absolute M, L, C and Z and passes every measured gate. imported geometry predates the skill and remains byte-for-byte unchanged; unsupported commands warn and skip measurements that the standard-library parser cannot perform. Imported geometry requires a written reason in brand.json and NOTES.md."
+      "rule": "glyphkit geometry must use absolute M, L, C and Z and pass every measured gate. imported geometry and legacy-constructed helpers predate the current source law and remain byte-for-byte unchanged; unsupported commands warn and skip measurements that the standard-library parser cannot perform. Imported and legacy-constructed geometry require a written reason in brand.json."
     },
     "authoring": {
       "master": "<kit>/build/mk_paths.py, a parametric script importing templates/glyphkit.py. logo.paths in brand.json is generated from it and never hand-edited.",

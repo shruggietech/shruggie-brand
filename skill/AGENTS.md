@@ -47,6 +47,7 @@ logo concept to consider, and any existing material at all.
 | A fixed font requirement | `03-interview.md` typography gate, `09-portability.md`, then run `templates/ingest_font.py` explicitly |
 | To pick a colour | `01-canon.json` `color.constrained_rules`, then propose candidates with measured numbers |
 | A logo | `08-glyph-construction.md` first, then `06-logo-protocol.md`. Do not draw before reading it |
+| To approve or promote identity source | `identity-continuity.md`, then `06-logo-protocol.md` |
 | Next.js or shadcn wiring | `05-shadcn-binding.md`, then run `templates/gen_nextjs.py` |
 | To write copy | `07-voice.md` |
 | To know what may change | `00-variance-contract.md` |
@@ -65,6 +66,8 @@ fails, and it fails the same way every time: an agent writes coordinates and
 then has no mechanical way to tell whether they describe the shape it meant.
 `glyphkit` cannot emit malformed geometry, and the gate answers in numbers with
 no renderer and no vision. Start at `08-glyph-construction.md`.
+
+**Direction selection is not canonical approval.** A sketch or generated concept can select a direction, but the operator approves identity source only after the real production Full and Reduced masters, glyphkit helper or authoritative bindings, framing, palette qualification, renderer settings, and 32-proof matrix exist. Approval binds that exact source snapshot. Promotion copies those bytes without reconstruction, and the build validates them before derivatives. Gate 2 reviews derivatives and cannot introduce production geometry. Read `identity-continuity.md` before any identity approval or promotion.
 
 **Accessibility is never exemptable.** WCAG AA at rendered size is a floor, and
 no conformance level, legacy grandfather or operator override waives it. A kit
@@ -119,6 +122,7 @@ One command runs the whole pipeline and reports every gate:
 It validates the explicit contract first, then probes, runs the glyph gate, and stops before publishable output on any failure. Individually:
 
     python3 templates/validate_brand.py <brand.json>          # affiliation, inputs, type
+    python3 templates/promote_identity.py <bundle> ...        # exact approved source promotion
     python3 templates/probe.py          <kit>                 # capability tier
     python3 templates/validate_glyph.py <brand.json>          # the mark, measured
     python3 templates/analyze_inputs.py <brand.json> <kit>    # generated evidence
@@ -151,6 +155,8 @@ allowed it to run, and every skip names the tool that was missing. Present the
 portal payload and portable guidelines page, the UI kit screenshots, the type specimen, and the verification
 table. A non-zero problem count blocks the final gate.
 
+For a new or changed identity, completion also requires a valid `approved-canonical` continuity record and source-bound report. A historical baseline preserves an existing identity but cannot authorize a new one. Any governed source, method, geometry, topology, framing, palette, renderer, or proof change invalidates approval before further derivative work.
+
 If you can see images, open `qc/logo-sheet.png` and `qc/contact-sheet.png`
 before you say it is finished. The numbers narrow where to look; they do not
 replace looking.
@@ -180,8 +186,11 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `references/07-voice.md` | registers, the principle and descriptor shapes, banned rhetoric |
 | `references/08-glyph-construction.md` | how to produce a mark that is not wrong |
 | `references/09-portability.md` | capability tiers and the cross-provider rules |
+| `references/identity-continuity.md` | direction selection, canonical approval, byte-copy promotion, proof comparison, and invalidation |
 | `templates/probe.py` | what this machine can do, as JSON the pipeline reads |
 | `templates/brand_contract.py` | shared fail-closed affiliation, supplied-input, palette, and typography contract |
+| `templates/identity_continuity.py` | canonical source snapshots, continuity records, proof comparison, and generated-report validation |
+| `templates/promote_identity.py` | bounded atomic promotion of exact approved source bytes |
 | `templates/validate_brand.py` | first-step runtime contract validation |
 | `templates/analyze_inputs.py` | deterministic generated audit and palette evidence |
 | `templates/ingest_font.py` | explicit bounded and atomic local or HTTPS font ingestion |

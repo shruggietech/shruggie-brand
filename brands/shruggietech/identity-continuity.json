@@ -1,0 +1,281 @@
+{
+  "approval": null,
+  "brand": "shruggietech",
+  "framing": {
+    "canvas_height": 500,
+    "canvas_width": 919,
+    "clear_space_units": 92,
+    "grid": 919
+  },
+  "historical_evidence": {
+    "approval_completeness": "unknown",
+    "baseline_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+    "basis": "current-authoritative-source",
+    "limitation": "This migration records current source facts and is not retrospective canonical approval.",
+    "migration_issue": 185
+  },
+  "identity_snapshot": {
+    "framing": {
+      "canvas_height": 500,
+      "canvas_width": 919,
+      "clear_space_units": 92,
+      "grid": 919
+    },
+    "geometry": {
+      "authoritative_input_ids": {
+        "full": "full-mark-master",
+        "reduced": "reduced-mark-master"
+      },
+      "geometry_provenance": "imported",
+      "paths": {
+        "full": [
+          {
+            "element": "image",
+            "height": 302,
+            "mask": "alpha",
+            "role": "accent",
+            "source": "assets/logo-icon-only-green.png",
+            "width": 919,
+            "x": 0,
+            "y": 99
+          }
+        ],
+        "reduced": [
+          {
+            "element": "image",
+            "height": 500,
+            "mask": "luminance",
+            "role": "accent",
+            "source": "assets/socialmedia_logo.png",
+            "width": 500,
+            "x": 209.5,
+            "y": 0
+          }
+        ]
+      },
+      "source_mode": "authoritative"
+    },
+    "palette": {
+      "accent": {
+        "accessible": "#037B40",
+        "bright": "#2BCC73",
+        "deep": "#00AB21",
+        "dim": "#9A9A9A"
+      },
+      "chart_palette": {
+        "dark_target_lightness": 0.68,
+        "hue_rotations": [
+          0,
+          52,
+          104,
+          156,
+          208
+        ],
+        "rationale": "The canon rotation set begins at the parent green and moves through a broad, evenly spaced arc. Series colors remain separated from warning orange and failure red."
+      },
+      "legacy_palette": {
+        "brand_black": "#000000",
+        "brand_gray_light": "#D1D3D4",
+        "brand_green_accessible": "#037B40",
+        "brand_green_bright": "#2BCC73",
+        "brand_green_deep": "#00AB21",
+        "brand_orange": "#FF5300",
+        "brand_white": "#FFFFFF",
+        "cta_orange": "#C24000",
+        "gray_100": "#F5F5F5",
+        "gray_200": "#E5E5E5",
+        "gray_400": "#9A9A9A",
+        "gray_600": "#6B6B6B",
+        "gray_800": "#1A1A1A",
+        "gray_900": "#111111",
+        "gray_950": "#0A0A0A",
+        "light_secondary": "#F0EFED",
+        "light_surface": "#F8F8F6",
+        "line_dark": "#262626",
+        "surface_dark_deep": "#060608",
+        "surface_dark_products": "#0E1014",
+        "surface_dark_rich": "#0A0E18",
+        "surface_dark_slate": "#111318",
+        "surface_dark_warm": "#0D0F12"
+      },
+      "logo_role_colors": {
+        "color": {
+          "accent": "#2BCC73"
+        },
+        "light": {
+          "accent": "#037B40"
+        }
+      },
+      "surfaces": {
+        "base": "#000000",
+        "card": "#111111",
+        "hover": "#1A1A1A",
+        "popover": "#0A0A0A",
+        "secondary": "#0D0F12"
+      }
+    },
+    "sha256": "5fa6a1590bdf37a4c380b601ee70afc17874f8c51c83ca002e572649cc132294",
+    "source_class": "authoritative",
+    "topology": {
+      "full": {
+        "closed_subpaths": 0,
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        },
+        "path_count": 1,
+        "role_counts": {
+          "accent": 1
+        },
+        "subpath_count": 0
+      },
+      "reduced": {
+        "closed_subpaths": 0,
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        },
+        "path_count": 1,
+        "role_counts": {
+          "accent": 1
+        },
+        "subpath_count": 0
+      }
+    },
+    "typography": {
+      "typography": {
+        "families": {
+          "body": {
+            "name": "Geist",
+            "weights": [
+              400,
+              500
+            ]
+          },
+          "display": {
+            "name": "Space Grotesk",
+            "weights": [
+              500,
+              700
+            ]
+          },
+          "mono": {
+            "name": "Geist Mono",
+            "weights": [
+              400
+            ]
+          }
+        },
+        "mode": "house"
+      },
+      "wordmark_text": "ShruggieTech"
+    }
+  },
+  "palette": {
+    "accent": {
+      "accessible": "#037B40",
+      "bright": "#2BCC73",
+      "deep": "#00AB21",
+      "dim": "#9A9A9A"
+    },
+    "chart_palette": {
+      "dark_target_lightness": 0.68,
+      "hue_rotations": [
+        0,
+        52,
+        104,
+        156,
+        208
+      ],
+      "rationale": "The canon rotation set begins at the parent green and moves through a broad, evenly spaced arc. Series colors remain separated from warning orange and failure red."
+    },
+    "legacy_palette": {
+      "brand_black": "#000000",
+      "brand_gray_light": "#D1D3D4",
+      "brand_green_accessible": "#037B40",
+      "brand_green_bright": "#2BCC73",
+      "brand_green_deep": "#00AB21",
+      "brand_orange": "#FF5300",
+      "brand_white": "#FFFFFF",
+      "cta_orange": "#C24000",
+      "gray_100": "#F5F5F5",
+      "gray_200": "#E5E5E5",
+      "gray_400": "#9A9A9A",
+      "gray_600": "#6B6B6B",
+      "gray_800": "#1A1A1A",
+      "gray_900": "#111111",
+      "gray_950": "#0A0A0A",
+      "light_secondary": "#F0EFED",
+      "light_surface": "#F8F8F6",
+      "line_dark": "#262626",
+      "surface_dark_deep": "#060608",
+      "surface_dark_products": "#0E1014",
+      "surface_dark_rich": "#0A0E18",
+      "surface_dark_slate": "#111318",
+      "surface_dark_warm": "#0D0F12"
+    },
+    "logo_role_colors": {
+      "color": {
+        "accent": "#2BCC73"
+      },
+      "light": {
+        "accent": "#037B40"
+      }
+    },
+    "surfaces": {
+      "base": "#000000",
+      "card": "#111111",
+      "hover": "#1A1A1A",
+      "popover": "#0A0A0A",
+      "secondary": "#0D0F12"
+    }
+  },
+  "proofs": [],
+  "record_sha256": "35a0e8016348f22c7c8f3adae201d81547db2aeeb9e8c4feb7beeb5de846012c",
+  "recorded_on": "2026-09-09",
+  "renderer": null,
+  "schema_version": 1,
+  "source_class": "authoritative",
+  "source_files": [
+    {
+      "bytes": 15082,
+      "path": "assets/logo-icon-only-green.png",
+      "purpose": "authoritative mark source",
+      "sha256": "d500c3eadf049d36ce094bf7e35e37902a4ab49a66bcd6a9b40696961208a5c8"
+    },
+    {
+      "bytes": 15984,
+      "path": "assets/socialmedia_logo.png",
+      "purpose": "authoritative reduced-mark source",
+      "sha256": "dc84170f164277ee4289240405aec1b35170937da0d4afe8f096ecd6d893c324"
+    }
+  ],
+  "source_revision": "011f35303ef1d555dbbbcf6708447cc321df40db",
+  "status": "historical-baseline",
+  "topology": {
+    "full": {
+      "closed_subpaths": 0,
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      },
+      "path_count": 1,
+      "role_counts": {
+        "accent": 1
+      },
+      "subpath_count": 0
+    },
+    "reduced": {
+      "closed_subpaths": 0,
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      },
+      "path_count": 1,
+      "role_counts": {
+        "accent": 1
+      },
+      "subpath_count": 0
+    }
+  }
+}

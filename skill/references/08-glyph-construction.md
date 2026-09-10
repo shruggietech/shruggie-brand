@@ -28,6 +28,8 @@ Every brand declares `logo.source_mode`. Use `constructed` only when the approve
 
 A later change to the binding, source hash, source bytes, mask method, or visible geometry is a new identity decision and requires fresh owner approval before generation. Color replacement, proportional resizing, unchanged embedding, and lockup placement are permitted only when named in the source's approved transformations.
 
+For a new constructed identity, primitive conversion is completed before canonical approval. The exact `mk_paths.py`, generated Full and Reduced path arrays, framing values, topology, palette roles, and renderer settings enter the approval snapshot. Direction selection does not approve any of these values. After approval, promotion copies source bytes and no later stage may reconstruct them.
+
 ## The three artifacts
 
 | File | What it is | Who writes it |
@@ -38,9 +40,9 @@ A later change to the binding, source hash, source bytes, mask method, or visibl
 
 ## Imported legacy geometry
 
-Existing shipped marks are identity assets, not raw material for cleanup. Set `logo.geometry_provenance` to `imported` and add `logo.geometry_provenance_reason` when usable path data predates glyphkit. Preserve that path data byte-for-byte and explain the migration in the kit's `NOTES.md`, including what a future owner-approved move to `glyphkit` would require.
+Existing shipped marks are identity assets, not raw material for cleanup. Set `logo.geometry_provenance` to `imported` for imported path data, or `legacy-constructed` for a custom historical construction helper, and add `logo.geometry_provenance_reason`. Preserve the path and helper bytes exactly. A future move to `glyphkit` is an identity change that requires a new canonical candidate and owner approval.
 
-The absolute M, L, C, Z command rule remains a failure for the default `glyphkit` provenance. For `imported` geometry, unsupported commands are warnings. Measurements that require the absolute-only standard-library parser are skipped rather than producing invented numbers or forcing an identity redraw. `VERIFY.md` records the provenance and reason. All non-geometry checks, especially accessibility, remain mandatory.
+The absolute M, L, C, Z command rule remains a failure for the default `glyphkit` provenance. For `imported` or `legacy-constructed` geometry, unsupported commands are warnings. Measurements that require the absolute-only standard-library parser are skipped rather than producing invented numbers or forcing an identity redraw. `VERIFY.md` records the provenance and reason. All non-geometry checks, especially accessibility, remain mandatory.
 
 In constructed mode, `mk_paths.py` is the master. The `logo.paths` block in `brand.json` is generated
 output. When the mark changes, the parameters in `mk_paths.py` change and
@@ -164,6 +166,10 @@ the construction table without anybody retyping numbers:
       "construction": "One sentence describing how the shape is built.",
       "paths": { "full": [...], "reduced": [...] }
     }
+
+### 8. Qualify and approve the production candidate
+
+Generate the complete proof matrix and palette evidence described in `identity-continuity.md` from the same helper, path arrays, framing, and renderer used by production. Canonical approval binds those exact values. A later serializer, helper, parameter, crop, role, or renderer change invalidates approval rather than becoming a Gate 2 adjustment.
 
 ## Roles, not colours
 

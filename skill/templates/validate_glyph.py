@@ -238,14 +238,14 @@ def measure(paths, grid, label, rep, reduced=False, provenance="glyphkit",
     """Run every check against one master and record the numbers."""
     prefix = "%s " % label
 
-    if provenance not in {"glyphkit", "imported"}:
+    if provenance not in {"glyphkit", "imported", "legacy-constructed"}:
         rep.bad(prefix + "geometry-provenance",
-                "must be 'glyphkit' or 'imported', got %r" % provenance)
+                "must be 'glyphkit', 'imported', or 'legacy-constructed', got %r" % provenance)
         return None
-    if provenance == "imported":
+    if provenance in {"imported", "legacy-constructed"}:
         reason = provenance_reason or "no migration reason recorded"
         rep.warn(prefix + "geometry-provenance",
-                 "imported geometry preserved unchanged: %s" % reason)
+                 "%s geometry preserved unchanged: %s" % (provenance, reason))
 
     for entry in paths:
         if isinstance(entry, dict) and entry.get("element", "path") != "path":
@@ -253,7 +253,7 @@ def measure(paths, grid, label, rep, reduced=False, provenance="glyphkit",
                       "rasteriser. Imported source is preserved unchanged and the "
                       "remaining geometry measurements are skipped."
                       % entry.get("element"))
-            if provenance == "imported":
+            if provenance in {"imported", "legacy-constructed"}:
                 rep.warn(prefix + "elements", detail)
             else:
                 rep.bad(prefix + "elements", detail)
@@ -263,7 +263,7 @@ def measure(paths, grid, label, rep, reduced=False, provenance="glyphkit",
             detail = ("path uses a command outside absolute M, L, C, Z. "
                       "Imported source is preserved unchanged and the remaining "
                       "geometry measurements are skipped.")
-            if provenance == "imported":
+            if provenance in {"imported", "legacy-constructed"}:
                 rep.warn(prefix + "commands", detail)
             else:
                 rep.bad(prefix + "commands",

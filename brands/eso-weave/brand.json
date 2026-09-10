@@ -173,5 +173,9 @@
     "specimen_line": "Unofficial automation for ESO",
     "specimen_body": "Combat weaving, fishing assistance, Auto Potion, and live status stay visible and operator-controlled without reading game memory or network traffic."
   },
-  "canon": "1.2.1"
+  "canon": "1.2.1",
+  "identity_continuity": {
+    "record": "identity-continuity.json",
+    "status": "historical-baseline"
+  }
 }

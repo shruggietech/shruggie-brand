@@ -380,8 +380,9 @@ def approval_ledger(brand, normalized_inputs=None):
         _require(hashes == current, "approval ledger is stale because authoritative source hashes changed")
 
     gate_1 = value["gate_1"]
-    _require(isinstance(gate_1, dict)
-             and set(gate_1) == {"status", "approved_by", "approved_on", "scope", "derivative_config_sha256"},
+    gate_1_required = {"status", "approved_by", "approved_on", "scope", "derivative_config_sha256"}
+    _require(isinstance(gate_1, dict) and gate_1_required.issubset(set(gate_1))
+             and set(gate_1).issubset(gate_1_required | {"canonical_source_sha256"}),
              "approval_ledger.gate_1 has an invalid structure")
     _require(gate_1["status"] == "approved", "Gate 1 approval is required before derivative generation")
     _require(isinstance(gate_1["approved_by"], str) and gate_1["approved_by"].strip(),
@@ -420,6 +421,18 @@ def approval_ledger(brand, normalized_inputs=None):
                  and gate_2["derivative_manifest_sha256"] is None and gate_2["surfaces"] == [],
                  "pending or rejected Gate 2 must not carry approval evidence")
     return value
+
+
+def canonical_gate_binding(brand, continuity):
+    """Keep source approval distinct from historical state and derivative approval."""
+    ledger = brand.get("approval_ledger")
+    binding = ((ledger or {}).get("gate_1") or {}).get("canonical_source_sha256")
+    if continuity["status"] == "historical-baseline":
+        _require(binding is None, "historical baseline cannot be used as canonical source approval")
+        return True
+    _require(ledger is not None and binding == continuity["record_sha256"],
+             "Gate 1 canonical source binding is absent or stale")
+    return True
 
 
 def public_showcase(brand, kit=None):
@@ -902,12 +915,21 @@ def validate_brand(brand, kit):
     evidence = [evidence for record, path in normalized_inputs
                 for evidence in [analyze_input(record, path)] if evidence is not None]
     validate_palette_approvals(brand, evidence)
+    if "identity_continuity" in brand:
+        try:
+            from identity_continuity import ContinuityError, validate_brand_continuity
+            continuity = validate_brand_continuity(brand, kit)
+            canonical_gate_binding(brand, continuity)
+        except ContinuityError as error:
+            raise ContractError(str(error)) from error
     return evidence
 
 
 def validate_brand_file(path):
     path = Path(path).resolve()
     brand = load_brand(path)
+    _require("identity_continuity" in brand,
+             "identity_continuity is required for every production brand source")
     return brand, validate_brand(brand, path.parent)
 
 
