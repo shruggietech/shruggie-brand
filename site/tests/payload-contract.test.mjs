@@ -18,6 +18,7 @@ test('accepts valid supported payload types and content types', () => {
     ['/favicon.ico', 'image/vnd.microsoft.icon', ico],
     ['/logo.svg', 'image/svg+xml', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>')],
     ['/registry.json', 'application/json; charset=utf-8', Buffer.from('{"name":"brand"}')],
+    ['/consumer-handoff.json', 'application/json; charset=utf-8', Buffer.from('{"brand":"cueson","sha256":"abc"}')],
     ['/site.webmanifest', 'application/manifest+json; charset=utf-8', Buffer.from('{"icons":[]}')],
     ['/sitemap.xml', 'application/xml', Buffer.from('<?xml version="1.0"?><urlset></urlset>')],
     ['/robots.txt', 'text/plain; charset=utf-8', Buffer.from('User-agent: *\nSitemap: https://example.test/sitemap.xml\n')],

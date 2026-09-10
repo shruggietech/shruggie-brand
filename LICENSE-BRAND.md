@@ -10,7 +10,7 @@ its own marks as data.
 
 ## Not licensed for reuse
 
-- The names **ShruggieTech**, **Shruggie**, **Covarity**, **Fragcap**,
+- The names **ShruggieTech**, **Shruggie**, **Covarity**, **Cueson**, **Fragcap**,
   **Glitchpad**, and **Go Schedule**, together with the names of every future
   product built with this tool.
 - Every wordmark and logo, in any format: SVG masters, PNG exports, favicons,

@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "slice": "S026",
+  "issue": 184,
+  "gate": 2,
+  "status": "approved",
+  "public_eligible": true,
+  "approved_sources": {
+    "candidate": "cueframe-r1",
+    "geometry_sha256": "779a7c79ec00a6b62b83468101f6ec6606804833d8c1fbd0b77b5d4baa795a49",
+    "palette": "cue-teal-r1",
+    "palette_sha256": "15bb46c278449a9b7dbd65238bcd5566abaaf4dcf60c4cfc56bb7a7ecc7c7be2",
+    "derivative_configuration_sha256": "4c71cbf518a6de9d8861eea203e882469461feae18f576ea03e8c435ea71ab7c"
+  },
+  "families": [
+    "mark",
+    "mark-reduced",
+    "horizontal",
+    "stacked",
+    "wordmark",
+    "single-ink"
+  ],
+  "platforms": [
+    "web",
+    "windows",
+    "apple",
+    "android",
+    "social",
+    "repository"
+  ],
+  "publication_surfaces": [
+    "showcase-card",
+    "brand-landing-page",
+    "guideline-topics",
+    "downloads",
+    "registry-endpoints",
+    "public-metadata",
+    "structured-data",
+    "social-preview"
+  ],
+  "copy_lines": [
+    "Cueson",
+    "Universal captions and subtitles",
+    "A lossless, structured interchange layer",
+    "for subtitle and caption content."
+  ],
+  "hashes": {
+    "derivative_approval_sha256": "e9f3aef341ed8910426abd6d7876dac1f39f69afe370efc9c1cddb7af41f9dc5",
+    "derivative_provenance_sha256": "ce6e3525baf33dd0dec9f0eb820d75446884fff89ee13887c53b554c43df95ca",
+    "kit_manifest_sha256": "ce82e5b74de0a701f6806f786b6468377326f52074247aa7f4a3f67232cf42fb",
+    "packet_manifest_sha256": "78b8c33350fff5b541e476898b051d936fdc88ac04a4711572e8c723f725de19",
+    "packet_proposal_sha256": "b58e34f6b7fb914acd29e1140173692a988a9b2cb396d90f98149c1fbefdeb7a",
+    "overview_sha256": "cfc359f80ecd75f909fae3b8d5d805dce2778125a6d1ee6492b8a567d29f599f",
+    "lockups_sha256": "d75be24bebd70a7293ee8470365ddf36c707b5215b65f0bbfd66ea0e0f9b1604",
+    "applications_sha256": "5509746e2a3f96eb6939237888fd389bf99f4b3965e5509c8f8d8897fb5f9b6e",
+    "copy_compositions_sha256": "4106132df8d1ee3e3ae831e8a1f55b826ac9b284bba211df5781f1d7e5f7ca17",
+    "public_surfaces_sha256": "f14ae8b204e84fe4f074bbde29b351a878389bca0336462637ddd6af73decc1a",
+    "construction_continuity_sha256": "737e305b5ba5e854fde5467645e8c65a44cbd0ab0305e7975c8fd21a01bc3d72",
+    "construction_continuity_image_sha256": "6bf890c6644da4255339e65db794cb8d669776213e38be85d6f3f723a6e8ac7f"
+  },
+  "measurements": {
+    "full_master_minimum_px": 24,
+    "reduced_master_threshold_px": 32,
+    "horizontal_minimum_px": 160,
+    "stacked_minimum_px": 112,
+    "wordmark_minimum_px": 120,
+    "clear_space_units": 48,
+    "glyph_failures": 0,
+    "verification_problems": 0,
+    "full_artwork_units": [
+      330,
+      338
+    ],
+    "reduced_artwork_units": [
+      318,
+      302
+    ],
+    "standalone_padding_units": {
+      "full": 87,
+      "reduced": 97
+    },
+    "coordinate_contract_matches": true,
+    "master_silhouette_iou": {
+      "full": 0.94722,
+      "reduced": 0.959525
+    }
+  },
+  "visual_inspection": {
+    "status": "passed-construction-continuity-retry",
+    "surfaces": [
+      "dark",
+      "light",
+      "reversed",
+      "black",
+      "white"
+    ],
+    "sizes_px": [
+      256,
+      128,
+      64,
+      32,
+      16
+    ],
+    "responsive_widths_px": [
+      1280,
+      390
+    ],
+    "findings": [
+      "No holes, coarse joints, accidental cutouts, or grid-like stepping remain.",
+      "Full and reduced silhouettes preserve the approved Gate 1 coordinates and framing.",
+      "Dark, light, black, and white role maps remain visually coherent.",
+      "Responsive guideline and Cueson data specimens remain intact at 1280 and 390 pixels."
+    ]
+  },
+  "approval": {
+    "approved_by": "identity owner",
+    "approved_on": "2026-09-09",
+    "approved_at": "2026-09-09T17:38:17.3497314-04:00",
+    "wording": "Looks good. you're clear for takeoff",
+    "attempt": 2,
+    "approved_packet_manifest_sha256": "78b8c33350fff5b541e476898b051d936fdc88ac04a4711572e8c723f725de19",
+    "approved_derivative_manifest_sha256": "e9f3aef341ed8910426abd6d7876dac1f39f69afe370efc9c1cddb7af41f9dc5",
+    "approved_construction_continuity_sha256": "737e305b5ba5e854fde5467645e8c65a44cbd0ab0305e7975c8fd21a01bc3d72",
+    "surfaces": [
+      "showcase-card",
+      "brand-landing-page",
+      "guideline-topics",
+      "downloads",
+      "registry-endpoints",
+      "public-metadata",
+      "structured-data",
+      "social-preview"
+    ]
+  },
+  "attempt": 2,
+  "attempt_history": [
+    {
+      "attempt": 1,
+      "status": "rejected-owner-review",
+      "finding": "The production reconstruction departed from the approved rounded-stroke construction and introduced coarse joints, holes, and over-scaled standalone framing.",
+      "issue": 185,
+      "derivative_configuration_sha256": "ca60898c530f7e36d23ae0b6153a8f5ae42d881d5dcdfd57a509b8e8241a5851",
+      "packet_manifest_sha256": "3017e48ed1219a3e65aa0629d7bd21c13a64d50d3983019c503a477625de8167"
+    },
+    {
+      "attempt": 2,
+      "status": "approved-owner-review",
+      "finding": "Approved centerlines are expanded directly with glyphkit.capsule and standalone framing is variant-specific.",
+      "issue": 185,
+      "derivative_configuration_sha256": "4c71cbf518a6de9d8861eea203e882469461feae18f576ea03e8c435ea71ab7c"
+    }
+  ]
+}

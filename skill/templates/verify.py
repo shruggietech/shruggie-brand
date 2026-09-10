@@ -1020,7 +1020,8 @@ def _png_matches_svg(kit, relative, brand):
         raster((["-h", str(width)] if standalone else ["-w", str(width)])
                + [svg_path, "-o", rendered])
         with Image.open(rendered) as source:
-            expected = (contain_visible(source.convert("RGBA"), width, standalone_mark_ratio(brand))
+            source_variant = "reduced" if match.group(1).startswith(brand["slug"] + "-mark-reduced-") else "full"
+            expected = (contain_visible(source.convert("RGBA"), width, standalone_mark_ratio(brand, source_variant))
                         if standalone else source.convert("RGBA"))
             expected.save(expected_path)
         with Image.open(expected_path) as expected, Image.open(os.path.join(kit, relative.replace("/", os.sep))) as actual:

@@ -70,6 +70,10 @@ def build(slug: str, source: Path) -> int:
         check=False,
         **hidden_process_kwargs(),
     )
+    if completed.returncode == 0 and slug == "cueson":
+        from cueson_identity_study import generate_consumer_handoff
+        generate_consumer_handoff(destination)
+        print("ok    certified consumer handoff                 consumer-handoff.json")
     return completed.returncode
 
 

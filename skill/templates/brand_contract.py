@@ -366,7 +366,11 @@ def approval_ledger(brand, normalized_inputs=None):
     _require(isinstance(value, dict) and set(value) == {"source_hashes", "gate_1", "gate_2"},
              "approval_ledger must contain exactly source_hashes, gate_1, and gate_2")
     hashes = value["source_hashes"]
-    _require(isinstance(hashes, dict) and hashes, "approval_ledger.source_hashes is required")
+    _require(isinstance(hashes, dict), "approval_ledger.source_hashes must be an object")
+    if not hashes:
+        source_mode = ((brand.get("logo") or {}).get("source_mode"))
+        _require(source_mode == "constructed",
+                 "an empty approval_ledger.source_hashes is valid only for a constructed identity")
     _require(all(ID.fullmatch(key or "") and DIGEST.fullmatch(digest or "")
                  for key, digest in hashes.items()),
              "approval_ledger.source_hashes contains an invalid binding")

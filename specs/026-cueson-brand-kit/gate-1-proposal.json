@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "slice": "S026",
+  "issue": 184,
+  "gate": 1,
+  "status": "approved",
+  "public_eligible": false,
+  "production_identity_created": false,
+  "evidence": {
+    "shruggie_brand_revision": "d50317f6acdf4d4492c3b25cdcd7bb3ec7a29ab9",
+    "cueson_revision": "d66d6a0cca92fc0a62f0e26df0ec5b9460ef22d6",
+    "explainer_role": "textual-product-context-only",
+    "excluded_visual_precedent": [
+      "color",
+      "typography",
+      "layout",
+      "composition",
+      "formatting"
+    ]
+  },
+  "verbal_identity": {
+    "name": "Cueson",
+    "domain": "cueson.io",
+    "slogan": "Universal captions and subtitles",
+    "description_lines": [
+      "A lossless, structured interchange layer",
+      "for subtitle and caption content."
+    ]
+  },
+  "criteria": [
+    "timed-cue-structure",
+    "universal-interchange",
+    "source-remains-authoritative",
+    "normalized-content-addressable",
+    "text-and-bitmap-inputs",
+    "ocr-is-derived",
+    "small-size-distinction",
+    "avoid-caption-cliches"
+  ],
+  "candidates": [
+    {
+      "id": "cueframe-r1",
+      "status": "recommended",
+      "geometry_sha256": "779a7c79ec00a6b62b83468101f6ec6606804833d8c1fbd0b77b5d4baa795a49"
+    },
+    {
+      "id": "parallel-source-r1",
+      "status": "exploring",
+      "geometry_sha256": "f5b05f94ee1a23fef5de499261744aac516cf804623205630791de9aa4421ae4"
+    },
+    {
+      "id": "timing-spine-r1",
+      "status": "exploring",
+      "geometry_sha256": "46ef4851fd869fba9402c090d485abfa1cab45d6c226b1e09a72d7f1eedd7d97"
+    },
+    {
+      "id": "interchange-aperture-r1",
+      "status": "exploring",
+      "geometry_sha256": "316a643382056cd3833cf982fcd4bf09234bf6817d10cf0299f521d60e21c1c3"
+    }
+  ],
+  "recommended_candidate": "cueframe-r1",
+  "palette": {
+    "id": "cue-teal-r1",
+    "status": "approved",
+    "sha256": "15bb46c278449a9b7dbd65238bcd5566abaaf4dcf60c4cfc56bb7a7ecc7c7be2",
+    "dark_accent": "#62BEB2",
+    "light_accent": "#005D55",
+    "dark_surface": "#080A14",
+    "light_surface": "#F7F8FC"
+  },
+  "proposal_sha256": "d9424cd28f976b474d6bdf0087c80bafec1e4fd7705ee3c52162696e760256f3",
+  "artifacts": {
+    "manifest_sha256": "4bd7141945cfb357bd410be00812d85581e1bb35511efe44d04d74911bfc3040",
+    "proposal_file_sha256": "d9424cd28f976b474d6bdf0087c80bafec1e4fd7705ee3c52162696e760256f3",
+    "overview_sha256": "3ea04b763b109c87ee2e5405ab0d963a76bf272c71281b7370ab1ff4b35fb4c4",
+    "palette_sheet_sha256": "3ea04b763b109c87ee2e5405ab0d963a76bf272c71281b7370ab1ff4b35fb4c4"
+  },
+  "approval_history": [
+    {
+      "status": "superseded-by-quality-gate",
+      "approved_at": "2026-09-09T14:17:01.3286295-04:00",
+      "owner_wording": "`cueframe-r1` plus `cue-iris-r1`\u00a0is literally perfect in every way as far as I can tell.",
+      "approved_candidate": "cueframe-r1",
+      "approved_candidate_geometry_sha256": "779a7c79ec00a6b62b83468101f6ec6606804833d8c1fbd0b77b5d4baa795a49",
+      "approved_palette": "cue-iris-r1",
+      "approved_palette_sha256": "bb01d7a038a1c6650a10057dafd34f874a50f8740dc16a9615024e7f322c82fb",
+      "approved_proposal_sha256": "3dea7608f2dc316fb6955c7dda462743c3175395f6179b5f11dc24c7fc98a94b",
+      "displayed_overview_sha256": "1d2eea369734a736bf8b7aa957f331fab9b7669978b4557aa2373730f7808729",
+      "displayed_palette_sheet_sha256": "f479ceb9165977ea0ceef0f8760c86b19fb7edf57b8bed5ed3557f0e6e53249f"
+    }
+  ],
+  "approval": {
+    "approved_at": "2026-09-09T15:23:33.2433829-04:00",
+    "owner_wording": "looks good. continue",
+    "approved_candidate": "cueframe-r1",
+    "approved_candidate_geometry_sha256": "779a7c79ec00a6b62b83468101f6ec6606804833d8c1fbd0b77b5d4baa795a49",
+    "approved_palette": "cue-teal-r1",
+    "approved_palette_sha256": "15bb46c278449a9b7dbd65238bcd5566abaaf4dcf60c4cfc56bb7a7ecc7c7be2",
+    "approved_proposal_sha256": "d9424cd28f976b474d6bdf0087c80bafec1e4fd7705ee3c52162696e760256f3",
+    "displayed_overview_sha256": "3ea04b763b109c87ee2e5405ab0d963a76bf272c71281b7370ab1ff4b35fb4c4",
+    "displayed_palette_sheet_sha256": "3ea04b763b109c87ee2e5405ab0d963a76bf272c71281b7370ab1ff4b35fb4c4",
+    "scope": "Approves the unchanged Cueframe revision 1 glyph with Cue Teal revision 1 as its identity palette. The earlier Cue Iris palette approval is superseded by the family-distinctness quality gate. Gate 2 derivatives remain unapproved and public eligibility remains false."
+  }
+}
