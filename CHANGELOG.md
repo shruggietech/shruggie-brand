@@ -37,6 +37,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Removed the shared marketing footer from every documentation page so contextual previous and next navigation follows the content directly, while preserving the homepage footer contract and dedicated brand-guideline navigation for issue #191.
 - Prevented approved constructed glyphs from being redrawn during production handoff by reusing the exact Gate 1 centerlines through `glyphkit.capsule`, binding the result to source hashes, and adding cross-renderer silhouette, bounds, and centroid checks.
 - Centered documentation pagination chevrons with wrapped and unwrapped labels, preserved right-to-left rotation through independent optical translation, and restored pointer plus disabled cursor treatment and minimum targets for shared theme controls.
 - Restored complete Glitchpad black and white horizontal and stacked lockups by giving the shared square-knockout mask an explicit local coordinate extent, then added structural, rendered-height, and SVG-to-PNG verification for the failure.

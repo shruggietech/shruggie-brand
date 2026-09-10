@@ -149,7 +149,6 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 :where(button[data-theme-toggle], [data-theme-toggle] button) { min-width: 44px; min-height: 44px; }
 :where(button[data-theme-toggle], [data-theme-toggle] button):not(:disabled) { cursor: pointer; }
 :where(button[data-theme-toggle], [data-theme-toggle] button):disabled { cursor: not-allowed; }
-.docs-page .site-footer { margin: 4rem -1rem 1.5rem; padding: 2rem; }
 #nd-docs-layout :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 #nd-sidebar a[data-active='true'], #nd-sidebar a[aria-current='page'], #nd-toc a[data-active='true'], #nd-toc a[aria-current='true'] { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--foreground); font-weight: 700; box-shadow: inset 3px 0 var(--primary); }
 .guideline-layout { --color-fd-muted-foreground: #6b6b6b; background: var(--background); }
