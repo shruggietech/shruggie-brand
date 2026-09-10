@@ -15,6 +15,43 @@
     "migration_issue": 185
   },
   "identity_snapshot": {
+    "derivative_settings": {
+      "canvas_height": 512,
+      "canvas_width": 512,
+      "clear_space_units": 34,
+      "construction": "The imported 512-unit mark combines four separated capture-frame corners, a triple-bladed F, and three isolated orange packet terminals. The reduced master drops the capture frame and enlarges the F and terminals for favicon use.",
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The shipped Fragcap mark and reduced master predate glyphkit. Their exact filled path data is preserved unchanged.",
+      "grid": 512,
+      "min_px": {
+        "horizontal": 160,
+        "mark": 24,
+        "stacked": 96,
+        "wordmark": 120
+      },
+      "prohibitions": [
+        "Do not rotate, skew, stretch, outline, bevel, or add glow.",
+        "Do not recolor individual packet lanes.",
+        "Do not move the orange terminals or make them appear explosive.",
+        "Do not close the four reticle corners into a box or circle.",
+        "Do not set the wordmark in live text or a substitute typeface.",
+        "Do not place the logo over busy imagery.",
+        "Do not combine the fragcap and ShruggieTech marks into one lockup.",
+        "Do not add skulls, weapons, controllers, shields, or exploit imagery."
+      ],
+      "reduced_below_px": 32,
+      "role_colors": {
+        "color": {
+          "accent": "#27C7E7",
+          "emphasis": "#FF5300"
+        },
+        "light": {
+          "accent": "#006F82",
+          "emphasis": "#C24100"
+        }
+      },
+      "source_mode": "constructed"
+    },
     "framing": {
       "canvas_height": 512,
       "canvas_width": 512,
@@ -158,7 +195,7 @@
         "secondary": "#101A20"
       }
     },
-    "sha256": "ee11f8e0665f6d45a3829298892535bb04bd87e0d04a61c66faa6c08624dde53",
+    "sha256": "b499a868fa3626e9a281355fc6e2e3b92d4efe93aae36e3ae1ab304199b0afb8",
     "source_class": "legacy-constructed",
     "topology": {
       "full": {
@@ -284,7 +321,7 @@
     }
   },
   "proofs": [],
-  "record_sha256": "c6a23bb7aa17308403cdffcd8630d55a20f27f5c8c7d41b5aed2d2e3f37f4c46",
+  "record_sha256": "ab6487a5fca5d12343652480c6c57a67b94d554bbe7e790c5da7e523fa56d816",
   "recorded_on": "2026-09-09",
   "renderer": null,
   "schema_version": 1,

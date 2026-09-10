@@ -430,7 +430,7 @@ def canonical_gate_binding(brand, continuity):
     if continuity["status"] == "historical-baseline":
         _require(binding is None, "historical baseline cannot be used as canonical source approval")
         return True
-    _require(ledger is not None and binding == continuity["record_sha256"],
+    _require(ledger is not None and binding == continuity["canonical_source_sha256"],
              "Gate 1 canonical source binding is absent or stale")
     return True
 

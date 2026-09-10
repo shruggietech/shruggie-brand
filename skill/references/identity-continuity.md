@@ -28,13 +28,13 @@ Palette qualification happens before canonical approval. Every declared role mus
 
 New constructed identities use `glyphkit-constructed`. Their helper imports `glyphkit`, calls approved primitives, and contains no literal path payload or custom path serializer. Existing helpers or path data that predate this rule use `legacy-constructed` only as a historical baseline. Existing authoritative masters use `authoritative` and remain byte-identical.
 
-Canonical promotion copies declared source bytes atomically. It never traces, redraws, normalizes, serializes a second time, or reconstructs approved geometry. The production build validates the committed continuity record before any derivative generation and writes a measured report that verification checks independently.
+Canonical promotion copies declared source bytes atomically. It never traces, redraws, normalizes, serializes a second time, or reconstructs approved geometry. Gate 1 stores a normalized canonical-source digest that excludes `brand.json`'s own binding field, avoiding a self-referential hash while still binding the complete identity snapshot, non-brand source inventory, approval, renderer, palette qualification, and proofs. The production build validates the committed continuity record, stages fresh marks through `gen_logo`, renders all 32 current proofs, and requires their exact approved hashes before any publishable derivative generation. Final verification independently rechecks those generated proof files and the source-bound report.
 
 ## Proof policy
 
 When approval and production use the same renderer, proof files must be byte-identical. A documented cross-renderer comparison keeps source snapshot, topology, palette, and framing exact, then measures components, holes, bounds, centroid, hard-mask overlap, changed pixels outside a one-pixel antialias edge band, and interior Delta E. Raw IoU remains review evidence rather than the sole verdict.
 
-Any new component or hole, changed framing, changed intended color, changed source method, changed helper bytes, changed path data, changed renderer setting, or stale proof hash fails closed. Visual similarity cannot override these source and structural invariants.
+Any new component or hole, changed framing, changed intended color, changed source method, changed helper bytes, changed path data, changed logo derivative setting, changed renderer setting, or stale proof hash fails closed. The renderer settings digest includes the production generator and containment implementation, so a shared rendering-code change invalidates approval. Visual similarity cannot override these source and structural invariants.
 
 ## Historical migration
 

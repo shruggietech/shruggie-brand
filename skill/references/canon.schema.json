@@ -198,11 +198,12 @@
     },
     "identitySnapshot": {
       "type": "object",
-      "required": ["source_class", "geometry", "topology", "framing", "palette", "typography", "sha256"],
+      "required": ["source_class", "geometry", "derivative_settings", "topology", "framing", "palette", "typography", "sha256"],
       "additionalProperties": false,
       "properties": {
         "source_class": {"enum": ["authoritative", "glyphkit-constructed", "legacy-constructed"]},
         "geometry": {"type": "object"},
+        "derivative_settings": {"type": "object"},
         "topology": {"type": "object"},
         "framing": {"type": "object"},
         "palette": {"type": "object"},

@@ -48,6 +48,8 @@ Stored beside permanent brand source and validated before derivatives.
 | `historical_evidence` | object or null | Required only for historical baselines |
 | `record_sha256` | SHA-256 | Digest of the record excluding this field |
 
+The identity snapshot contains the complete `logo` configuration outside the already-bound path arrays as `derivative_settings`, so enclosure, contextual variant, lockup, reduction threshold, role, and future output-affecting settings cannot change silently.
+
 ### Record invariants
 
 - Every configured source file resolves within its approved brand or provisional root and cannot traverse a symlink.
@@ -83,6 +85,8 @@ Stored beside permanent brand source and validated before derivatives.
 | `scope` | unique array | Full master, reduced master if present, palette, framing, topology, renderer, and proof matrix |
 | `proposal_sha256` | SHA-256 | Exact approval-packet manifest |
 | `source_snapshot_sha256` | SHA-256 | Equals current identity snapshot digest |
+
+`approval_ledger.gate_1.canonical_source_sha256` is the canonical digest of the record excluding `record_sha256` and the `brand.json` source-file entry that stores the binding. This removes the fixed-point cycle while preserving exact `brand.json` byte validation through `record_sha256` and `source_files`.
 
 ## Historical Evidence
 

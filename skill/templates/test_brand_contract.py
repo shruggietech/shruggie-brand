@@ -172,13 +172,15 @@ class ApprovalLedgerTests(unittest.TestCase):
 class IdentityContinuityIntegrationTests(unittest.TestCase):
     def test_canonical_gate_binding_cannot_be_faked_by_direction_or_historical_state(self):
         brand = approval_brand()
-        approved = {"status": "approved-canonical", "record_sha256": "f" * 64}
+        approved = {"status": "approved-canonical", "record_sha256": "e" * 64,
+                    "canonical_source_sha256": "f" * 64}
         with self.assertRaisesRegex(ContractError, "canonical source"):
             canonical_gate_binding(brand, approved)
         brand["approval_ledger"]["gate_1"]["canonical_source_sha256"] = "f" * 64
         self.assertTrue(canonical_gate_binding(brand, approved))
         with self.assertRaisesRegex(ContractError, "historical"):
-            canonical_gate_binding(brand, {"status": "historical-baseline", "record_sha256": "f" * 64})
+            canonical_gate_binding(brand, {"status": "historical-baseline", "record_sha256": "f" * 64,
+                                           "canonical_source_sha256": None})
 
     def test_schema_requires_a_bounded_continuity_reference_for_brand_sources(self):
         schema = json.loads((ROOT / "skill" / "references" / "canon.schema.json").read_text(encoding="utf-8"))

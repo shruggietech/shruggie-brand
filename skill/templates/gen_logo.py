@@ -283,6 +283,7 @@ def wordmark_outline(text, ttf, size=200, x_offset=0.0):
 
 def main():
     spec_path, kit = sys.argv[1], sys.argv[2]
+    proof_stage_only = "--proof-stage-only" in sys.argv[3:]
     with open(spec_path, encoding="utf-8") as handle:
         brand = json.load(handle)
     here = os.path.dirname(os.path.abspath(__file__))
@@ -566,6 +567,10 @@ def main():
             record = derivative_record(filename, "mark", source_variant, colourway)
             write(os.path.join(svg_dir, filename), svg(canvas_width, canvas_height, render_mark(path_list, roles, colourway), svg_metadata(record)))
             written.append(filename)
+
+    if proof_stage_only:
+        print("wrote production mark SVGs for identity continuity proofing")
+        return 0
 
     mark_box = ((enclosure["inset"] - enclosure["stroke_width"] / 2.0,) * 2
                 + (enclosure["canvas_size"] - enclosure["inset"] + enclosure["stroke_width"] / 2.0,) * 2

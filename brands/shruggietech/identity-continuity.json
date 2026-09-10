@@ -15,6 +15,45 @@
     "migration_issue": 185
   },
   "identity_snapshot": {
+    "derivative_settings": {
+      "application_icon": {
+        "background": "#000000"
+      },
+      "authoritative_input_ids": {
+        "full": "full-mark-master",
+        "reduced": "reduced-mark-master"
+      },
+      "canvas_height": 500,
+      "canvas_width": 919,
+      "clear_space_units": 92,
+      "construction": "The authoritative paid mark exists only as raster artwork. The full master is the complete stylized shruggie face with arms, eyes, and smile. The reduced master is the square social-media face without the outer arms. Exported SVGs embed recolored lossless PNG masks rather than traced approximations.",
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The supplied kit, design-system bundle, and CDN index contain only paid raster logo masters. Their exact pixel masks are embedded without tracing or redrawing.",
+      "grid": 919,
+      "min_px": {
+        "horizontal": 180,
+        "mark": 48,
+        "stacked": 128,
+        "wordmark": 140
+      },
+      "prohibitions": [
+        "Do not redraw, trace, or approximate the custom shruggie mark.",
+        "Do not substitute the Unicode shruggie or any emoji for the mark.",
+        "Do not distort, rotate, crop, outline, bevel, or add glow to the mark.",
+        "Do not use the bright green for text or links on the light reading surface.",
+        "Do not combine a sub-brand mark with the parent mark inside one lockup."
+      ],
+      "reduced_below_px": 48,
+      "role_colors": {
+        "color": {
+          "accent": "#2BCC73"
+        },
+        "light": {
+          "accent": "#037B40"
+        }
+      },
+      "source_mode": "authoritative"
+    },
     "framing": {
       "canvas_height": 500,
       "canvas_width": 919,
@@ -114,7 +153,7 @@
         "secondary": "#0D0F12"
       }
     },
-    "sha256": "5fa6a1590bdf37a4c380b601ee70afc17874f8c51c83ca002e572649cc132294",
+    "sha256": "b5dfb48f365a35beda99ac87af901bd269a640883b034ddc0712e026d7595524",
     "source_class": "authoritative",
     "topology": {
       "full": {
@@ -231,7 +270,7 @@
     }
   },
   "proofs": [],
-  "record_sha256": "35a0e8016348f22c7c8f3adae201d81547db2aeeb9e8c4feb7beeb5de846012c",
+  "record_sha256": "66e40f4e7f47797d7769e8758d1dfcfc6cf8d01f39c8a2325eb203a84c152f19",
   "recorded_on": "2026-09-09",
   "renderer": null,
   "schema_version": 1,

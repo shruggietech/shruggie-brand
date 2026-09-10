@@ -17,6 +17,94 @@
     "migration_issue": 185
   },
   "identity_snapshot": {
+    "derivative_settings": {
+      "application_icon": {
+        "background": "#0E1116"
+      },
+      "artwork_height": 55,
+      "artwork_width": 63,
+      "authoritative_input_ids": {
+        "full": "eso-weave-glyph",
+        "reduced": "eso-weave-mark"
+      },
+      "canvas_height": 100,
+      "canvas_width": 100,
+      "clear_space_units": 8,
+      "contextual_variants": {
+        "black": "single-ink",
+        "color": "full",
+        "light": "reduced",
+        "white": "single-ink"
+      },
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The full and reduced masters embed the two owner-approved authoritative SVG sources unchanged. The single-ink derivative preserves their approved centerlines, stroke widths, caps, joins, and silhouette.",
+      "grid": 100,
+      "lockups": {
+        "horizontal": {
+          "alignment": "optical center",
+          "canvas_height_units": 200,
+          "gap_units": 34,
+          "mark_height_units": 160,
+          "wordmark_baseline_units": 144.64,
+          "wordmark_scale": 0.62
+        },
+        "stacked": {
+          "gap_c": 0.45,
+          "mark_height_c": 1.7,
+          "mark_height_c_by_colourway": {
+            "black": 2.35,
+            "color": 2.35,
+            "light": 1.7,
+            "white": 2.35
+          },
+          "wordmark_scale": 0.62
+        }
+      },
+      "min_px": {
+        "horizontal": 160,
+        "mark": 32,
+        "stacked": 144,
+        "wordmark": 120
+      },
+      "prohibitions": [
+        "Do not edit, normalize, trace, simplify, or replace the authoritative source paths.",
+        "Do not add a crossing overlay, knockout, outline, or substrate separator to the single-ink mark.",
+        "Do not use the badge-less glyph directly on light surfaces.",
+        "Do not combine the ESO Weave and ShruggieTech marks into one lockup.",
+        "Do not imply official game-vendor status or account safety."
+      ],
+      "reduced_below_px": 32,
+      "role_colors": {
+        "black": {
+          "wordmark": "#000000",
+          "wordmark_accent": "#000000"
+        },
+        "color": {
+          "wordmark": "#E6EDF3",
+          "wordmark_accent": "#F2B03C"
+        },
+        "light": {
+          "wordmark": "#14110B",
+          "wordmark_accent": "#986000"
+        },
+        "white": {
+          "wordmark": "#FFFFFF",
+          "wordmark_accent": "#FFFFFF"
+        }
+      },
+      "source_mode": "authoritative",
+      "wordmark_segments": [
+        {
+          "role": "wordmark",
+          "text": "ESO"
+        },
+        {
+          "gap_units": 10,
+          "role": "wordmark_accent",
+          "text": "Weave"
+        }
+      ]
+    },
     "framing": {
       "artwork_height": 55,
       "artwork_width": 63,
@@ -98,7 +186,7 @@
         "secondary": "#1D2430"
       }
     },
-    "sha256": "15ced3c40de717dc25aec601f5891faf2da886d56d7e7165d1787fd3bb43c53e",
+    "sha256": "5feb8dac1c07d513d2621905ef852e146b37e48c4fe2dedf8540690f56fa7870",
     "source_class": "authoritative",
     "topology": {
       "full": {
@@ -254,7 +342,7 @@
     }
   },
   "proofs": [],
-  "record_sha256": "541e0d33be032192cbcf03dca87f6a5993319198e665c63731ae0849512615d5",
+  "record_sha256": "675f2b841f7e38dc68562e19293f6e0555539f52959103fb766c2cc0d7630b01",
   "recorded_on": "2026-09-09",
   "renderer": null,
   "schema_version": 1,

@@ -26,6 +26,7 @@ from identity_continuity import (  # noqa: E402
     PROOF_SURFACES,
     REQUIRED_APPROVAL_SCOPE,
     canonical_digest,
+    canonical_source_binding,
     compare_proofs,
     identity_snapshot,
     record_digest,
@@ -33,7 +34,10 @@ from identity_continuity import (  # noqa: E402
     validate_glyphkit_helper,
     validate_lifecycle_transition,
     validate_palette_qualification,
+    validate_current_proof_matrix,
+    validate_continuity_report,
     validate_record,
+    write_continuity_report,
 )
 from promote_identity import PromotionError, promote  # noqa: E402
 
@@ -141,6 +145,7 @@ class IdentityContinuityTests(unittest.TestCase):
         brands.mkdir()
         brand = brand_fixture()
         brand["identity_continuity"] = {"record": "identity-continuity.json", "status": "approved-canonical"}
+        brand["approval_ledger"] = {"gate_1": {"canonical_source_sha256": "pending"}}
         brand_bytes = (json.dumps(brand, indent=2) + "\n").encode("utf-8")
         (source / "brand.json").write_bytes(brand_bytes)
         helper_bytes = b'import glyphkit as G\nfull=[{"role":"accent","d":G.rect(0,0,1,1)}]\nreduced=full\n'
@@ -177,6 +182,10 @@ class IdentityContinuityTests(unittest.TestCase):
             "historical_evidence": None, "palette_qualification": qualification,
             "record_sha256": "",
         }
+        brand["approval_ledger"]["gate_1"]["canonical_source_sha256"] = canonical_source_binding(record)
+        brand_bytes = (json.dumps(brand, indent=2) + "\n").encode("utf-8")
+        (source / "brand.json").write_bytes(brand_bytes)
+        record["source_files"][0].update({"bytes": len(brand_bytes), "sha256": canonical_digest(brand_bytes)})
         record["record_sha256"] = record_digest(record)
         record_bytes = (json.dumps(record, indent=2) + "\n").encode("utf-8")
         (source / "identity-continuity.json").write_bytes(record_bytes)
@@ -199,6 +208,7 @@ class IdentityContinuityTests(unittest.TestCase):
         for mutation in (
             lambda value: value["logo"]["paths"]["full"][0].update({"d": "M0 0 L1 1 Z"}),
             lambda value: value["logo"].update({"artwork_width": 300}),
+            lambda value: value["logo"].update({"square_enclosure": {"content_scale": 0.8}}),
             lambda value: value["accent"].update({"bright": "#FFFFFF"}),
             lambda value: value.update({"wordmark_text": "Changed"}),
         ):
@@ -269,6 +279,13 @@ class IdentityContinuityTests(unittest.TestCase):
             helper = Path(tmp) / "mk_paths.py"
             helper.write_text('import glyphkit as G\ndef band():\n    return "M0 0 L1 1 Z"\nfull=[{"role":"ink","d":band()}]\n', encoding="utf-8")
             with self.assertRaises(ContinuityError):
+                validate_glyphkit_helper(helper)
+            helper.write_text(
+                'import glyphkit as G\ndef serialize():\n    return "".join(["M",str(0)," 0Z"])\n'
+                'unused=G.rect(0,0,1,1)\nfull=[{"role":"ink","d":serialize()}]\nreduced=full\n',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ContinuityError, "directly from a glyphkit"):
                 validate_glyphkit_helper(helper)
 
     def test_palette_qualification_requires_every_check_and_bound_values(self):
@@ -363,7 +380,48 @@ class IdentityContinuityTests(unittest.TestCase):
             proof["sha256"] = canonical_digest(proof_path.read_bytes())
             record["record_sha256"] = record_digest(record)
             with self.assertRaisesRegex(ContinuityError, "dimensions"):
-                validate_record(json.loads((source / "brand.json").read_text(encoding="utf-8")), source, record)
+                validate_record(json.loads((source / "brand.json").read_text(encoding="utf-8")), source, record,
+                                verify_proof_files=True)
+
+    def test_current_proof_matrix_requires_bound_renderer_and_exact_renders(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _approval, source, _brands, _bundle_path = self.make_promotion_bundle(root)
+            record = json.loads((source / "identity-continuity.json").read_text(encoding="utf-8"))
+            generated = source / "qc" / "identity-continuity-proofs"
+            generated.mkdir(parents=True)
+            for item in record["proofs"]:
+                target = generated / ("%s-%d-%s.png" % (item["variant"], item["size_px"], item["surface"]))
+                target.write_bytes((source / item["path"]).read_bytes())
+            result = validate_current_proof_matrix(record, source, renderer=record["renderer"])
+            self.assertEqual("passed", result["status"])
+            with self.assertRaisesRegex(ContinuityError, "renderer"):
+                validate_current_proof_matrix(record, source, renderer={"id": "changed", "version": "1",
+                                                                       "settings_sha256": "0" * 64})
+            first = generated / "full-256-dark.png"
+            first.write_bytes(first.read_bytes() + b"drift")
+            with self.assertRaisesRegex(ContinuityError, "proof drift"):
+                validate_current_proof_matrix(record, source, renderer=record["renderer"])
+
+    def test_approved_report_binds_fresh_production_proof_matrix(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _approval, source, _brands, _bundle_path = self.make_promotion_bundle(root)
+            record = json.loads((source / "identity-continuity.json").read_text(encoding="utf-8"))
+            generated = source / "qc" / "identity-continuity-proofs"
+            generated.mkdir(parents=True)
+            for item in record["proofs"]:
+                target = generated / ("%s-%d-%s.png" % (item["variant"], item["size_px"], item["surface"]))
+                target.write_bytes((source / item["path"]).read_bytes())
+            with mock.patch("identity_continuity.generate_current_proofs"), \
+                    mock.patch("identity_continuity.production_renderer_contract", return_value=record["renderer"]):
+                report = write_continuity_report(
+                    json.loads((source / "brand.json").read_text(encoding="utf-8")), source
+                )
+                self.assertEqual(32, len(report["proof_validation"]["proofs"]))
+                self.assertEqual(report, validate_continuity_report(
+                    json.loads((source / "brand.json").read_text(encoding="utf-8")), source
+                ))
 
     def test_promotion_copies_exact_bytes_and_refuses_existing_destination(self):
         with tempfile.TemporaryDirectory() as tmp:

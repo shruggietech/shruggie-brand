@@ -13,6 +13,48 @@
     "migration_issue": 185
   },
   "identity_snapshot": {
+    "derivative_settings": {
+      "aperture_degrees": 84,
+      "center": [
+        554,
+        500
+      ],
+      "clear_space_units": 100,
+      "construction": "An aperture C on a 1000-unit grid, centred at 554 500 so the drawn bounding box sits optically centred despite the 84-degree opening. One 168-unit ring from 88 to 318 degrees carries the identity accent. A second 36-degree ring segment from 42 to 78 degrees carries the inherited orange. The 10-degree radial slot between them is the adjudication boundary. Every terminal is a flat radial cut. The reduced mark drops the slot and the orange segment and runs a single 190-unit ring across the whole 42 to 318 sweep.",
+      "geometry_provenance": "legacy-constructed",
+      "geometry_provenance_reason": "The custom arc and path serializer predates glyphkit. Its shipped path bytes remain unchanged as historical identity source.",
+      "grid": 1000,
+      "inner_radius_units": 252,
+      "min_px": {
+        "horizontal": 160,
+        "mark": 24,
+        "stacked": 144,
+        "wordmark": 120
+      },
+      "outer_radius_units": 420,
+      "prohibitions": [
+        "Do not close the aperture or the slot. The opening and the break are the whole idea.",
+        "Do not recolour the long arc to orange or the terminal segment to purple.",
+        "Do not add a node, dot, or glyph inside the aperture.",
+        "Do not set the C in a typeface. The mark is drawn geometry and the wordmark is outlined Space Grotesk.",
+        "Do not alter the 420-unit outer radius, the 168-unit ring, the 84-degree aperture, or the 10-degree slot.",
+        "Do not use the full mark below 24 px. The reduced mark takes over at and below 32 px."
+      ],
+      "reduced_below_px": 32,
+      "reduced_inner_radius_units": 230,
+      "role_colors": {
+        "color": {
+          "accent": "#C659FF",
+          "emphasis": "#FF5300"
+        },
+        "light": {
+          "accent": "#A000EC",
+          "emphasis": "#C24000"
+        }
+      },
+      "slot_degrees": 10,
+      "source_mode": "constructed"
+    },
     "framing": {
       "clear_space_units": 100,
       "grid": 1000
@@ -76,7 +118,7 @@
         "secondary": "#15131E"
       }
     },
-    "sha256": "5eba87ceb105bdeb9a0868d3c6a14ac5507cb5ef3bf0af0968125dd735848069",
+    "sha256": "b74c63382a13b5e4f56ba55bd4910fb8a246f78458fa9b5f985d6c6d84e8bd21",
     "source_class": "legacy-constructed",
     "topology": {
       "full": {
@@ -181,7 +223,7 @@
     }
   },
   "proofs": [],
-  "record_sha256": "085ec304c38fdaa884d79041d5292c80d883402d66b19b0a68e773dcdd460ade",
+  "record_sha256": "89a15059a09372d934c9423520398533d14eb71fa97a78d1c1f07796d95e07d6",
   "recorded_on": "2026-09-09",
   "renderer": null,
   "schema_version": 1,

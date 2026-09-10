@@ -24,10 +24,12 @@ The candidate packet must contain:
 
 `approve` binds only the exact bundle, source snapshot, proof manifest, and scope shown. The record must carry a human approver, date, exact owner wording, source revision, and unique candidate identifier. Silence, direction selection, partial approval, or approval of a different representation does not satisfy canonical approval.
 
+Gate 1 stores a normalized canonical-source digest. It excludes the `brand.json` source-file entry that contains the digest itself, while retaining the identity snapshot, every non-brand source digest, palette qualification, renderer settings, proof matrix, and approval decision. The exact `brand.json` bytes remain independently hash-bound by the continuity record, so the binding has no cryptographic cycle and source drift still fails.
+
 Any missing field, stale hash, incomplete matrix, failed qualification, renderer ambiguity, source escape, or contradictory state keeps the candidate ineligible.
 
 ## Invalidation
 
-Changing any construction engine, helper bytes, authoritative source binding, path array, topology, framing, role mapping, palette, renderer setting, or governed proof invalidates canonical approval. The workflow returns to a new canonical candidate and cannot repair or reapprove automatically.
+Changing any construction engine, helper bytes, authoritative source binding, path array, topology, framing, role mapping, logo derivative setting, palette, renderer setting, production generator implementation, or governed proof invalidates canonical approval. The workflow returns to a new canonical candidate and cannot repair or reapprove automatically.
 
 Gate 2 may change typography arrangements and derivative applications within its stated scope, but it may not reconstruct or first reveal production geometry.

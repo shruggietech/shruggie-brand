@@ -15,6 +15,53 @@
     "migration_issue": 185
   },
   "identity_snapshot": {
+    "derivative_settings": {
+      "canvas_height": 512,
+      "canvas_width": 512,
+      "clear_space_units": 54,
+      "construction": "The imported 512-unit mark is a rounded terminal frame containing a prompt, cursor, five cron-field asterisks, and five neutral rails. The reduced mark preserves the exact prompt and cursor from the shipped favicon and drops the frame and schedule fields.",
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The shipped mark uses native rounded rectangles and stroked SVG paths that predate glyphkit. Their exact element geometry and stroke attributes are preserved.",
+      "grid": 512,
+      "min_px": {
+        "horizontal": 160,
+        "mark": 24,
+        "stacked": 96,
+        "wordmark": 120
+      },
+      "prohibitions": [
+        "Do not rotate, skew, stretch, outline, bevel, or add glow.",
+        "Do not recolor individual schedule cells or lanes.",
+        "Do not set the wordmark in live text or a substitute typeface.",
+        "Do not add a tagline inside the horizontal lockup.",
+        "Do not place the logo over busy imagery.",
+        "Do not combine the go-schedule and ShruggieTech marks into one lockup."
+      ],
+      "reduced_below_px": 32,
+      "role_colors": {
+        "black": {
+          "anchor": "#000000",
+          "interval": "#000000",
+          "neutral": "#000000"
+        },
+        "color": {
+          "anchor": "#58A6FF",
+          "interval": "#62D9B7",
+          "neutral": "#28414B"
+        },
+        "light": {
+          "anchor": "#1160C6",
+          "interval": "#0E7C63",
+          "neutral": "#132027"
+        },
+        "white": {
+          "anchor": "#FFFFFF",
+          "interval": "#FFFFFF",
+          "neutral": "#FFFFFF"
+        }
+      },
+      "source_mode": "constructed"
+    },
     "framing": {
       "canvas_height": 512,
       "canvas_width": 512,
@@ -220,7 +267,7 @@
         "secondary": "#13232A"
       }
     },
-    "sha256": "6d3f47693d06adb8474b5be5f94c5ba4b5b79e3aa783e31ce7fbc9053a5780ba",
+    "sha256": "a37937371a2d097dad054a59d366c573146a19e0ea21bd987890f976908ebcb0",
     "source_class": "legacy-constructed",
     "topology": {
       "full": {
@@ -356,7 +403,7 @@
     }
   },
   "proofs": [],
-  "record_sha256": "b38a262ef7a0f6b1f604ca3983f9032d488cd3fefa2d427dd17c051f3829b150",
+  "record_sha256": "9b8fd1be8f224a177c6c9c1b349eeb20b4a3d8a0223f3c7daa1dbb2753b3a4b3",
   "recorded_on": "2026-09-09",
   "renderer": null,
   "schema_version": 1,

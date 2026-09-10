@@ -17,6 +17,77 @@
     "migration_issue": 185
   },
   "identity_snapshot": {
+    "derivative_settings": {
+      "artwork_height": 900,
+      "artwork_width": 720,
+      "canvas_height": 1000,
+      "canvas_width": 800,
+      "clear_space_units": 70,
+      "g_thickness_units": 70,
+      "g_to_paper_clearance_units": 70,
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The shipped Glitchpad paper-and-G paths predate glyphkit and have no authoritative mk_paths.py source.",
+      "grid": 1000,
+      "lockups": {
+        "horizontal": {
+          "alignment": "optical center",
+          "canvas_height_units": 200,
+          "gap_units": 34,
+          "mark_height_units": 160,
+          "wordmark_baseline_units": 144.64,
+          "wordmark_scale": 0.62
+        },
+        "reference_unit": "canonical master composition",
+        "stacked": {
+          "gap_c": 0.45,
+          "mark_height_c": 1.8,
+          "wordmark_scale": 0.62
+        }
+      },
+      "min_px": {
+        "horizontal": 160,
+        "mark": 40,
+        "stacked": 144,
+        "wordmark": 120
+      },
+      "prohibitions": [
+        "Do not detach the G from the paper into a separate glyph.",
+        "Always keep the rectangular paper-and-G construction inside its permanent square enclosure.",
+        "Use the approved contextual inversion: sulfur square on dark surfaces and charcoal square with sulfur paper on light surfaces.",
+        "Never use muddy or darkened yellow variants in the Glitchpad identity.",
+        "Do not add fragments, scan lines, glow, bevel, texture, or motion effects.",
+        "Do not alter the 720 by 900 paper, 70-unit G channel, 70-unit inset, or safe square composition."
+      ],
+      "reduced_below_px": 32,
+      "role_colors": {
+        "color": {
+          "accent": "#667788",
+          "frame": "#FFD900",
+          "frame_stroke": "#FFD900",
+          "neutral": "#0B0C0D",
+          "wordmark": "#F2F5FA"
+        },
+        "light": {
+          "accent": "#667788",
+          "frame": "#0B0C0D",
+          "frame_stroke": "#0B0C0D",
+          "neutral": "#FFD900",
+          "wordmark": "#0A0A0A"
+        }
+      },
+      "source_mode": "constructed",
+      "square_enclosure": {
+        "canvas_size": 1000,
+        "content_scale": 0.72,
+        "corner_radius": 142,
+        "frame_role": "frame",
+        "inset": 62,
+        "knockout_role": "neutral",
+        "monochrome_knockout": true,
+        "stroke_role": "frame_stroke",
+        "stroke_width": 24
+      }
+    },
     "framing": {
       "artwork_height": 900,
       "artwork_width": 720,
@@ -85,7 +156,7 @@
         "secondary": "#151719"
       }
     },
-    "sha256": "f35de35378a10f9f5f5f8cd4af08ba76bc5d95882ada0ff6124917a03feb20f9",
+    "sha256": "3af46b18cdab7924889677432fd6b88479f7fe2539c291a56ed1aa1faa5d5007",
     "source_class": "legacy-constructed",
     "topology": {
       "full": {
@@ -194,7 +265,7 @@
     }
   },
   "proofs": [],
-  "record_sha256": "35d9b00f3726d6e9e4eb2650d7141b2d8dd85e8298e85f86f61eeed59761890d",
+  "record_sha256": "f73fee748c96c5b29288206a66688b6cef2b428fd1817c13c26d2b179f47a2da",
   "recorded_on": "2026-09-09",
   "renderer": null,
   "schema_version": 1,

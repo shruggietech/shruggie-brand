@@ -25,7 +25,7 @@
 
 ### Session 2: Foundation and approval lifecycle (2026-09-09)
 
-- The first focused identity test run failed with `ModuleNotFoundError: identity_continuity`, establishing the expected red baseline before the shared module existed. The implemented suite now passes 18/18 tests.
+- The first focused identity test run failed with `ModuleNotFoundError: identity_continuity`, establishing the expected red baseline before the shared module existed. The implemented suite now passes 20/20 tests.
 - Canonical serialization rejects duplicate JSON keys and malformed digests. Safe path resolution rejects absolute paths, parent traversal, backslashes, symbolic links, missing files, and root escapes.
 - Identity snapshots bind source class, exact Full and Reduced path arrays or authoritative bindings, topology, framing, palette roles, and wordmark typography. Lifecycle tests prove that direction selection cannot jump to canonical approval and a historical baseline cannot be promoted.
 - Approved-canonical records require complete human approval, renderer identity, bounded OKLCH palette qualification, and the exact 32-coordinate Full/Reduced, size, and surface proof matrix. Each proof is hash-bound and verified as a valid PNG with dimensions matching its declared coordinate. Same-renderer evidence requires exact file hashes. Cross-renderer evidence preserves topology and uses a one-pixel edge band plus bounds, centroid, changed-pixel, and interior Delta E measurements.
@@ -48,7 +48,7 @@
 
 ## Final local validation
 
-- Focused and regression matrix: 34 glyphkit checks, 5 package-release tests, 14 release-contract tests, 29 site-preparation tests, 40 brand-contract tests, 18 identity-continuity tests, 4 migration-audit tests, 14 iconkit tests, 51 pipeline tests, and Markdown policy all passed. The final pipeline rerun completed in 172.827 seconds on Python 3.12.9.
+- Focused and regression matrix: 34 glyphkit checks, 5 package-release tests, 14 release-contract tests, 29 site-preparation tests, 40 brand-contract tests, 20 identity-continuity tests, 4 migration-audit tests, 14 iconkit tests, 51 pipeline tests, and Markdown policy all passed. The post-review pipeline rerun completed in 173.371 seconds on Python 3.12.9.
 - Migration audit: 7/7 production records valid, 7/7 preservation comparisons passed, zero problems.
 - Production build: 7/7 kits built clean with zero verification problems and zero glyph failures. Continuity validation ran before derivatives for every kit. The aggregate run completed in approximately four minutes, under the planned baseline plus 60-second continuity budget.
 - Release certification: nine version 1.2.1 assets and generated notes verified without publishing a tag or release.
@@ -59,4 +59,13 @@
 
 ## Hosted CI and review ledger
 
-Pending publication. The authorized PR review and hosted-check ledger will be appended after push.
+### Initial publication and first review (2026-09-09)
+
+- Commit `a8899a5ea89b886ac076a63791f2305cf53e061b` was pushed and opened as PR #187 under the owner's explicit authorization. No merge, tag, release, or deployment was performed.
+- Push and pull-request events each ran the `build` and `python-38-compatibility` jobs. All four jobs passed at the initial head. Full jobs completed in 18m36s and 18m44s; Python 3.8 jobs completed in 4m48s and 4m42s.
+- First-round Codex review completed against `a8899a5` with four actionable findings: a self-referential Gate 1 digest, no current-production comparison against approved proofs, incomplete binding of derivative-producing logo settings, and an AST-validation bypass for custom path producers.
+- The Gate 1 binding now uses a normalized canonical-source digest that excludes the `brand.json` source-file entry containing the binding. Exact `brand.json` bytes remain independently bound by the continuity record and source inventory.
+- The identity snapshot now binds every logo setting outside the separately bound path arrays. Covarity, Cueson, ESO Weave, Fragcap, Glitchpad, Go Schedule, and ShruggieTech records were regenerated, and the migration audit again reports 7/7 preservation passes with zero problems.
+- Approved builds now stage mark SVGs through the real `gen_logo` production construction, render the 32-coordinate current proof matrix before publishable derivatives, require the approved renderer/settings contract and exact proof hashes, retain generated evidence under `qc/`, and independently revalidate it at final verification.
+- Glyphkit helper validation now requires every dictionary or assignment that produces a `d` value to call an approved primitive directly, including aliased direct imports, and rejects the reported unused-primitive/custom-serializer bypass.
+- Local post-review validation passes 20 identity tests, 40 brand-contract tests, 4 migration-audit tests, 51 pipeline tests, all seven full production kit builds, Markdown policy, TypeScript lint, and the 73-page static site build. A direct Cueson production-stage exercise generated all 32 proof coordinates in 9.5 seconds on the local reference renderer.

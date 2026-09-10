@@ -134,12 +134,15 @@ def audit(revision, write=False, recorded_on="2026-09-09", report_path=None):
         brand_path = source / "brand.json"
         brand = json.loads(brand_path.read_text(encoding="utf-8"))
         if write:
-            brand["identity_continuity"] = dict(REFERENCE)
+            updated = copy.deepcopy(brand)
+            updated["identity_continuity"] = dict(REFERENCE)
             if slug == "covarity":
-                brand["logo"]["geometry_provenance"] = "legacy-constructed"
-                brand["logo"]["geometry_provenance_reason"] = COVARITY_REASON
-            with open(str(brand_path), "w", encoding="utf-8", newline="\n") as handle:
-                handle.write(json.dumps(brand, indent=2, ensure_ascii=False) + "\n")
+                updated["logo"]["geometry_provenance"] = "legacy-constructed"
+                updated["logo"]["geometry_provenance_reason"] = COVARITY_REASON
+            if updated != brand:
+                with open(str(brand_path), "w", encoding="utf-8", newline="\n") as handle:
+                    handle.write(json.dumps(updated, indent=2, ensure_ascii=False) + "\n")
+            brand = updated
             record = build_record(source, brand, BRAND_CLASSES[slug], revision, recorded_on)
             _write_json(source / "identity-continuity.json", record)
         try:

@@ -13,6 +13,7 @@ from pathlib import Path
 
 from identity_continuity import (
     DIGEST,
+    canonical_source_binding,
     canonical_digest,
     load_json,
     record_digest,
@@ -69,7 +70,10 @@ def _validate_bundle(bundle, approval_root):
     brand_record = next((item for item in record.get("source_files", []) if item.get("path") == "brand.json"), None)
     _require(brand_record is not None, "approved continuity record must govern brand.json")
     brand = load_json(safe_path(source_root, "brand.json"))
-    validate_record(brand, source_root, record)
+    validate_record(brand, source_root, record, verify_proof_files=True)
+    gate_binding = (((brand.get("approval_ledger") or {}).get("gate_1") or {}).get("canonical_source_sha256"))
+    _require(gate_binding == canonical_source_binding(record),
+             "Gate 1 canonical source binding is absent or stale")
     _require(brand.get("identity_continuity") == {"record": "identity-continuity.json", "status": "approved-canonical"},
              "promoted brand.json must reference its approved continuity record")
     records = list(record["source_files"])

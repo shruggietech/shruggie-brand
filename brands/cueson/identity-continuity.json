@@ -23,6 +23,64 @@
     "migration_issue": 185
   },
   "identity_snapshot": {
+    "derivative_settings": {
+      "application_icon": {
+        "background": "#080A14"
+      },
+      "artwork_height": 338,
+      "artwork_width": 330,
+      "canvas_height": 512,
+      "canvas_width": 512,
+      "clear_space_units": 48,
+      "construction": "Cueframe preserves the approved cueframe-r1 centerlines on a 512-unit square grid. Two opposing 34-unit rounded bracket chains run through (168,104), (108,104), (108,408), (168,408) and their mirrored coordinates. Three rounded 32-unit cue rails run from x 184 to x 336, 304, and 352 at y 172, 256, and 340. The reduced master uses 42-unit brackets and one central rail. Production fills are direct glyphkit.capsule expansions of those approved centerline segments.",
+      "geometry_provenance": "glyphkit",
+      "grid": 512,
+      "min_px": {
+        "horizontal": 160,
+        "mark": 24,
+        "stacked": 112,
+        "wordmark": 120
+      },
+      "prohibitions": [
+        "Do not close the two brackets into a caption badge or screen.",
+        "Do not equalize, reorder, or add cue rails in the full master.",
+        "Do not remove the source envelope from the full master.",
+        "Do not replace Cue Teal with inherited orange, success green, or failure red.",
+        "Do not add play, microphone, waveform, speech-bubble, or CC symbols.",
+        "Do not use the full master below 24 pixels. Use the reduced master at and below 32 pixels.",
+        "Do not combine the Cueson and ShruggieTech marks into one lockup."
+      ],
+      "reduced_artwork_height": 302,
+      "reduced_artwork_width": 318,
+      "reduced_below_px": 32,
+      "role_colors": {
+        "black": {
+          "accent": "#000000",
+          "ink": "#000000",
+          "wordmark": "#000000"
+        },
+        "color": {
+          "accent": "#62BEB2",
+          "ink": "#F4F6FF",
+          "wordmark": "#F4F6FF"
+        },
+        "light": {
+          "accent": "#005D55",
+          "ink": "#14172A",
+          "wordmark": "#14172A"
+        },
+        "white": {
+          "accent": "#FFFFFF",
+          "ink": "#FFFFFF",
+          "wordmark": "#FFFFFF"
+        }
+      },
+      "source_mode": "constructed",
+      "standalone_padding_units": {
+        "full": 87,
+        "reduced": 97
+      }
+    },
     "framing": {
       "artwork_height": 338,
       "artwork_width": 330,
@@ -174,7 +232,7 @@
         "secondary": "#181D33"
       }
     },
-    "sha256": "28c8b1e8659445414a24b187b05eb60fa43ca983e07e5f7bd9ea00b24f5aedf5",
+    "sha256": "7f7735f56584a0fa972c337eb85f139ef1dbcef304221f8971d28df9dd6cb980",
     "source_class": "glyphkit-constructed",
     "topology": {
       "full": {
@@ -306,7 +364,7 @@
     }
   },
   "proofs": [],
-  "record_sha256": "1ea2de860f28195a0f7fe7cfdd3101bb90f5db290585fcf4369edc890c3ad278",
+  "record_sha256": "d1aa5126916960b10be579d4c59b046373d050b83caadfbb554bf3134eccd95a",
   "recorded_on": "2026-09-09",
   "renderer": null,
   "schema_version": 1,

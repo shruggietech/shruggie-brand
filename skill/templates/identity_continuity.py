@@ -10,6 +10,10 @@ import json
 import math
 import os
 import re
+import shutil
+import subprocess
+import sys
+import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -75,6 +79,14 @@ def canonical_digest(value):
 def record_digest(record):
     payload = dict(record)
     payload.pop("record_sha256", None)
+    return canonical_digest(payload)
+
+
+def canonical_source_binding(record):
+    """Digest approved identity authority without hashing the field that stores it."""
+    payload = dict(record)
+    payload.pop("record_sha256", None)
+    payload["source_files"] = [item for item in payload.get("source_files", []) if item.get("path") != "brand.json"]
     return canonical_digest(payload)
 
 
@@ -167,10 +179,12 @@ def identity_snapshot(brand, source_class):
         "paths": {variant: paths.get(variant) for variant in PROOF_VARIANTS},
         "authoritative_input_ids": logo.get("authoritative_input_ids"),
     }
+    derivative_settings = {key: value for key, value in logo.items() if key != "paths"}
     typography = {"wordmark_text": brand.get("wordmark_text"), "typography": brand.get("typography")}
     governed = {
         "source_class": source_class,
         "geometry": geometry,
+        "derivative_settings": derivative_settings,
         "topology": topology,
         "framing": framing,
         "palette": palette,
@@ -196,7 +210,8 @@ def validate_glyphkit_helper(path):
     except (OSError, UnicodeError, SyntaxError) as error:
         raise ContinuityError("glyphkit construction helper is invalid: %s" % error) from error
 
-    aliases = set()
+    module_aliases = set()
+    primitive_aliases = {}
     primitive_calls = set()
     forbidden_calls = set()
     forbidden_names = {"eval", "exec", "compile", "__import__"}
@@ -204,11 +219,11 @@ def validate_glyphkit_helper(path):
         if isinstance(node, ast.Import):
             for item in node.names:
                 if item.name == "glyphkit":
-                    aliases.add(item.asname or "glyphkit")
+                    module_aliases.add(item.asname or "glyphkit")
         elif isinstance(node, ast.ImportFrom) and node.module == "glyphkit":
             for item in node.names:
                 if item.name in ALLOWED_GLYPHKIT_PRIMITIVES:
-                    aliases.add(item.asname or item.name)
+                    primitive_aliases[item.asname or item.name] = item.name
         elif isinstance(node, ast.Constant):
             value = node.value
             if isinstance(value, str) and PATH_LITERAL.match(value):
@@ -217,17 +232,47 @@ def validate_glyphkit_helper(path):
             if isinstance(node.func, ast.Name):
                 if node.func.id in forbidden_names:
                     forbidden_calls.add(node.func.id)
-                if node.func.id in aliases and node.func.id in ALLOWED_GLYPHKIT_PRIMITIVES:
-                    primitive_calls.add(node.func.id)
+                if node.func.id in primitive_aliases:
+                    primitive_calls.add(primitive_aliases[node.func.id])
             elif isinstance(node.func, ast.Attribute):
-                if isinstance(node.func.value, ast.Name) and node.func.value.id in aliases:
+                if isinstance(node.func.value, ast.Name) and node.func.value.id in module_aliases:
                     if node.func.attr in ALLOWED_GLYPHKIT_PRIMITIVES:
                         primitive_calls.add(node.func.attr)
                     elif node.func.attr not in {"fmt", "bbox", "flatten", "path_commands_ok"}:
                         forbidden_calls.add(node.func.attr)
                 if node.func.attr in {"system", "popen", "run", "Popen"}:
                     forbidden_calls.add(node.func.attr)
-    _require(aliases, "construction helper must import glyphkit")
+
+    def approved_primitive_call(node):
+        if not isinstance(node, ast.Call):
+            return False
+        if isinstance(node.func, ast.Name):
+            return node.func.id in primitive_aliases
+        return (isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name)
+                and node.func.value.id in module_aliases and node.func.attr in ALLOWED_GLYPHKIT_PRIMITIVES)
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Dict):
+            for key, value in zip(node.keys, node.values):
+                if isinstance(key, ast.Constant) and key.value == "d":
+                    _require(approved_primitive_call(value),
+                             "every constructed d value must come directly from a glyphkit primitive")
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            value = node.value
+            for target in targets:
+                slice_node = target.slice if isinstance(target, ast.Subscript) else None
+                if hasattr(ast, "Index") and isinstance(slice_node, ast.Index):
+                    slice_node = slice_node.value
+                if isinstance(slice_node, ast.Constant) and slice_node.value == "d":
+                    _require(approved_primitive_call(value),
+                             "every constructed d assignment must come directly from a glyphkit primitive")
+        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "dict":
+            for keyword in node.keywords:
+                if keyword.arg == "d":
+                    _require(approved_primitive_call(keyword.value),
+                             "every constructed d value must come directly from a glyphkit primitive")
+    _require(module_aliases or primitive_aliases, "construction helper must import glyphkit")
     _require(primitive_calls, "construction helper must call an approved glyphkit primitive")
     _require(not forbidden_calls, "construction helper uses forbidden calls: %s" % ", ".join(sorted(forbidden_calls)))
     return {"engine": "glyphkit", "primitives": sorted(primitive_calls), "source_sha256": canonical_digest(helper.read_bytes())}
@@ -282,7 +327,7 @@ def _validate_source_files(root, records):
         _require(canonical_digest(path.read_bytes()) == item["sha256"], "source file hash drift: %s" % relative)
 
 
-def _validate_approval(record, root):
+def _validate_approval(record, root, verify_proof_files=False):
     approval = record.get("approval")
     _require(isinstance(approval, dict), "approved-canonical record needs owner approval")
     required = {"bundle_id", "approved_by", "approved_on", "owner_wording", "scope", "proposal_sha256", "source_snapshot_sha256"}
@@ -315,25 +360,28 @@ def _validate_approval(record, root):
         coordinate = (item["variant"], item["size_px"], item["surface"])
         _require(coordinate not in actual, "duplicate canonical proof coordinate")
         actual.add(coordinate)
-        path = safe_path(root, item["path"])
-        _require(DIGEST.fullmatch(item["sha256"] or "") and canonical_digest(path.read_bytes()) == item["sha256"],
-                 "canonical proof hash drift: %s" % item["path"])
-        try:
-            from PIL import Image
+        _require(isinstance(item["sha256"], str) and DIGEST.fullmatch(item["sha256"] or ""),
+                 "canonical proof hash is invalid: %s" % item["path"])
+        path = safe_path(root, item["path"], required=verify_proof_files)
+        if verify_proof_files:
+            _require(canonical_digest(path.read_bytes()) == item["sha256"],
+                     "canonical proof hash drift: %s" % item["path"])
+            try:
+                from PIL import Image
 
-            with Image.open(path) as image:
-                _require(image.format == "PNG", "canonical proof must be a PNG: %s" % item["path"])
-                _require(image.size == (item["size_px"], item["size_px"]),
-                         "canonical proof dimensions do not match its coordinate: %s" % item["path"])
-                image.verify()
-        except ContinuityError:
-            raise
-        except Exception as exc:
-            raise ContinuityError("canonical proof is not a valid PNG: %s (%s)" % (item["path"], exc)) from exc
+                with Image.open(path) as image:
+                    _require(image.format == "PNG", "canonical proof must be a PNG: %s" % item["path"])
+                    _require(image.size == (item["size_px"], item["size_px"]),
+                             "canonical proof dimensions do not match its coordinate: %s" % item["path"])
+                    image.verify()
+            except ContinuityError:
+                raise
+            except Exception as exc:
+                raise ContinuityError("canonical proof is not a valid PNG: %s (%s)" % (item["path"], exc)) from exc
     _require(actual == expected, "canonical proof matrix is incomplete")
 
 
-def validate_record(brand, root, record):
+def validate_record(brand, root, record, verify_proof_files=False):
     """Validate one committed or provisional identity continuity record."""
     required = {
         "schema_version", "brand", "status", "source_class", "recorded_on", "source_revision", "source_files",
@@ -388,9 +436,11 @@ def validate_record(brand, root, record):
                  "historical baseline must deny retrospective approval")
     else:
         _require(record["historical_evidence"] is None, "approved canonical record cannot use historical evidence")
-        _validate_approval(record, root)
+        _validate_approval(record, root, verify_proof_files)
     return {"brand": record["brand"], "status": record["status"], "source_class": record["source_class"],
-            "snapshot_sha256": expected["sha256"], "record_sha256": record["record_sha256"]}
+            "snapshot_sha256": expected["sha256"], "record_sha256": record["record_sha256"],
+            "canonical_source_sha256": (canonical_source_binding(record)
+                                         if record["status"] == "approved-canonical" else None)}
 
 
 def validate_brand_continuity(brand, root):
@@ -404,7 +454,129 @@ def validate_brand_continuity(brand, root):
     return validate_record(brand, root, record)
 
 
-def continuity_report(brand, root):
+def production_renderer_contract():
+    """Identify the exact production raster path and output-affecting proof settings."""
+    from process_utils import hidden_process_kwargs
+
+    here = Path(__file__).resolve().parent
+    renderer = None
+    version = None
+    commands = (
+        ("rsvg-convert", ["rsvg-convert", "--version"]),
+        ("resvg", ["resvg", "--version"]),
+        ("inkscape", ["inkscape", "--version"]),
+    )
+    for name, command in commands:
+        executable = shutil.which(name)
+        if executable:
+            result = subprocess.run([executable] + command[1:], capture_output=True, text=True, check=False,
+                                    **hidden_process_kwargs())
+            renderer = name
+            version = ((result.stdout or result.stderr or "unknown").strip().splitlines() or ["unknown"])[0]
+            break
+    if renderer is None:
+        node = os.environ.get("GP_NODE") or shutil.which("node")
+        resvg = os.environ.get("GP_RESVG_RENDERER") or str(here / "rsvg-convert.js")
+        _require(node and Path(resvg).is_file(), "approved identity proof rendering requires the production SVG rasterizer")
+        result = subprocess.run([node, "--version"], capture_output=True, text=True, check=False,
+                                **hidden_process_kwargs())
+        renderer = "node-resvg"
+        version = (result.stdout or result.stderr or "unknown").strip()
+    settings = {
+        "proof_pipeline_version": 1,
+        "sizes": list(PROOF_SIZES),
+        "surfaces": list(PROOF_SURFACES),
+        "variants": list(PROOF_VARIANTS),
+        "surface_mapping": {
+            "dark": ["color", "surfaces.base"],
+            "light": ["light", "#F7F8FC"],
+            "black": ["white", "#000000"],
+            "white": ["black", "#FFFFFF"],
+        },
+        "gen_logo_sha256": canonical_digest((here / "gen_logo.py").read_bytes()),
+        "iconkit_sha256": canonical_digest((here / "iconkit.py").read_bytes()),
+    }
+    return {"id": renderer, "version": version, "settings_sha256": canonical_digest(settings)}
+
+
+def _current_proof_path(root, variant, size, surface):
+    return Path(root) / "qc" / "identity-continuity-proofs" / ("%s-%d-%s.png" % (variant, size, surface))
+
+
+def generate_current_proofs(brand, root):
+    """Render the matrix from gen_logo's production SVG construction before publishable output."""
+    from PIL import Image
+    from gen_logo import raster, standalone_mark_ratio
+    from iconkit import contain_visible
+    from process_utils import hidden_process_kwargs
+
+    root = Path(root).resolve()
+    qc = root / "qc"
+    _require(root.is_dir() and not root.is_symlink(), "production proof root is missing or unsafe")
+    _require(qc.is_dir() and not qc.is_symlink(), "production proof QC root is missing or unsafe")
+    output = qc / "identity-continuity-proofs"
+    _require(not output.is_symlink(), "production proof output cannot be a symlink")
+    if output.exists():
+        shutil.rmtree(str(output))
+    output.mkdir(parents=True)
+    with tempfile.TemporaryDirectory(prefix="identity-continuity-") as temporary:
+        stage = Path(temporary) / "kit"
+        shutil.copytree(str(root), str(stage), ignore=shutil.ignore_patterns("logos", "favicons", "identity-continuity-report.json"))
+        generator = Path(__file__).resolve().parent / "gen_logo.py"
+        result = subprocess.run(
+            [sys.executable, str(generator), str(stage / "brand.json"), str(stage), "--proof-stage-only"],
+            capture_output=True, text=True, **hidden_process_kwargs()
+        )
+        _require(result.returncode == 0, "production proof staging failed: %s" % ((result.stderr or result.stdout).strip()))
+        surface_map = {
+            "dark": ("color", brand.get("surfaces", {}).get("base", "#000000")),
+            "light": ("light", "#F7F8FC"),
+            "black": ("white", "#000000"),
+            "white": ("black", "#FFFFFF"),
+        }
+        current = []
+        for variant in PROOF_VARIANTS:
+            source_name = "mark" if variant == "full" else "mark-reduced"
+            for size in PROOF_SIZES:
+                for surface in PROOF_SURFACES:
+                    colourway, background = surface_map[surface]
+                    source = stage / "logos" / "svg" / ("%s-%s-%s.svg" % (brand["slug"], source_name, colourway))
+                    raw = output / (".%s-%d-%s-raw.png" % (variant, size, surface))
+                    target = _current_proof_path(root, variant, size, surface)
+                    try:
+                        raster(["-h", str(size), str(source), "-o", str(raw)])
+                        with Image.open(raw) as rendered:
+                            mark = contain_visible(rendered.convert("RGBA"), size, standalone_mark_ratio(brand, variant))
+                        proof = Image.new("RGBA", (size, size), background)
+                        proof.alpha_composite(mark)
+                        proof.save(target, format="PNG")
+                    finally:
+                        if raw.exists():
+                            raw.unlink()
+                    current.append({"variant": variant, "size_px": size, "surface": surface,
+                                    "path": target.relative_to(root).as_posix(),
+                                    "sha256": canonical_digest(target.read_bytes())})
+    return current
+
+
+def validate_current_proof_matrix(record, root, renderer=None):
+    renderer = renderer or production_renderer_contract()
+    _require(record["renderer"] == renderer, "production proof renderer or settings drift")
+    approved = {(item["variant"], item["size_px"], item["surface"]): item for item in record["proofs"]}
+    current = []
+    for coordinate in sorted(approved):
+        variant, size, surface = coordinate
+        path = _current_proof_path(root, variant, size, surface)
+        _require(path.is_file() and not path.is_symlink(), "current production proof is missing: %s" % path.name)
+        digest = canonical_digest(path.read_bytes())
+        _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
+        current.append({"variant": variant, "size_px": size, "surface": surface,
+                        "path": path.relative_to(Path(root)).as_posix(), "sha256": digest})
+    _require(len(current) == 32, "current production proof matrix is incomplete")
+    return {"status": "passed", "renderer": renderer, "proofs": current}
+
+
+def continuity_report(brand, root, proof_validation=None):
     """Measure the committed continuity source and bind the result to its bytes."""
     result = validate_brand_continuity(brand, root)
     record_path = safe_path(root, brand["identity_continuity"]["record"])
@@ -419,12 +591,21 @@ def continuity_report(brand, root):
         "snapshot_sha256": result["snapshot_sha256"],
         "validation": "passed",
     }
+    if result["status"] == "approved-canonical":
+        _require(proof_validation is not None, "approved continuity report requires current production proofs")
+        report["proof_validation"] = proof_validation
     report["report_sha256"] = canonical_digest(report)
     return report
 
 
 def write_continuity_report(brand, root, output=None):
-    report = continuity_report(brand, root)
+    result = validate_brand_continuity(brand, root)
+    proof_validation = None
+    if result["status"] == "approved-canonical":
+        record = load_json(safe_path(root, brand["identity_continuity"]["record"]))
+        generate_current_proofs(brand, root)
+        proof_validation = validate_current_proof_matrix(record, root)
+    report = continuity_report(brand, root, proof_validation)
     path = Path(output) if output else Path(root) / "identity-continuity-report.json"
     with open(str(path), "w", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(report, indent=2, sort_keys=True) + "\n")
@@ -434,7 +615,12 @@ def write_continuity_report(brand, root, output=None):
 def validate_continuity_report(brand, root):
     path = safe_path(root, "identity-continuity-report.json")
     report = load_json(path)
-    expected = continuity_report(brand, root)
+    result = validate_brand_continuity(brand, root)
+    proof_validation = None
+    if result["status"] == "approved-canonical":
+        record = load_json(safe_path(root, brand["identity_continuity"]["record"]))
+        proof_validation = validate_current_proof_matrix(record, root)
+    expected = continuity_report(brand, root, proof_validation)
     _require(report == expected, "generated identity continuity report is absent or stale")
     return report
 
