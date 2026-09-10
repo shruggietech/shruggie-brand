@@ -51,4 +51,9 @@ After removing the shared footer composition and stale CSS rule, `node --test si
 
 ## Pull Request and Hosted Gates
 
-Hosted review findings, responses, and CI conclusions will be recorded after pull request publication.
+- Pull request: [#192](https://github.com/shruggietech/shruggie-brand/pull/192)
+- Initial implementation head: `7c52eb8`
+- Automatic Codex review completed against the implementation head with no findings and zero review threads.
+- Push workflow run `34537386536` passed `python-38-compatibility` in 5m04s and `build` in 19m06s.
+- Pull-request workflow run `34537411580` passed `python-38-compatibility` in 3m58s and `build` in 19m16s.
+- The final evidence-only commit will receive one follow-up Codex review request and a complete hosted CI rerun before owner handoff.
