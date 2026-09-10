@@ -29,6 +29,8 @@ from identity_continuity import (  # noqa: E402
     canonical_source_binding,
     compare_proofs,
     identity_snapshot,
+    measured_oklch,
+    palette_roles,
     record_digest,
     safe_path,
     validate_glyphkit_helper,
@@ -69,12 +71,13 @@ def brand_fixture():
     }
 
 
-def palette_qualification():
-    roles = {"accent.bright": "#62BEB2", "accent.deep": "#005D55"}
+def palette_qualification(brand=None):
+    brand = brand or brand_fixture()
+    roles = palette_roles(identity_snapshot(brand, "glyphkit-constructed")["palette"])
     evidence = {
         "status": "passed",
         "srgb_roles": roles,
-        "oklch_roles": {"accent.bright": [0.75, 0.08, 180.0], "accent.deep": [0.42, 0.08, 180.0]},
+        "oklch_roles": {role: measured_oklch(color) for role, color in roles.items()},
         "checks": {
             "contrast": True,
             "sibling_separation": True,
@@ -135,6 +138,25 @@ def transparent_proof(path, size=64, shift=0, hole=False, color=(98, 190, 178, 2
     image.save(path)
 
 
+_PROOF_ARTIFACT_CACHE = {}
+
+
+def proof_artifact_bytes(size):
+    if size not in _PROOF_ARTIFACT_CACHE:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            proof = root / "proof.png"
+            transparent_proof(proof, size=size)
+            result = compare_proofs(proof, proof, same_renderer=True, evidence_dir=root / "evidence",
+                                    prefix="comparison")
+            _PROOF_ARTIFACT_CACHE[size] = {
+                "proof": proof.read_bytes(),
+                "evidence": {kind: (root / "evidence" / filename).read_bytes()
+                             for kind, filename in result["evidence_paths"].items()},
+            }
+    return _PROOF_ARTIFACT_CACHE[size]
+
+
 class IdentityContinuityTests(unittest.TestCase):
     def make_promotion_bundle(self, root):
         approval = root / "approval"
@@ -155,12 +177,22 @@ class IdentityContinuityTests(unittest.TestCase):
             for size in PROOF_SIZES:
                 for surface in PROOF_SURFACES:
                     relative = "proofs/%s-%s-%s.png" % (variant, size, surface)
-                    transparent_proof(source / relative, size=size)
-                    payload = (source / relative).read_bytes()
+                    artifacts = proof_artifact_bytes(size)
+                    (source / relative).write_bytes(artifacts["proof"])
+                    payload = artifacts["proof"]
+                    evidence = {}
+                    for kind, evidence_payload in artifacts["evidence"].items():
+                        evidence_relative = "evidence/%s-%s-%s-%s.png" % (variant, size, surface, kind)
+                        evidence_path = source / evidence_relative
+                        evidence_path.parent.mkdir(exist_ok=True)
+                        evidence_path.write_bytes(evidence_payload)
+                        evidence[kind] = {"path": evidence_relative,
+                                          "sha256": canonical_digest(evidence_payload)}
                     proofs.append({"variant": variant, "size_px": size, "surface": surface,
-                                   "path": relative, "sha256": canonical_digest(payload)})
+                                   "path": relative, "sha256": canonical_digest(payload),
+                                   "evidence": evidence})
         snapshot = identity_snapshot(brand, "glyphkit-constructed")
-        qualification = palette_qualification()
+        qualification = palette_qualification(brand)
         record = {
             "schema_version": 1, "brand": "example", "status": "approved-canonical",
             "source_class": "glyphkit-constructed", "recorded_on": "2026-09-09",
@@ -287,6 +319,14 @@ class IdentityContinuityTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ContinuityError, "directly from a glyphkit"):
                 validate_glyphkit_helper(helper)
+            helper.write_text(
+                'import glyphkit as G\ndef serialize():\n    return "".join(["M",str(0)," 0Z"])\n'
+                'unused=G.rect(0,0,1,1)\nentry={"role":"ink"}\nentry.update(d=serialize())\n'
+                'full=[entry]\nreduced=full\n',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ContinuityError, "constructed d mutation"):
+                validate_glyphkit_helper(helper)
 
     def test_palette_qualification_requires_every_check_and_bound_values(self):
         valid = palette_qualification()
@@ -302,6 +342,14 @@ class IdentityContinuityTests(unittest.TestCase):
             mutation(changed)
             with self.assertRaises(ContinuityError):
                 validate_palette_qualification(changed)
+        unrelated = copy.deepcopy(valid)
+        unrelated["srgb_roles"] = {"unrelated": "#000000"}
+        unrelated["oklch_roles"] = {"unrelated": measured_oklch("#000000")}
+        unrelated["evidence_sha256"] = canonical_digest({key: value for key, value in unrelated.items()
+                                                          if key != "evidence_sha256"})
+        governed = identity_snapshot(brand_fixture(), "glyphkit-constructed")["palette"]
+        with self.assertRaisesRegex(ContinuityError, "governed identity palette"):
+            validate_palette_qualification(unrelated, governed)
 
     def test_cueson_equivalent_renderer_fixture_passes(self):
         with tempfile.TemporaryDirectory() as tmp:

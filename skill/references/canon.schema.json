@@ -223,12 +223,32 @@
     },
     "identityProof": {
       "type": "object",
-      "required": ["variant", "size_px", "surface", "path", "sha256"],
+      "required": ["variant", "size_px", "surface", "path", "sha256", "evidence"],
       "additionalProperties": false,
       "properties": {
         "variant": {"enum": ["full", "reduced"]},
         "size_px": {"enum": [16, 32, 64, 256]},
         "surface": {"enum": ["dark", "light", "black", "white"]},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "evidence": {
+          "type": "object",
+          "required": ["side_by_side", "overlay", "silhouette_xor", "color_difference"],
+          "additionalProperties": false,
+          "properties": {
+            "side_by_side": {"$ref": "#/$defs/identityEvidenceArtifact"},
+            "overlay": {"$ref": "#/$defs/identityEvidenceArtifact"},
+            "silhouette_xor": {"$ref": "#/$defs/identityEvidenceArtifact"},
+            "color_difference": {"$ref": "#/$defs/identityEvidenceArtifact"}
+          }
+        }
+      }
+    },
+    "identityEvidenceArtifact": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "additionalProperties": false,
+      "properties": {
         "path": {"type": "string", "minLength": 1},
         "sha256": {"$ref": "#/$defs/sha256"}
       }

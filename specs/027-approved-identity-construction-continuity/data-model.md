@@ -43,7 +43,7 @@ Stored beside permanent brand source and validated before derivatives.
 | `framing` | object | Grid, view box, artwork bounds, clear space, variant padding, crop, and canonical digest |
 | `palette` | object | Exact role values, sRGB/OKLCH evidence digest, qualification status, and canonical digest |
 | `renderer` | object or null | Approved renderer identity, version, and deterministic settings digest |
-| `proofs` | array | Unique variant, size, surface, path, and SHA-256 records; each exact PNG digest binds its rendered topology, color, and bounds |
+| `proofs` | array | Unique variant, size, surface, path, SHA-256, and four-artifact comparison-evidence records; each exact PNG digest binds its rendered topology, color, and bounds |
 | `approval` | object or null | Required only for approved canonical records |
 | `historical_evidence` | object or null | Required only for historical baselines |
 | `record_sha256` | SHA-256 | Digest of the record excluding this field |
@@ -58,6 +58,7 @@ The identity snapshot contains the complete `logo` configuration outside the alr
 - `legacy-constructed` is valid only as a historical baseline and must state why reconstruction is prohibited.
 - `authoritative` binds full and reduced authoritative inputs and forbids a construction helper.
 - Approved records require the complete 32-proof matrix across the mandatory full and reduced masters.
+- Every approved proof binds unique side-by-side, overlay, silhouette-XOR, and color-difference PNG paths and SHA-256 values.
 - Historical baselines do not claim an owner decision and may omit proofs whose history does not exist.
 
 ## Identity Snapshot

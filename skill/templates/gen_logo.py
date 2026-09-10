@@ -286,6 +286,14 @@ def main():
     proof_stage_only = "--proof-stage-only" in sys.argv[3:]
     with open(spec_path, encoding="utf-8") as handle:
         brand = json.load(handle)
+    if not proof_stage_only:
+        from identity_continuity import validate_continuity_report, write_continuity_report
+
+        continuity_report = os.path.join(kit, "identity-continuity-report.json")
+        if os.path.isfile(continuity_report):
+            validate_continuity_report(brand, kit)
+        else:
+            write_continuity_report(brand, kit)
     here = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(here, "..", "references", "01-canon.json"), encoding="utf-8") as handle:
         canon = json.load(handle)

@@ -83,6 +83,25 @@ class PipelineTests(unittest.TestCase):
             verify.c_identity_continuity(str(kit), brand, report)
             self.assertIn("stale", " ".join(report.problems))
 
+    def test_standalone_logo_generation_enforces_continuity_except_internal_proof_staging(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "cueson"
+            shutil.copytree(ROOT / "brands" / "cueson", kit)
+            self.write_probe(kit)
+            brand_path = kit / "brand.json"
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["logo"]["reduced_below_px"] += 1
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(brand_path), str(kit)]
+                with self.assertRaisesRegex(ContinuityError, "snapshot drift"):
+                    gen_logo.main()
+                sys.argv = ["gen_logo.py", str(brand_path), str(kit), "--proof-stage-only"]
+                self.assertEqual(0, gen_logo.main())
+            finally:
+                sys.argv = old_argv
+
     def test_identity_workflow_docs_preserve_the_two_approval_boundaries(self):
         skill = (ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8")
         interview = (ROOT / "skill" / "references" / "03-interview.md").read_text(encoding="utf-8")
@@ -361,6 +380,29 @@ class PipelineTests(unittest.TestCase):
         """Create an isolated test input from a production source kit."""
         shutil.copytree(ROOT / "brands" / "covarity", destination)
         shutil.copytree(ROOT / "assets" / "fonts", destination / "fonts")
+
+    @staticmethod
+    def rebind_historical_continuity(brand_path, source_class):
+        brand = json.loads(brand_path.read_text(encoding="utf-8"))
+        brand["identity_continuity"] = {"record": "identity-continuity.json", "status": "historical-baseline"}
+        snapshot = identity_snapshot(brand, source_class)
+        record = {
+            "schema_version": 1, "brand": brand["slug"], "status": "historical-baseline",
+            "source_class": source_class, "recorded_on": "2026-09-09",
+            "source_revision": "synthetic-pipeline-fixture", "source_files": [],
+            "identity_snapshot": snapshot, "topology": snapshot["topology"],
+            "framing": snapshot["framing"], "palette": snapshot["palette"],
+            "renderer": None, "proofs": [], "approval": None,
+            "historical_evidence": {
+                "basis": "current-authoritative-source", "baseline_revision": "synthetic-pipeline-fixture",
+                "approval_completeness": "unknown",
+                "limitation": "This fixture is not retrospective canonical approval.", "migration_issue": 185,
+            },
+            "record_sha256": "",
+        }
+        record["record_sha256"] = record_digest(record)
+        write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+        write_utf8(brand_path.parent / "identity-continuity.json", json.dumps(record, indent=2) + "\n")
 
     def test_manifest_uses_the_declared_kit_version(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -745,6 +787,7 @@ class PipelineTests(unittest.TestCase):
                 {"id": "reduced-svg", "role": "reduced-mark", "path": "assets/reduced.svg", "format": "svg", "sha256": hashlib.sha256(reduced.read_bytes()).hexdigest(), "color_profile": "none", "usage_status": "approved", "license": "Test fixture", "approved_transformations": ["embed-unchanged", "resize"]},
             ]
             write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+            self.rebind_historical_continuity(brand_path, "authoritative")
             self.write_probe(kit)
             old_argv = sys.argv
             try:

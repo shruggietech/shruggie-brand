@@ -48,7 +48,7 @@
 
 ## Final local validation
 
-- Focused and regression matrix: 34 glyphkit checks, 5 package-release tests, 14 release-contract tests, 29 site-preparation tests, 40 brand-contract tests, 20 identity-continuity tests, 4 migration-audit tests, 14 iconkit tests, 51 pipeline tests, and Markdown policy all passed. The post-review pipeline rerun completed in 173.371 seconds on Python 3.12.9.
+- Focused and regression matrix: 34 glyphkit checks, 5 package-release tests, 14 release-contract tests, 29 site-preparation tests, 40 brand-contract tests, 20 identity-continuity tests, 4 migration-audit tests, 14 iconkit tests, 52 pipeline tests, and Markdown policy all passed. The final local pipeline rerun completed in 169.445 seconds on Python 3.12.9.
 - Migration audit: 7/7 production records valid, 7/7 preservation comparisons passed, zero problems.
 - Production build: 7/7 kits built clean with zero verification problems and zero glyph failures. Continuity validation ran before derivatives for every kit. The aggregate run completed in approximately four minutes, under the planned baseline plus 60-second continuity budget.
 - Release certification: nine version 1.2.1 assets and generated notes verified without publishing a tag or release.
@@ -69,3 +69,13 @@
 - Approved builds now stage mark SVGs through the real `gen_logo` production construction, render the 32-coordinate current proof matrix before publishable derivatives, require the approved renderer/settings contract and exact proof hashes, retain generated evidence under `qc/`, and independently revalidate it at final verification.
 - Glyphkit helper validation now requires every dictionary or assignment that produces a `d` value to call an approved primitive directly, including aliased direct imports, and rejects the reported unused-primitive/custom-serializer bypass.
 - Local post-review validation passes 20 identity tests, 40 brand-contract tests, 4 migration-audit tests, 51 pipeline tests, all seven full production kit builds, Markdown policy, TypeScript lint, and the 73-page static site build. A direct Cueson production-stage exercise generated all 32 proof coordinates in 9.5 seconds on the local reference renderer.
+
+### Authorized second and final Codex review (2026-09-09)
+
+- The owner authorized one optional second Codex round and prohibited a third. The second and final request was posted once at `https://github.com/shruggietech/shruggie-brand/pull/187#issuecomment-5612096072`; no further Codex review will be requested.
+- The second review reported four actionable findings against `585b40e`: continuity enforcement stopped at the aggregate build entry point, palette qualification was not bound to every governed palette role, mutation calls could still conceal a custom `d` producer, and canonical proof records did not bind the four comparison-image families.
+- `gen_logo.py` now validates or creates the source-bound continuity report before standalone derivative generation. Only the explicitly internal `--proof-stage-only` path bypasses this boundary so approval proofs can be staged without recursion. A pipeline regression proves standalone drift fails while internal proof staging remains available.
+- Palette qualification now derives a stable role map from every governed hexadecimal palette value and requires exact role equality. It independently converts each recorded sRGB value to OKLCH through ColorAide and rejects unrelated, missing, altered, or incorrectly measured roles.
+- Glyphkit provenance validation now rejects opaque dictionary updates and dynamic keys, and requires `update(d=...)`, `setdefault("d", ...)`, and `__setitem__("d", ...)` values to call an approved primitive directly. A regression reproduces and rejects the reported mutation bypass.
+- Every canonical proof coordinate now requires uniquely pathed, SHA-256-bound PNG evidence for side-by-side, overlay, silhouette XOR, and color difference. Promotion validates those source artifacts. Production verification regenerates the same four images from the exact approved proof and independently rejects any evidence drift.
+- Final local validation after these changes passes 20 identity-continuity tests, 40 brand-contract tests, 4 migration-audit tests, 52 pipeline tests, Markdown policy, Python compilation, TypeScript lint, the 73-page static site build, the 7/7 continuity audit, and all seven full production-kit builds with zero reported problems.

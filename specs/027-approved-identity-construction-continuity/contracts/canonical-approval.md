@@ -14,10 +14,10 @@ The candidate packet must contain:
 - the canonical identity snapshot and digest;
 - construction provenance and allowed primitive vocabulary;
 - full and reduced geometry, topology, and framing records;
-- complete palette qualification and exact sRGB/OKLCH values;
+- complete palette qualification whose role set equals the governed palette and whose exact sRGB/OKLCH correspondence is independently measured;
 - renderer identity, version, and deterministic settings;
 - production-path proofs at 256, 64, 32, and 16 pixels on dark, light, black, and white surfaces;
-- side-by-side, overlay, silhouette-XOR, and color-difference evidence;
+- per-coordinate hash-bound side-by-side, overlay, silhouette-XOR, and color-difference PNG evidence;
 - the exact manifest hash offered for approval.
 
 ## Decision semantics

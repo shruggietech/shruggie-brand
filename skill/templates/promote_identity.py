@@ -84,7 +84,7 @@ def _validate_bundle(bundle, approval_root):
         _require(relative not in seen, "duplicate promotion destination: %s" % relative)
         seen.add(relative)
         first = Path(relative).parts[0] if Path(relative).parts else ""
-        _require(first not in {"proofs", "dist", "qc", "release", "site"},
+        _require(first not in {"proofs", "evidence", "dist", "qc", "release", "site"},
                  "generated or external path cannot be promoted: %s" % relative)
         _require(Path(relative).suffix.lower() not in {".exe", ".dll", ".com", ".bat", ".cmd", ".ps1", ".msi"},
                  "executable source cannot be promoted: %s" % relative)
@@ -104,7 +104,7 @@ def _validate_bundle(bundle, approval_root):
     actual = set()
     for path in source_root.rglob("*"):
         relative = path.relative_to(source_root).as_posix()
-        if relative == "proofs" or relative.startswith("proofs/"):
+        if relative in {"proofs", "evidence"} or relative.startswith(("proofs/", "evidence/")):
             continue
         _require(not path.is_symlink(), "symbolic-link source is not permitted: %s" % relative)
         if path.is_file():

@@ -21,6 +21,7 @@ from pathlib import Path
 PROOF_SIZES = (256, 64, 32, 16)
 PROOF_SURFACES = ("dark", "light", "black", "white")
 PROOF_VARIANTS = ("full", "reduced")
+EVIDENCE_KINDS = ("side_by_side", "overlay", "silhouette_xor", "color_difference")
 REQUIRED_APPROVAL_SCOPE = (
     "full-master", "reduced-master", "palette", "framing", "topology", "renderer", "proof-matrix",
 )
@@ -272,13 +273,50 @@ def validate_glyphkit_helper(path):
                 if keyword.arg == "d":
                     _require(approved_primitive_call(keyword.value),
                              "every constructed d value must come directly from a glyphkit primitive")
+        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+            if node.func.attr == "update":
+                _require(not node.args and not any(keyword.arg is None for keyword in node.keywords),
+                         "construction helpers cannot use opaque dictionary updates")
+                for keyword in node.keywords:
+                    if keyword.arg == "d":
+                        _require(approved_primitive_call(keyword.value),
+                                 "every constructed d mutation must come directly from a glyphkit primitive")
+            if node.func.attr in {"setdefault", "__setitem__"} and node.args:
+                _require(isinstance(node.args[0], ast.Constant),
+                         "construction helpers cannot use dynamic dictionary keys")
+                if isinstance(node.args[0], ast.Constant) and node.args[0].value == "d":
+                    _require(len(node.args) > 1 and approved_primitive_call(node.args[1]),
+                             "every constructed d mutation must come directly from a glyphkit primitive")
     _require(module_aliases or primitive_aliases, "construction helper must import glyphkit")
     _require(primitive_calls, "construction helper must call an approved glyphkit primitive")
     _require(not forbidden_calls, "construction helper uses forbidden calls: %s" % ", ".join(sorted(forbidden_calls)))
     return {"engine": "glyphkit", "primitives": sorted(primitive_calls), "source_sha256": canonical_digest(helper.read_bytes())}
 
 
-def validate_palette_qualification(value):
+def palette_roles(value, prefix=""):
+    """Flatten every governed hexadecimal palette role into a stable dotted key."""
+    roles = {}
+    if isinstance(value, dict):
+        for key in sorted(value):
+            child = "%s.%s" % (prefix, key) if prefix else str(key)
+            roles.update(palette_roles(value[key], child))
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            roles.update(palette_roles(item, "%s.%d" % (prefix, index)))
+    elif isinstance(value, str) and HEX.fullmatch(value):
+        roles[prefix] = value.upper()
+    return roles
+
+
+def measured_oklch(color):
+    from coloraide import Color
+
+    lightness, chroma, hue = Color(color).convert("oklch").coords()
+    hue = 0.0 if hue is None or not math.isfinite(hue) else hue % 360.0
+    return [round(float(lightness), 6), round(float(chroma), 6), round(float(hue), 6)]
+
+
+def validate_palette_qualification(value, governed_palette=None):
     _require(isinstance(value, dict), "palette qualification is required")
     required = {"status", "srgb_roles", "oklch_roles", "checks", "evidence_sha256"}
     _require(set(value) == required, "palette qualification must contain exactly the required fields")
@@ -287,6 +325,9 @@ def validate_palette_qualification(value):
     oklch = value["oklch_roles"]
     _require(isinstance(roles, dict) and roles, "palette qualification needs sRGB roles")
     _require(isinstance(oklch, dict) and set(oklch) == set(roles), "OKLCH roles must match sRGB roles")
+    if governed_palette is not None:
+        _require({key: color.upper() for key, color in roles.items()} == palette_roles(governed_palette),
+                 "palette qualification roles do not match the governed identity palette")
     for role, color in roles.items():
         _require(isinstance(role, str) and role and isinstance(color, str) and HEX.fullmatch(color),
                  "palette qualification contains an invalid sRGB role")
@@ -296,6 +337,13 @@ def validate_palette_qualification(value):
         lightness, chroma, hue = triplet
         _require(0 <= lightness <= 1 and chroma >= 0 and 0 <= hue <= 360,
                  "palette qualification contains an out-of-range OKLCH role")
+        expected = measured_oklch(color)
+        _require(abs(lightness - expected[0]) <= 0.00001 and abs(chroma - expected[1]) <= 0.00001,
+                 "palette qualification OKLCH measurement does not match sRGB: %s" % role)
+        if expected[1] > 0.00001:
+            hue_delta = abs((hue - expected[2] + 180.0) % 360.0 - 180.0)
+            _require(hue_delta <= 0.00001,
+                     "palette qualification OKLCH hue does not match sRGB: %s" % role)
     checks = value["checks"]
     _require(isinstance(checks, dict) and set(checks) == PALETTE_CHECKS,
              "palette qualification checks are incomplete")
@@ -343,7 +391,7 @@ def _validate_approval(record, root, verify_proof_files=False):
                  "canonical approval %s is invalid" % key)
     _require(approval["source_snapshot_sha256"] == record["identity_snapshot"]["sha256"],
              "canonical approval is stale because the source snapshot changed")
-    validate_palette_qualification(record.get("palette_qualification"))
+    validate_palette_qualification(record.get("palette_qualification"), record["identity_snapshot"]["palette"])
     renderer = record.get("renderer")
     _require(isinstance(renderer, dict) and set(renderer) == {"id", "version", "settings_sha256"},
              "canonical approval needs deterministic renderer identity")
@@ -354,8 +402,9 @@ def _validate_approval(record, root, verify_proof_files=False):
     _require(isinstance(proofs, list) and len(proofs) == 32, "canonical approval needs the complete 32-proof matrix")
     expected = {(variant, size, surface) for variant in PROOF_VARIANTS for size in PROOF_SIZES for surface in PROOF_SURFACES}
     actual = set()
+    evidence_paths = set()
     for item in proofs:
-        _require(isinstance(item, dict) and set(item) == {"variant", "size_px", "surface", "path", "sha256"},
+        _require(isinstance(item, dict) and set(item) == {"variant", "size_px", "surface", "path", "sha256", "evidence"},
                  "canonical proof record has unsupported or missing fields")
         coordinate = (item["variant"], item["size_px"], item["surface"])
         _require(coordinate not in actual, "duplicate canonical proof coordinate")
@@ -378,6 +427,31 @@ def _validate_approval(record, root, verify_proof_files=False):
                 raise
             except Exception as exc:
                 raise ContinuityError("canonical proof is not a valid PNG: %s (%s)" % (item["path"], exc)) from exc
+        evidence = item["evidence"]
+        _require(isinstance(evidence, dict) and set(evidence) == set(EVIDENCE_KINDS),
+                 "canonical proof comparison evidence is incomplete")
+        for kind in EVIDENCE_KINDS:
+            artifact = evidence[kind]
+            _require(isinstance(artifact, dict) and set(artifact) == {"path", "sha256"},
+                     "canonical proof comparison artifact is invalid")
+            _require(artifact["path"] not in evidence_paths, "duplicate canonical comparison evidence path")
+            evidence_paths.add(artifact["path"])
+            evidence_path = safe_path(root, artifact["path"], required=verify_proof_files)
+            _require(isinstance(artifact["sha256"], str) and DIGEST.fullmatch(artifact["sha256"] or ""),
+                     "canonical comparison evidence hash is invalid: %s" % artifact["path"])
+            if verify_proof_files:
+                _require(canonical_digest(evidence_path.read_bytes()) == artifact["sha256"],
+                         "canonical comparison evidence hash drift: %s" % artifact["path"])
+                try:
+                    from PIL import Image
+
+                    with Image.open(evidence_path) as image:
+                        _require(image.format == "PNG", "canonical comparison evidence must be a PNG")
+                        image.verify()
+                except ContinuityError:
+                    raise
+                except Exception as exc:
+                    raise ContinuityError("canonical comparison evidence is not a valid PNG: %s" % exc) from exc
     _require(actual == expected, "canonical proof matrix is incomplete")
 
 
@@ -456,6 +530,7 @@ def validate_brand_continuity(brand, root):
 
 def production_renderer_contract():
     """Identify the exact production raster path and output-affecting proof settings."""
+    from PIL import __version__ as pillow_version
     from process_utils import hidden_process_kwargs
 
     here = Path(__file__).resolve().parent
@@ -495,6 +570,8 @@ def production_renderer_contract():
         },
         "gen_logo_sha256": canonical_digest((here / "gen_logo.py").read_bytes()),
         "iconkit_sha256": canonical_digest((here / "iconkit.py").read_bytes()),
+        "resvg_adapter_sha256": canonical_digest((here / "rsvg-convert.js").read_bytes()),
+        "pillow_version": pillow_version,
     }
     return {"id": renderer, "version": version, "settings_sha256": canonical_digest(settings)}
 
@@ -570,8 +647,23 @@ def validate_current_proof_matrix(record, root, renderer=None):
         _require(path.is_file() and not path.is_symlink(), "current production proof is missing: %s" % path.name)
         digest = canonical_digest(path.read_bytes())
         _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
+        evidence_dir = path.parent / "comparisons" / ("%s-%d-%s" % coordinate)
+        comparison = compare_proofs(path, path, same_renderer=True, evidence_dir=evidence_dir, prefix="comparison")
+        _require(comparison["passes"], "current production comparison failed: %s" % path.name)
+        generated_evidence = {}
+        for kind in EVIDENCE_KINDS:
+            evidence_path = evidence_dir / comparison["evidence_paths"][kind]
+            evidence_digest = canonical_digest(evidence_path.read_bytes())
+            _require(evidence_digest == approved[coordinate]["evidence"][kind]["sha256"],
+                     "current comparison evidence drift: %s %s" % (path.name, kind))
+            generated_evidence[kind] = {
+                "path": evidence_path.relative_to(Path(root)).as_posix(),
+                "sha256": evidence_digest,
+            }
         current.append({"variant": variant, "size_px": size, "surface": surface,
-                        "path": path.relative_to(Path(root)).as_posix(), "sha256": digest})
+                        "path": path.relative_to(Path(root)).as_posix(), "sha256": digest,
+                        "comparison": {"passes": True, "same_renderer": True,
+                                       "evidence": generated_evidence}})
     _require(len(current) == 32, "current production proof matrix is incomplete")
     return {"status": "passed", "renderer": renderer, "proofs": current}
 
