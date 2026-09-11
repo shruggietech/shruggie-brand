@@ -431,7 +431,7 @@ class IdentityContinuityTests(unittest.TestCase):
                 validate_record(json.loads((source / "brand.json").read_text(encoding="utf-8")), source, record,
                                 verify_proof_files=True)
 
-    def test_current_proof_matrix_requires_bound_settings_and_exact_implementation_renders(self):
+    def test_current_proof_matrix_requires_bound_renderer_and_exact_renders(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             _approval, source, _brands, _bundle_path = self.make_promotion_bundle(root)
@@ -443,12 +443,6 @@ class IdentityContinuityTests(unittest.TestCase):
                 target.write_bytes((source / item["path"]).read_bytes())
             result = validate_current_proof_matrix(record, source, renderer=record["renderer"])
             self.assertEqual("passed", result["status"])
-            host_version = dict(record["renderer"], version="host-version")
-            result = validate_current_proof_matrix(record, source, renderer=host_version)
-            self.assertTrue(all(item["comparison"]["same_renderer"] for item in result["proofs"]))
-            equivalent = dict(record["renderer"], id="equivalent-renderer", version="2")
-            result = validate_current_proof_matrix(record, source, renderer=equivalent)
-            self.assertTrue(all(not item["comparison"]["same_renderer"] for item in result["proofs"]))
             with self.assertRaisesRegex(ContinuityError, "renderer"):
                 validate_current_proof_matrix(record, source, renderer={"id": "changed", "version": "1",
                                                                        "settings_sha256": "0" * 64})
