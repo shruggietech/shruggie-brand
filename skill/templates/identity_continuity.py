@@ -592,6 +592,29 @@ def _current_proof_path(root, variant, size, surface):
     return Path(root) / "qc" / "identity-continuity-proofs" / ("%s-%d-%s.png" % (variant, size, surface))
 
 
+def _portable_approved_proof_dir(brand):
+    """Resolve an exact approved proof artifact supplied by a canonical-host CI job."""
+    value = os.environ.get("GP_APPROVED_PROOF_ROOT")
+    if not value:
+        return None
+    _require(isinstance(brand, dict) and isinstance(brand.get("slug"), str),
+             "portable approved proofs require a brand slug")
+    base = Path(value).resolve()
+    _require(base.is_dir() and not base.is_symlink(), "portable approved proof root is missing or unsafe")
+    relative = Path(brand["slug"]) / "qc" / "identity-continuity-proofs"
+    cursor = base
+    for part in relative.parts:
+        cursor = cursor / part
+        _require(not cursor.is_symlink(), "portable approved proof path cannot contain a symlink")
+    proof_dir = cursor.resolve()
+    try:
+        proof_dir.relative_to(base)
+    except ValueError as error:
+        raise ContinuityError("portable approved proof path escapes its root") from error
+    _require(proof_dir.is_dir(), "portable approved proof directory is missing")
+    return proof_dir
+
+
 def generate_current_proofs(brand, root):
     """Render the matrix from gen_logo's production SVG construction before publishable output."""
     from PIL import Image
@@ -646,6 +669,7 @@ def generate_current_proofs(brand, root):
 def validate_current_proof_matrix(record, root, renderer=None, brand=None):
     renderer = renderer or production_renderer_contract(brand)
     _require(record["renderer"] == renderer, "production proof renderer or settings drift")
+    portable_dir = _portable_approved_proof_dir(brand)
     approved = {(item["variant"], item["size_px"], item["surface"]): item for item in record["proofs"]}
     current = []
     for coordinate in sorted(approved):
@@ -653,23 +677,34 @@ def validate_current_proof_matrix(record, root, renderer=None, brand=None):
         path = _current_proof_path(root, variant, size, surface)
         _require(path.is_file() and not path.is_symlink(), "current production proof is missing: %s" % path.name)
         digest = canonical_digest(path.read_bytes())
-        _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
+        same_renderer = portable_dir is None
+        if same_renderer:
+            _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
+            approved_path = path
+        else:
+            approved_path = portable_dir / path.name
+            _require(approved_path.is_file() and not approved_path.is_symlink(),
+                     "portable approved proof is missing: %s" % path.name)
+            _require(canonical_digest(approved_path.read_bytes()) == approved[coordinate]["sha256"],
+                     "portable approved proof hash drift: %s" % path.name)
         evidence_dir = path.parent / "comparisons" / ("%s-%d-%s" % coordinate)
-        comparison = compare_proofs(path, path, same_renderer=True, evidence_dir=evidence_dir, prefix="comparison")
+        comparison = compare_proofs(approved_path, path, same_renderer=same_renderer,
+                                    evidence_dir=evidence_dir, prefix="comparison")
         _require(comparison["passes"], "current production comparison failed: %s" % path.name)
         generated_evidence = {}
         for kind in EVIDENCE_KINDS:
             evidence_path = evidence_dir / comparison["evidence_paths"][kind]
             evidence_digest = canonical_digest(evidence_path.read_bytes())
-            _require(evidence_digest == approved[coordinate]["evidence"][kind]["sha256"],
-                     "current comparison evidence drift: %s %s" % (path.name, kind))
+            if same_renderer:
+                _require(evidence_digest == approved[coordinate]["evidence"][kind]["sha256"],
+                         "current comparison evidence drift: %s %s" % (path.name, kind))
             generated_evidence[kind] = {
                 "path": evidence_path.relative_to(Path(root)).as_posix(),
                 "sha256": evidence_digest,
             }
         current.append({"variant": variant, "size_px": size, "surface": surface,
                         "path": path.relative_to(Path(root)).as_posix(), "sha256": digest,
-                        "comparison": {"passes": True, "same_renderer": True,
+                        "comparison": {"passes": True, "same_renderer": same_renderer,
                                        "evidence": generated_evidence}})
     _require(len(current) == 32, "current production proof matrix is incomplete")
     return {"status": "passed", "renderer": renderer, "proofs": current}
@@ -887,8 +922,8 @@ def compare_proofs(approved_path, production_path, same_renderer, evidence_dir=N
     if same_renderer:
         passes = exact
     else:
-        passes = (approved_topology == production_topology and changed_fraction <= 0.005 and
-                  bbox_delta <= 1 and centroid_delta <= 1.0 and delta_e <= 1.0)
+        passes = exact or (approved_topology == production_topology and changed_fraction <= 0.005 and
+                           bbox_delta <= 1 and centroid_delta <= 1.0 and delta_e <= 1.0)
     evidence_paths = {}
     if evidence_dir is not None:
         evidence_paths = _write_evidence(approved, production, approved_mask, production_mask,

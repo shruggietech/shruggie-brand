@@ -451,6 +451,32 @@ class IdentityContinuityTests(unittest.TestCase):
             with self.assertRaisesRegex(ContinuityError, "proof drift"):
                 validate_current_proof_matrix(record, source, renderer=record["renderer"])
 
+    def test_portable_proof_matrix_is_hash_bound_before_measured_comparison(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _approval, source, _brands, _bundle_path = self.make_promotion_bundle(root)
+            record = json.loads((source / "identity-continuity.json").read_text(encoding="utf-8"))
+            generated = source / "qc" / "identity-continuity-proofs"
+            portable = root / "portable" / "example" / "qc" / "identity-continuity-proofs"
+            generated.mkdir(parents=True)
+            portable.mkdir(parents=True)
+            for item in record["proofs"]:
+                name = "%s-%d-%s.png" % (item["variant"], item["size_px"], item["surface"])
+                payload = (source / item["path"]).read_bytes()
+                (generated / name).write_bytes(payload)
+                (portable / name).write_bytes(payload)
+            with mock.patch.dict(os.environ, {"GP_APPROVED_PROOF_ROOT": str(root / "portable")}):
+                result = validate_current_proof_matrix(
+                    record, source, renderer=record["renderer"], brand={"slug": "example"}
+                )
+                self.assertTrue(all(not item["comparison"]["same_renderer"] for item in result["proofs"]))
+                first = portable / "full-256-dark.png"
+                first.write_bytes(first.read_bytes() + b"drift")
+                with self.assertRaisesRegex(ContinuityError, "portable approved proof hash drift"):
+                    validate_current_proof_matrix(
+                        record, source, renderer=record["renderer"], brand={"slug": "example"}
+                    )
+
     def test_approved_report_binds_fresh_production_proof_matrix(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
