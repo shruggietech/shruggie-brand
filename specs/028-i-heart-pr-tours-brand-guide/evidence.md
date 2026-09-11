@@ -186,3 +186,12 @@ T050 remains the active halt. No commit, push, pull request, public surface, or 
 - Public site preparation continues to report seven kits. I Heart PR Tours remains absent from public discovery after its private Gate 2 approval.
 - Markdown policy and `git diff --check` pass. Mutable committed text contains no private workstation paths, BOM marker, CRLF, or detected mojibake, and generated `dist/`, `release/`, and site exports remain ignored. The supplied `assets/source/favicon/index.html` retains its approved CRLF bytes under one path-specific binary Git attribute so checkout normalization cannot invalidate its source hash.
 - Post-commit continuity audit against `HEAD` passes all eight production brands with zero problems. I Heart PR Tours reports `approved-canonical`, canonical source SHA-256 `b04c0886c1e6ac09da6b470deeacdf839bf794bfacf5a54666691ea291704094`, and continuity record SHA-256 `17fb05c85befc541fc205961975cdd9cc17c9438fa3778eaa9fd46225302f8af`.
+
+## Official pull request publication
+
+**Recorded**: 2026-09-11
+
+- Commit `7aec634f002b7f4b0c59c8e4c41876589925e958` was pushed to `codex/028-i-heart-pr-tours-brand-guide` after both owner gates.
+- Official pull request [#195](https://github.com/shruggietech/shruggie-brand/pull/195), `feat(S028): add I Heart PR Tours brand system`, was opened against `main` and closes issue #188.
+- The pull-request description records both approved candidate digests, the private zero-public-surface boundary, local verification, accessibility results, and release exclusion.
+- Hosted CI and bounded Codex and security review processing are now in progress. No merge is authorized in this work slice.
