@@ -904,6 +904,62 @@ class PipelineTests(unittest.TestCase):
             verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
             self.assertTrue(any("metadata disagrees" in problem for problem in report.problems))
 
+    def test_portable_gate_two_requires_exact_canonical_manifest_and_identical_decoded_pixels(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            kit = root / "kit"
+            portable = root / "portable"
+            canonical = portable / "sample"
+            local_svg = kit / "logos" / "svg" / "sample.svg"
+            canonical_svg = canonical / "logos" / "svg" / "sample.svg"
+            local_svg.parent.mkdir(parents=True)
+            canonical_svg.parent.mkdir(parents=True)
+
+            def svg_bytes(color, compress_level):
+                image = Image.new("RGBA", (2, 2), color)
+                payload = BytesIO()
+                image.save(payload, format="PNG", compress_level=compress_level)
+                encoded = base64.b64encode(payload.getvalue()).decode("ascii")
+                return ('<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2">'
+                        '<image width="2" height="2" href="data:image/png;base64,%s"/></svg>\n' % encoded)
+
+            write_utf8(local_svg, svg_bytes((12, 34, 56, 255), 0))
+            write_utf8(canonical_svg, svg_bytes((12, 34, 56, 255), 9))
+
+            def approval(svg_path):
+                digest = sha256_file(svg_path)
+                return {
+                    "schema_version": 1,
+                    "brand": "sample",
+                    "derivatives": [
+                        {"path": "logos/png/sample-16.png", "rendered_from": "logos/svg/sample.svg",
+                         "rendered_from_sha256": digest},
+                        {"path": "logos/svg/sample.svg", "sha256": digest},
+                    ],
+                }
+
+            local_approval = kit / "logos" / "approval.json"
+            canonical_approval = canonical / "logos" / "approval.json"
+            write_utf8(local_approval, json.dumps(approval(local_svg), indent=2, sort_keys=True) + "\n")
+            write_utf8(canonical_approval, json.dumps(approval(canonical_svg), indent=2, sort_keys=True) + "\n")
+            expected = sha256_file(canonical_approval)
+            with mock.patch.dict(os.environ, {"GP_APPROVED_PROOF_ROOT": str(portable)}):
+                matched, detail = verify._portable_gate_2_matches(
+                    str(kit), {"slug": "sample"}, str(local_approval), "0" * 64)
+                self.assertFalse(matched)
+                self.assertIn("approved manifest hash", detail)
+
+                matched, detail = verify._portable_gate_2_matches(
+                    str(kit), {"slug": "sample"}, str(local_approval), expected)
+                self.assertTrue(matched, detail)
+
+                write_utf8(local_svg, svg_bytes((12, 34, 57, 255), 0))
+                write_utf8(local_approval, json.dumps(approval(local_svg), indent=2, sort_keys=True) + "\n")
+                matched, detail = verify._portable_gate_2_matches(
+                    str(kit), {"slug": "sample"}, str(local_approval), expected)
+                self.assertFalse(matched)
+                self.assertIn("SVG drift", detail)
+
     def test_authoritative_logo_provenance_rejects_changed_mask_topology(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp) / "shruggietech"

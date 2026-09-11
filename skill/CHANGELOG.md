@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Bound private Gate 2 approval to generated provenance, added a source-preserved icon packaging pass for core capability, required downstream color and light masters, restored Python 3.8 test compatibility, and added exact canonical-host proof export with hash-bound measured comparison on alternate CI operating systems, including shared-silhouette color sampling for tiny proofs with no non-edge interior.
+- Bound private Gate 2 approval to generated provenance, added a source-preserved icon packaging pass for core capability, required downstream color and light masters, restored Python 3.8 test compatibility, and added exact canonical-host proof and Gate 2 evidence export with hash-bound measured comparison on alternate CI operating systems, including shared-silhouette color sampling for tiny proofs and decoded-pixel equivalence for differently encoded embedded PNGs.
 - Measured contrast against configured light bases and added fail-fast contracts for supplied icon dimensions, supplied-lockup overwrite risk, and monochrome output without a white source colourway.
 - Made the guide reading surface explicit and QC-bound, preserving dark as the default while supporting approved, accessible light-first brand guides.
 - Added an identity-locked authoritative-source path for private third-party brands, including exact supplied lockups and favicons, deterministic single-ink derivatives, light-first guide rendering, optional expressions, and private Gate 2 approval with zero public surfaces.

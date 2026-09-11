@@ -1417,6 +1417,120 @@ def _authoritative_identity_unobscured(svg_path, root):
             return _same_rgba(identity, complete)
 
 
+def _portable_gate_2_root(brand):
+    value = os.environ.get("GP_APPROVED_PROOF_ROOT")
+    if not value:
+        return None
+    base = Path(value).resolve()
+    if not base.is_dir() or base.is_symlink():
+        raise ValueError("portable Gate 2 root is missing or unsafe")
+    candidate = base / brand.get("slug", "")
+    if candidate.is_symlink():
+        raise ValueError("portable Gate 2 brand path cannot be a symlink")
+    resolved = candidate.resolve()
+    try:
+        resolved.relative_to(base)
+    except ValueError as error:
+        raise ValueError("portable Gate 2 brand path escapes its root") from error
+    if not resolved.is_dir():
+        raise ValueError("portable Gate 2 brand path is missing")
+    return resolved
+
+
+def _semantic_embedded_png_svg(path):
+    """Hash SVG bytes after replacing embedded PNG encoding with decoded pixels."""
+    payload = Path(path).read_text(encoding="utf-8")
+    pattern = re.compile(r"data:image/png;base64,([A-Za-z0-9+/=]+)")
+
+    def replace(match):
+        from PIL import Image
+        encoded = base64.b64decode(match.group(1), validate=True)
+        with Image.open(BytesIO(encoded)) as source:
+            rgba = source.convert("RGBA")
+            digest = hashlib.sha256(rgba.tobytes()).hexdigest()
+            return "semantic-png:%dx%d:%s" % (rgba.width, rgba.height, digest)
+
+    normalized, count = pattern.subn(replace, payload)
+    if count == 0:
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
+def _confined_gate_2_file(root, relative):
+    base = Path(root).resolve()
+    requested = Path(relative)
+    if requested.is_absolute() or ".." in requested.parts:
+        raise ValueError("Gate 2 derivative path is unsafe: %s" % relative)
+    cursor = base
+    for part in requested.parts:
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise ValueError("Gate 2 derivative path cannot contain a symlink: %s" % relative)
+    resolved = cursor.resolve()
+    try:
+        resolved.relative_to(base)
+    except ValueError as error:
+        raise ValueError("Gate 2 derivative path escapes its root: %s" % relative) from error
+    return resolved
+
+
+def _portable_gate_2_matches(kit, brand, local_approval, expected_digest):
+    """Bind Gate 2 to exact canonical bytes and local pixel-equivalent derivatives."""
+    canonical_root = _portable_gate_2_root(brand)
+    if canonical_root is None:
+        return False, "canonical Gate 2 artifact is unavailable"
+    canonical_approval = _confined_gate_2_file(canonical_root, "logos/approval.json")
+    if (not canonical_approval.is_file()
+            or sha256_file(canonical_approval) != expected_digest):
+        return False, "canonical Gate 2 artifact does not match the approved manifest hash"
+    with open(local_approval, encoding="utf-8") as handle:
+        local = json.load(handle)
+    with open(canonical_approval, encoding="utf-8") as handle:
+        canonical = json.load(handle)
+    if local.get("schema_version") != canonical.get("schema_version") or local.get("brand") != canonical.get("brand"):
+        return False, "local and canonical Gate 2 manifest headers differ"
+    local_records = local.get("derivatives")
+    canonical_records = canonical.get("derivatives")
+    if not isinstance(local_records, list) or not isinstance(canonical_records, list):
+        return False, "local or canonical Gate 2 derivative inventory is invalid"
+    local_by_path = {item.get("path"): item for item in local_records if isinstance(item, dict)}
+    canonical_by_path = {item.get("path"): item for item in canonical_records if isinstance(item, dict)}
+    if (len(local_by_path) != len(local_records) or len(canonical_by_path) != len(canonical_records)
+            or set(local_by_path) != set(canonical_by_path)):
+        return False, "local and canonical Gate 2 derivative paths differ"
+    semantic_svg_paths = set()
+    for relative in sorted(path for path in local_by_path if path.endswith(".svg")):
+        left = local_by_path[relative]
+        right = canonical_by_path[relative]
+        if left == right:
+            continue
+        if set(left) != {"path", "sha256"} or set(right) != {"path", "sha256"}:
+            return False, "cross-platform Gate 2 derivative record drift: %s" % relative
+        local_svg = _confined_gate_2_file(kit, relative)
+        canonical_svg = _confined_gate_2_file(canonical_root, relative)
+        if (not local_svg.is_file() or local_svg.is_symlink()
+                or not canonical_svg.is_file() or canonical_svg.is_symlink()
+                or sha256_file(local_svg) != left["sha256"]
+                or sha256_file(canonical_svg) != right["sha256"]
+                or _semantic_embedded_png_svg(local_svg) != _semantic_embedded_png_svg(canonical_svg)):
+            return False, "cross-platform Gate 2 SVG drift: %s" % relative
+        semantic_svg_paths.add(relative)
+    for relative in sorted(local_by_path):
+        left = local_by_path[relative]
+        right = canonical_by_path[relative]
+        if left == right or relative in semantic_svg_paths:
+            continue
+        if relative.endswith(".png") and set(left) == {"path", "rendered_from", "rendered_from_sha256"} and set(right) == {"path", "rendered_from", "rendered_from_sha256"}:
+            if (left["rendered_from"] != right["rendered_from"]
+                    or left["rendered_from"] not in semantic_svg_paths
+                    or left["rendered_from_sha256"] != local_by_path[left["rendered_from"]]["sha256"]
+                    or right["rendered_from_sha256"] != canonical_by_path[right["rendered_from"]]["sha256"]):
+                return False, "cross-platform Gate 2 raster provenance drift: %s" % relative
+            continue
+        return False, "cross-platform Gate 2 derivative record drift: %s" % relative
+    return True, "canonical manifest hash and local decoded derivative pixels agree"
+
+
 def c_logo_provenance(kit, brand, rep):
     """Verify the generated logo inventory against the source authority contract."""
     path = os.path.join(kit, "logos", "provenance.json")
@@ -1624,9 +1738,12 @@ def c_logo_provenance(kit, brand, rep):
         if approval != expected_approval:
             problems.append("approval manifest does not cover the verified derivative set")
         gate_2 = (((brand.get("approval_ledger") or {}).get("gate_2")) or {})
-        if (gate_2.get("status") == "approved"
-                and sha256_file(approval_path) != gate_2.get("derivative_manifest_sha256")):
-            problems.append("Gate 2 approval is stale because derivative provenance changed")
+        if gate_2.get("status") == "approved":
+            expected_digest = gate_2.get("derivative_manifest_sha256")
+            if sha256_file(approval_path) != expected_digest:
+                matched, reason = _portable_gate_2_matches(kit, brand, approval_path, expected_digest)
+                if not matched:
+                    problems.append("Gate 2 approval is stale because derivative provenance changed (%s)" % reason)
     except Exception as error:
         problems.append("logos/approval.json cannot be verified: %s" % error)
     if authority["source_mode"] == "authoritative" and checked_sources != {"full", "reduced"}:

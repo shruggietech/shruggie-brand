@@ -46,7 +46,7 @@ jobs:
         run: |
           python -m pip install -r requirements.txt
           npm install --prefix skill/templates --no-save --no-package-lock @resvg/resvg-js@2.6.2
-      - name: Export exact approved identity proofs
+      - name: Export exact approved identity evidence
         run: python scripts/export_approved_identity_proofs.py brands/i-heart-pr-tours dist/ci-approved-proofs/i-heart-pr-tours
       - uses: actions/upload-artifact@v7
         with:
