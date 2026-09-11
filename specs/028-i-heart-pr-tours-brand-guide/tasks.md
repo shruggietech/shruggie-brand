@@ -152,8 +152,8 @@
 - [X] T057 [US4] Re-run cross-artifact analysis and resolve every specification, plan, task, contract, checklist, and implementation inconsistency in `specs/028-i-heart-pr-tours-brand-guide/`
 - [X] T058 [US4] Commit S028 with Conventional Commit traceability and confirm the feature branch is clean
 - [X] T059 [US4] Push `codex/028-i-heart-pr-tours-brand-guide` and open the official pull request closing #188 under the owner's explicit authorization
-- [ ] T060 [US4] Record hosted CI, Codex and security review activity, reactions, responses, fixes, and thread resolutions in `specs/028-i-heart-pr-tours-brand-guide/evidence.md`
-- [ ] T061 [US4] Request at most one second Codex review when useful, process every resulting finding, and never request a third round
+- [X] T060 [US4] Record hosted CI, Codex and security review activity, reactions, responses, fixes, and thread resolutions in `specs/028-i-heart-pr-tours-brand-guide/evidence.md`
+- [X] T061 [US4] Request at most one second Codex review when useful, process every resulting finding, and never request a third round
 - [ ] T062 [US4] Confirm the exact final head has green required checks, no unresolved review threads, a clean merge state, and a complete readiness ledger
 - [ ] T063 [US4] Halt without merging and ask the owner to perform the final review and merge ritual
 
