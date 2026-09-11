@@ -103,9 +103,9 @@
 - [X] T024 Run the full S030 quickstart, actionlint, encoding, mojibake, generated-artifact, and diff sanity checks, recording results in `specs/030-verified-publication-pipeline/evidence.md`
 - [X] T025 Re-run Spec Kit analysis and synchronize `spec.md`, `plan.md`, `tasks.md`, contracts, quickstart, and evidence under `specs/030-verified-publication-pipeline/`
 - [X] T026 Commit S030 with a Conventional Commit subject, push `codex/030-verified-publication-pipeline`, and open the official pull request closing issue #196
-- [ ] T027 Monitor hosted CI and the first Codex/security review round, address every actionable comment, reply to each thread, and resolve completed threads
-- [ ] T028 Trigger at most one second Codex review round if needed, reconcile every resulting comment, and record the review outcome in `specs/030-verified-publication-pipeline/evidence.md`
-- [ ] T029 Confirm the final pull request head has green required checks and no unresolved review threads, then request the owner's final review and merge ritual
+- [X] T027 Monitor hosted CI and the first Codex/security review round, address every actionable comment, reply to each thread, and resolve completed threads
+- [X] T028 Trigger at most one second Codex review round if needed, reconcile every resulting comment, and record the review outcome in `specs/030-verified-publication-pipeline/evidence.md`
+- [X] T029 Confirm the final pull request head has green required checks and no unresolved review threads, then request the owner's final review and merge ritual
 
 ---
 
