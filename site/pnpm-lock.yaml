@@ -24,8 +24,8 @@ importers:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       zbsearch:
-        specifier: 3.3.4
-        version: 3.3.4
+        specifier: 4.0.0
+        version: 4.0.0
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.10.2
@@ -2049,6 +2049,10 @@ packages:
 
   zbsearch@3.3.4:
     resolution: {integrity: sha512-xGsv9rIwrili/fpLpVwmnCovEcvaAJg1ey+3Ur0+m3x1mnGoVO71iAwn4op420QLGNsQJNmScZjFq5TQ+cRi/g==}
+    engines: {node: '>= 20.0.0'}
+
+  zbsearch@4.0.0:
+    resolution: {integrity: sha512-gm4zfO31n2ZdruTTRQoWVWO4Q2+zrDt2GlrvIc+5JulRQNAm4IanCxER82vQ7Ug96FYkGqWUJBXFe1kGAcDWaQ==}
     engines: {node: '>= 20.0.0'}
 
   zod@4.5.4:
@@ -4242,6 +4246,8 @@ snapshots:
       '@yuku-toolchain/types': 0.8.7
 
   zbsearch@3.3.4: {}
+
+  zbsearch@4.0.0: {}
 
   zod@4.5.4: {}
 
