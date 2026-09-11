@@ -70,7 +70,7 @@ class PrepareSiteTests(unittest.TestCase):
             brand["approval_ledger"]["gate_2"]["derivative_manifest_sha256"],
         )
         self.assertEqual([], brand["approval_ledger"]["gate_2"]["surfaces"])
-        self.assertFalse(prepare_site.public_showcase(brand, path.parent))
+        self.assertFalse(prepare_site.public_showcase(brand))
         self.assertIsNone(brand.get("registry_base"))
 
     def test_copy_kit_emits_only_explicit_governed_showcase_surface(self):

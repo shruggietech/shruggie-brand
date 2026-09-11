@@ -136,6 +136,21 @@ class ApprovalLedgerTests(unittest.TestCase):
         self.assertEqual([], ledger["gate_2"]["surfaces"])
         self.assertFalse(public_showcase(brand))
 
+    def test_private_gate_two_is_bound_to_generated_derivative_provenance(self):
+        brand = approval_brand("approved")
+        brand["affiliation"]["showcase"] = "private"
+        brand["approval_ledger"]["gate_2"]["surfaces"] = []
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            approval = kit / "logos" / "approval.json"
+            approval.parent.mkdir()
+            approval.write_text("{}\n", encoding="utf-8")
+            brand["approval_ledger"]["gate_2"]["derivative_manifest_sha256"] = sha256_file(approval)
+            self.assertFalse(public_showcase(brand, kit))
+            approval.write_text('{"stale":true}\n', encoding="utf-8")
+            with self.assertRaisesRegex(ContractError, "stale"):
+                public_showcase(brand, kit)
+
     def test_gate_1_is_required_and_hash_bound(self):
         brand = approval_brand()
         missing = copy.deepcopy(brand)
@@ -788,6 +803,15 @@ class AuthoritativeInputTests(unittest.TestCase):
             del brand["approval_ledger"]
             with self.assertRaisesRegex(ContractError, "generated wordmarks cannot replace approved masters"):
                 logo_source_contract(brand, kit)
+
+    def test_logo_colourways_include_required_downstream_variants(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            brand = owned_brand()
+            for colourways in (["color", "black"], ["light", "black"]):
+                brand["logo"]["colourways"] = colourways
+                with self.subTest(colourways=colourways), self.assertRaisesRegex(
+                        ContractError, "must include color and light"):
+                    logo_source_contract(brand, Path(temporary))
 
     def test_authoritative_mode_rejects_construction_helper_and_reduced_redraw(self):
         with tempfile.TemporaryDirectory() as temporary:

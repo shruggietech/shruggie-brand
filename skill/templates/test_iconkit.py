@@ -17,6 +17,7 @@ from pathlib import Path
 
 from PIL import Image
 
+from apply_supplied_icons import apply_supplied_targets
 from iconkit import contain_visible, generate_icon_suites, inspect_png, safe_reset
 
 
@@ -171,6 +172,47 @@ class IconKitTests(unittest.TestCase):
             self.assertEqual("source-preserved", record["source_variant"])
             self.assertEqual("transparent", record["alpha"])
             self.assertIsNone(manifest["source_masters"]["monochrome"])
+
+    def test_core_tier_copies_and_records_supplied_platform_targets(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            kit.mkdir()
+            full = kit / "full.svg"
+            reduced = kit / "reduced.svg"
+            for source in (full, reduced):
+                source.write_text('<svg xmlns="http://www.w3.org/2000/svg"/>\n', encoding="utf-8")
+            supplied_web = kit / "source-web.png"
+            supplied_android = kit / "source-android.png"
+            Image.new("RGBA", (32, 32), (197, 52, 44, 127)).save(supplied_web, format="PNG")
+            Image.new("RGBA", (48, 48), (197, 52, 44, 127)).save(supplied_android, format="PNG")
+            brand = brand_fixture()
+            brand["logo"]["application_icon"].update({
+                "monochrome_platforms": False,
+                "supplied_targets": [
+                    {"source": "source-web.png", "sha256": hashlib.sha256(supplied_web.read_bytes()).hexdigest(),
+                     "target": "icons/web/favicon-32x32.png"},
+                    {"source": "source-android.png", "sha256": hashlib.sha256(supplied_android.read_bytes()).hexdigest(),
+                     "target": "icons/android/app/src/main/res/mipmap-mdpi/ic_launcher.png"},
+                ],
+            })
+            manifest = generate_icon_suites(
+                brand, kit, full, reduced, fake_render,
+                {"tier": "core", "svg_raster": False, "raster_reason": "test core tier"},
+            )
+            manifest = apply_supplied_targets(brand, kit)
+            web_target = kit / "icons" / "web" / "favicon-32x32.png"
+            android_target = kit / "icons" / "android" / "app" / "src" / "main" / "res" / "mipmap-mdpi" / "ic_launcher.png"
+            self.assertEqual(supplied_web.read_bytes(), web_target.read_bytes())
+            self.assertEqual(supplied_android.read_bytes(), android_target.read_bytes())
+            records = {item["path"]: item for item in manifest["artifacts"]}
+            self.assertEqual("source-preserved", records["icons/web/favicon-32x32.png"]["source_variant"])
+            self.assertEqual("source-preserved", records["icons/android/app/src/main/res/mipmap-mdpi/ic_launcher.png"]["source_variant"])
+            web_manifest = json.loads((kit / "icons" / "web" / "manifest.json").read_text(encoding="utf-8"))
+            android_manifest = json.loads((kit / "icons" / "android" / "manifest.json").read_text(encoding="utf-8"))
+            self.assertIn("icons/web/favicon-32x32.png", {item["path"] for item in web_manifest["artifacts"]})
+            self.assertIn("icons/android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+                          {item["path"] for item in android_manifest["artifacts"]})
+            self.assertEqual("icons/web/favicon-32x32.png", manifest["aliases"]["favicons/favicon-32x32.png"])
 
     def generate(self, root):
         kit = Path(root) / "kit"

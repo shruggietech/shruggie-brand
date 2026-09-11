@@ -1623,6 +1623,10 @@ def c_logo_provenance(kit, brand, rep):
             approval = json.load(handle)
         if approval != expected_approval:
             problems.append("approval manifest does not cover the verified derivative set")
+        gate_2 = (((brand.get("approval_ledger") or {}).get("gate_2")) or {})
+        if (gate_2.get("status") == "approved"
+                and sha256_file(approval_path) != gate_2.get("derivative_manifest_sha256")):
+            problems.append("Gate 2 approval is stale because derivative provenance changed")
     except Exception as error:
         problems.append("logos/approval.json cannot be verified: %s" % error)
     if authority["source_mode"] == "authoritative" and checked_sources != {"full", "reduced"}:

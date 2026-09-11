@@ -96,13 +96,15 @@ read as "not applicable".
 
 **Preserve authoritative supplied identity files.** A supplied master stays byte-identical. Declare `logo.source_mode` explicitly. Authoritative mode binds Full and Reduced to separate approved PNG or passive SVG input IDs and rejects constructed geometry or `build/mk_paths.py`; JPEG and WebP remain reference-only for this binding. Constructed mode rejects approved mark-role inputs. Declare each source role, path, format, SHA-256, color-profile status, usage basis, and approved transformations. A bound PNG also records its owner-approved `alpha` or `luminance` mask, the current source hash, approver, and approval date. Palette analysis produces evidence only. A human approval must bind a selected candidate to the current source hash before that color can be canonical. Any later binding, hash, source-art, mask, or visible-geometry change requires fresh owner approval.
 
-**The brand guide is full-bleed dark on every sheet, and it describes the brand.**
-House standard, set by fragcap 1.1.0 and enforced by `qc_render.py
---expect-ground dark`. The light reading surface appears only as specimen chips
-inside dark pages. And the guide carries the name, the register, the mark, the
-palette and the type. It does not carry a product summary, a scope list or an
-architecture: that is a specification with the wrong cover on it, and it goes
-stale the first time the spec moves.
+**The brand guide uses its declared reading surface on every sheet, and it describes the brand.**
+Dark is the house default established by fragcap 1.1.0. A brand may instead
+declare `guide.surface_mode: light` when the approved identity is light-first;
+that exception requires an explicit light-surface palette, measured AA contrast,
+and owner approval. `qc_render.py --expect-ground` must receive the declared mode
+so a build cannot silently accept the opposite page ground. The guide carries
+the name, the register, the mark, the palette and the type. It does not carry a
+product summary, a scope list or an architecture: that is a specification with
+the wrong cover on it, and it goes stale the first time the spec moves.
 
 **A patch to a generator belongs upstream.** If a kit has to edit
 `templates/gen_*.py` to build, that is a defect in this skill, not a quirk of

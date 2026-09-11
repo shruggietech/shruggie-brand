@@ -247,6 +247,9 @@ def application_icon_profile(brand):
                      "application icon supplied target %s must stay inside the kit" % label)
         _require(target.startswith(("icons/web/", "icons/android/", "icons/apple/", "icons/windows/")),
                  "application icon supplied target destination is unsupported")
+        _require(Path(source).suffix.lower() == Path(target).suffix.lower()
+                 and Path(target).suffix.lower() in {".png", ".ico"},
+                 "application icon supplied targets must use matching PNG or ICO formats")
         _require(target not in seen_targets, "application icon supplied target is duplicated: %s" % target)
         seen_targets.add(target)
         _require(DIGEST.fullmatch(item["sha256"] or ""), "application icon supplied target has an invalid SHA-256")
@@ -483,7 +486,7 @@ def vendor_boundary(brand):
     return value
 
 
-def approval_ledger(brand, normalized_inputs=None):
+def approval_ledger(brand, normalized_inputs=None, kit=None):
     value = brand.get("approval_ledger")
     if value is None:
         return None
@@ -555,6 +558,10 @@ def approval_ledger(brand, normalized_inputs=None):
         else:
             _require(surfaces,
                      "public Gate 2 approval must authorize at least one public surface")
+        if kit is not None:
+            approval = contained_path(kit, "logos/approval.json")
+            _require(sha256_file(approval) == gate_2["derivative_manifest_sha256"],
+                     "Gate 2 approval is stale because derivative provenance changed")
     else:
         _require(gate_2["approved_by"] is None and gate_2["approved_on"] is None
                  and gate_2["derivative_manifest_sha256"] is None and gate_2["surfaces"] == [],
@@ -575,20 +582,17 @@ def canonical_gate_binding(brand, continuity):
 
 
 def public_showcase(brand, kit=None):
-    if affiliation(brand)["showcase"] != "public":
-        return False
+    showcase = affiliation(brand)["showcase"]
     ledger = brand.get("approval_ledger")
     if ledger is None:
-        return True
-    gate_2 = approval_ledger(brand)["gate_2"]
+        return showcase == "public"
+    gate_2 = approval_ledger(brand, kit=kit)["gate_2"]
+    if showcase != "public":
+        return False
     if gate_2["status"] != "approved":
         return False
     _require(set(gate_2["surfaces"]) == PUBLICATION_SURFACES,
              "Gate 2 approval does not authorize the complete public surface set")
-    if kit is not None:
-        approval = contained_path(kit, "logos/approval.json")
-        _require(sha256_file(approval) == gate_2["derivative_manifest_sha256"],
-                 "Gate 2 approval is stale because derivative provenance changed")
     return True
 
 
@@ -876,6 +880,8 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
              and len(colourways) == len(set(colourways))
              and set(colourways).issubset({"color", "light", "white", "black"}),
              "logo.colourways must be a non-empty unique supported colourway array")
+    _require({"color", "light"}.issubset(set(colourways)),
+             "logo.colourways must include color and light for required downstream consumers")
 
     if mode == "constructed":
         _require("authoritative_input_ids" not in logo,

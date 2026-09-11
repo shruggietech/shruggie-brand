@@ -150,6 +150,14 @@ class PipelineTests(unittest.TestCase):
             validate_brand(brand, str(kit))
 
     def test_i_heart_pr_tours_generation_preserves_exact_sources_and_approved_derivations(self):
+        renderer_available = bool(
+            shutil.which("rsvg-convert")
+            or shutil.which("resvg")
+            or shutil.which("inkscape")
+            or probe.node_resvg_ok()
+        )
+        if not renderer_available:
+            self.skipTest("exact supplied-raster derivation requires an SVG renderer")
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "i-heart-pr-tours"
             shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", kit)
@@ -715,7 +723,7 @@ class PipelineTests(unittest.TestCase):
             brand = json.loads(brand_path.read_text(encoding="utf-8"))
             brand["slug"] = "i-heart-pr-tours"
             brand["title"] = "I Heart PR Tours"
-            brand_path.write_text(json.dumps(brand, indent=2) + "\n", encoding="utf-8", newline="\n")
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
             old_argv = sys.argv
             try:
                 sys.argv = ["gen_nextjs.py", str(brand_path), str(kit)]
@@ -839,6 +847,19 @@ class PipelineTests(unittest.TestCase):
             report = verify.Report()
             verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
             self.assertFalse(report.problems)
+
+            gate_2_brand = json.loads((kit / "brand.json").read_text(encoding="utf-8"))
+            gate_2_brand["approval_ledger"] = {"gate_2": {
+                "status": "approved",
+                "derivative_manifest_sha256": hashlib.sha256(approval_path.read_bytes()).hexdigest(),
+            }}
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), gate_2_brand, report)
+            self.assertFalse(report.problems)
+            gate_2_brand["approval_ledger"]["gate_2"]["derivative_manifest_sha256"] = "0" * 64
+            report = verify.Report()
+            verify.c_logo_provenance(str(kit), gate_2_brand, report)
+            self.assertTrue(any("Gate 2 approval is stale" in problem for problem in report.problems))
 
             mutations = {}
             missing = copy.deepcopy(provenance)

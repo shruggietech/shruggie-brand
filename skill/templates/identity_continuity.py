@@ -645,7 +645,9 @@ def generate_current_proofs(brand, root):
 
 def validate_current_proof_matrix(record, root, renderer=None, brand=None):
     renderer = renderer or production_renderer_contract(brand)
-    _require(record["renderer"] == renderer, "production proof renderer or settings drift")
+    _require(record["renderer"]["settings_sha256"] == renderer.get("settings_sha256"),
+             "production proof renderer settings drift")
+    same_renderer = record["renderer"]["id"] == renderer.get("id")
     approved = {(item["variant"], item["size_px"], item["surface"]): item for item in record["proofs"]}
     current = []
     for coordinate in sorted(approved):
@@ -653,23 +655,30 @@ def validate_current_proof_matrix(record, root, renderer=None, brand=None):
         path = _current_proof_path(root, variant, size, surface)
         _require(path.is_file() and not path.is_symlink(), "current production proof is missing: %s" % path.name)
         digest = canonical_digest(path.read_bytes())
-        _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
+        if same_renderer:
+            _require(digest == approved[coordinate]["sha256"],
+                     "current production proof drift: %s" % path.name)
+            approved_path = path
+        else:
+            approved_path = safe_path(root, approved[coordinate]["path"])
         evidence_dir = path.parent / "comparisons" / ("%s-%d-%s" % coordinate)
-        comparison = compare_proofs(path, path, same_renderer=True, evidence_dir=evidence_dir, prefix="comparison")
+        comparison = compare_proofs(approved_path, path, same_renderer=same_renderer,
+                                    evidence_dir=evidence_dir, prefix="comparison")
         _require(comparison["passes"], "current production comparison failed: %s" % path.name)
         generated_evidence = {}
         for kind in EVIDENCE_KINDS:
             evidence_path = evidence_dir / comparison["evidence_paths"][kind]
             evidence_digest = canonical_digest(evidence_path.read_bytes())
-            _require(evidence_digest == approved[coordinate]["evidence"][kind]["sha256"],
-                     "current comparison evidence drift: %s %s" % (path.name, kind))
+            if same_renderer:
+                _require(evidence_digest == approved[coordinate]["evidence"][kind]["sha256"],
+                         "current comparison evidence drift: %s %s" % (path.name, kind))
             generated_evidence[kind] = {
                 "path": evidence_path.relative_to(Path(root)).as_posix(),
                 "sha256": evidence_digest,
             }
         current.append({"variant": variant, "size_px": size, "surface": surface,
                         "path": path.relative_to(Path(root)).as_posix(), "sha256": digest,
-                        "comparison": {"passes": True, "same_renderer": True,
+                        "comparison": {"passes": True, "same_renderer": same_renderer,
                                        "evidence": generated_evidence}})
     _require(len(current) == 32, "current production proof matrix is incomplete")
     return {"status": "passed", "renderer": renderer, "proofs": current}
