@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-10
 
-**Status**: Gate 2 candidate `iheartpr-g2-r4` approved; authorized repository publication and review in progress
+**Status**: Gate 2 candidate `iheartpr-g2-r4` approved; owner-corrected complete public website publication in progress
 
 **Input**: User description: "Deliver issue #188 as S028: ingest the existing I Heart PR Tours identity without redesign, establish exact source authority and typography under a first owner gate, generate the current-spec guide and kit under S027 continuity protection, halt at a second owner gate before publication, then publish an official pull request and reconcile no more than two Codex review rounds."
 
@@ -27,6 +27,7 @@
 - Live-site verification confirms that the website declares one 32 × 32 colored-heart PNG for favicon, nominal 192 × 192 favicon, and Apple touch roles. Its pixels match the supplied package's `favicon-32x32.png` within 0.68 mean RGB levels after white compositing, while the rejected Gate 2 generated favicon differs by 37.74. Revised Gate 1 therefore promotes the supplied favicon family as exact per-size authority and reserves the colored `heart.svg` for missing modern app sizes with framing measured from supplied platform masters.
 - The owner requested one focused revision to Gate 2 candidate `iheartpr-g2-r2`: section labels and table row or column headings must use the supplied Poppins and Source Sans 3 families instead of preformatted Courier Prime styling. Live-site measurement confirms Poppins Bold for primary headings, Source Sans Pro for supporting copy, near-black `#111111` for most headings, and blue `#1C5B8D` for occasional uppercase eyebrow labels. Courier Prime remains reserved for genuine code-like values and identifiers.
 - Candidate `iheartpr-g2-r3` exposed four remaining corrections. Footer text and page numbers, cover metadata, and all other small semantic text must use the supplied body family rather than Courier Prime. The footer's left side must read exactly `I Heart PR Tours | Brand System`. Courier Prime is permitted only inside the literal command block, retaining its current weight. `IHPRT` is an approved casual shorthand in general prose after the full company name is established, but is not a substitute identity mark. The first two page-3 previews must render their dark-surface source assets on dark preview wells so their white lettering remains visible and centered.
+- After the first merge-readiness handoff, the owner corrected the agent's private-publication assumption: every brand built with the ShruggieTech brand skill must be proudly displayed on the public brand website without exception. This explicitly authorizes the complete website surface set for I Heart PR Tours and supersedes every prior zero-public-surface statement. Release tags and unrelated external services remain outside S028.
 
 ## User Scenarios & Testing
 
@@ -82,13 +83,13 @@ As the identity owner, I can review a complete current-spec brand guide, source-
 
 ---
 
-### User Story 4 - Publish only the approved private work (Priority: P3)
+### User Story 4 - Publish the approved brand on the website (Priority: P3)
 
-As the repository owner, I can receive a reviewable pull request with complete validation and third-party review reconciliation, without the slice publishing a customer identity to a registry, hosted guide, release, or deployment unless those surfaces were explicitly approved.
+As the repository owner, I can receive a reviewable pull request with complete validation and third-party review reconciliation that publishes I Heart PR Tours across the same complete governed website surface set as every other brand.
 
-**Why this priority**: Repository review is authorized, while public brand publication is a separate customer-facing decision.
+**Why this priority**: Public website presentation is a required outcome for every brand built with the skill. Third-party ownership affects claims and notices, not eligibility for the portfolio.
 
-**Independent Test**: Inspect the final pull request and confirm issue traceability, green CI, resolved review threads, no more than two Codex rounds, clean source/artifact boundaries, and exact compliance with Gate 2 publication scope.
+**Independent Test**: Inspect the final pull request and generated site to confirm issue traceability, green CI, resolved review threads, no more than two Codex rounds, clean source/artifact boundaries, and complete I Heart PR Tours showcase, guideline, download, registry, metadata, structured-data, and social-preview routes.
 
 **Acceptance Scenarios**:
 
@@ -123,7 +124,7 @@ As the repository owner, I can receive a reviewable pull request with complete v
 - **FR-008**: Gate 1 approval MUST bind exact source hashes, font records, transformation boundaries, affiliation values, privacy values, publication values, displayed evidence, owner wording, approved scope, and timestamp.
 - **FR-009**: Before Gate 1 approval, S028 MUST NOT commit production brand source, promote intake bytes, generate derivative identity assets, enable public surfaces, or infer approval from silence or revision requests.
 - **FR-010**: I Heart PR Tours MUST be modeled as an independent third-party customer with no ShruggieTech ownership, parentage, identity authorship, endorsement, maintenance, or warranty claim.
-- **FR-011**: A service credit, public eligibility, registry listing, hosted guide, release artifact, or other publication scope MUST remain disabled unless the operator explicitly approves its exact value.
+- **FR-011**: Every brand built with the skill MUST be eligible for and included in the public brand website after Gate 2 approval. Service credit, release tags, deployment to unrelated services, and other non-website publication scopes MUST remain disabled unless the operator explicitly approves their exact values.
 - **FR-012**: Font evidence MUST bind claimed family, subfamily, version, internal names, weight, style, format, source provenance, license, redistribution rights, and offline-delivery disposition before inclusion.
 - **FR-013**: Each permitted derivative MUST bind an approved source hash, output role, deterministic transformation recipe, renderer identity and version, output dimensions, framing behavior, and reviewable comparison evidence.
 - **FR-014**: S028 MUST NOT invent a monochrome, reduced, outlined, wordmark-only, platform, or other missing identity variant. A missing family MAY be generated only through an exact non-creative Gate 1 transformation approved by the owner; otherwise it MUST be listed for owner disposition.
@@ -134,7 +135,7 @@ As the repository owner, I can receive a reviewable pull request with complete v
 - **FR-019**: Every ordinary-text, large-text, interface, declared fill, state, and focus role MUST meet WCAG 2.1 AA without waivers; fixed failing identity colors MUST be preserved and role-constrained rather than silently altered.
 - **FR-020**: Approved source-only definitions MUST live under `brands/i-heart-pr-tours/`; approved redistributable shared fonts MAY live under `assets/fonts/`; generated kits, PDFs, rasters, registries, site exports, archives, and review packets MUST remain ignored.
 - **FR-021**: `verify.py` MUST report zero problems and `validate_glyph.py` MUST report zero failures for every applicable production asset without modifying imported identity sources to satisfy either validator.
-- **FR-022**: Tests MUST cover source-byte equality, authority and transformation completeness, stale approvals, unsafe paths, private-file exclusion, third-party affiliation, publication denial, accessibility, deterministic derivatives, rollback, and representative identity continuity.
+- **FR-022**: Tests MUST cover source-byte equality, authority and transformation completeness, stale approvals, unsafe paths, private-file exclusion, third-party affiliation, complete website publication, accessibility, deterministic derivatives, rollback, and representative identity continuity.
 - **FR-023**: The full repository validation MUST pass with UTF-8 without BOM, LF line endings, no mojibake, no private workstation paths, and no tracked generated artifacts.
 - **FR-024**: After Gate 2 approval, the authorized workflow MUST push an official pull request closing #188, process every review finding, request at most one second Codex round, and halt before merge once exact-head CI and review state are green.
 - **FR-025**: S028 MUST NOT read, copy, summarize, hash into public evidence, or commit unrelated contracts, registrations, credentials, personal records, or other private files encountered near the approved intake sources.
@@ -178,7 +179,7 @@ As the repository owner, I can receive a reviewable pull request with complete v
 - The operator-supplied ZIP is the complete known identity package. Its SVG family supplies exact vertical, horizontal, heart, and sand-treatment sources; no standalone wordmark-only or monochrome source exists in that package.
 - S027's merged continuity machinery is available and is the mandatory approval, promotion, proof, and drift foundation for S028.
 - The repository's existing independent-third-party affiliation model is suitable unless the Gate 1 evidence exposes a customer-specific gap.
-- Repository publication through a private-review pull request is authorized by the kickoff; public site, registry, release, and deployment publication remain separate Gate 2 decisions.
+- Public website publication through the complete governed surface set is mandatory after Gate 2. Release tags and deployment to unrelated external services remain separate decisions.
 
 ## Scope Boundaries
 
@@ -197,4 +198,4 @@ As the repository owner, I can receive a reviewable pull request with complete v
 - Reading or publishing contracts, registrations, personal records, credentials, or unrelated customer material.
 - Purchasing font licenses or substituting visually similar fonts without approval.
 - Claiming ShruggieTech ownership, authorship, endorsement, maintenance, or warranty.
-- Public registry, hosted guide, release, deployment, or other external publication without explicit Gate 2 authority.
+- Release tags, deployment to unrelated external services, or publication beyond the approved brand website without explicit authority.

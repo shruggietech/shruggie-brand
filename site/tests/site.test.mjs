@@ -74,14 +74,18 @@ export function interactionStyleProblems(styles) {
 if (interactionStyleProblems(globalStyles).length > 0) throw new Error(`interaction style contract failed: ${interactionStyleProblems(globalStyles).join(', ')}`);
 
 export const routeRecords = routeContract.routes;
-const expectedBrandSlugs = ['covarity', 'cueson', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'shruggietech'];
-if (JSON.stringify(brands.map((brand) => brand.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated brand inventory does not contain the seven production brands');
+const expectedBrandSlugs = ['covarity', 'cueson', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'i-heart-pr-tours', 'shruggietech'];
+if (JSON.stringify(brands.map((brand) => brand.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated brand inventory does not contain the eight production brands');
 const esoWeave = brands.find((brand) => brand.slug === 'eso-weave');
 if (esoWeave?.idea !== 'Unofficial automation for ESO' || esoWeave?.descriptor !== 'Cross-platform desktop companion for The Elder Scrolls Online') throw new Error('ESO Weave public wording differs from the Gate 2 approval');
 if (!esoWeave?.vendorBoundary?.includes('not affiliated with')) throw new Error('ESO Weave public record omits the required vendor boundary');
 const cueson = brands.find((brand) => brand.slug === 'cueson');
 if (cueson?.idea !== 'Universal captions and subtitles' || cueson?.descriptor !== 'A lossless, structured interchange layer for subtitle and caption content.') throw new Error('Cueson public wording differs from the Gate 2 approval');
 if (cueson?.parent !== 'ShruggieTech' || cueson?.endorsement !== 'shruggietech-project' || cueson?.ownership !== 'shruggietech-owned') throw new Error('Cueson public affiliation differs from the approved owned-project contract');
+const ihprt = brands.find((brand) => brand.slug === 'i-heart-pr-tours');
+if (ihprt?.idea !== 'Experience Puerto Rico' || ihprt?.descriptor !== 'Thoughtfully guided tours on the island we love.') throw new Error('I Heart PR Tours public wording differs from the Gate 2 approval');
+if (ihprt?.ownership !== 'third-party' || ihprt?.showcase !== 'public' || ihprt?.showcaseSurface !== '#FFFFFF' || ihprt?.showcaseForeground !== '#000000') throw new Error('I Heart PR Tours public affiliation or light showcase differs from the approved contract');
+if (!ihprt?.vendorBoundary?.includes('I Heart PR Tours owns its trademarks')) throw new Error('I Heart PR Tours public record omits the required vendor boundary');
 for (const brand of brands) {
   const expectedArchive = `/${brand.slug}/downloads/${brand.slug}-brand-${brand.version}.zip`;
   if (brand.guidelinesPath !== `/${brand.slug}/guidelines/` || brand.kitArchive !== expectedArchive || brand.kitArchiveFilename !== expectedArchive.split('/').at(-1)) throw new Error(`${brand.slug} generated action destinations are incomplete or inconsistent`);

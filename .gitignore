@@ -4,6 +4,7 @@ site/out/
 site/public/generated/
 site/generated/
 site/.source/
+site/public/*/
 site/public/covarity/
 site/public/fragcap/
 site/public/glitchpad/

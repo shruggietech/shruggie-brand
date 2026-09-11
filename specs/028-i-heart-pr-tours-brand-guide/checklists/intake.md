@@ -31,7 +31,7 @@
 
 - [ ] CHK014 Do source-preservation rules align across the specification, source contract, data model, and delivery plan? [Consistency, Spec §FR-004, Plan §Delivery Sequence]
 - [ ] CHK015 Do both approval gates use consistent invalidation semantics for source, geometry, framing, color, typography, copy, and transformation changes? [Consistency, Spec §FR-015, FR-018]
-- [ ] CHK016 Does the private publication default align with third-party affiliation and the prohibition on inferred service credit? [Consistency, Spec §FR-010 to FR-011]
+- [ ] CHK016 Does mandatory website publication align with third-party affiliation, the visible ownership boundary, and the prohibition on inferred service credit? [Consistency, Spec §FR-010 to FR-011]
 - [ ] CHK017 Do unavailable-variant requirements consistently prefer owner disposition over creative completion? [Consistency, Spec §FR-014, Edge Cases]
 - [ ] CHK018 Does the planned approved-canonical S027 lifecycle align with the prohibition on using a historical baseline for this new intake? [Consistency, Spec §FR-015, Assumptions]
 

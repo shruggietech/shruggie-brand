@@ -57,11 +57,11 @@ class PrepareSiteTests(unittest.TestCase):
         )
         self.assertTrue(prepare_site.public_showcase(brand))
 
-    def test_i_heart_pr_tours_source_remains_private_and_unpublished(self):
+    def test_i_heart_pr_tours_source_exposes_every_approved_public_surface(self):
         path = prepare_site.ROOT / "brands" / "i-heart-pr-tours" / "brand.json"
         brand = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual("third-party", brand["affiliation"]["ownership"])
-        self.assertEqual("private", brand["affiliation"]["showcase"])
+        self.assertEqual("public", brand["affiliation"]["showcase"])
         self.assertEqual("approved", brand["approval_ledger"]["gate_2"]["status"])
         self.assertEqual("repository owner", brand["approval_ledger"]["gate_2"]["approved_by"])
         self.assertEqual("2026-09-11", brand["approval_ledger"]["gate_2"]["approved_on"])
@@ -69,9 +69,15 @@ class PrepareSiteTests(unittest.TestCase):
             "9aae47141e989c34ea64e460a3594179192e2443012e15922dd3f6e49bccd41b",
             brand["approval_ledger"]["gate_2"]["derivative_manifest_sha256"],
         )
-        self.assertEqual([], brand["approval_ledger"]["gate_2"]["surfaces"])
-        self.assertFalse(prepare_site.public_showcase(brand))
-        self.assertIsNone(brand.get("registry_base"))
+        self.assertEqual(
+            {"showcase-card", "brand-landing-page", "guideline-topics", "downloads",
+             "registry-endpoints", "public-metadata", "structured-data", "social-preview"},
+            set(brand["approval_ledger"]["gate_2"]["surfaces"]),
+        )
+        self.assertTrue(prepare_site.public_showcase(brand))
+        self.assertEqual("https://brand.shruggie.tech/i-heart-pr-tours/brand", brand["registry_base"])
+        self.assertEqual("#FFFFFF", prepare_site.showcase_surface(brand))
+        self.assertIn("I Heart PR Tours owns its trademarks", brand["vendor_boundary"]["notice"])
 
     def test_copy_kit_emits_only_explicit_governed_showcase_surface(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -140,6 +146,14 @@ class PrepareSiteTests(unittest.TestCase):
         self.assertFalse(prepare_site.public_showcase(brand))
         brand["approval_ledger"]["gate_2"] = {"status": "approved", "approved_by": "owner", "approved_on": "2026-09-07", "derivative_manifest_sha256": "b" * 64, "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]}
         self.assertTrue(prepare_site.public_showcase(brand))
+        brand["affiliation"]["showcase"] = "private"
+        brand["approval_ledger"]["gate_2"]["surfaces"] = []
+        with self.assertRaisesRegex(ValueError, "must be published"):
+            prepare_site.public_showcase(brand)
+        brand["affiliation"]["showcase"] = "public"
+        brand["approval_ledger"]["gate_2"]["surfaces"] = ["showcase-card"]
+        with self.assertRaisesRegex(ValueError, "complete public surface"):
+            prepare_site.public_showcase(brand)
         del brand["affiliation"]["showcase"]
         with self.assertRaisesRegex(ValueError, "exactly"):
             prepare_site.public_showcase(brand)

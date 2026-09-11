@@ -444,10 +444,15 @@ def showcase_surface(brand):
         return None
     _require(isinstance(role, str) and role.strip(),
              "showcase_surface must be a non-empty surface role")
-    surfaces = brand.get("surfaces")
-    _require(isinstance(surfaces, dict) and role in surfaces,
-             "showcase surface role %r is not declared in surfaces" % role)
-    value = surfaces[role]
+    family = "surfaces"
+    resolved_role = role
+    if role.startswith("light."):
+        family = "light_surfaces"
+        resolved_role = role[len("light."):]
+    surfaces = brand.get(family)
+    _require(isinstance(surfaces, dict) and resolved_role in surfaces,
+             "showcase surface role %r is not declared in %s" % (role, family))
+    value = surfaces[resolved_role]
     _require(isinstance(value, str) and HEX.fullmatch(value),
              "showcase surface must resolve to a six-digit hex color")
     return value.upper()
@@ -552,12 +557,10 @@ def approval_ledger(brand, normalized_inputs=None, kit=None):
         _require(isinstance(surfaces, list) and len(surfaces) == len(set(surfaces))
                  and set(surfaces).issubset(PUBLICATION_SURFACES),
                  "Gate 2 approval contains duplicate or unsupported publication surfaces")
-        if affiliation(brand)["showcase"] == "private":
-            _require(surfaces == [],
-                     "private Gate 2 approval must not authorize public surfaces")
-        else:
-            _require(surfaces,
-                     "public Gate 2 approval must authorize at least one public surface")
+        _require(affiliation(brand)["showcase"] == "public",
+                 "approved Gate 2 brands must be published on the public brand website")
+        _require(set(surfaces) == PUBLICATION_SURFACES,
+                 "approved Gate 2 must authorize the complete public surface set")
         if kit is not None:
             approval = contained_path(kit, "logos/approval.json")
             if sha256_file(approval) != gate_2["derivative_manifest_sha256"]:

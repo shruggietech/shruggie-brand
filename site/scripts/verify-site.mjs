@@ -328,9 +328,9 @@ try {
   const portfolioAction = page.locator('.hero-portfolio-link');
   const portfolioSpacing = await portfolioAction.evaluate((element) => { const previous = element.previousElementSibling; const link = element.getBoundingClientRect(); const prior = previous?.getBoundingClientRect(); const cue = element.querySelector('[aria-hidden="true"]'); const cueBox = cue?.getBoundingClientRect(); return { gap: prior ? link.top - prior.bottom : 0, linkCenter: link.top + link.height / 2, cueCenter: cueBox ? cueBox.top + cueBox.height / 2 : 0, cue: cue?.textContent, hidden: cue?.getAttribute('aria-hidden') }; });
   check(portfolioSpacing.gap >= 20 && Math.abs(portfolioSpacing.linkCenter - portfolioSpacing.cueCenter) <= 1 && portfolioSpacing.cue === '↓' && portfolioSpacing.hidden === 'true', `homepage portfolio supporting action spacing or cue alignment failed (${JSON.stringify(portfolioSpacing)})`);
-  check(await page.locator('.brand-card').count() === 7, 'homepage must render exactly seven desktop brand cards');
-  check(await page.locator('.brand-accordion').count() === 7, 'homepage must render exactly seven mobile brand disclosures');
-  check(await page.locator('.brand-card a').count() === 14, 'desktop cards must expose exactly two actions per brand');
+  check(await page.locator('.brand-card').count() === 8, 'homepage must render exactly eight desktop brand cards');
+  check(await page.locator('.brand-accordion').count() === 8, 'homepage must render exactly eight mobile brand disclosures');
+  check(await page.locator('.brand-card a').count() === 16, 'desktop cards must expose exactly two actions per brand');
   check(await page.locator('.portfolio-vendor-notice').count() === 1, 'portfolio must render exactly one shared third-party notice');
   check(await page.locator('.vendor-boundary').count() === 0, 'portfolio must not repeat card-level vendor notices');
   const applicableBrands = new Set((await page.locator('.brand-card .vendor-marker').evaluateAll((markers) => markers.map((marker) => marker.closest('.brand-card')?.querySelector('h3')?.textContent?.replace(' Independent third-party project', '').replace('*', '').trim()))).filter(Boolean));
@@ -376,6 +376,11 @@ try {
   check(glitchpadCardStyle.surface === 'governed' && glitchpadCardStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadCardStyle.backgroundImage === 'none', `Glitchpad card does not use its governed charcoal surface (${JSON.stringify(glitchpadCardStyle)})`);
   check(glitchpadCardStyle.foreground === 'rgb(255, 255, 255)' && glitchpadCardStyle.bodyForeground === 'rgb(255, 255, 255)', `Glitchpad card does not use its generated contrast foreground (${JSON.stringify(glitchpadCardStyle)})`);
   check(glitchpadCardStyle.shadow === 'none', `Glitchpad card retains an accent showcase glow (${glitchpadCardStyle.shadow})`);
+  const ihprtCard = page.locator('.brand-card', { hasText: 'I Heart PR Tours' });
+  const ihprtCardStyle = await ihprtCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-showcase-surface'), iconSource: element.querySelector('.brand-icon img')?.getAttribute('src') }));
+  check(ihprtCardStyle.surface === 'governed' && ihprtCardStyle.backgroundColor === 'rgb(255, 255, 255)', `I Heart PR Tours card does not use its governed white surface (${JSON.stringify(ihprtCardStyle)})`);
+  check(ihprtCardStyle.foreground === 'rgb(0, 0, 0)' && ihprtCardStyle.bodyForeground === 'rgb(0, 0, 0)', `I Heart PR Tours card does not use its generated dark foreground (${JSON.stringify(ihprtCardStyle)})`);
+  check(ihprtCardStyle.iconSource?.endsWith('/i-heart-pr-tours-mark-color.svg'), `I Heart PR Tours card does not use the colored heart icon (${JSON.stringify(ihprtCardStyle)})`);
   for (const card of await page.locator('.brand-card').all()) {
     if ((await card.locator('h3').textContent()) === 'Glitchpad') continue;
     const style = await card.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
@@ -559,7 +564,7 @@ try {
   const noScriptContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });
   const noScriptPage = await noScriptContext.newPage();
   await noScriptPage.goto(base + '/');
-  check(await noScriptPage.locator('.brand-card a').count() === 14 && await noScriptPage.locator('.brand-card a').first().isVisible() && await noScriptPage.locator('.brand-accordion summary').count() === 7, 'no-script homepage does not retain visible guidelines, downloads, and disclosures');
+  check(await noScriptPage.locator('.brand-card a').count() === 16 && await noScriptPage.locator('.brand-card a').first().isVisible() && await noScriptPage.locator('.brand-accordion summary').count() === 8, 'no-script homepage does not retain visible guidelines, downloads, and disclosures');
   await noScriptPage.goto(base + '/glitchpad/downloads/');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 8, 'no-script guideline fallback does not expose the complete navigation hierarchy');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script guideline fallback does not identify the current topic');

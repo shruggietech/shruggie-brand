@@ -98,9 +98,9 @@
 
 ## Affiliation and publication
 
-**Decision**: Propose `third-party`, independent, parentless, private showcase, no inheritance, no endorsement, and no service credit at Gate 1. Repository pull-request review is permitted after Gate 2, while public registry, hosted guide, release, deployment, and showcase remain disabled unless explicitly approved.
+**Decision**: Keep `third-party`, independent, parentless, no inheritance, no endorsement, and no service credit. After Gate 2, publish the brand across the complete governed website surface set with a required third-party boundary notice. Release tags and unrelated external deployments remain disabled unless separately approved.
 
-**Rationale**: Issue #188 prohibits inferred ShruggieTech ownership, authorship, endorsement, maintenance, warranty, service credit, and public permission. A fail-closed private default is the only reversible starting point.
+**Rationale**: Issue #188 prohibits inferred ShruggieTech ownership, authorship, endorsement, maintenance, warranty, service credit, and public permission before approval. The owner has now explicitly established a repository-wide product rule that every skill-built brand is proudly displayed on the website without exception. A visible third-party notice preserves the ownership boundary without suppressing the brand.
 
 **Alternatives considered**: The current customer website credits ShruggieTech for site design and management, but that does not authorize brand-system authorship or reuse as a kit service credit.
 

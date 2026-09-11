@@ -12,7 +12,7 @@ Expected before Gate 1: the feature selector resolves `specs/028-i-heart-pr-tour
 
 ## 2. Inspect private Gate 1 evidence
 
-Open the revised ignored Gate 1 packet under `dist/i-heart-pr-tours/gate-1-r4/`. Confirm it retains the approved source hierarchy and fonts, binds exact revised copy, uses a live-site and brochure-grounded palette, requires a light-first white-paper guide, demonstrates the knockout-aware single-ink transform, includes the sandy expressions, binds the live-verified colored-heart favicon family and app-icon framing, and keeps every public surface disabled.
+Open the revised ignored Gate 1 packet under `dist/i-heart-pr-tours/gate-1-r4/`. Confirm it retains the approved source hierarchy and fonts, binds exact revised copy, uses a live-site and brochure-grounded palette, requires a light-first white-paper guide, demonstrates the knockout-aware single-ink transform, includes the sandy expressions, binds the live-verified colored-heart favicon family and app-icon framing, and records that public surfaces stay disabled only until Gate 2 approval.
 
 Expected: candidate `iheartpr-g1-r4` is complete enough for an explicit approve, revise, or reject decision and remains blocked until the owner names and approves its exact manifest.
 
@@ -26,7 +26,7 @@ python scripts\test_prepare_site.py
 python scripts\check_markdown.py
 ```
 
-Expected: valid approved authoritative inputs pass; missing sources, stale hashes, reconstruction, unauthorized transformations, unsafe paths, public discovery, false affiliation, and private-path leakage fail.
+Expected: valid approved authoritative inputs pass; missing sources, stale hashes, reconstruction, unauthorized transformations, unsafe paths, premature public discovery, post-approval website exclusion, false affiliation, and private-path leakage fail.
 
 ## 4. Build the private brand kit after Gate 1
 
@@ -36,13 +36,13 @@ python skill\templates\verify.py dist\i-heart-pr-tours
 python skill\templates\validate_glyph.py dist\i-heart-pr-tours\brand.json dist\i-heart-pr-tours\qc\glyph-report.json
 ```
 
-Expected: zero verifier problems and zero applicable glyph failures. Every derivative has approved lineage, imported bytes match Gate 1, and public discovery remains disabled.
+Expected: zero verifier problems and zero applicable glyph failures. Every derivative has approved lineage, imported bytes match Gate 1, and public discovery remains disabled until Gate 2 approval.
 
 ## 5. Review Gate 2
 
 Open the rendered guide, asset catalog, typography specimens, accessible color examples, implementation artifacts, representative 256/64/32/16 pixel comparisons, continuity report, glyph report, and verifier output under ignored `dist/i-heart-pr-tours/gate-2-r4/`.
 
-Expected: the owner can approve, revise, or reject the complete private delivery. Any affected source or transformation revision returns to Gate 1.
+Expected: the owner can approve, revise, or reject the complete private delivery. Approval activates the complete governed website surface set; any affected source or transformation revision returns to Gate 1.
 
 ## 6. Run full CI parity after Gate 2
 
@@ -63,7 +63,7 @@ npm --prefix site run build
 npm --prefix site test
 ```
 
-Expected: every production kit, source contract, release contract, site route, and accessibility check passes. Generated output remains ignored.
+Expected: every production kit, source contract, release contract, site route, and accessibility check passes. I Heart PR Tours appears in the eight-brand portfolio with its white card, colored heart icon, complete guideline and download routes, registry endpoints, metadata, structured data, and social preview. Generated output remains ignored.
 
 ## 7. Repository hygiene
 

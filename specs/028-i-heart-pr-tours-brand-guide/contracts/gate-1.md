@@ -36,6 +36,6 @@ Any source byte, role, font, transformation, framing, color treatment, renderer,
 - Black and white single-ink deliverables are proposed through a deterministic knockout-aware derivation from unchanged approved light-background masters.
 - The supplied sandy compositions are proposed for an optional `Expressions and atmosphere` guide section.
 - The live site's 32 × 32 colored-heart favicon is pixel-equivalent to the supplied package's `favicon-32x32.png`; exact supplied favicon and platform sizes are proposed as per-target authority, while missing modern sizes derive from `heart.svg` with supplied safe-area framing.
-- All public publication values remain disabled under the approved Gate 2 private classification.
+- The owner later superseded the provisional private classification and approved the complete public website surface set. Source authority, identity geometry, typography, palette, transformations, ownership, endorsement, and service-credit values remain unchanged.
 
 The prior approval for `iheartpr-g1-r2` is invalid because the owner rejected Gate 2 and revised copy, palette, surface mode, and transformations. Candidate `iheartpr-g1-r3` was superseded before approval by the owner's colored-heart favicon requirement. The owner approved exact candidate `iheartpr-g1-r4` and manifest SHA-256 `6b25b935b9e8420463f4e56c102e16d8da31dcd2ef729602a051db30debd72be` on 2026-09-11 with the wording `looks good. continue`.

@@ -1,6 +1,6 @@
 # Contract: Affiliation, Privacy, and Publication
 
-## Proposed Gate 1 classification
+## Approved classification
 
 | Field | Proposed value |
 | --- | --- |
@@ -10,19 +10,19 @@
 | Endorsement | none |
 | Maintenance/warranty | none |
 | Service credit | none |
-| Showcase | private |
-| Registry | disabled |
-| Hosted guide | disabled |
+| Showcase | public |
+| Registry | enabled on the brand website |
+| Hosted guide | enabled on the brand website |
 | Release artifact | disabled |
-| Deployment | disabled |
+| Deployment | brand website only |
 
 The current customer website's ShruggieTech site-design credit does not authorize a brand-system service credit.
 
 ## Gate 2 scope
 
-Gate 2 may approve an exact subset of registry, hosted-guide, showcase, release, or deployment surfaces. Omission means disabled. Repository pull-request review is authorized after Gate 2 and does not itself imply public brand publication.
+Gate 2 authorizes the complete website surface set: showcase card, brand landing page, guideline topics, downloads, registry endpoints, public metadata, structured data, and social preview. Every brand built with the skill must receive that public website presence after approval.
 
-The owner approved candidate `iheartpr-g2-r4` on 2026-09-11 with the wording `Excellent. You nailed it. Gate 2 is green`. The approved classification is private with an empty public-surface set. Repository commit, push, pull-request publication, CI, and bounded automated review are authorized, while registry, hosted guide, showcase, release, deployment, public metadata, structured data, and social preview remain disabled.
+The owner approved candidate `iheartpr-g2-r4` on 2026-09-11 with the wording `Excellent. You nailed it. Gate 2 is green`. After the first merge-readiness handoff, the owner explicitly corrected the agent's private-publication assumption and required every skill-built brand to be proudly displayed on the website without exception. That correction supersedes the empty public-surface record and authorizes the complete website surface set. Release tags and unrelated external deployments remain disabled.
 
 ## Claims boundary
 

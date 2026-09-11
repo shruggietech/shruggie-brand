@@ -6,7 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
-- Added the identity-locked private I Heart PR Tours source system for issue #188, including exact supplied source and favicon authority, locally licensed typography, a light-first guide, deterministic single-ink derivatives, optional sand expressions, and complete continuity evidence.
+- Added the identity-locked public I Heart PR Tours source system for issue #188, including exact supplied source and favicon authority, locally licensed typography, a light-first guide, deterministic single-ink derivatives, optional sand expressions, complete continuity evidence, and full brand-website publication.
 - Added source-bound identity continuity records, canonical approval packets, exact-byte promotion, pre-derivative drift rejection, calibrated visual comparison evidence, and truthful historical baselines for all seven production brands for issue #185.
 - Added the approved Cueson production identity and seventh public brand kit for issue #184, including exact Cueframe source continuity, Cue Teal color governance, complete lockups and application icons, generated guidelines and specimen, and a manifest-certified future consumer handoff.
 - Added deterministic, manifest-certified complete brand-kit downloads for all seven public production brands, with staged verification and atomic publication shared by release and static-site builds.
@@ -20,8 +20,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
-- On 2026-09-11, reused the hash-bound portable Gate 2 comparison during static-site preparation so an approved private kit remains unpublished while equivalent cross-platform PNG encodings do not invalidate its canonical Windows approval.
-- On 2026-09-11, allowed an approved private Gate 2 to bind an exact derivative manifest with an empty public-surface set, preserving the distinction between repository review authorization and public brand publication.
+- On 2026-09-11, corrected S028's mistaken private-publication assumption: every production brand built with the skill is now required in the public website inventory, generated brand export directories are ignored generically, and I Heart PR Tours uses the complete governed website surface set with a white showcase card and colored heart icon.
+- On 2026-09-11, reused the hash-bound portable Gate 2 comparison during static-site preparation so equivalent cross-platform PNG encodings do not invalidate canonical Windows approval.
 - On 2026-09-11, marked the supplied I Heart PR Tours favicon index as a path-specific binary source so Git cannot normalize its approved CRLF bytes and invalidate source continuity; all authored repository text remains UTF-8 with LF endings.
 - On 2026-09-09, separated nonbinding logo direction selection from canonical production-source approval and prohibited Gate 2 from reconstructing or first revealing identity geometry.
 - On 2026-09-09, separated external clear-space governance from optional variant-specific standalone presentation padding so approved Full and Reduced concept framing can survive deterministic production export.
@@ -41,7 +41,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
-- Bound approved private Gate 2 records to their generated derivative manifest during verification and publication, preserved approved supplied icon targets at core capability without changing the Gate 1 identity renderer, required downstream `color` and `light` logo variants, and added canonical-host proof and Gate 2 evidence export plus hash-bound measured comparison for cross-platform CI, including defined color sampling for tiny proofs with no non-edge interior and decoded-pixel equivalence for differently encoded embedded PNGs.
+- Bound approved Gate 2 records to their generated derivative manifest during verification and publication, preserved approved supplied icon targets at core capability without changing the Gate 1 identity renderer, required downstream `color` and `light` logo variants, and added canonical-host proof and Gate 2 evidence export plus hash-bound measured comparison for cross-platform CI, including defined color sampling for tiny proofs with no non-edge interior and decoded-pixel equivalence for differently encoded embedded PNGs.
 - Restored Python 3.8 compatibility in the guide typography regression and skipped the exact raster-derivation integration test when no measured SVG renderer is available.
 - Measured light-surface contrast against each brand's configured base, validated supplied icon dimensions before generation, rejected supplied-lockup configurations that could be overwritten by generated wordmarks, and required a white colourway for enabled monochrome platform icons.
 - Replaced the universal dark-guide rule with an explicit declared reading-surface contract, retaining dark as the default while allowing owner-approved, fully measured light-first guides to pass matching PDF ground verification.

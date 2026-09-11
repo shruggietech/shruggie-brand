@@ -4,7 +4,7 @@
 
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/`, and `quickstart.md`
 
-**Tests**: S028 requires test-first coverage for source authority, exact-byte preservation, transformations, approval staleness, third-party affiliation, private publication, accessibility, unsafe paths, and the complete build.
+**Tests**: S028 requires test-first coverage for source authority, exact-byte preservation, transformations, approval staleness, third-party affiliation, pre-approval privacy, mandatory post-approval website publication, accessibility, unsafe paths, and the complete build.
 
 **Organization**: Tasks are chronological, grouped by independently testable user story, and interrupted only by the two mandatory owner gates and the final owner merge gate.
 
@@ -201,5 +201,14 @@
 - Tests precede implementation and must demonstrate meaningful failures.
 - Reviewer-owned checklist markers are not implementation status.
 - Gate 1 approved exact SVG source filenames and roles. T017 onward must use only those names and hashes.
+
+## Phase 8: Publication-scope convergence
+
+- [X] T064 Record the owner's repository-wide mandatory website-publication correction across the S028 specification, plan, research, contracts, quickstart, checklist, and evidence per FR-011
+- [X] T065 Add failing contract, site-preparation, generated-inventory, browser-count, white-card, colored-heart, and no-script regressions per FR-022 and SC-009
+- [X] T066 Publish I Heart PR Tours through the complete governed website surface set with an independent third-party notice, registry base, and governed light showcase surface per US4 and Constitution P5
+- [X] T067 Rebuild all production kits and verify the eight-brand static site, complete IHPRT routes and downloads, WCAG 2.1 AA, source continuity, and repository hygiene per SC-008 and SC-009
+- [ ] T068 Update the official pull request, push the correction under the existing authorization, and confirm exact-head CI and all previously resolved review threads without requesting a third Codex round per FR-024 (partial)
+- [ ] T069 Halt without merging and ask the owner to perform the final review and merge ritual per US4/AC3 (partial)
 - Generated intake, proof, guide, kit, site, and release artifacts remain ignored.
 - No identity source may be committed and no production derivative may be generated before Gate 1.

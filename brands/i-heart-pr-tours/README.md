@@ -1,6 +1,6 @@
 # I Heart PR Tours Brand System
 
-**Status:** Gate 1 approved, Gate 2 pending, public publication disabled
+**Status:** Gate 1 and Gate 2 approved, public website publication enabled
 
 **Ownership:** Independent third-party customer identity
 
@@ -33,7 +33,7 @@ Poppins Bold 700 is the fixed display face. Source Sans 3 Regular 400 and Semibo
 
 ## Publication
 
-The generated guide and kit are private Gate 2 review material. Showcase cards, registry entries, hosted guides, releases, deployments, and service credit remain disabled unless the owner explicitly approves a later change.
+The verified brand system is published on the ShruggieTech brand website through the complete governed surface set: showcase card, brand landing page, guideline topics, downloads, registry endpoints, public metadata, structured data, and social preview. The website uses the approved white card surface and colored heart icon. I Heart PR Tours remains an independent third-party brand, and service credit is not implied.
 
 ## Kit entry points
 

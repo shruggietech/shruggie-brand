@@ -5,10 +5,10 @@
   "title": "I Heart PR Tours",
   "slug": "i-heart-pr-tours",
   "version": "1.0.0",
-  "showcase_surface": "card",
+  "showcase_surface": "light.card",
   "affiliation": {
     "ownership": "third-party",
-    "showcase": "private",
+    "showcase": "public",
     "parent": null,
     "inheritance": "independent",
     "endorsement": "none",
@@ -38,17 +38,36 @@
         "wordmark-only": "No standalone wordmark source exists in the approved package."
       },
       "derivative_config_sha256": "467bdbdd790721c2968df37881f4df2b95f90caaeded74b99184d05ce5c411cb",
-      "canonical_source_sha256": "b04c0886c1e6ac09da6b470deeacdf839bf794bfacf5a54666691ea291704094"
+      "canonical_source_sha256": "5ccb1f368bc70c250e4fe7a93528f93e6b21d77afc59c561c1b0e09953f5e7c8"
     },
     "gate_2": {
       "status": "approved",
       "approved_by": "repository owner",
       "approved_on": "2026-09-11",
       "derivative_manifest_sha256": "9aae47141e989c34ea64e460a3594179192e2443012e15922dd3f6e49bccd41b",
-      "surfaces": []
+      "surfaces": [
+        "showcase-card",
+        "brand-landing-page",
+        "guideline-topics",
+        "downloads",
+        "registry-endpoints",
+        "public-metadata",
+        "structured-data",
+        "social-preview"
+      ]
     }
   },
   "homepage": "https://iheartprtours.com",
+  "registry_base": "https://brand.shruggie.tech/i-heart-pr-tours/brand",
+  "vendor_boundary": {
+    "required": true,
+    "notice": "I Heart PR Tours is an independent third-party brand. I Heart PR Tours owns its trademarks and is responsible for its tours, services, and applicable terms.",
+    "entities": [
+      "I Heart PR Tours"
+    ],
+    "trademark_owner": "I Heart PR Tours",
+    "terms_responsibility": "I Heart PR Tours owns its trademarks and is responsible for its tours, services, and applicable terms."
+  },
   "descriptor": "Thoughtfully guided tours on the island we love.",
   "functional_descriptor": "Thoughtfully guide guests through Puerto Rico's places, stories, landscapes, and local character.",
   "category": "Puerto Rico guided tour service",

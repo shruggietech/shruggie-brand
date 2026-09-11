@@ -125,28 +125,24 @@ class ApprovalLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "stale"):
             approval_ledger(brand, with_input)
 
-    def test_private_brand_may_record_approved_gate_two_with_zero_public_surfaces(self):
+    def test_approved_gate_two_cannot_hide_a_completed_brand(self):
         brand = approval_brand("approved")
         brand["affiliation"]["showcase"] = "private"
         brand["approval_ledger"]["gate_2"]["surfaces"] = []
         approved_input = [({"id": "source-mark", "sha256": "a" * 64,
                             "usage_status": "approved", "role": "mark"}, Path("unused"))]
-        ledger = approval_ledger(brand, approved_input)
-        self.assertEqual("approved", ledger["gate_2"]["status"])
-        self.assertEqual([], ledger["gate_2"]["surfaces"])
-        self.assertFalse(public_showcase(brand))
+        with self.assertRaisesRegex(ContractError, "must be published"):
+            approval_ledger(brand, approved_input)
 
     def test_private_gate_two_is_bound_to_generated_derivative_provenance(self):
         brand = approval_brand("approved")
-        brand["affiliation"]["showcase"] = "private"
-        brand["approval_ledger"]["gate_2"]["surfaces"] = []
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary)
             approval = kit / "logos" / "approval.json"
             approval.parent.mkdir()
             approval.write_text("{}\n", encoding="utf-8")
             brand["approval_ledger"]["gate_2"]["derivative_manifest_sha256"] = sha256_file(approval)
-            self.assertFalse(public_showcase(brand, kit))
+            self.assertTrue(public_showcase(brand, kit))
             approval.write_text('{"stale":true}\n', encoding="utf-8")
             with self.assertRaisesRegex(ContractError, "stale"):
                 public_showcase(brand, kit)
@@ -156,8 +152,6 @@ class ApprovalLedgerTests(unittest.TestCase):
         brand["slug"] = "sample"
         brand["approval_ledger"]["gate_1"]["derivative_config_sha256"] = (
             derivative_configuration_sha256(brand))
-        brand["affiliation"]["showcase"] = "private"
-        brand["approval_ledger"]["gate_2"]["surfaces"] = []
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             kit = root / "local"
@@ -174,7 +168,7 @@ class ApprovalLedgerTests(unittest.TestCase):
             brand["approval_ledger"]["gate_2"]["derivative_manifest_sha256"] = sha256_file(
                 canonical_approval)
             with patch.dict("os.environ", {"GP_APPROVED_PROOF_ROOT": str(root / "portable")}):
-                self.assertFalse(public_showcase(brand, kit))
+                self.assertTrue(public_showcase(brand, kit))
 
     def test_gate_1_is_required_and_hash_bound(self):
         brand = approval_brand()
@@ -516,6 +510,13 @@ class ShowcaseSurfaceTests(unittest.TestCase):
         brand["showcase_surface"] = "card"
         self.assertEqual("#121416", showcase_surface(brand))
 
+    def test_light_role_resolves_from_governed_light_surfaces(self):
+        brand = owned_brand()
+        brand["surfaces"] = {"card": "#121416"}
+        brand["light_surfaces"] = {"card": "#FFFFFF"}
+        brand["showcase_surface"] = "light.card"
+        self.assertEqual("#FFFFFF", showcase_surface(brand))
+
     def test_invalid_role_and_color_fail_closed(self):
         brand = owned_brand()
         brand["surfaces"] = {"card": "#121416"}
@@ -528,6 +529,10 @@ class ShowcaseSurfaceTests(unittest.TestCase):
             showcase_surface(brand)
         brand["showcase_surface"] = ""
         with self.assertRaisesRegex(ContractError, "non-empty"):
+            showcase_surface(brand)
+        brand["showcase_surface"] = "light.missing"
+        brand["light_surfaces"] = {"card": "#FFFFFF"}
+        with self.assertRaisesRegex(ContractError, "showcase surface role"):
             showcase_surface(brand)
 
 
