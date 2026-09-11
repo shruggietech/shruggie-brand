@@ -239,6 +239,7 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         self.assertIn("python scripts/release_contract.py current", preflight)
         self.assertIn("contents: write", publisher)
         self.assertIn("needs: [build, release-preflight]", publisher)
+        self.assertIn("GH_REPO: ${{ github.repository }}", publisher)
         self.assertIn("gh release create", publisher)
         self.assertIn("--verify-tag", publisher)
         self.assertNotIn("actions/checkout", publisher)

@@ -268,6 +268,7 @@ jobs:
       - name: Recheck transport and publish verified release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           CANDIDATE="$RUNNER_TEMP/release-candidate"
           test "$(cat "$CANDIDATE/SOURCE_COMMIT")" = "$GITHUB_SHA"

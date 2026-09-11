@@ -29,7 +29,9 @@
 
 ## 2026-09-11 - Hosted pull request evidence
 
-Pending.
+- Official pull request: [#197](https://github.com/shruggietech/shruggie-brand/pull/197).
+- First Codex review on `df8e4ab`: one actionable P1 finding. The checkout-free release publisher lacked an explicit repository selector for `gh release create`.
+- Resolution: added trusted `GH_REPO: ${{ github.repository }}` publisher environment binding and a source-contract regression. Review thread reply and second-round status are pending.
 
 ## Post-merge owner verification
 
