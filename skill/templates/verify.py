@@ -17,12 +17,13 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
-from brand_contract import affiliation, application_icon_profile, logo_source_contract, sha256_file
+from brand_contract import _image_dimensions, affiliation, application_icon_profile, logo_source_contract, sha256_file
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 
 # ------------------------------------------------------------------ utilities
 def R(a, b): return round(Color(a).contrast(b, method="wcag21"), 2)
+def light_base(brand): return (brand.get("light_surfaces") or {}).get("base", "#F8F8F6")
 def hue(h):
     c = Color(h).convert("oklch")
     return None if c["chroma"] < 0.02 else round(c["hue"], 1)
@@ -72,7 +73,7 @@ def c_contrast(kit, brand, rep):
         if isinstance(node, dict):
             if "hex" in node and isinstance(node.get("contrast"), dict):
                 for k, stated in node["contrast"].items():
-                    bg = brand.get("surfaces", {}).get("base", "#000000") if "dark" in k else "#F8F8F6"
+                    bg = brand.get("surfaces", {}).get("base", "#000000") if "dark" in k else light_base(brand)
                     got = R(node["hex"], bg); claims += 1
                     if abs(got - float(stated)) > 0.02:
                         mism.append("%s %s: states %s, measures %s" % (path, k, stated, got))
@@ -113,12 +114,13 @@ def c_accent(canon, brand, rep):
     if r < 4.5: fails.append("accent %s on base = %s (needs 4.5)" % (a, r))
     if not al: fails.append("no accessible light-surface variant declared")
     else:
-        rl = R(al, "#F8F8F6")
-        if rl < 4.5: fails.append("light variant %s = %s on #F8F8F6 (needs 4.5)" % (al, rl))
+        light = light_base(brand)
+        rl = R(al, light)
+        if rl < 4.5: fails.append("light variant %s = %s on %s (needs 4.5)" % (al, rl, light))
     rep.bad("accent-rule", "; ".join(fails)) if fails else \
         rep.ok("accent-rule", "%s%s:1 on base, light variant %s at %s:1"
                % (("fixture hue exempt, " if brand.get("kind") == "fixture" else "hue %s, " % hue(a)),
-                  r, al, R(al, "#F8F8F6")))
+                  r, al, R(al, light_base(brand))))
 
 def c_immutables(canon, brand, rep):
     drift = []
@@ -250,7 +252,7 @@ def c_font_weights(kit, brand, rep):
     for p in walk(kit):
         if os.path.splitext(p)[1].lower() not in ({".css"} | SRC_EXT): continue
         rel = os.path.relpath(p, kit)
-        if "enforcement" in rel or rel.startswith("templates"): continue
+        if "enforcement" in rel or rel.startswith("templates") or rel.replace("\\", "/") == "fonts/fonts.css": continue
         t = open(p, encoding="utf-8", errors="replace").read(); scanned += 1
         for m in re.finditer(r"font-weight\s*:\s*(\d{3})", t):
             w = int(m.group(1))
@@ -320,7 +322,22 @@ def c_svg(kit, rep):
                    % (len(svgs) - len(raster_wrappers), len(raster_wrappers)))
 
 def c_ico(kit, rep):
-    icos = [p for p in walk(kit) if p.lower().endswith(".ico")]
+    source_root = os.path.normcase(os.path.join(os.path.abspath(kit), "assets", "source"))
+    preserved = set()
+    manifest_path = os.path.join(kit, "icons", "manifest.json")
+    if os.path.isfile(manifest_path):
+        try:
+            with open(manifest_path, encoding="utf-8") as handle:
+                icon_manifest = json.load(handle)
+                preserved = {item["path"] for item in icon_manifest.get("artifacts", [])
+                             if item.get("source_variant") == "source-preserved"}
+                preserved.update(alias for alias, target in icon_manifest.get("aliases", {}).items()
+                                 if target in preserved)
+        except Exception:
+            preserved = set()
+    icos = [p for p in walk(kit) if p.lower().endswith(".ico")
+            and not os.path.normcase(os.path.abspath(p)).startswith(source_root + os.sep)
+            and os.path.relpath(p, kit).replace(os.sep, "/") not in preserved]
     if not icos: return rep.skip("ico-entries", "no .ico in kit")
     out = []
     for p in icos:
@@ -379,7 +396,7 @@ def _container_sizes(path, kind):
     return sizes
 
 
-def _expected_icon_paths(raster):
+def _expected_icon_paths(raster, monochrome=True):
     """Return the independent minimum inventory for the selected capability tier."""
     required = {
         "icons/README.md",
@@ -399,7 +416,7 @@ def _expected_icon_paths(raster):
     }
     if not raster:
         return required
-    for size in (16, 24, 32, 48, 64, 128, 180, 192, 256, 512):
+    for size in (16, 24, 32, 48, 64, 96, 128, 180, 192, 256, 512):
         required.add("icons/web/favicon-%dx%d.png" % (size, size))
     required.update({
         "icons/web/apple-touch-icon.png",
@@ -408,14 +425,12 @@ def _expected_icon_paths(raster):
         "icons/web/favicon.ico",
         "icons/web/site.webmanifest",
         "icons/android/app/src/main/res/drawable-nodpi/ic_launcher_foreground.png",
-        "icons/android/app/src/main/res/drawable-nodpi/ic_launcher_monochrome.png",
         "icons/android/app/src/main/res/drawable/ic_launcher_background.xml",
         "icons/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
         "icons/android/app/src/main/res/values/ic_launcher_colors.xml",
         "icons/android/play-store/google-play-512.png",
         "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png",
         "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024-dark.png",
-        "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024-tinted.png",
         "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/Contents.json",
         "icons/apple/macos/Assets.xcassets/AppIcon.appiconset/Contents.json",
         "icons/apple/macos/AppIcon.icns",
@@ -423,6 +438,11 @@ def _expected_icon_paths(raster):
         "icons/windows/msix/ApplicationVisualElements.fragment.xml",
         "icons/windows/msix/PackageProperties.fragment.xml",
     })
+    if monochrome:
+        required.update({
+            "icons/android/app/src/main/res/drawable-nodpi/ic_launcher_monochrome.png",
+            "icons/apple/ios/Assets.xcassets/AppIcon.appiconset/AppIcon-1024-tinted.png",
+        })
     for density in ANDROID_DENSITIES:
         required.add("icons/android/app/src/main/res/mipmap-%s/ic_launcher.png" % density)
     for points, scale in MAC_ROLES:
@@ -441,15 +461,16 @@ def _expected_icon_paths(raster):
     return required
 
 
-def _validate_apple_catalogs(kit, problems):
+def _validate_apple_catalogs(kit, problems, monochrome=True):
     ios_root = os.path.join(kit, "icons", "apple", "ios", "Assets.xcassets", "AppIcon.appiconset")
     ios_rows = [
         {"filename": "AppIcon-1024.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"},
         {"filename": "AppIcon-1024-dark.png", "idiom": "universal", "platform": "ios", "size": "1024x1024",
          "appearances": [{"appearance": "luminosity", "value": "dark"}]},
-        {"filename": "AppIcon-1024-tinted.png", "idiom": "universal", "platform": "ios", "size": "1024x1024",
-         "appearances": [{"appearance": "luminosity", "value": "tinted"}]},
     ]
+    if monochrome:
+        ios_rows.append({"filename": "AppIcon-1024-tinted.png", "idiom": "universal", "platform": "ios", "size": "1024x1024",
+                         "appearances": [{"appearance": "luminosity", "value": "tinted"}]})
     mac_root = os.path.join(kit, "icons", "apple", "macos", "Assets.xcassets", "AppIcon.appiconset")
     mac_rows = []
     for points, scale in MAC_ROLES:
@@ -549,16 +570,21 @@ def _expected_authoritative_icon(item, masters, profile):
     size = int(item["width"])
     role = item.get("role")
     appearance = item.get("appearance")
+    framing = profile.get("framing") or {}
+    ratio = framing.get("content_ratio", 0.75 if role == "play-store" else 0.72)
+    offset = framing.get("vertical_offset_ratio", 0)
     if role == "adaptive-foreground":
         return contain_visible(mark, size, 66.0 / 108.0)
     if role == "adaptive-monochrome":
         return contain_visible(mark, size, 66.0 / 108.0, "#FFFFFF")
     if appearance in {"dark-unplated", "light-unplated"}:
-        return contain_visible(mark, size, 0.72)
+        return contain_visible(mark, size, ratio, vertical_offset_ratio=offset)
+    if role in {"favicon", "apple-touch", "installable"} and profile.get("transparent_web_icons", False):
+        return contain_visible(mark, size, ratio, vertical_offset_ratio=offset)
     background = ("#000000" if appearance == "dark" else
                   "#FFFFFF" if appearance == "tinted" else profile["background"])
     colour = "#000000" if appearance == "tinted" else None
-    return _plated(mark, size, background, 0.75 if role == "play-store" else 0.72, colour)
+    return _plated(mark, size, background, ratio, colour, offset)
 
 
 def _render_icon_master(kit, relative, brand):
@@ -630,10 +656,15 @@ def c_icon_suites(kit, brand, rep):
     expected_profile = application_icon_profile(brand)
     if manifest.get("profile") != expected_profile:
         problems.append("manifest profile does not match the effective brand contract")
+    monochrome_available = ("single-ink" not in set(((((brand.get("approval_ledger") or {}).get("gate_1") or {})
+                                                       .get("unavailable_derivatives", {}))))
+                            and expected_profile.get("monochrome_platforms", True))
+    full_master_variant = expected_profile.get("source_variant", "full")
     expected_masters = {
-        "full": "logos/svg/%s-mark-color.svg" % brand.get("slug"),
+        "full": "logos/svg/%s-mark-%scolor.svg" % (brand.get("slug"), "reduced-" if full_master_variant == "reduced" else ""),
         "reduced": "logos/svg/%s-mark-reduced-color.svg" % brand.get("slug"),
-        "monochrome": "logos/svg/%s-mark-white.svg" % brand.get("slug"),
+        "monochrome": ("logos/svg/%s-mark-white.svg" % brand.get("slug")
+                       if monochrome_available else None),
     }
     if manifest.get("source_masters") != expected_masters:
         problems.append("manifest source_masters do not match generated logo masters")
@@ -641,7 +672,7 @@ def c_icon_suites(kit, brand, rep):
         try:
             with open(os.path.join(kit, "logos", "provenance.json"), encoding="utf-8") as handle:
                 logo_paths = {item["path"] for item in json.load(handle).get("derivatives", [])}
-            if not set(expected_masters.values()).issubset(logo_paths):
+            if not {value for value in expected_masters.values() if value}.issubset(logo_paths):
                 problems.append("icon source_masters are absent from verified logo provenance")
         except Exception as error:
             problems.append("icon source_masters cannot be matched to logo provenance: %s" % error)
@@ -650,7 +681,14 @@ def c_icon_suites(kit, brand, rep):
     if authoritative and capabilities.get("svg_raster"):
         try:
             for variant, master in expected_masters.items():
-                identity_masters[variant] = _render_icon_master(kit, master, brand)
+                if master:
+                    identity_masters[variant] = _render_icon_master(kit, master, brand)
+            suppression = expected_profile.get("shadow_suppression")
+            if suppression:
+                from iconkit import suppress_shadow_alpha
+                identity_masters = {key: suppress_shadow_alpha(value, suppression["alpha_floor"],
+                                                                suppression["alpha_transition"])
+                                    for key, value in identity_masters.items()}
         except Exception as error:
             problems.append("authoritative icon masters cannot be loaded: %s" % error)
     expected_suites = {"web", "android", "apple-ios", "apple-macos", "windows"}
@@ -698,15 +736,26 @@ def c_icon_suites(kit, brand, rep):
             problems.append("missing artifact: %s" % relative)
             continue
         fmt = item.get("format")
+        source_preserved = (item.get("source_variant") == "source-preserved"
+                            and isinstance(item.get("source"), str))
+        if source_preserved:
+            source = item.get("source")
+            source_sha256 = item.get("source_sha256")
+            if not isinstance(source, str) or not isinstance(source_sha256, str):
+                problems.append("%s lacks supplied-source provenance" % relative)
+            else:
+                supplied = os.path.join(kit, source.replace("/", os.sep))
+                if not os.path.isfile(supplied) or sha256_file(supplied) != source_sha256 or sha256_file(path) != source_sha256:
+                    problems.append("%s differs from its supplied source" % relative)
         if fmt == "png":
             try:
                 info = inspect_png(path)
                 expected = (item.get("width"), item.get("height"))
                 if info["size"] != expected:
                     problems.append("%s dimensions %s, expected %s" % (relative, info["size"], expected))
-                if info["mode"] != "RGBA":
+                if not source_preserved and info["mode"] != "RGBA":
                     problems.append("%s color mode %s, expected RGBA" % (relative, info["mode"]))
-                if not info["srgb"]:
+                if not source_preserved and not info["srgb"]:
                     problems.append("%s lacks an sRGB declaration" % relative)
                 if info["visible_bbox"] is None:
                     problems.append("%s has no visible pixels" % relative)
@@ -720,11 +769,12 @@ def c_icon_suites(kit, brand, rep):
                 if item.get("role") in plated_roles and item.get("alpha") == "opaque":
                     plate = "#000000" if item.get("appearance") == "dark" else "#FFFFFF" if item.get("appearance") == "tinted" else expected_profile["background"]
                     content = inspect_png(path, plate)["content_bbox"]
-                    ratio = 0.75 if item.get("role") == "play-store" else 0.72
+                    framing = expected_profile.get("framing") or {}
+                    ratio = framing.get("content_ratio", 0.75 if item.get("role") == "play-store" else 0.72)
                     inset = max(0, int(item.get("width") * (1.0 - ratio) / 2.0) - 2)
                     if content is None or content[0] < inset or content[1] < inset or content[2] > item.get("width") - inset or content[3] > item.get("height") - inset:
                         problems.append("%s artwork exceeds its declared safe area: %s" % (relative, content))
-                if authoritative and identity_masters:
+                if authoritative and identity_masters and not source_preserved:
                     from PIL import Image
                     expected_identity = _expected_authoritative_icon(item, identity_masters, expected_profile)
                     if expected_identity is not None:
@@ -758,18 +808,20 @@ def c_icon_suites(kit, brand, rep):
                     href = None if len(images) != 1 else images[0].get("href")
                     master = os.path.join(kit, expected_masters[item["source_variant"]].replace("/", os.sep))
                     expected_href = "data:image/svg+xml;base64," + base64.b64encode(Path(master).read_bytes()).decode("ascii")
-                    if href != expected_href:
+                    transformed = expected_profile.get("shadow_suppression") and isinstance(href, str) and href.startswith("data:image/png;base64,")
+                    if href != expected_href and not transformed:
                         problems.append("%s does not embed its declared authoritative SVG master" % relative)
             except Exception as error:
                 problems.append("%s cannot be parsed as SVG: %s" % (relative, error))
-        elif fmt in {"ico", "icns"} and authoritative and identity_masters:
+        elif fmt in {"ico", "icns"} and authoritative and identity_masters and not source_preserved:
             try:
                 from PIL import Image
                 kind = fmt
                 for size, payload in _container_png_payloads(path, kind):
                     variant = "full" if kind == "icns" or size > expected_profile["reduced_below_px"] else "reduced"
+                    expected_role = "asset-catalog-icon" if kind == "icns" else "classic-ico"
                     expected_identity = _expected_authoritative_icon(
-                        {"source_variant": variant, "width": size, "role": "favicon", "appearance": "default"},
+                        {"source_variant": variant, "width": size, "role": expected_role, "appearance": "default"},
                         identity_masters, expected_profile)
                     with Image.open(BytesIO(payload)) as actual_identity:
                         if not _same_rgba(expected_identity, actual_identity):
@@ -806,7 +858,10 @@ def c_icon_suites(kit, brand, rep):
         problems.append("manifest aliases must be an object")
         aliases = {}
     expected_aliases = {}
-    for path in _expected_icon_paths(raster):
+    expected_web_paths = _expected_icon_paths(raster, monochrome_available)
+    expected_web_paths.update(item["target"] for item in expected_profile.get("supplied_targets", [])
+                              if item["target"].startswith("icons/web/"))
+    for path in expected_web_paths:
         if path.startswith("icons/web/") and path.count("/") == 2 and os.path.basename(path) not in {"README.md", "manifest.json"}:
             expected_aliases["favicons/%s" % os.path.basename(path)] = path
     if aliases != expected_aliases:
@@ -829,12 +884,15 @@ def c_icon_suites(kit, brand, rep):
         with open(alias_path, "rb") as alias_handle, open(target_path, "rb") as target_handle:
             if alias_handle.read() != target_handle.read():
                 problems.append("compatibility alias differs from authoritative target: %s" % alias)
-    absent = sorted(_expected_icon_paths(raster) - declared)
+    absent = sorted(_expected_icon_paths(raster, monochrome_available) - declared)
     if absent:
         problems.append("required platform artifacts are absent: %s" % ", ".join(absent[:12]))
     if raster:
         try:
             for relative in ("icons/web/favicon.ico", "icons/windows/classic/app.ico"):
+                record = next((item for item in artifacts if item.get("path") == relative), {})
+                if record.get("source_variant") == "source-preserved":
+                    continue
                 sizes = _container_sizes(os.path.join(kit, relative.replace("/", os.sep)), "ico")
                 if sizes != list(ICO_SIZES):
                     problems.append("%s entries %s, expected %s" % (relative, sizes, list(ICO_SIZES)))
@@ -854,7 +912,7 @@ def c_icon_suites(kit, brand, rep):
         play = os.path.join(kit, "icons", "android", "play-store", "google-play-512.png")
         if os.path.isfile(play) and os.path.getsize(play) > 1024 * 1024:
             problems.append("Google Play artwork exceeds 1,024 KB")
-        _validate_apple_catalogs(kit, problems)
+        _validate_apple_catalogs(kit, problems, monochrome_available)
         _validate_windows_manifest_fragments(kit, brand, expected_profile, problems)
     if problems:
         rep.bad("icon-suites", "; ".join(problems[:30]))
@@ -1359,6 +1417,123 @@ def _authoritative_identity_unobscured(svg_path, root):
             return _same_rgba(identity, complete)
 
 
+def _portable_gate_2_root(brand):
+    value = os.environ.get("GP_APPROVED_PROOF_ROOT")
+    if not value:
+        return None
+    base = Path(value).resolve()
+    if not base.is_dir() or base.is_symlink():
+        raise ValueError("portable Gate 2 root is missing or unsafe")
+    candidate = base / brand.get("slug", "")
+    if candidate.is_symlink():
+        raise ValueError("portable Gate 2 brand path cannot be a symlink")
+    resolved = candidate.resolve()
+    try:
+        resolved.relative_to(base)
+    except ValueError as error:
+        raise ValueError("portable Gate 2 brand path escapes its root") from error
+    if not resolved.is_dir():
+        raise ValueError("portable Gate 2 brand path is missing")
+    return resolved
+
+
+def _semantic_embedded_png_svg(path):
+    """Hash SVG bytes after replacing embedded PNG encoding with decoded pixels."""
+    payload = Path(path).read_text(encoding="utf-8")
+    pattern = re.compile(r"data:image/png;base64,([A-Za-z0-9+/=]+)")
+
+    def replace(match):
+        from PIL import Image
+        encoded = base64.b64decode(match.group(1), validate=True)
+        with Image.open(BytesIO(encoded)) as source:
+            rgba = source.convert("RGBA")
+            digest = hashlib.sha256(rgba.tobytes()).hexdigest()
+            return "semantic-png:%dx%d:%s" % (rgba.width, rgba.height, digest)
+
+    normalized, count = pattern.subn(replace, payload)
+    if count == 0:
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
+def _confined_gate_2_file(root, relative):
+    base = Path(root).resolve()
+    requested = Path(relative)
+    if requested.is_absolute() or ".." in requested.parts:
+        raise ValueError("Gate 2 derivative path is unsafe: %s" % relative)
+    cursor = base
+    for part in requested.parts:
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise ValueError("Gate 2 derivative path cannot contain a symlink: %s" % relative)
+    resolved = cursor.resolve()
+    try:
+        resolved.relative_to(base)
+    except ValueError as error:
+        raise ValueError("Gate 2 derivative path escapes its root: %s" % relative) from error
+    return resolved
+
+
+def portable_gate_2_matches(kit, brand, local_approval, expected_digest):
+    """Bind Gate 2 to exact canonical bytes and local pixel-equivalent derivatives."""
+    try:
+        canonical_root = _portable_gate_2_root(brand)
+    except ValueError as error:
+        return False, str(error)
+    if canonical_root is None:
+        return False, "canonical Gate 2 artifact is unavailable"
+    canonical_approval = _confined_gate_2_file(canonical_root, "logos/approval.json")
+    if (not canonical_approval.is_file()
+            or sha256_file(canonical_approval) != expected_digest):
+        return False, "canonical Gate 2 artifact does not match the approved manifest hash"
+    with open(local_approval, encoding="utf-8") as handle:
+        local = json.load(handle)
+    with open(canonical_approval, encoding="utf-8") as handle:
+        canonical = json.load(handle)
+    if local.get("schema_version") != canonical.get("schema_version") or local.get("brand") != canonical.get("brand"):
+        return False, "local and canonical Gate 2 manifest headers differ"
+    local_records = local.get("derivatives")
+    canonical_records = canonical.get("derivatives")
+    if not isinstance(local_records, list) or not isinstance(canonical_records, list):
+        return False, "local or canonical Gate 2 derivative inventory is invalid"
+    local_by_path = {item.get("path"): item for item in local_records if isinstance(item, dict)}
+    canonical_by_path = {item.get("path"): item for item in canonical_records if isinstance(item, dict)}
+    if (len(local_by_path) != len(local_records) or len(canonical_by_path) != len(canonical_records)
+            or set(local_by_path) != set(canonical_by_path)):
+        return False, "local and canonical Gate 2 derivative paths differ"
+    semantic_svg_paths = set()
+    for relative in sorted(path for path in local_by_path if path.endswith(".svg")):
+        left = local_by_path[relative]
+        right = canonical_by_path[relative]
+        if left == right:
+            continue
+        if set(left) != {"path", "sha256"} or set(right) != {"path", "sha256"}:
+            return False, "cross-platform Gate 2 derivative record drift: %s" % relative
+        local_svg = _confined_gate_2_file(kit, relative)
+        canonical_svg = _confined_gate_2_file(canonical_root, relative)
+        if (not local_svg.is_file() or local_svg.is_symlink()
+                or not canonical_svg.is_file() or canonical_svg.is_symlink()
+                or sha256_file(local_svg) != left["sha256"]
+                or sha256_file(canonical_svg) != right["sha256"]
+                or _semantic_embedded_png_svg(local_svg) != _semantic_embedded_png_svg(canonical_svg)):
+            return False, "cross-platform Gate 2 SVG drift: %s" % relative
+        semantic_svg_paths.add(relative)
+    for relative in sorted(local_by_path):
+        left = local_by_path[relative]
+        right = canonical_by_path[relative]
+        if left == right or relative in semantic_svg_paths:
+            continue
+        if relative.endswith(".png") and set(left) == {"path", "rendered_from", "rendered_from_sha256"} and set(right) == {"path", "rendered_from", "rendered_from_sha256"}:
+            if (left["rendered_from"] != right["rendered_from"]
+                    or left["rendered_from"] not in semantic_svg_paths
+                    or left["rendered_from_sha256"] != local_by_path[left["rendered_from"]]["sha256"]
+                    or right["rendered_from_sha256"] != canonical_by_path[right["rendered_from"]]["sha256"]):
+                return False, "cross-platform Gate 2 raster provenance drift: %s" % relative
+            continue
+        return False, "cross-platform Gate 2 derivative record drift: %s" % relative
+    return True, "canonical manifest hash and local decoded derivative pixels agree"
+
+
 def c_logo_provenance(kit, brand, rep):
     """Verify the generated logo inventory against the source authority contract."""
     path = os.path.join(kit, "logos", "provenance.json")
@@ -1399,6 +1574,11 @@ def c_logo_provenance(kit, brand, rep):
 
     expected_keys = {"path", "kind", "variant", "colourway", "source_mode", "input_id",
                      "source_sha256", "sha256", "transformations", "embedded_metadata"}
+    supplied_lockup_ids = {
+        entry["record"]["id"]
+        for mapping in authority.get("supplied_lockups", {}).values()
+        for entry in mapping.values()
+    }
     checked_sources = set()
     for item in records:
         if not isinstance(item, dict) or set(item) != expected_keys:
@@ -1406,12 +1586,15 @@ def c_logo_provenance(kit, brand, rep):
             continue
         relative = item["path"]
         variant = item["variant"]
-        source = authority.get(variant) if variant in {"full", "reduced"} else None
+        source = authority.get("inputs", {}).get(item.get("input_id"))
+        if source is None and variant in {"full", "reduced"}:
+            source = authority.get(variant)
         if source:
             record = source["record"]
             base_transform = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
-            expected = [base_transform, "resize"]
-            if item["kind"] == "lockup":
+            derived = item["transformations"][:1] == ["derive-single-ink"]
+            expected = ["derive-single-ink", "resize"] if derived else [base_transform, "resize"]
+            if not derived and item["kind"] == "lockup" and item["input_id"] not in supplied_lockup_ids:
                 expected.append("place-in-lockup")
             if item["source_mode"] != "authoritative" or item["input_id"] != record["id"] or item["source_sha256"] != record["sha256"]:
                 problems.append("%s has stale or conflicting source identity" % relative)
@@ -1445,6 +1628,14 @@ def c_logo_provenance(kit, brand, rep):
             continue
         if not relative.endswith(".svg"):
             continue
+        if not item["embedded_metadata"]:
+            if source is None or source["record"]["format"] != "svg":
+                problems.append("%s claims exact-source SVG output without a bound SVG input" % relative)
+            elif sha256_file(output) != source["record"]["sha256"]:
+                problems.append("%s exact-source SVG bytes disagree with the authoritative input" % relative)
+            elif item["kind"] == "mark" and variant in {"full", "reduced"}:
+                checked_sources.add(variant)
+            continue
         try:
             root = ET.parse(output).getroot()
             if root.get("data-logo-source-mode") != item["source_mode"]:
@@ -1471,12 +1662,23 @@ def c_logo_provenance(kit, brand, rep):
                 else:
                     image = images[0]
                     href = image.get("href") or image.get("{http://www.w3.org/1999/xlink}href")
-                    element = source["element"]
+                    if derived:
+                        view_box = [float(value) for value in root.get("viewBox", "").split()]
+                        if len(view_box) != 4:
+                            raise ValueError("derived SVG lacks a valid viewBox")
+                        element = {"x": view_box[0], "y": view_box[1],
+                                   "width": view_box[2], "height": view_box[3]}
+                    elif "element" in source:
+                        element = source["element"]
+                    else:
+                        raise ValueError("authoritative source placement is unavailable")
                     expected_geometry = (float(element.get("x", 0)), float(element.get("y", 0)),
                                          float(element["width"]), float(element["height"]))
                     actual_geometry = (float(image.get("x", 0)), float(image.get("y", 0)),
                                        float(image.get("width")), float(image.get("height")))
-                    if actual_geometry != expected_geometry or image.get("preserveAspectRatio") != "xMidYMid meet":
+                    geometry_matches = (all(abs(left - right) <= (0.001 if derived else 0)
+                                            for left, right in zip(actual_geometry, expected_geometry)))
+                    if not geometry_matches or image.get("preserveAspectRatio") != "xMidYMid meet":
                         problems.append("%s changes the authoritative image placement" % relative)
                     forbidden = {"opacity", "display", "visibility", "style", "filter", "mask", "clip-path", "transform"}
                     if forbidden & set(image.attrib):
@@ -1489,9 +1691,12 @@ def c_logo_provenance(kit, brand, rep):
                         visible_shapes = [node for node in root.iter() if node.tag.rsplit("}", 1)[-1] in {"path", "rect", "circle", "ellipse", "polygon", "polyline", "line"}]
                         if visible_shapes:
                             problems.append("%s adds substitute geometry to an authoritative mark" % relative)
-                    if capabilities.get("svg_raster") and not _authoritative_identity_unobscured(output, root):
+                    if capabilities.get("svg_raster") and not derived and not _authoritative_identity_unobscured(output, root):
                         problems.append("%s obscures authoritative identity pixels" % relative)
-                    if source["record"]["format"] == "svg":
+                    if derived:
+                        if not href or not href.startswith("data:image/png;base64,"):
+                            problems.append("%s lacks an embedded approved derived PNG" % relative)
+                    elif source["record"]["format"] == "svg":
                         if not href or not href.startswith("data:image/svg+xml;base64,"):
                             problems.append("%s lacks embedded authoritative SVG bytes" % relative)
                         else:
@@ -1535,6 +1740,13 @@ def c_logo_provenance(kit, brand, rep):
             approval = json.load(handle)
         if approval != expected_approval:
             problems.append("approval manifest does not cover the verified derivative set")
+        gate_2 = (((brand.get("approval_ledger") or {}).get("gate_2")) or {})
+        if gate_2.get("status") == "approved":
+            expected_digest = gate_2.get("derivative_manifest_sha256")
+            if sha256_file(approval_path) != expected_digest:
+                matched, reason = portable_gate_2_matches(kit, brand, approval_path, expected_digest)
+                if not matched:
+                    problems.append("Gate 2 approval is stale because derivative provenance changed (%s)" % reason)
     except Exception as error:
         problems.append("logos/approval.json cannot be verified: %s" % error)
     if authority["source_mode"] == "authoritative" and checked_sources != {"full", "reduced"}:
@@ -1628,7 +1840,7 @@ def c_aa_floor(kit, canon, brand, rep):
     NON-EXEMPTABLE. See canon accessibility.exemptions. No conformance level and
     no operator override waives a failure here; the value changes instead.
     """
-    LIGHT = "#F8F8F6"
+    LIGHT = light_base(brand)
     dark = (brand.get("surfaces") or {}).get("base") or "#000000"
     colors = brand.get("color") or {}
     if not colors:

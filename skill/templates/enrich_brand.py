@@ -43,7 +43,7 @@ def main():
                            encoding="utf-8"))
     B = json.load(open(a.brand, encoding="utf-8"))
     dark = B.get("surfaces", {}).get("base", "#000000")
-    light = "#F8F8F6"
+    light = (B.get("light_surfaces") or {}).get("base", "#F8F8F6")
     acc = B["accent"]
     aff = affiliation(B)
     semantic = semantic_colors(B, canon)

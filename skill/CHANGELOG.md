@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Required every production brand to enter the generated public website inventory after approval, and added governed `light.<role>` showcase-surface resolution for light-first brand cards.
+- Reused the canonical-artifact Gate 2 comparison in every kit-aware approval-ledger consumer, including static-site preparation, while retaining exact manifest hashes and fail-closed decoded-pixel equivalence.
+- Bound Gate 2 approval to generated provenance, added a source-preserved icon packaging pass for core capability, required downstream color and light masters, restored Python 3.8 test compatibility, and added exact canonical-host proof and Gate 2 evidence export with hash-bound measured comparison on alternate CI operating systems, including shared-silhouette color sampling for tiny proofs and decoded-pixel equivalence for differently encoded embedded PNGs.
+- Measured contrast against configured light bases and added fail-fast contracts for supplied icon dimensions, supplied-lockup overwrite risk, and monochrome output without a white source colourway.
+- Made the guide reading surface explicit and QC-bound, preserving dark as the default while supporting approved, accessible light-first brand guides.
+- Added an identity-locked authoritative-source path for third-party brands, including private pre-approval review, exact supplied lockups and favicons, deterministic single-ink derivatives, light-first guide rendering, optional expressions, and mandatory complete website publication after Gate 2 approval.
+- Restricted generated guide monospace typography to literal code blocks and added surface-aware logo preview wells for source assets with fixed light lettering.
 - Added source-bound canonical identity approval, atomic exact-byte promotion, proof-matrix comparison, generated continuity reports, and historical continuity baselines that cannot fabricate owner approval.
 - Separated nonbinding direction selection from production-source approval and made Gate 2 reject reconstructed or newly introduced master geometry.
 - Added optional variant-specific standalone mark framing while preserving the existing clear-space default, and verified the selected Full or Reduced source variant during independent PNG reproduction.

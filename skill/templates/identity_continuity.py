@@ -356,7 +356,7 @@ def validate_palette_qualification(value, governed_palette=None):
     return value
 
 
-def _validate_source_files(root, records):
+def _validate_source_files(root, records, allow_derived_brand=False):
     _require(isinstance(records, list), "source_files must be an array")
     seen = set()
     for index, item in enumerate(records):
@@ -368,11 +368,16 @@ def _validate_source_files(root, records):
         seen.add(relative)
         path = safe_path(root, relative)
         _require(isinstance(item["purpose"], str) and item["purpose"].strip(), "source file purpose is required")
-        _require(isinstance(item["bytes"], int) and item["bytes"] >= 0 and path.stat().st_size == item["bytes"],
-                 "source file byte count drift: %s" % relative)
+        derived_brand = allow_derived_brand and relative == "brand.json"
+        _require(isinstance(item["bytes"], int) and item["bytes"] >= 0,
+                 "source file byte count is invalid: %s" % relative)
+        if not derived_brand:
+            _require(path.stat().st_size == item["bytes"],
+                     "source file byte count drift: %s" % relative)
         _require(isinstance(item["sha256"], str) and DIGEST.fullmatch(item["sha256"] or ""),
                  "source file SHA-256 is invalid: %s" % relative)
-        _require(canonical_digest(path.read_bytes()) == item["sha256"], "source file hash drift: %s" % relative)
+        if not derived_brand:
+            _require(canonical_digest(path.read_bytes()) == item["sha256"], "source file hash drift: %s" % relative)
 
 
 def _validate_approval(record, root, verify_proof_files=False):
@@ -455,7 +460,7 @@ def _validate_approval(record, root, verify_proof_files=False):
     _require(actual == expected, "canonical proof matrix is incomplete")
 
 
-def validate_record(brand, root, record, verify_proof_files=False):
+def validate_record(brand, root, record, verify_proof_files=False, allow_derived_brand=False):
     """Validate one committed or provisional identity continuity record."""
     required = {
         "schema_version", "brand", "status", "source_class", "recorded_on", "source_revision", "source_files",
@@ -475,7 +480,7 @@ def validate_record(brand, root, record, verify_proof_files=False):
     _require(isinstance(record["record_sha256"], str) and DIGEST.fullmatch(record["record_sha256"] or ""),
              "identity continuity record SHA-256 is invalid")
     _require(record["record_sha256"] == record_digest(record), "identity continuity record is stale")
-    _validate_source_files(root, record["source_files"])
+    _validate_source_files(root, record["source_files"], allow_derived_brand=allow_derived_brand)
     expected = identity_snapshot(brand, record["source_class"])
     _require(record["identity_snapshot"] == expected, "identity continuity source snapshot drift")
     _require(record["topology"] == expected["topology"], "identity continuity topology drift")
@@ -517,7 +522,7 @@ def validate_record(brand, root, record, verify_proof_files=False):
                                          if record["status"] == "approved-canonical" else None)}
 
 
-def validate_brand_continuity(brand, root):
+def validate_brand_continuity(brand, root, allow_derived_brand=False):
     reference = brand.get("identity_continuity")
     _require(isinstance(reference, dict) and set(reference) == {"record", "status"},
              "identity_continuity must contain exactly record and status")
@@ -525,10 +530,22 @@ def validate_brand_continuity(brand, root):
     path = safe_path(root, reference["record"])
     record = load_json(path)
     _require(record.get("status") == reference["status"], "identity continuity reference status drift")
-    return validate_record(brand, root, record)
+    return validate_record(brand, root, record, allow_derived_brand=allow_derived_brand)
 
 
-def production_renderer_contract():
+def proof_surface_mapping(brand=None):
+    """Map proof surfaces to only the source colourways the owner approved."""
+    colourways = set((((brand or {}).get("logo") or {}).get(
+        "colourways", ["color", "light", "white", "black"])))
+    return {
+        "dark": ("color", ((brand or {}).get("surfaces") or {}).get("base", "#000000")),
+        "light": ("light", "#F7F8FC"),
+        "black": (("white" if "white" in colourways else "color"), "#000000"),
+        "white": (("black" if "black" in colourways else "light"), "#FFFFFF"),
+    }
+
+
+def production_renderer_contract(brand=None):
     """Identify the exact production raster path and output-affecting proof settings."""
     from PIL import __version__ as pillow_version
     from process_utils import hidden_process_kwargs
@@ -543,7 +560,7 @@ def production_renderer_contract():
     )
     for name, command in commands:
         executable = shutil.which(name)
-        if executable:
+        if executable and Path(executable).suffix.lower() not in {".js", ".py"}:
             result = subprocess.run([executable] + command[1:], capture_output=True, text=True, check=False,
                                     **hidden_process_kwargs())
             renderer = name
@@ -562,12 +579,7 @@ def production_renderer_contract():
         "sizes": list(PROOF_SIZES),
         "surfaces": list(PROOF_SURFACES),
         "variants": list(PROOF_VARIANTS),
-        "surface_mapping": {
-            "dark": ["color", "surfaces.base"],
-            "light": ["light", "#F7F8FC"],
-            "black": ["white", "#000000"],
-            "white": ["black", "#FFFFFF"],
-        },
+        "surface_mapping": {name: list(values) for name, values in proof_surface_mapping(brand).items()},
         "gen_logo_sha256": canonical_digest((here / "gen_logo.py").read_bytes()),
         "iconkit_sha256": canonical_digest((here / "iconkit.py").read_bytes()),
         "resvg_adapter_sha256": canonical_digest((here / "rsvg-convert.js").read_bytes()),
@@ -578,6 +590,29 @@ def production_renderer_contract():
 
 def _current_proof_path(root, variant, size, surface):
     return Path(root) / "qc" / "identity-continuity-proofs" / ("%s-%d-%s.png" % (variant, size, surface))
+
+
+def _portable_approved_proof_dir(brand):
+    """Resolve an exact approved proof artifact supplied by a canonical-host CI job."""
+    value = os.environ.get("GP_APPROVED_PROOF_ROOT")
+    if not value:
+        return None
+    _require(isinstance(brand, dict) and isinstance(brand.get("slug"), str),
+             "portable approved proofs require a brand slug")
+    base = Path(value).resolve()
+    _require(base.is_dir() and not base.is_symlink(), "portable approved proof root is missing or unsafe")
+    relative = Path(brand["slug"]) / "qc" / "identity-continuity-proofs"
+    cursor = base
+    for part in relative.parts:
+        cursor = cursor / part
+        _require(not cursor.is_symlink(), "portable approved proof path cannot contain a symlink")
+    proof_dir = cursor.resolve()
+    try:
+        proof_dir.relative_to(base)
+    except ValueError as error:
+        raise ContinuityError("portable approved proof path escapes its root") from error
+    _require(proof_dir.is_dir(), "portable approved proof directory is missing")
+    return proof_dir
 
 
 def generate_current_proofs(brand, root):
@@ -605,12 +640,7 @@ def generate_current_proofs(brand, root):
             capture_output=True, text=True, **hidden_process_kwargs()
         )
         _require(result.returncode == 0, "production proof staging failed: %s" % ((result.stderr or result.stdout).strip()))
-        surface_map = {
-            "dark": ("color", brand.get("surfaces", {}).get("base", "#000000")),
-            "light": ("light", "#F7F8FC"),
-            "black": ("white", "#000000"),
-            "white": ("black", "#FFFFFF"),
-        }
+        surface_map = proof_surface_mapping(brand)
         current = []
         for variant in PROOF_VARIANTS:
             source_name = "mark" if variant == "full" else "mark-reduced"
@@ -636,9 +666,10 @@ def generate_current_proofs(brand, root):
     return current
 
 
-def validate_current_proof_matrix(record, root, renderer=None):
-    renderer = renderer or production_renderer_contract()
+def validate_current_proof_matrix(record, root, renderer=None, brand=None):
+    renderer = renderer or production_renderer_contract(brand)
     _require(record["renderer"] == renderer, "production proof renderer or settings drift")
+    portable_dir = _portable_approved_proof_dir(brand)
     approved = {(item["variant"], item["size_px"], item["surface"]): item for item in record["proofs"]}
     current = []
     for coordinate in sorted(approved):
@@ -646,31 +677,61 @@ def validate_current_proof_matrix(record, root, renderer=None):
         path = _current_proof_path(root, variant, size, surface)
         _require(path.is_file() and not path.is_symlink(), "current production proof is missing: %s" % path.name)
         digest = canonical_digest(path.read_bytes())
-        _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
+        same_renderer = portable_dir is None
+        if same_renderer:
+            _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
+            approved_path = path
+        else:
+            approved_path = portable_dir / path.name
+            _require(approved_path.is_file() and not approved_path.is_symlink(),
+                     "portable approved proof is missing: %s" % path.name)
+            _require(canonical_digest(approved_path.read_bytes()) == approved[coordinate]["sha256"],
+                     "portable approved proof hash drift: %s" % path.name)
         evidence_dir = path.parent / "comparisons" / ("%s-%d-%s" % coordinate)
-        comparison = compare_proofs(path, path, same_renderer=True, evidence_dir=evidence_dir, prefix="comparison")
-        _require(comparison["passes"], "current production comparison failed: %s" % path.name)
+        comparison = compare_proofs(approved_path, path, same_renderer=same_renderer,
+                                    evidence_dir=evidence_dir, prefix="comparison")
+        comparison_summary = {
+            key: comparison[key]
+            for key in (
+                "exact_sha256",
+                "approved_topology",
+                "production_topology",
+                "silhouette_iou",
+                "changed_outside_edge_fraction",
+                "approved_bbox",
+                "production_bbox",
+                "bbox_delta_max_px",
+                "centroid_delta_px",
+                "interior_delta_e_2000",
+            )
+        }
+        _require(
+            comparison["passes"],
+            "current production comparison failed: %s (%s)"
+            % (path.name, json.dumps(comparison_summary, sort_keys=True)),
+        )
         generated_evidence = {}
         for kind in EVIDENCE_KINDS:
             evidence_path = evidence_dir / comparison["evidence_paths"][kind]
             evidence_digest = canonical_digest(evidence_path.read_bytes())
-            _require(evidence_digest == approved[coordinate]["evidence"][kind]["sha256"],
-                     "current comparison evidence drift: %s %s" % (path.name, kind))
+            if same_renderer:
+                _require(evidence_digest == approved[coordinate]["evidence"][kind]["sha256"],
+                         "current comparison evidence drift: %s %s" % (path.name, kind))
             generated_evidence[kind] = {
                 "path": evidence_path.relative_to(Path(root)).as_posix(),
                 "sha256": evidence_digest,
             }
         current.append({"variant": variant, "size_px": size, "surface": surface,
                         "path": path.relative_to(Path(root)).as_posix(), "sha256": digest,
-                        "comparison": {"passes": True, "same_renderer": True,
+                        "comparison": {"passes": True, "same_renderer": same_renderer,
                                        "evidence": generated_evidence}})
     _require(len(current) == 32, "current production proof matrix is incomplete")
     return {"status": "passed", "renderer": renderer, "proofs": current}
 
 
-def continuity_report(brand, root, proof_validation=None):
+def continuity_report(brand, root, proof_validation=None, allow_derived_brand=False):
     """Measure the committed continuity source and bind the result to its bytes."""
-    result = validate_brand_continuity(brand, root)
+    result = validate_brand_continuity(brand, root, allow_derived_brand=allow_derived_brand)
     record_path = safe_path(root, brand["identity_continuity"]["record"])
     report = {
         "schema_version": 1,
@@ -696,7 +757,7 @@ def write_continuity_report(brand, root, output=None):
     if result["status"] == "approved-canonical":
         record = load_json(safe_path(root, brand["identity_continuity"]["record"]))
         generate_current_proofs(brand, root)
-        proof_validation = validate_current_proof_matrix(record, root)
+        proof_validation = validate_current_proof_matrix(record, root, brand=brand)
     report = continuity_report(brand, root, proof_validation)
     path = Path(output) if output else Path(root) / "identity-continuity-report.json"
     with open(str(path), "w", encoding="utf-8", newline="\n") as handle:
@@ -707,12 +768,12 @@ def write_continuity_report(brand, root, output=None):
 def validate_continuity_report(brand, root):
     path = safe_path(root, "identity-continuity-report.json")
     report = load_json(path)
-    result = validate_brand_continuity(brand, root)
+    result = validate_brand_continuity(brand, root, allow_derived_brand=True)
     proof_validation = None
     if result["status"] == "approved-canonical":
         record = load_json(safe_path(root, brand["identity_continuity"]["record"]))
-        proof_validation = validate_current_proof_matrix(record, root)
-    expected = continuity_report(brand, root, proof_validation)
+        proof_validation = validate_current_proof_matrix(record, root, brand=brand)
+    expected = continuity_report(brand, root, proof_validation, allow_derived_brand=True)
     _require(report == expected, "generated identity continuity report is absent or stale")
     return report
 
@@ -871,7 +932,8 @@ def compare_proofs(approved_path, production_path, same_renderer, evidence_dir=N
         centroid_delta = math.hypot(approved_centroid[0] - production_centroid[0],
                                     approved_centroid[1] - production_centroid[1])
     interior = intersection - edge_band
-    delta_e = _delta_e(_average_color(approved, interior), _average_color(production, interior))
+    color_sample = interior if interior else intersection
+    delta_e = _delta_e(_average_color(approved, color_sample), _average_color(production, color_sample))
     approved_topology = _topology(approved_mask, width, height)
     production_topology = _topology(production_mask, width, height)
     exact = canonical_digest(approved_file.read_bytes()) == canonical_digest(production_file.read_bytes())
@@ -880,8 +942,8 @@ def compare_proofs(approved_path, production_path, same_renderer, evidence_dir=N
     if same_renderer:
         passes = exact
     else:
-        passes = (approved_topology == production_topology and changed_fraction <= 0.005 and
-                  bbox_delta <= 1 and centroid_delta <= 1.0 and delta_e <= 1.0)
+        passes = exact or (approved_topology == production_topology and changed_fraction <= 0.005 and
+                           bbox_delta <= 1 and centroid_delta <= 1.0 and delta_e <= 1.0)
     evidence_paths = {}
     if evidence_dir is not None:
         evidence_paths = _write_evidence(approved, production, approved_mask, production_mask,

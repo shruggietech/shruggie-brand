@@ -1,0 +1,517 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "i-heart-pr-tours",
+  "kind": "independent-brand",
+  "title": "I Heart PR Tours",
+  "slug": "i-heart-pr-tours",
+  "version": "1.0.0",
+  "showcase_surface": "light.card",
+  "affiliation": {
+    "ownership": "third-party",
+    "showcase": "public",
+    "parent": null,
+    "inheritance": "independent",
+    "endorsement": "none",
+    "service_credit": "none"
+  },
+  "approval_ledger": {
+    "source_hashes": {
+      "heart-submark": "c341b9d3f61f9037b5007b459b87cb91ac452cfd58769c021d67bd323a7ef148",
+      "horizontal-dark-lockup": "2f50fcafa8a422ad0271e583108b79e4ace6065445b0f4615d96fa8f822ab7f3",
+      "horizontal-light-lockup": "9334768b68e3c3d1dace13088c8a8cb2f6ac29c6f288c602029c52cd10d9e969",
+      "horizontal-sand-treatment": "7e117230b1605e5bc023a5157758429c7fc1a5ac6486f523de0eb2e4bb48c7d6",
+      "vertical-dark-lockup": "bcd03c0784b442a2c38836f9b2e6c312149a9cc1bddd3c1480fae28ea9b5f045",
+      "vertical-light-lockup": "7da9be465100e91cd0cc82019e1b2afcfc7e734ff6e11a53fd23675ef2dbed80",
+      "vertical-sand-treatment": "f53fc580aaab858cb1e1bef2ff4bdd0f635959d39e96827d7add9f703a5cc04b"
+    },
+    "gate_1": {
+      "status": "approved",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-11",
+      "scope": [
+        "reduced-and-platform",
+        "horizontal-lockup",
+        "stacked-lockup",
+        "single-ink"
+      ],
+      "unavailable_derivatives": {
+        "wordmark-only": "No standalone wordmark source exists in the approved package."
+      },
+      "derivative_config_sha256": "467bdbdd790721c2968df37881f4df2b95f90caaeded74b99184d05ce5c411cb",
+      "canonical_source_sha256": "5ccb1f368bc70c250e4fe7a93528f93e6b21d77afc59c561c1b0e09953f5e7c8"
+    },
+    "gate_2": {
+      "status": "approved",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-11",
+      "derivative_manifest_sha256": "9aae47141e989c34ea64e460a3594179192e2443012e15922dd3f6e49bccd41b",
+      "surfaces": [
+        "showcase-card",
+        "brand-landing-page",
+        "guideline-topics",
+        "downloads",
+        "registry-endpoints",
+        "public-metadata",
+        "structured-data",
+        "social-preview"
+      ]
+    }
+  },
+  "homepage": "https://iheartprtours.com",
+  "registry_base": "https://brand.shruggie.tech/i-heart-pr-tours/brand",
+  "vendor_boundary": {
+    "required": true,
+    "notice": "I Heart PR Tours is an independent third-party brand. I Heart PR Tours owns its trademarks and is responsible for its tours, services, and applicable terms.",
+    "entities": [
+      "I Heart PR Tours"
+    ],
+    "trademark_owner": "I Heart PR Tours",
+    "terms_responsibility": "I Heart PR Tours owns its trademarks and is responsible for its tours, services, and applicable terms."
+  },
+  "descriptor": "Thoughtfully guided tours on the island we love.",
+  "functional_descriptor": "Thoughtfully guide guests through Puerto Rico's places, stories, landscapes, and local character.",
+  "category": "Puerto Rico guided tour service",
+  "role": "Help guests discover Puerto Rico through carefully planned experiences, local perspective, and genuine personality.",
+  "audience": "Travelers, media guests, partners, and organizers evaluating a guided public relations tour.",
+  "brand_idea": "Experience Puerto Rico",
+  "governing_principle": "Share the Puerto Rico we love with thoughtful guidance, local knowledge, and room to experience each place.",
+  "voice": {
+    "qualities": [
+      "warm",
+      "locally informed",
+      "thoughtful",
+      "adventurous"
+    ],
+    "lead_with": [
+      "the place and experience",
+      "local perspective and story",
+      "the practical detail that helps guests feel ready"
+    ],
+    "avoid": [
+      "generic tourism hype",
+      "unsupported guarantees",
+      "institutional jargon",
+      "false urgency"
+    ]
+  },
+  "register": "warm-professional",
+  "shruggie_flourish": false,
+  "wordmark_text": "I Heart PR Tours",
+  "assumptions": [
+    "I Heart PR Tours is an independent third-party customer identity.",
+    "All approved SVG and favicon source files remain byte-for-byte unchanged.",
+    "Single-ink marks are deterministic mask derivatives of the approved light-surface sources.",
+    "No public showcase, registry, hosted guide, release, or deployment is authorized."
+  ],
+  "accent": {
+    "bright": "#68A9DD",
+    "deep": "#1C5B8D",
+    "accessible": "#1C5B8D",
+    "dim": "#A1CFF4"
+  },
+  "semantic_colors": {
+    "emphasis": "#A1CFF4",
+    "action": "#C5342C"
+  },
+  "legacy_palette": [
+    "#1C5B8D",
+    "#68A9DD",
+    "#A1CFF4",
+    "#C5342C",
+    "#5D4A46",
+    "#FFFFFF",
+    "#F8F6F2",
+    "#111111",
+    "#555555"
+  ],
+  "surfaces": {
+    "base": "#08131D",
+    "card": "#101F2C",
+    "popover": "#0C1823",
+    "secondary": "#172A3A",
+    "hover": "#203A4D"
+  },
+  "light_surfaces": {
+    "base": "#FFFFFF",
+    "card": "#FFFFFF",
+    "popover": "#FFFFFF",
+    "secondary": "#F8F6F2",
+    "hover": "#EEF4F8",
+    "foreground": "#111111",
+    "muted_foreground": "#555555"
+  },
+  "typography": {
+    "mode": "fixed",
+    "families": {
+      "display": {
+        "name": "Poppins",
+        "weights": [
+          700
+        ]
+      },
+      "body": {
+        "name": "Source Sans 3",
+        "weights": [
+          400,
+          600
+        ]
+      },
+      "mono": {
+        "name": "Courier Prime",
+        "weights": [
+          400
+        ]
+      }
+    },
+    "faces": [
+      {
+        "role": "display",
+        "path": "fonts/ttf/Poppins-Bold.ttf",
+        "weight": 700,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "7219547ee25334cbac0fe4b3acf0bf631e48ebb622c71af038edaaa652c60875",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied Poppins.zip",
+        "usage_status": "approved"
+      },
+      {
+        "role": "body",
+        "path": "fonts/ttf/SourceSans3-Regular.ttf",
+        "weight": 400,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "393fb5b878ceed04aebc34b097e853ae5138c51d0c34b496ce8e2b47e0d0b94a",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied Source_Sans_3.zip",
+        "usage_status": "approved"
+      },
+      {
+        "role": "body",
+        "path": "fonts/ttf/SourceSans3-SemiBold.ttf",
+        "weight": 600,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "bd2550fce2d295b0bf20bd8b1b7f1477da834f1066bd850aafdb4787a67a63ca",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied Source_Sans_3.zip",
+        "usage_status": "approved"
+      },
+      {
+        "role": "mono",
+        "path": "fonts/ttf/CourierPrime-Regular.ttf",
+        "weight": 400,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "b4da920fa50d874bce2cab0517e4732384a6eef8fe7e1e653d2befcb8aac1aa6",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied Courier_Prime.zip",
+        "usage_status": "approved"
+      }
+    ]
+  },
+  "authoritative_inputs": [
+    {
+      "id": "vertical-dark-lockup",
+      "role": "mark",
+      "path": "assets/source/vertical_darkbg.svg",
+      "format": "svg",
+      "sha256": "bcd03c0784b442a2c38836f9b2e6c312149a9cc1bddd3c1480fae28ea9b5f045",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied I Heart PR Tours identity source",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup"
+      ]
+    },
+    {
+      "id": "heart-submark",
+      "role": "reduced-mark",
+      "path": "assets/source/heart.svg",
+      "format": "svg",
+      "sha256": "c341b9d3f61f9037b5007b459b87cb91ac452cfd58769c021d67bd323a7ef148",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied I Heart PR Tours identity source",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "vertical-light-lockup",
+      "role": "lockup",
+      "path": "assets/source/vertical_lightbg.svg",
+      "format": "svg",
+      "sha256": "7da9be465100e91cd0cc82019e1b2afcfc7e734ff6e11a53fd23675ef2dbed80",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied I Heart PR Tours identity source",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "horizontal-dark-lockup",
+      "role": "lockup",
+      "path": "assets/source/horizontal_darkbg.svg",
+      "format": "svg",
+      "sha256": "2f50fcafa8a422ad0271e583108b79e4ace6065445b0f4615d96fa8f822ab7f3",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied I Heart PR Tours identity source",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize"
+      ]
+    },
+    {
+      "id": "horizontal-light-lockup",
+      "role": "lockup",
+      "path": "assets/source/horizontal_lightbg.svg",
+      "format": "svg",
+      "sha256": "9334768b68e3c3d1dace13088c8a8cb2f6ac29c6f288c602029c52cd10d9e969",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied I Heart PR Tours identity source",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "vertical-sand-treatment",
+      "role": "lockup",
+      "path": "assets/source/vertical_sand.svg",
+      "format": "svg",
+      "sha256": "f53fc580aaab858cb1e1bef2ff4bdd0f635959d39e96827d7add9f703a5cc04b",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied I Heart PR Tours identity source",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize"
+      ]
+    },
+    {
+      "id": "horizontal-sand-treatment",
+      "role": "lockup",
+      "path": "assets/source/horizontal_sand.svg",
+      "format": "svg",
+      "sha256": "7e117230b1605e5bc023a5157758429c7fc1a5ac6486f523de0eb2e4bb48c7d6",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied I Heart PR Tours identity source",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize"
+      ]
+    }
+  ],
+  "palette_approvals": [],
+  "domain_components": {
+    "TourCard": [
+      "name",
+      "destination",
+      "duration",
+      "summary",
+      "availability"
+    ],
+    "ItineraryStop": [
+      "time",
+      "place",
+      "activity",
+      "accessibility_note"
+    ],
+    "BookingSummary": [
+      "party_size",
+      "date",
+      "price_context",
+      "next_step"
+    ],
+    "Testimonial": [
+      "quote",
+      "attribution",
+      "trip_context"
+    ]
+  },
+  "logo": {
+    "source_mode": "authoritative",
+    "direct_source_outputs": true,
+    "authoritative_input_ids": {
+      "full": "vertical-dark-lockup",
+      "reduced": "heart-submark"
+    },
+    "colourways": [
+      "color",
+      "light",
+      "black",
+      "white"
+    ],
+    "full_colourway_input_ids": {
+      "light": "vertical-light-lockup"
+    },
+    "supplied_lockup_input_ids": {
+      "horizontal": {
+        "color": "horizontal-dark-lockup",
+        "light": "horizontal-light-lockup"
+      },
+      "stacked": {
+        "color": "vertical-dark-lockup",
+        "light": "vertical-light-lockup"
+      }
+    },
+    "grid": 375,
+    "canvas_width": 375,
+    "canvas_height": 375,
+    "artwork_width": 186.75,
+    "artwork_height": 260.249993754,
+    "reduced_artwork_width": 339,
+    "reduced_artwork_height": 311.24999253,
+    "standalone_padding_units": {
+      "full": 18,
+      "reduced": 18
+    },
+    "clear_space_units": 18,
+    "reduced_below_px": 64,
+    "min_px": {
+      "mark": 96,
+      "horizontal": 160,
+      "stacked": 144
+    },
+    "application_icon": {
+      "background": "#FFFFFF",
+      "source_variant": "reduced",
+      "monochrome_platforms": false,
+      "transparent_web_icons": true,
+      "shadow_suppression": {
+        "alpha_floor": 112,
+        "alpha_transition": 80
+      },
+      "framing": {
+        "content_ratio": 0.896,
+        "vertical_offset_ratio": 0.02
+      },
+      "supplied_targets": [
+        {"source": "assets/source/favicon/favicon-16x16.png", "sha256": "e4c0850cf048353765f60b433c3c1992b4cecdf1efe16184cef348462b355f22", "target": "icons/web/favicon-16x16.png"},
+        {"source": "assets/source/favicon/favicon-32x32.png", "sha256": "008c8f1b9cc7fa1bd380baa6371f16dec075fa97dd755dbf2f19349c91ba5c9c", "target": "icons/web/favicon-32x32.png"},
+        {"source": "assets/source/favicon/favicon-96x96.png", "sha256": "622c064f3b7d3b7b23718988c4af7a6042045e74f88203217440866d888c4101", "target": "icons/web/favicon-96x96.png"},
+        {"source": "assets/source/favicon/favicon.ico", "sha256": "8a9b7accdfbfa53f93f6f8e86df12be999da2991cfc840b130a233d6989866a3", "target": "icons/web/favicon.ico"},
+        {"source": "assets/source/favicon/apple-icon-180x180.png", "sha256": "e65fba35377286f9142407ffd22b16df644d6b3685690cf6fa65d9d4ca3c6d73", "target": "icons/web/apple-touch-icon.png"},
+        {"source": "assets/source/favicon/android-icon-192x192.png", "sha256": "56ead852873e7e4f17dbf7db06332aa0b3a30df14e660e1ccd63df89ff53158f", "target": "icons/web/android-chrome-192x192.png"},
+        {"source": "assets/source/favicon/android-icon-48x48.png", "sha256": "904b5119e1b1f15a4db21039675c9e0df0a2f29017631480e03ecd413c200ac2", "target": "icons/android/app/src/main/res/mipmap-mdpi/ic_launcher.png"},
+        {"source": "assets/source/favicon/android-icon-72x72.png", "sha256": "e7a670bdae6ce70cfc7491a4e89007089b36c2114f2c69fd5e7f848ceea11609", "target": "icons/android/app/src/main/res/mipmap-hdpi/ic_launcher.png"},
+        {"source": "assets/source/favicon/android-icon-96x96.png", "sha256": "622c064f3b7d3b7b23718988c4af7a6042045e74f88203217440866d888c4101", "target": "icons/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png"},
+        {"source": "assets/source/favicon/android-icon-144x144.png", "sha256": "424bde84b7cb53634d0265dc8bacd42ba5d302b170beab871d01cbba9dcea015", "target": "icons/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png"},
+        {"source": "assets/source/favicon/android-icon-192x192.png", "sha256": "56ead852873e7e4f17dbf7db06332aa0b3a30df14e660e1ccd63df89ff53158f", "target": "icons/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png"},
+        {"source": "assets/source/favicon/ms-icon-150x150.png", "sha256": "0c70d1c73401e8820cfb3383797c84889f9c3d73bc6f27bb20297fbf85f8385a", "target": "icons/windows/msix/Assets/Square150x150Logo.scale-100.png"}
+      ]
+    },
+    "single_ink": {
+      "full_input_id": "vertical-light-lockup",
+      "reduced_input_id": "heart-submark",
+      "horizontal_input_id": "horizontal-light-lockup",
+      "stacked_input_id": "vertical-light-lockup",
+      "alpha_floor": 112,
+      "alpha_transition": 80,
+      "white_knockout_floor": 239,
+      "white_knockout_transition": 56
+    },
+    "paths": {
+      "full": [
+        {
+          "element": "image",
+          "role": "accent",
+          "source": "assets/source/vertical_darkbg.svg",
+          "x": 94.125,
+          "y": 57.375003123,
+          "width": 186.75,
+          "height": 260.249993754
+        }
+      ],
+      "reduced": [
+        {
+          "element": "image",
+          "role": "accent",
+          "source": "assets/source/heart.svg",
+          "x": 18,
+          "y": 31.875003735,
+          "width": 339,
+          "height": 311.24999253
+        }
+      ]
+    },
+    "prohibitions": [
+      "Do not edit, normalize, trace, simplify, crop, recolor, or replace any supplied SVG.",
+      "Do not reconstruct the logo lettering from the delivered font files.",
+      "Do not invent a wordmark-only variant or alter the approved single-ink derivation thresholds.",
+      "Do not use a monochrome mark for an application icon or favicon.",
+      "Do not imply ShruggieTech ownership, endorsement, maintenance, or warranty."
+    ],
+    "geometry_provenance": "imported",
+    "geometry_provenance_reason": "The full, reduced, horizontal, vertical, and sand-treatment masters embed owner-approved SVG bytes unchanged."
+  },
+  "guide": {
+    "surface_mode": "light",
+    "idea": "Experience Puerto Rico",
+    "descriptor": "Thoughtfully guided tours on the island we love.",
+    "written_form": "Use I Heart PR Tours for the formal company name and identity applications. IHPRT is approved for casual shorthand and general prose after the full name is established. Never use IHPRT as a substitute logo or alter the supplied identity artwork.",
+    "foundation_title": "From the heart",
+    "foundation": "I Heart PR Tours creates thoughtful experiences through Puerto Rico's places, stories, and landscapes, guided by local knowledge, genuine personality, and love for the island.",
+    "personality": [
+      [
+        "Warm",
+        "Invites guests into the Puerto Rico we love",
+        "Generic enthusiasm"
+      ],
+      [
+        "Locally informed",
+        "Brings history, culture, and local perspective to life",
+        "Unsupported claims"
+      ],
+      [
+        "Thoughtful",
+        "Plans well while leaving room to enjoy the place",
+        "Artificial urgency"
+      ]
+    ],
+    "promises": [
+      "Local knowledge and personality shape every experience.",
+      "Carefully chosen places reveal more of Puerto Rico.",
+      "Guests receive thoughtful guidance and room to enjoy the journey."
+    ],
+    "in_scope": [
+      "Tour discovery",
+      "Itinerary detail",
+      "Booking context",
+      "Guest preparation",
+      "Experience follow-up"
+    ],
+    "out_of_scope": [
+      "Unsupported guarantees",
+      "False scarcity",
+      "Anonymous testimonials",
+      "Unclear pricing claims"
+    ],
+    "sharp_edge": "Use the fixed red only in AA-compliant pairings. Lighter blues and sand tones are supporting fills, not ordinary text on white.",
+    "logo": "Use the exact supplied dark or light lockup for its intended surface. Use the colored heart for reduced, favicon, and application-icon contexts. Single-ink files are derived only through the approved source-faithful mask process.",
+    "palette": "White paper and soft paper establish the light-first identity. Red carries action, blue provides the primary supporting structure, and brown appears occasionally as a warm secondary note.",
+    "specimen_line": "Experience Puerto Rico",
+    "specimen_body": "Thoughtfully guided tours on the island we love.",
+    "expressions": [
+      {"title": "Vertical sand expression", "description": "An approved atmospheric treatment for spacious campaign and editorial placements.", "path": "assets/source/vertical_sand.svg"},
+      {"title": "Horizontal sand expression", "description": "An approved atmospheric treatment for wide campaign and editorial placements.", "path": "assets/source/horizontal_sand.svg"}
+    ]
+  },
+  "canon": "1.2.1",
+  "identity_continuity": {
+    "record": "identity-continuity.json",
+    "status": "approved-canonical"
+  }
+}

@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import json
 import os
@@ -187,8 +189,10 @@ def application_icon_profile(brand):
         configured = {}
     else:
         _require(isinstance(configured, dict), "logo.application_icon must be an object")
-        _require(set(configured) == {"background"},
-                 "logo.application_icon must contain exactly the supported background field")
+        allowed = {"background", "source_variant", "monochrome_platforms", "transparent_web_icons", "shadow_suppression",
+                   "framing", "supplied_targets"}
+        _require("background" in configured and set(configured).issubset(allowed),
+                 "logo.application_icon must contain exactly the supported fields")
     surfaces = brand.get("surfaces") or {}
     background = configured.get("background", surfaces.get("base", "#000000"))
     _require(isinstance(background, str) and HEX.fullmatch(background),
@@ -197,7 +201,130 @@ def application_icon_profile(brand):
     _require(isinstance(threshold, int) and not isinstance(threshold, bool)
              and 1 <= threshold <= 1024,
              "reduced mark threshold must be an integer from 1 through 1024")
-    return {"background": background.upper(), "reduced_below_px": threshold}
+    source_variant = configured.get("source_variant", "full")
+    _require(source_variant in {"full", "reduced"},
+             "application icon source_variant must be full or reduced")
+    monochrome = configured.get("monochrome_platforms", True)
+    _require(isinstance(monochrome, bool), "application icon monochrome_platforms must be boolean")
+    _require(not monochrome or "colourways" not in logo or "white" in logo["colourways"],
+             "application icon monochrome platforms require a white logo colourway")
+    transparent_web = configured.get("transparent_web_icons", False)
+    _require(isinstance(transparent_web, bool), "application icon transparent_web_icons must be boolean")
+    suppression = configured.get("shadow_suppression")
+    if suppression is not None:
+        _require(isinstance(suppression, dict) and set(suppression) == {"alpha_floor", "alpha_transition"},
+                 "application icon shadow_suppression has an invalid structure")
+        floor = suppression["alpha_floor"]
+        transition = suppression["alpha_transition"]
+        _require(isinstance(floor, int) and not isinstance(floor, bool) and 0 <= floor <= 254,
+                 "application icon alpha_floor must be an integer from 0 through 254")
+        _require(isinstance(transition, int) and not isinstance(transition, bool) and 1 <= transition <= 255,
+                 "application icon alpha_transition must be an integer from 1 through 255")
+    framing = configured.get("framing")
+    if framing is not None:
+        _require(isinstance(framing, dict) and set(framing) == {"content_ratio", "vertical_offset_ratio"},
+                 "application icon framing has an invalid structure")
+        ratio = framing["content_ratio"]
+        offset = framing["vertical_offset_ratio"]
+        _require(isinstance(ratio, (int, float)) and not isinstance(ratio, bool) and 0 < ratio <= 1,
+                 "application icon content_ratio must be greater than zero and no greater than one")
+        _require(isinstance(offset, (int, float)) and not isinstance(offset, bool) and -0.25 <= offset <= 0.25,
+                 "application icon vertical_offset_ratio must be from -0.25 through 0.25")
+    targets = configured.get("supplied_targets", [])
+    _require(isinstance(targets, list), "application icon supplied_targets must be an array")
+    normalized_targets = []
+    seen_targets = set()
+    for index, item in enumerate(targets):
+        _require(isinstance(item, dict) and set(item) == {"source", "sha256", "target"},
+                 "application icon supplied target %d has an invalid structure" % index)
+        source = item["source"]
+        target = item["target"]
+        for label, value in (("source", source), ("target", target)):
+            _require(isinstance(value, str) and value and "\\" not in value,
+                     "application icon supplied target %s must be a portable relative path" % label)
+            parts = value.split("/")
+            _require(not value.startswith("/") and all(part not in {"", ".", ".."} for part in parts),
+                     "application icon supplied target %s must stay inside the kit" % label)
+        _require(target.startswith(("icons/web/", "icons/android/", "icons/apple/", "icons/windows/")),
+                 "application icon supplied target destination is unsupported")
+        _require(Path(source).suffix.lower() == Path(target).suffix.lower()
+                 and Path(target).suffix.lower() in {".png", ".ico"},
+                 "application icon supplied targets must use matching PNG or ICO formats")
+        _require(target not in seen_targets, "application icon supplied target is duplicated: %s" % target)
+        seen_targets.add(target)
+        _require(DIGEST.fullmatch(item["sha256"] or ""), "application icon supplied target has an invalid SHA-256")
+        normalized_targets.append(dict(item))
+    result = {"background": background.upper(), "reduced_below_px": threshold}
+    if "source_variant" in configured:
+        result["source_variant"] = source_variant
+    if suppression is not None:
+        result["shadow_suppression"] = dict(suppression)
+    if framing is not None:
+        result["framing"] = dict(framing)
+    if "monochrome_platforms" in configured:
+        result["monochrome_platforms"] = monochrome
+    if "transparent_web_icons" in configured:
+        result["transparent_web_icons"] = transparent_web
+    if targets:
+        result["supplied_targets"] = normalized_targets
+    return result
+
+
+def _supplied_icon_target_dimensions(target):
+    """Infer the exact generated PNG slot dimensions from its governed path."""
+    filename = target.rsplit("/", 1)[-1]
+    match = re.fullmatch(r"(?:favicon|android-chrome)-(\d+)x(\d+)\.png", filename)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+    if target == "icons/web/apple-touch-icon.png":
+        return 180, 180
+    match = re.fullmatch(
+        r"icons/android/app/src/main/res/mipmap-(mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)/ic_launcher\.png",
+        target,
+    )
+    if match:
+        size = {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}[match.group(1)]
+        return size, size
+    match = re.search(r"\.targetsize-(\d+)", filename)
+    if match:
+        size = int(match.group(1))
+        return size, size
+    match = re.fullmatch(r"(Square(\d+)x(\d+)Logo|StoreLogo)\.scale-(100|200|400)\.png", filename)
+    if match:
+        scale = int(match.group(4))
+        width = int(match.group(2) or 50) * scale // 100
+        height = int(match.group(3) or 50) * scale // 100
+        return width, height
+    match = re.fullmatch(r"icon_(\d+)x(\d+)(?:@([12])x)?\.png", filename)
+    if match:
+        scale = int(match.group(3) or 1)
+        return int(match.group(1)) * scale, int(match.group(2)) * scale
+    match = re.search(r"(?:AppIcon-)?(\d+)(?:x(\d+))?(?:@([123])x)?\.png$", filename)
+    if match:
+        scale = int(match.group(3) or 1)
+        width = int(match.group(1)) * scale
+        height = int(match.group(2) or match.group(1)) * scale
+        return width, height
+    return None
+
+
+def validate_supplied_icon_dimensions(brand, kit):
+    """Fail before generation when supplied PNG bytes do not fit their target slot."""
+    for item in application_icon_profile(brand).get("supplied_targets", []):
+        if not item["source"].lower().endswith(".png"):
+            continue
+        expected = _supplied_icon_target_dimensions(item["target"])
+        _require(expected is not None,
+                 "supplied application icon target dimensions cannot be inferred: %s" % item["target"])
+        source = contained_path(kit, item["source"])
+        data = source.read_bytes()
+        _require(len(data) >= 24 and data.startswith(b"\x89PNG\r\n\x1a\n") and data[12:16] == b"IHDR",
+                 "supplied application icon source is not a valid PNG: %s" % item["source"])
+        actual = struct.unpack(">II", data[16:24])
+        _require(actual == expected,
+                 "supplied application icon dimensions %sx%s do not match target %s dimensions %sx%s"
+                 % (actual[0], actual[1], item["target"], expected[0], expected[1]))
+    return True
 
 
 def square_enclosure_profile(brand):
@@ -317,10 +444,15 @@ def showcase_surface(brand):
         return None
     _require(isinstance(role, str) and role.strip(),
              "showcase_surface must be a non-empty surface role")
-    surfaces = brand.get("surfaces")
-    _require(isinstance(surfaces, dict) and role in surfaces,
-             "showcase surface role %r is not declared in surfaces" % role)
-    value = surfaces[role]
+    family = "surfaces"
+    resolved_role = role
+    if role.startswith("light."):
+        family = "light_surfaces"
+        resolved_role = role[len("light."):]
+    surfaces = brand.get(family)
+    _require(isinstance(surfaces, dict) and resolved_role in surfaces,
+             "showcase surface role %r is not declared in %s" % (role, family))
+    value = surfaces[resolved_role]
     _require(isinstance(value, str) and HEX.fullmatch(value),
              "showcase surface must resolve to a six-digit hex color")
     return value.upper()
@@ -359,7 +491,7 @@ def vendor_boundary(brand):
     return value
 
 
-def approval_ledger(brand, normalized_inputs=None):
+def approval_ledger(brand, normalized_inputs=None, kit=None):
     value = brand.get("approval_ledger")
     if value is None:
         return None
@@ -382,7 +514,7 @@ def approval_ledger(brand, normalized_inputs=None):
     gate_1 = value["gate_1"]
     gate_1_required = {"status", "approved_by", "approved_on", "scope", "derivative_config_sha256"}
     _require(isinstance(gate_1, dict) and gate_1_required.issubset(set(gate_1))
-             and set(gate_1).issubset(gate_1_required | {"canonical_source_sha256"}),
+             and set(gate_1).issubset(gate_1_required | {"canonical_source_sha256", "unavailable_derivatives"}),
              "approval_ledger.gate_1 has an invalid structure")
     _require(gate_1["status"] == "approved", "Gate 1 approval is required before derivative generation")
     _require(isinstance(gate_1["approved_by"], str) and gate_1["approved_by"].strip(),
@@ -393,8 +525,17 @@ def approval_ledger(brand, normalized_inputs=None):
              and len(gate_1["scope"]) == len(set(gate_1["scope"]))
              and all(ID.fullmatch(item or "") for item in gate_1["scope"]),
              "Gate 1 approval scope must be a non-empty unique id array")
-    _require(set(gate_1["scope"]) == DERIVATIVE_FAMILIES,
-             "Gate 1 approval scope does not cover every derivative family")
+    unavailable = gate_1.get("unavailable_derivatives", {})
+    _require(isinstance(unavailable, dict)
+             and all(item in DERIVATIVE_FAMILIES and isinstance(reason, str) and reason.strip()
+                     for item, reason in unavailable.items()),
+             "Gate 1 unavailable derivatives must name supported families with non-empty reasons")
+    scoped = set(gate_1["scope"])
+    unavailable_families = set(unavailable)
+    _require(not scoped.intersection(unavailable_families),
+             "Gate 1 derivative families cannot be both approved and unavailable")
+    _require(scoped | unavailable_families == DERIVATIVE_FAMILIES,
+             "Gate 1 approval must account for every derivative family")
     _require(DIGEST.fullmatch(gate_1["derivative_config_sha256"] or "")
              and gate_1["derivative_config_sha256"] == derivative_configuration_sha256(brand),
              "Gate 1 approval is stale because derivative-producing configuration changed")
@@ -413,9 +554,25 @@ def approval_ledger(brand, normalized_inputs=None):
         _require(DIGEST.fullmatch(gate_2["derivative_manifest_sha256"] or ""),
                  "Gate 2 approval lacks a derivative manifest hash")
         surfaces = gate_2["surfaces"]
-        _require(isinstance(surfaces, list) and surfaces and len(surfaces) == len(set(surfaces))
+        _require(isinstance(surfaces, list) and len(surfaces) == len(set(surfaces))
                  and set(surfaces).issubset(PUBLICATION_SURFACES),
-                 "Gate 2 approval contains missing, duplicate, or unsupported publication surfaces")
+                 "Gate 2 approval contains duplicate or unsupported publication surfaces")
+        _require(affiliation(brand)["showcase"] == "public",
+                 "approved Gate 2 brands must be published on the public brand website")
+        _require(set(surfaces) == PUBLICATION_SURFACES,
+                 "approved Gate 2 must authorize the complete public surface set")
+        if kit is not None:
+            approval = contained_path(kit, "logos/approval.json")
+            if sha256_file(approval) != gate_2["derivative_manifest_sha256"]:
+                # Canonical Windows approval artifacts can differ bytewise from
+                # Linux output solely because embedded PNG encoders differ. Reuse
+                # the verifier's fail-closed semantic comparison when CI provides
+                # the exact canonical artifact instead of weakening this binding.
+                from verify import portable_gate_2_matches
+                matched, reason = portable_gate_2_matches(
+                    kit, brand, approval, gate_2["derivative_manifest_sha256"])
+                _require(matched,
+                         "Gate 2 approval is stale because derivative provenance changed (%s)" % reason)
     else:
         _require(gate_2["approved_by"] is None and gate_2["approved_on"] is None
                  and gate_2["derivative_manifest_sha256"] is None and gate_2["surfaces"] == [],
@@ -436,20 +593,17 @@ def canonical_gate_binding(brand, continuity):
 
 
 def public_showcase(brand, kit=None):
-    if affiliation(brand)["showcase"] != "public":
-        return False
+    showcase = affiliation(brand)["showcase"]
     ledger = brand.get("approval_ledger")
     if ledger is None:
-        return True
-    gate_2 = approval_ledger(brand)["gate_2"]
+        return showcase == "public"
+    gate_2 = approval_ledger(brand, kit=kit)["gate_2"]
+    if showcase != "public":
+        return False
     if gate_2["status"] != "approved":
         return False
     _require(set(gate_2["surfaces"]) == PUBLICATION_SURFACES,
              "Gate 2 approval does not authorize the complete public surface set")
-    if kit is not None:
-        approval = contained_path(kit, "logos/approval.json")
-        _require(sha256_file(approval) == gate_2["derivative_manifest_sha256"],
-                 "Gate 2 approval is stale because derivative provenance changed")
     return True
 
 
@@ -580,7 +734,20 @@ def _validate_svg(path):
             value = str(raw_value).strip()
             _require(not name.startswith("on"), "supplied SVG contains an event handler")
             if name in {"href", "src"}:
-                _require(value.startswith("#"), "supplied SVG contains an external reference")
+                if value.startswith("#"):
+                    pass
+                elif value.startswith("data:image/png;base64,"):
+                    encoded = value.partition(",")[2]
+                    _require(encoded and re.fullmatch(r"[A-Za-z0-9+/]*={0,2}", encoded) is not None,
+                             "supplied SVG contains a malformed embedded PNG")
+                    try:
+                        payload = base64.b64decode(encoded, validate=True)
+                    except (binascii.Error, ValueError) as error:
+                        raise ContractError("supplied SVG contains a malformed embedded PNG") from error
+                    _require(payload.startswith(b"\x89PNG\r\n\x1a\n"),
+                             "supplied SVG embedded data is not a PNG")
+                else:
+                    _require(False, "supplied SVG contains an external reference")
             lowered = value.lower().replace(" ", "")
             _require("http:" not in lowered and "https:" not in lowered and "@import" not in lowered, "supplied SVG contains a network reference")
             if "url(" in lowered:
@@ -593,7 +760,8 @@ def authoritative_inputs(brand, kit):
     identifiers = set()
     protected_roles = set()
     by_path = {}
-    allowed_transforms = {"embed-unchanged", "recolor-mask", "resize", "place-in-lockup", "palette-analysis"}
+    allowed_transforms = {"embed-unchanged", "recolor-mask", "resize", "place-in-lockup",
+                          "palette-analysis", "derive-single-ink"}
     normalized = []
     for index, record in enumerate(records):
         required = {"id", "role", "path", "format", "sha256", "color_profile", "usage_status", "license", "approved_transformations"}
@@ -606,8 +774,8 @@ def authoritative_inputs(brand, kit):
         _require(ID.fullmatch(record["id"] or ""), "authoritative input %d has an invalid id" % index)
         _require(record["id"] not in identifiers, "duplicate authoritative input id: %s" % record["id"])
         identifiers.add(record["id"])
-        _require(record["role"] in {"mark", "reduced-mark", "wordmark", "reference-art"}, "authoritative input %s has an unsupported role" % record["id"])
-        if record["role"] != "reference-art":
+        _require(record["role"] in {"mark", "reduced-mark", "wordmark", "lockup", "reference-art"}, "authoritative input %s has an unsupported role" % record["id"])
+        if record["role"] not in {"lockup", "reference-art"}:
             _require(record["role"] not in protected_roles, "duplicate authoritative input role: %s" % record["role"])
             protected_roles.add(record["role"])
         _require(record["format"] in {"svg", "png", "jpeg", "webp"}, "authoritative input %s has an unsupported format" % record["id"])
@@ -718,13 +886,28 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
     approved_protected = [record for record, _path in normalized_inputs
                           if record["role"] in {"mark", "reduced-mark"}
                           and record["usage_status"] == "approved"]
+    colourways = logo.get("colourways", ["color", "light", "white", "black"])
+    _require(isinstance(colourways, list) and colourways
+             and len(colourways) == len(set(colourways))
+             and set(colourways).issubset({"color", "light", "white", "black"}),
+             "logo.colourways must be a non-empty unique supported colourway array")
+    _require({"color", "light"}.issubset(set(colourways)),
+             "logo.colourways must include color and light for required downstream consumers")
 
     if mode == "constructed":
         _require("authoritative_input_ids" not in logo,
                  "constructed logo cannot declare authoritative_input_ids")
         _require(not approved_protected,
                  "constructed logo cannot declare approved mark or reduced-mark authoritative inputs")
-        return {"source_mode": mode, "full": None, "reduced": None}
+        return {
+            "source_mode": mode,
+            "full": None,
+            "reduced": None,
+            "inputs": {},
+            "colourways": tuple(colourways),
+            "full_colourways": {},
+            "supplied_lockups": {},
+        }
 
     bindings = logo.get("authoritative_input_ids")
     _require(isinstance(bindings, dict) and set(bindings) == {"full", "reduced"},
@@ -789,6 +972,77 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
         }
     _require(bindings["full"] != bindings["reduced"],
              "full and reduced authoritative logo variants require distinct inputs")
+    resolved["inputs"] = {record["id"]: {"record": record, "path": path}
+                          for record, path in normalized_inputs}
+    resolved["inputs"][bindings["full"]] = resolved["full"]
+    resolved["inputs"][bindings["reduced"]] = resolved["reduced"]
+
+    resolved["colourways"] = tuple(colourways)
+
+    def resolve_svg_binding(input_id, label, roles):
+        _require(isinstance(input_id, str) and ID.fullmatch(input_id or ""),
+                 "%s has an invalid authoritative input id" % label)
+        bound = resolved["inputs"].get(input_id)
+        _require(bound is not None, "%s references unknown input %s" % (label, input_id))
+        record = bound["record"]
+        _require(record["role"] in roles,
+                 "%s requires authoritative role %s, got %s" % (label, " or ".join(sorted(roles)), record["role"]))
+        _require(record["usage_status"] == "approved", "%s input %s is not approved" % (label, input_id))
+        _require(record["format"] == "svg", "%s input %s must be a passive SVG" % (label, input_id))
+        _require({"embed-unchanged", "resize"}.issubset(set(record["approved_transformations"])),
+                 "%s input %s must approve embed-unchanged and resize" % (label, input_id))
+        width, height = _image_dimensions(bound["path"])
+        return dict(bound, element={"element": "image", "source": record["path"],
+                                   "x": 0, "y": 0, "width": width, "height": height})
+
+    full_colourways = logo.get("full_colourway_input_ids", {})
+    _require(isinstance(full_colourways, dict) and set(full_colourways).issubset(set(colourways)),
+             "logo.full_colourway_input_ids contains an unsupported colourway")
+    resolved["full_colourways"] = {
+        colourway: resolve_svg_binding(input_id, "full colourway %s" % colourway, {"mark", "lockup"})
+        for colourway, input_id in full_colourways.items()
+    }
+
+    supplied = logo.get("supplied_lockup_input_ids", {})
+    _require(isinstance(supplied, dict) and set(supplied).issubset({"horizontal", "stacked"}),
+             "logo.supplied_lockup_input_ids contains an unsupported family")
+    resolved["supplied_lockups"] = {}
+    for family, mapping in supplied.items():
+        _require(isinstance(mapping, dict) and mapping and set(mapping).issubset(set(colourways)),
+                 "supplied %s lockups must bind supported configured colourways" % family)
+        resolved["supplied_lockups"][family] = {
+            colourway: resolve_svg_binding(input_id, "%s %s lockup" % (family, colourway), {"lockup", "mark"})
+            for colourway, input_id in mapping.items()
+        }
+    unavailable = set(((((brand.get("approval_ledger") or {}).get("gate_1") or {})
+                       .get("unavailable_derivatives") or {})))
+    _require(not resolved["supplied_lockups"] or "wordmark-only" in unavailable,
+             "supplied lockups require wordmark-only to be explicitly unavailable so generated wordmarks cannot replace approved masters")
+    single = logo.get("single_ink")
+    resolved["single_ink"] = None
+    if single is not None:
+        required = {"full_input_id", "reduced_input_id", "horizontal_input_id", "stacked_input_id",
+                    "alpha_floor", "alpha_transition", "white_knockout_floor", "white_knockout_transition"}
+        _require(isinstance(single, dict) and set(single) == required,
+                 "logo.single_ink must contain exactly the approved deterministic transform fields")
+        resolved_single = {}
+        for key in ("full_input_id", "reduced_input_id", "horizontal_input_id", "stacked_input_id"):
+            input_id = single[key]
+            bound = resolved["inputs"].get(input_id)
+            _require(bound is not None, "logo.single_ink references unknown input %s" % input_id)
+            _require(bound["record"]["format"] == "svg" and bound["record"]["usage_status"] == "approved",
+                     "logo.single_ink input %s must be an approved passive SVG" % input_id)
+            _require("derive-single-ink" in bound["record"]["approved_transformations"],
+                     "logo.single_ink input %s does not approve derive-single-ink" % input_id)
+            resolved_single[key] = bound
+        for key in ("alpha_floor", "alpha_transition", "white_knockout_floor", "white_knockout_transition"):
+            value = single[key]
+            _require(isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 255,
+                     "logo.single_ink %s must be an integer from 0 through 255" % key)
+        _require(single["alpha_transition"] > 0 and single["white_knockout_transition"] > 0,
+                 "logo.single_ink transitions must be positive")
+        resolved_single["settings"] = {key: single[key] for key in required if key.endswith(("floor", "transition"))}
+        resolved["single_ink"] = resolved_single
     return resolved
 
 
@@ -901,6 +1155,7 @@ def validate_brand(brand, kit):
         _require(all(isinstance(value, str) and HEX.fullmatch(value) for value in colors.values()), "independent semantic colors must be six-digit hex values")
     validate_typography(brand, kit)
     application_icon_profile(brand)
+    validate_supplied_icon_dimensions(brand, kit)
     square_enclosure_profile(brand)
     wordmark_role_colors(brand)
     showcase_surface(brand)

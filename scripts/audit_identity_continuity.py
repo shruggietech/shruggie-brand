@@ -26,6 +26,7 @@ BRAND_CLASSES = {
     "fragcap": "legacy-constructed",
     "glitchpad": "legacy-constructed",
     "go-schedule": "legacy-constructed",
+    "i-heart-pr-tours": "authoritative",
     "shruggietech": "authoritative",
 }
 REFERENCE = {"record": "identity-continuity.json", "status": "historical-baseline"}

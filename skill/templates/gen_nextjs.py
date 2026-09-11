@@ -123,25 +123,33 @@ def build_slots(canon, brand):
         "sidebar-accent": hover_dark,     "sidebar-accent-foreground": "#FFFFFF",
         "sidebar-border": "#262626",      "sidebar-ring": a,
     }
+    light_surface = brand.get("light_surfaces") or {}
+    light_background = light_surface.get("base", "#F8F8F6")
+    light_foreground = light_surface.get("foreground", "#0A0A0A")
+    light_card = light_surface.get("card", "#FFFFFF")
+    light_popover = light_surface.get("popover", "#FFFFFF")
+    light_secondary = light_surface.get("secondary", "#F0EFED")
+    light_hover = light_surface.get("hover", light_secondary)
+    light_muted_foreground = light_surface.get("muted_foreground", "#6B6B6B")
     light = {
-        "background": "#F8F8F6",          "foreground": "#0A0A0A",
-        "card": "#FFFFFF",                "card-foreground": "#0A0A0A",
-        "popover": "#FFFFFF",             "popover-foreground": "#0A0A0A",
+        "background": light_background,      "foreground": light_foreground,
+        "card": light_card,                  "card-foreground": light_foreground,
+        "popover": light_popover,            "popover-foreground": light_foreground,
         "primary": al,                    "primary-foreground": legal_fg(al),
-        "secondary": "#F0EFED",           "secondary-foreground": "#0A0A0A",
-        "muted": "#F5F5F5",               "muted-foreground": "#6B6B6B",
-        "accent": "#F0EFED",              "accent-foreground": "#0A0A0A",
+        "secondary": light_secondary,      "secondary-foreground": light_foreground,
+        "muted": light_hover,              "muted-foreground": light_muted_foreground,
+        "accent": light_hover,             "accent-foreground": light_foreground,
         "destructive": fault_deep,
         "border": "#E5E5E5", "input": "#E5E5E5", "ring": al,
-        "sidebar": "#FFFFFF",             "sidebar-foreground": "#0A0A0A",
+        "sidebar": light_card,             "sidebar-foreground": light_foreground,
         "sidebar-primary": al,            "sidebar-primary-foreground": legal_fg(al),
-        "sidebar-accent": "#F0EFED",      "sidebar-accent-foreground": "#0A0A0A",
+        "sidebar-accent": light_hover,     "sidebar-accent-foreground": light_foreground,
         "sidebar-border": "#E5E5E5",      "sidebar-ring": al,
     }
     chart_cfg = brand.get("chart_palette", {})
     for i, hx in enumerate(charts(a, base_dark, chart_cfg.get("dark_target_lightness"), chart_cfg.get("hue_rotations")), 1):
         dark["chart-%d" % i] = hx
-    for i, hx in enumerate(charts(al, "#F8F8F6", chart_cfg.get("light_target_lightness"), chart_cfg.get("hue_rotations")), 1):
+    for i, hx in enumerate(charts(al, light_background, chart_cfg.get("light_target_lightness"), chart_cfg.get("hue_rotations")), 1):
         light["chart-%d" % i] = hx
 
     # brand-layer extras beyond shadcn's own slot list

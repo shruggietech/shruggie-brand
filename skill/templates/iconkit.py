@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import shutil
@@ -18,6 +19,7 @@ from brand_contract import application_icon_profile
 
 
 SCHEMA_VERSION = "1.0.0"
+_AUTO_MONOCHROME = object()
 ANDROID_DENSITIES = {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}
 WINDOWS_TARGETS = (16, 20, 24, 30, 32, 36, 40, 48, 60, 64, 72, 80, 96, 256)
 ICO_SIZES = (16, 24, 32, 48, 64, 128, 256)
@@ -100,7 +102,19 @@ def _visible_crop(image):
     return rgba.crop(box)
 
 
-def contain_visible(mark, size, ratio, color=None):
+def suppress_shadow_alpha(image, floor, transition):
+    """Remove low-alpha source shadows without changing surviving RGB pixels."""
+    Image, _, _ = _pillow()
+    rgba = image.convert("RGBA")
+    alpha = rgba.getchannel("A")
+    alpha = alpha.point(lambda value: max(0, min(255, round(255 * (value - floor) / transition))))
+    clean = Image.new("RGBA", rgba.size)
+    clean.paste(rgba, (0, 0))
+    clean.putalpha(alpha)
+    return clean
+
+
+def contain_visible(mark, size, ratio, color=None, vertical_offset_ratio=0):
     if not isinstance(size, int) or isinstance(size, bool) or size < 1:
         raise ValueError("square composition size must be a positive integer")
     if not isinstance(ratio, (int, float)) or isinstance(ratio, bool) or not 0 < ratio <= 1:
@@ -116,15 +130,52 @@ def contain_visible(mark, size, ratio, color=None):
         fill.putalpha(source.getchannel("A"))
         source = fill
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    canvas.alpha_composite(source, ((size - source.width) // 2, (size - source.height) // 2))
+    x = (size - source.width) // 2
+    y = (size - source.height) // 2 + int(round(size * vertical_offset_ratio))
+    y = max(0, min(size - source.height, y))
+    canvas.alpha_composite(source, (x, y))
     return canvas
 
 
-def _plated(mark, size, background, ratio=0.72, color=None):
+def _plated(mark, size, background, ratio=0.72, color=None, vertical_offset_ratio=0):
     Image, _, _ = _pillow()
     canvas = Image.new("RGBA", (size, size), _hex_rgb(background) + (255,))
-    canvas.alpha_composite(contain_visible(mark, size, ratio, color))
+    canvas.alpha_composite(contain_visible(mark, size, ratio, color, vertical_offset_ratio))
     return canvas
+
+
+def _profile_frame(writer, fallback):
+    framing = writer.profile.get("framing") or {}
+    return framing.get("content_ratio", fallback), framing.get("vertical_offset_ratio", 0)
+
+
+def _apply_supplied_targets(writer):
+    by_path = {item["path"]: item for item in writer.artifacts}
+    for item in writer.profile.get("supplied_targets", []):
+        source = (writer.kit / item["source"]).resolve()
+        target = (writer.kit / item["target"]).resolve()
+        if writer.kit not in source.parents or writer.kit not in target.parents:
+            raise ValueError("supplied application icon path escapes the kit")
+        if not source.is_file():
+            raise ValueError("supplied application icon source is missing: %s" % item["source"])
+        digest = hashlib.sha256(source.read_bytes()).hexdigest()
+        if digest != item["sha256"]:
+            raise ValueError("supplied application icon hash drift: %s" % item["source"])
+        record = by_path.get(item["target"])
+        if record is None or not target.is_file():
+            if not writer.capabilities.get("svg_raster"):
+                continue
+            raise ValueError("supplied application icon target is not generated: %s" % item["target"])
+        if source.suffix.lower() != target.suffix.lower():
+            raise ValueError("supplied application icon source and target formats differ")
+        shutil.copy2(str(source), str(target))
+        record["source_variant"] = "source-preserved"
+        record["source"] = item["source"]
+        record["source_sha256"] = digest
+        if target.suffix.lower() == ".png":
+            inspected = inspect_png(target)
+            record["width"], record["height"] = inspected["size"]
+            record["alpha"] = "transparent" if inspected["has_transparency"] else "opaque"
 
 
 def _png_bytes(image):
@@ -247,10 +298,22 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
     root = writer.kit / "icons" / "web"
     start = len(writer.artifacts)
     background = writer.profile["background"]
+    ratio, offset = _profile_frame(writer, 0.72)
+    transparent_web = writer.profile.get("transparent_web_icons", False)
     for name, source, variant in (("favicon.svg", reduced_svg, "reduced"), ("favicon-full.svg", full_svg, "full")):
         path = root / name
-        write_text(path, _svg_wrapper(source, background))
-        writer.record(path, "web", "favicon", "svg", 512, 512, "default", "opaque", variant, "Web root or document icon link")
+        if raster and transparent_web:
+            mark = reduced_mark if variant == "reduced" else full_mark
+            framed = contain_visible(mark, 512, ratio, vertical_offset_ratio=offset)
+            encoded = base64.b64encode(_png_bytes(framed)).decode("ascii")
+            content = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">\n'
+                       '  <image width="512" height="512" href="data:image/png;base64,%s"/>\n</svg>\n' % encoded)
+            write_text(path, content)
+            alpha = "transparent"
+        else:
+            write_text(path, _svg_wrapper(source, background, ratio))
+            alpha = "opaque"
+        writer.record(path, "web", "favicon", "svg", 512, 512, "default", alpha, variant, "Web root or document icon link")
     readme = root / "README.md"
     writer.text(readme, _suite_readme(
         "Web icons",
@@ -265,17 +328,18 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
         writer.suites.append({"id": "web", "root": "icons/web", "readme": writer.relative(readme),
                               "manifest": writer.relative(manifest), "status": "generated", "reason": "vector-only at core tier"})
         return
-    sizes = (16, 24, 32, 48, 64, 128, 180, 192, 256, 512)
+    sizes = (16, 24, 32, 48, 64, 96, 128, 180, 192, 256, 512)
     images = {}
     for size in sizes:
         variant = "reduced" if size <= writer.profile["reduced_below_px"] else "full"
         mark = reduced_mark if variant == "reduced" else full_mark
-        image = _plated(mark, size, background, 0.72)
+        image = (contain_visible(mark, size, ratio, vertical_offset_ratio=offset) if transparent_web
+                 else _plated(mark, size, background, ratio, vertical_offset_ratio=offset))
         images[size] = image
-        writer.png(root / ("favicon-%dx%d.png" % (size, size)), image, "web", "favicon", alpha="opaque", source_variant=variant, destination="Web root")
-    writer.png(root / "apple-touch-icon.png", images[180], "web", "apple-touch", alpha="opaque", destination="Web root")
+        writer.png(root / ("favicon-%dx%d.png" % (size, size)), image, "web", "favicon", alpha="transparent" if transparent_web else "opaque", source_variant=variant, destination="Web root")
+    writer.png(root / "apple-touch-icon.png", images[180], "web", "apple-touch", alpha="transparent" if transparent_web else "opaque", destination="Web root")
     for size in (192, 512):
-        writer.png(root / ("android-chrome-%dx%d.png" % (size, size)), images[size], "web", "installable", alpha="opaque", destination="Web root")
+        writer.png(root / ("android-chrome-%dx%d.png" % (size, size)), images[size], "web", "installable", alpha="transparent" if transparent_web else "opaque", destination="Web root")
     ico = root / "favicon.ico"
     _write_ico([(size, images[size]) for size in ICO_SIZES], ico)
     writer.record(ico, "web", "favicon-ico", "ico", appearance="default", alpha="opaque", source_variant="mixed", destination="Web root")
@@ -299,6 +363,7 @@ def _write_android(writer, full_mark, monochrome_mark):
     root = writer.kit / "icons" / "android"
     start = len(writer.artifacts)
     background = writer.profile["background"]
+    ratio, offset = _profile_frame(writer, 0.72)
     readme = root / "README.md"
     writer.text(readme, _suite_readme(
         "Android icons", "Copy the `app/src/main/res` tree into an Android application and upload the separate Play image in Play Console.",
@@ -306,19 +371,23 @@ def _write_android(writer, full_mark, monochrome_mark):
     ), "android", "instructions")
     res = root / "app" / "src" / "main" / "res"
     for density, size in ANDROID_DENSITIES.items():
-        writer.png(res / ("mipmap-%s" % density) / "ic_launcher.png", _plated(full_mark, size, background, 0.72),
+        writer.png(res / ("mipmap-%s" % density) / "ic_launcher.png", _plated(full_mark, size, background, ratio, vertical_offset_ratio=offset),
                    "android", "legacy-launcher", alpha="opaque", destination="Android res/mipmap-%s" % density)
     foreground = contain_visible(full_mark, 432, 66.0 / 108.0)
-    monochrome = contain_visible(monochrome_mark, 432, 66.0 / 108.0, "#FFFFFF")
     writer.png(res / "drawable-nodpi" / "ic_launcher_foreground.png", foreground, "android", "adaptive-foreground", alpha="transparent", destination="Android res/drawable-nodpi")
-    writer.png(res / "drawable-nodpi" / "ic_launcher_monochrome.png", monochrome, "android", "adaptive-monochrome", alpha="transparent", source_variant="monochrome", destination="Android res/drawable-nodpi")
+    if monochrome_mark is not None:
+        monochrome = contain_visible(monochrome_mark, 432, 66.0 / 108.0, "#FFFFFF")
+        writer.png(res / "drawable-nodpi" / "ic_launcher_monochrome.png", monochrome, "android", "adaptive-monochrome", alpha="transparent", source_variant="monochrome", destination="Android res/drawable-nodpi")
     background_xml = '<?xml version="1.0" encoding="utf-8"?>\n<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="@color/ic_launcher_background"/></shape>\n'
     writer.text(res / "drawable" / "ic_launcher_background.xml", background_xml, "android", "adaptive-background", "xml", "Android res/drawable")
-    adaptive = '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@drawable/ic_launcher_background"/><foreground android:drawable="@drawable/ic_launcher_foreground"/><monochrome android:drawable="@drawable/ic_launcher_monochrome"/></adaptive-icon>\n'
+    monochrome_node = ('<monochrome android:drawable="@drawable/ic_launcher_monochrome"/>'
+                       if monochrome_mark is not None else '')
+    adaptive = '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@drawable/ic_launcher_background"/><foreground android:drawable="@drawable/ic_launcher_foreground"/>%s</adaptive-icon>\n' % monochrome_node
     writer.text(res / "mipmap-anydpi-v26" / "ic_launcher.xml", adaptive, "android", "adaptive-declaration", "xml", "Android res/mipmap-anydpi-v26")
     colors = '<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="ic_launcher_background">%s</color></resources>\n' % background
     writer.text(res / "values" / "ic_launcher_colors.xml", colors, "android", "color-resource", "xml", "Android res/values")
-    writer.png(root / "play-store" / "google-play-512.png", _plated(full_mark, 512, background, 0.75),
+    play_ratio, play_offset = _profile_frame(writer, 0.75)
+    writer.png(root / "play-store" / "google-play-512.png", _plated(full_mark, 512, background, play_ratio, vertical_offset_ratio=play_offset),
                "android", "play-store", alpha="opaque", destination="Google Play Console")
     entries = writer.artifacts[start:]
     manifest = writer.platform_manifest(root, "android", entries)
@@ -330,17 +399,19 @@ def _write_ios(writer, full_mark, monochrome_mark):
     root = writer.kit / "icons" / "apple" / "ios"
     start = len(writer.artifacts)
     background = writer.profile["background"]
+    ratio, offset = _profile_frame(writer, 0.72)
     readme = root / "README.md"
     writer.text(readme, _suite_readme(
         "iOS and iPadOS icons", "Copy `Assets.xcassets/AppIcon.appiconset` into an Xcode asset catalog and select it as the primary app icon set.",
         (("Assets.xcassets/AppIcon.appiconset", "Current single-size default, dark, and tinted inputs"),),
     ), "apple-ios", "instructions")
     catalog = root / "Assets.xcassets" / "AppIcon.appiconset"
-    images = (
-        ("AppIcon-1024.png", _plated(full_mark, 1024, background, 0.72), None),
-        ("AppIcon-1024-dark.png", _plated(full_mark, 1024, "#000000", 0.72), "dark"),
-        ("AppIcon-1024-tinted.png", _plated(monochrome_mark, 1024, "#FFFFFF", 0.72, "#000000"), "tinted"),
-    )
+    images = [
+        ("AppIcon-1024.png", _plated(full_mark, 1024, background, ratio, vertical_offset_ratio=offset), None),
+        ("AppIcon-1024-dark.png", _plated(full_mark, 1024, "#000000", ratio, vertical_offset_ratio=offset), "dark"),
+    ]
+    if monochrome_mark is not None:
+        images.append(("AppIcon-1024-tinted.png", _plated(monochrome_mark, 1024, "#FFFFFF", 0.72, "#000000"), "tinted"))
     rows = []
     for name, image, appearance in images:
         writer.png(catalog / name, image, "apple-ios", "app-icon", appearance or "default", "opaque",
@@ -362,6 +433,7 @@ def _write_macos(writer, full_mark):
     root = writer.kit / "icons" / "apple" / "macos"
     start = len(writer.artifacts)
     background = writer.profile["background"]
+    ratio, offset = _profile_frame(writer, 0.72)
     readme = root / "README.md"
     writer.text(readme, _suite_readme(
         "macOS icons", "Use the asset catalog in Xcode, the conventional iconset with `iconutil`, or the ready `AppIcon.icns` container.",
@@ -373,7 +445,7 @@ def _write_macos(writer, full_mark):
     icns_images = {}
     for points, scale in MAC_ROLES:
         pixels = points * scale
-        image = _plated(full_mark, pixels, background, 0.72)
+        image = _plated(full_mark, pixels, background, ratio, vertical_offset_ratio=offset)
         suffix = "@2x" if scale == 2 else ""
         name = "icon_%dx%d%s.png" % (points, points, suffix)
         writer.png(catalog / name, image, "apple-macos", "asset-catalog-icon", alpha="opaque", destination="Xcode AppIcon.appiconset")
@@ -396,6 +468,7 @@ def _write_windows(writer, full_mark, reduced_mark):
     root = writer.kit / "icons" / "windows"
     start = len(writer.artifacts)
     background = writer.profile["background"]
+    ratio, offset = _profile_frame(writer, 0.72)
     readme = root / "README.md"
     writer.text(readme, _suite_readme(
         "Windows icons", "Use `classic/app.ico` for Win32 and the `msix` directory for packaged Windows applications.",
@@ -406,7 +479,7 @@ def _write_windows(writer, full_mark, reduced_mark):
     ico_images = {}
     for size in ICO_SIZES:
         mark = reduced_mark if size <= writer.profile["reduced_below_px"] else full_mark
-        ico_images[size] = _plated(mark, size, background, 0.72)
+        ico_images[size] = _plated(mark, size, background, ratio, vertical_offset_ratio=offset)
     ico = root / "classic" / "app.ico"
     _write_ico([(size, ico_images[size]) for size in ICO_SIZES], ico)
     writer.record(ico, "windows", "classic-ico", "ico", appearance="default", alpha="opaque", source_variant="mixed", destination="Win32 application")
@@ -414,19 +487,19 @@ def _write_windows(writer, full_mark, reduced_mark):
     for base, label in ((44, "Square44x44Logo"), (150, "Square150x150Logo")):
         for scale in (100, 200, 400):
             pixels = base * scale // 100
-            writer.png(assets / ("%s.scale-%d.png" % (label, scale)), _plated(full_mark, pixels, background, 0.72),
+            writer.png(assets / ("%s.scale-%d.png" % (label, scale)), _plated(full_mark, pixels, background, ratio, vertical_offset_ratio=offset),
                        "windows", "msix-scale", alpha="opaque", destination="MSIX Assets")
     for size in WINDOWS_TARGETS:
         mark = reduced_mark if size <= writer.profile["reduced_below_px"] else full_mark
-        writer.png(assets / ("Square44x44Logo.targetsize-%d.png" % size), _plated(mark, size, background, 0.72),
+        writer.png(assets / ("Square44x44Logo.targetsize-%d.png" % size), _plated(mark, size, background, ratio, vertical_offset_ratio=offset),
                    "windows", "target-size", alpha="opaque", source_variant="reduced" if mark is reduced_mark else "full", destination="MSIX Assets")
-        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-unplated.png" % size), contain_visible(mark, size, 0.72),
+        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-unplated.png" % size), contain_visible(mark, size, ratio, vertical_offset_ratio=offset),
                    "windows", "target-size", "dark-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
-        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size), contain_visible(mark, size, 0.72),
+        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size), contain_visible(mark, size, ratio, vertical_offset_ratio=offset),
                    "windows", "target-size", "light-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
     for scale in (100, 200, 400):
         pixels = 50 * scale // 100
-        writer.png(assets / ("StoreLogo.scale-%d.png" % scale), _plated(full_mark, pixels, background, 0.72),
+        writer.png(assets / ("StoreLogo.scale-%d.png" % scale), _plated(full_mark, pixels, background, ratio, vertical_offset_ratio=offset),
                    "windows", "store-logo", alpha="opaque", destination="MSIX Assets")
     title = str(writer.brand["title"])
     visual_elements = ('<?xml version="1.0" encoding="utf-8"?>\n'
@@ -460,19 +533,25 @@ def _write_skipped(writer, platform, root, reason):
                           "manifest": writer.relative(manifest), "status": "skipped", "reason": reason})
 
 
-def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabilities, monochrome_svg=None):
+def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabilities,
+                         monochrome_svg=_AUTO_MONOCHROME):
     """Generate the authoritative platform tree and legacy web aliases."""
     kit = Path(kit).resolve()
     full_svg = Path(full_svg).resolve()
     reduced_svg = Path(reduced_svg).resolve()
+    if monochrome_svg is _AUTO_MONOCHROME:
+        monochrome_svg = full_svg
     domain_icons = _collect_domain_icons(kit / "icons")
     safe_reset(kit, kit / "icons")
     safe_reset(kit, kit / "favicons")
     profile = application_icon_profile(brand)
+    if not profile.get("monochrome_platforms", True):
+        monochrome_svg = None
     source_masters = {
         "full": full_svg.relative_to(kit).as_posix(),
         "reduced": reduced_svg.relative_to(kit).as_posix(),
-        "monochrome": Path(monochrome_svg or full_svg).resolve().relative_to(kit).as_posix(),
+        "monochrome": (Path(monochrome_svg).resolve().relative_to(kit).as_posix()
+                       if monochrome_svg else None),
     }
     writer = Writer(kit, brand, profile, capabilities, source_masters)
     marker = kit / "icons" / GENERATION_MARKER
@@ -502,13 +581,21 @@ def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabili
             monochrome_path = Path(temporary) / "monochrome.png"
             render_svg(full_svg, full_path, 1024)
             render_svg(reduced_svg, reduced_path, 1024)
-            render_svg(monochrome_svg or full_svg, monochrome_path, 1024)
+            if monochrome_svg:
+                render_svg(monochrome_svg, monochrome_path, 1024)
             with Image.open(str(full_path)) as image:
                 full_mark = image.convert("RGBA")
             with Image.open(str(reduced_path)) as image:
                 reduced_mark = image.convert("RGBA")
-            with Image.open(str(monochrome_path)) as image:
-                monochrome_mark = image.convert("RGBA")
+            if monochrome_svg:
+                with Image.open(str(monochrome_path)) as image:
+                    monochrome_mark = image.convert("RGBA")
+        suppression = profile.get("shadow_suppression")
+        if suppression:
+            full_mark = suppress_shadow_alpha(full_mark, suppression["alpha_floor"], suppression["alpha_transition"])
+            reduced_mark = suppress_shadow_alpha(reduced_mark, suppression["alpha_floor"], suppression["alpha_transition"])
+            if monochrome_mark is not None:
+                monochrome_mark = suppress_shadow_alpha(monochrome_mark, suppression["alpha_floor"], suppression["alpha_transition"])
     _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster_capable)
     if raster_capable:
         _write_android(writer, full_mark, monochrome_mark)
@@ -521,6 +608,13 @@ def generate_icon_suites(brand, kit, full_svg, reduced_svg, render_svg, capabili
         _write_skipped(writer, "apple-ios", kit / "icons" / "apple" / "ios", reason)
         _write_skipped(writer, "apple-macos", kit / "icons" / "apple" / "macos", reason)
         _write_skipped(writer, "windows", kit / "icons" / "windows", reason)
+    _apply_supplied_targets(writer)
+    by_path = {item["path"]: item for item in writer.artifacts}
+    for suite in writer.suites:
+        manifest_path = kit / suite["manifest"]
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        payload["artifacts"] = [by_path.get(item["path"], item) for item in payload["artifacts"]]
+        write_text(manifest_path, json.dumps(payload, indent=2) + "\n")
     aliases = {}
     web = kit / "icons" / "web"
     for source in sorted(web.iterdir()):

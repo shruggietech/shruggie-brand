@@ -1,0 +1,1592 @@
+{
+  "schema_version": 1,
+  "brand": "i-heart-pr-tours",
+  "status": "approved-canonical",
+  "source_class": "authoritative",
+  "recorded_on": "2026-09-11",
+  "source_revision": "iheartpr-g1-r4:b9227a150963b9736b2998f8fffde5d5f119b1f97de5f0be8e60f9ee2fad3759",
+  "source_files": [
+    {
+      "path": "brand.json",
+      "purpose": "canonical brand source",
+      "bytes": 19093,
+      "sha256": "edb37e629a39fdbd35fad9a5fdef1b1bba00c1cc28794b51b945ce17b581c106"
+    },
+    {
+      "path": "README.md",
+      "purpose": "human-readable source contract",
+      "bytes": 3109,
+      "sha256": "3b79f642ef02257aa7f732a759b3a9e9ecbc1305b9422efc6758a002d4190a70"
+    },
+    {
+      "path": "fixtures/product.json",
+      "purpose": "synthetic product content fixture",
+      "bytes": 1086,
+      "sha256": "92c9f573d64691417a5977fe4c11efc176c21a2ac33753c6ab2f855a6cbd0fd3"
+    },
+    {
+      "path": "assets/source/favicon/android-icon-144x144.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 14936,
+      "sha256": "424bde84b7cb53634d0265dc8bacd42ba5d302b170beab871d01cbba9dcea015"
+    },
+    {
+      "path": "assets/source/favicon/android-icon-192x192.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 23734,
+      "sha256": "56ead852873e7e4f17dbf7db06332aa0b3a30df14e660e1ccd63df89ff53158f"
+    },
+    {
+      "path": "assets/source/favicon/android-icon-36x36.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 2711,
+      "sha256": "0a3b31d1da1deb203f4aa77e5a90f7f18745a68c048acbc9fe04e25043fd9df5"
+    },
+    {
+      "path": "assets/source/favicon/android-icon-48x48.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 3749,
+      "sha256": "904b5119e1b1f15a4db21039675c9e0df0a2f29017631480e03ecd413c200ac2"
+    },
+    {
+      "path": "assets/source/favicon/android-icon-72x72.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 5432,
+      "sha256": "e7a670bdae6ce70cfc7491a4e89007089b36c2114f2c69fd5e7f848ceea11609"
+    },
+    {
+      "path": "assets/source/favicon/android-icon-96x96.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 8049,
+      "sha256": "622c064f3b7d3b7b23718988c4af7a6042045e74f88203217440866d888c4101"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-114x114.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 10367,
+      "sha256": "887672a52ca7623de038ae373fc7f0d077051a994ff8b6956bee5c8f59f9a011"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-120x120.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 11342,
+      "sha256": "830847e8e1b127e6eafcefef81e8334cba898961ad3f37fe2ad74070aec79339"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-144x144.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 14936,
+      "sha256": "424bde84b7cb53634d0265dc8bacd42ba5d302b170beab871d01cbba9dcea015"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-152x152.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 16462,
+      "sha256": "fd54510575c0a8f880bae8baab8c0d9763a2827cbd0323d994d71dabbd3e26ea"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-180x180.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 22004,
+      "sha256": "e65fba35377286f9142407ffd22b16df644d6b3685690cf6fa65d9d4ca3c6d73"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-57x57.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 4282,
+      "sha256": "0f5affe03e44ff4cce40f9d234428d026fb42c9d4505225412106284378f34d0"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-60x60.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 4515,
+      "sha256": "5f8567a2d98bfed020e00a05496449dd6af5f3f7d15d37479100cc2ae8876801"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-72x72.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 5432,
+      "sha256": "e7a670bdae6ce70cfc7491a4e89007089b36c2114f2c69fd5e7f848ceea11609"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-76x76.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 5829,
+      "sha256": "c12b37a54df94e4faf41642970e828a22772fe48401b668b1b96a9e6f5f70705"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon-precomposed.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 24276,
+      "sha256": "a37bba7c0dd7df1cb08082cad2f9d058a78bc58570db6115b2ccbe03431a4896"
+    },
+    {
+      "path": "assets/source/favicon/apple-icon.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 24276,
+      "sha256": "a37bba7c0dd7df1cb08082cad2f9d058a78bc58570db6115b2ccbe03431a4896"
+    },
+    {
+      "path": "assets/source/favicon/browserconfig.xml",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 365,
+      "sha256": "4a15856826ec46aa18e5e7c9d6e8ff7b90625d22eafb8d761617134e5eff599d"
+    },
+    {
+      "path": "assets/source/favicon/favicon-16x16.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 1510,
+      "sha256": "e4c0850cf048353765f60b433c3c1992b4cecdf1efe16184cef348462b355f22"
+    },
+    {
+      "path": "assets/source/favicon/favicon-32x32.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 2418,
+      "sha256": "008c8f1b9cc7fa1bd380baa6371f16dec075fa97dd755dbf2f19349c91ba5c9c"
+    },
+    {
+      "path": "assets/source/favicon/favicon-96x96.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 8049,
+      "sha256": "622c064f3b7d3b7b23718988c4af7a6042045e74f88203217440866d888c4101"
+    },
+    {
+      "path": "assets/source/favicon/favicon.ico",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 1150,
+      "sha256": "8a9b7accdfbfa53f93f6f8e86df12be999da2991cfc840b130a233d6989866a3"
+    },
+    {
+      "path": "assets/source/favicon/index.html",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 8875,
+      "sha256": "8e551dfd201ed3fee4c2174bebf24f4b4d2e41b881937a007bef22efb6999178"
+    },
+    {
+      "path": "assets/source/favicon/manifest.json",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 2271,
+      "sha256": "0ba5b06d1543ab53959eb74b07870d52c9c42f96096c0d7fed80670816de078e"
+    },
+    {
+      "path": "assets/source/favicon/ms-icon-144x144.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 14936,
+      "sha256": "424bde84b7cb53634d0265dc8bacd42ba5d302b170beab871d01cbba9dcea015"
+    },
+    {
+      "path": "assets/source/favicon/ms-icon-150x150.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 16052,
+      "sha256": "0c70d1c73401e8820cfb3383797c84889f9c3d73bc6f27bb20297fbf85f8385a"
+    },
+    {
+      "path": "assets/source/favicon/ms-icon-310x310.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 49894,
+      "sha256": "1356856bed6396df433efb11c7e59cf953352b1f70af12ba8cb4b3003af6551f"
+    },
+    {
+      "path": "assets/source/favicon/ms-icon-70x70.png",
+      "purpose": "approved source favicon or platform icon",
+      "bytes": 5321,
+      "sha256": "770c4481d631e844bf0e059bb05043fd7dc44150f27d531b90d6cb493c2cdbbc"
+    },
+    {
+      "path": "assets/source/heart.svg",
+      "purpose": "approved source artwork",
+      "bytes": 662184,
+      "sha256": "c341b9d3f61f9037b5007b459b87cb91ac452cfd58769c021d67bd323a7ef148"
+    },
+    {
+      "path": "assets/source/horizontal_darkbg.svg",
+      "purpose": "approved source artwork",
+      "bytes": 336793,
+      "sha256": "2f50fcafa8a422ad0271e583108b79e4ace6065445b0f4615d96fa8f822ab7f3"
+    },
+    {
+      "path": "assets/source/horizontal_lightbg.svg",
+      "purpose": "approved source artwork",
+      "bytes": 336793,
+      "sha256": "9334768b68e3c3d1dace13088c8a8cb2f6ac29c6f288c602029c52cd10d9e969"
+    },
+    {
+      "path": "assets/source/horizontal_sand.svg",
+      "purpose": "approved source artwork",
+      "bytes": 341298,
+      "sha256": "7e117230b1605e5bc023a5157758429c7fc1a5ac6486f523de0eb2e4bb48c7d6"
+    },
+    {
+      "path": "assets/source/vertical_darkbg.svg",
+      "purpose": "approved source artwork",
+      "bytes": 336445,
+      "sha256": "bcd03c0784b442a2c38836f9b2e6c312149a9cc1bddd3c1480fae28ea9b5f045"
+    },
+    {
+      "path": "assets/source/vertical_lightbg.svg",
+      "purpose": "approved source artwork",
+      "bytes": 336445,
+      "sha256": "7da9be465100e91cd0cc82019e1b2afcfc7e734ff6e11a53fd23675ef2dbed80"
+    },
+    {
+      "path": "assets/source/vertical_sand.svg",
+      "purpose": "approved source artwork",
+      "bytes": 341403,
+      "sha256": "f53fc580aaab858cb1e1bef2ff4bdd0f635959d39e96827d7add9f703a5cc04b"
+    }
+  ],
+  "identity_snapshot": {
+    "source_class": "authoritative",
+    "geometry": {
+      "source_mode": "authoritative",
+      "geometry_provenance": "imported",
+      "paths": {
+        "full": [
+          {
+            "element": "image",
+            "role": "accent",
+            "source": "assets/source/vertical_darkbg.svg",
+            "x": 94.125,
+            "y": 57.375003123,
+            "width": 186.75,
+            "height": 260.249993754
+          }
+        ],
+        "reduced": [
+          {
+            "element": "image",
+            "role": "accent",
+            "source": "assets/source/heart.svg",
+            "x": 18,
+            "y": 31.875003735,
+            "width": 339,
+            "height": 311.24999253
+          }
+        ]
+      },
+      "authoritative_input_ids": {
+        "full": "vertical-dark-lockup",
+        "reduced": "heart-submark"
+      }
+    },
+    "derivative_settings": {
+      "source_mode": "authoritative",
+      "direct_source_outputs": true,
+      "authoritative_input_ids": {
+        "full": "vertical-dark-lockup",
+        "reduced": "heart-submark"
+      },
+      "colourways": [
+        "color",
+        "light",
+        "black",
+        "white"
+      ],
+      "full_colourway_input_ids": {
+        "light": "vertical-light-lockup"
+      },
+      "supplied_lockup_input_ids": {
+        "horizontal": {
+          "color": "horizontal-dark-lockup",
+          "light": "horizontal-light-lockup"
+        },
+        "stacked": {
+          "color": "vertical-dark-lockup",
+          "light": "vertical-light-lockup"
+        }
+      },
+      "grid": 375,
+      "canvas_width": 375,
+      "canvas_height": 375,
+      "artwork_width": 186.75,
+      "artwork_height": 260.249993754,
+      "reduced_artwork_width": 339,
+      "reduced_artwork_height": 311.24999253,
+      "standalone_padding_units": {
+        "full": 18,
+        "reduced": 18
+      },
+      "clear_space_units": 18,
+      "reduced_below_px": 64,
+      "min_px": {
+        "mark": 96,
+        "horizontal": 160,
+        "stacked": 144
+      },
+      "application_icon": {
+        "background": "#FFFFFF",
+        "source_variant": "reduced",
+        "monochrome_platforms": false,
+        "transparent_web_icons": true,
+        "shadow_suppression": {
+          "alpha_floor": 112,
+          "alpha_transition": 80
+        },
+        "framing": {
+          "content_ratio": 0.896,
+          "vertical_offset_ratio": 0.02
+        },
+        "supplied_targets": [
+          {
+            "source": "assets/source/favicon/favicon-16x16.png",
+            "sha256": "e4c0850cf048353765f60b433c3c1992b4cecdf1efe16184cef348462b355f22",
+            "target": "icons/web/favicon-16x16.png"
+          },
+          {
+            "source": "assets/source/favicon/favicon-32x32.png",
+            "sha256": "008c8f1b9cc7fa1bd380baa6371f16dec075fa97dd755dbf2f19349c91ba5c9c",
+            "target": "icons/web/favicon-32x32.png"
+          },
+          {
+            "source": "assets/source/favicon/favicon-96x96.png",
+            "sha256": "622c064f3b7d3b7b23718988c4af7a6042045e74f88203217440866d888c4101",
+            "target": "icons/web/favicon-96x96.png"
+          },
+          {
+            "source": "assets/source/favicon/favicon.ico",
+            "sha256": "8a9b7accdfbfa53f93f6f8e86df12be999da2991cfc840b130a233d6989866a3",
+            "target": "icons/web/favicon.ico"
+          },
+          {
+            "source": "assets/source/favicon/apple-icon-180x180.png",
+            "sha256": "e65fba35377286f9142407ffd22b16df644d6b3685690cf6fa65d9d4ca3c6d73",
+            "target": "icons/web/apple-touch-icon.png"
+          },
+          {
+            "source": "assets/source/favicon/android-icon-192x192.png",
+            "sha256": "56ead852873e7e4f17dbf7db06332aa0b3a30df14e660e1ccd63df89ff53158f",
+            "target": "icons/web/android-chrome-192x192.png"
+          },
+          {
+            "source": "assets/source/favicon/android-icon-48x48.png",
+            "sha256": "904b5119e1b1f15a4db21039675c9e0df0a2f29017631480e03ecd413c200ac2",
+            "target": "icons/android/app/src/main/res/mipmap-mdpi/ic_launcher.png"
+          },
+          {
+            "source": "assets/source/favicon/android-icon-72x72.png",
+            "sha256": "e7a670bdae6ce70cfc7491a4e89007089b36c2114f2c69fd5e7f848ceea11609",
+            "target": "icons/android/app/src/main/res/mipmap-hdpi/ic_launcher.png"
+          },
+          {
+            "source": "assets/source/favicon/android-icon-96x96.png",
+            "sha256": "622c064f3b7d3b7b23718988c4af7a6042045e74f88203217440866d888c4101",
+            "target": "icons/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png"
+          },
+          {
+            "source": "assets/source/favicon/android-icon-144x144.png",
+            "sha256": "424bde84b7cb53634d0265dc8bacd42ba5d302b170beab871d01cbba9dcea015",
+            "target": "icons/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png"
+          },
+          {
+            "source": "assets/source/favicon/android-icon-192x192.png",
+            "sha256": "56ead852873e7e4f17dbf7db06332aa0b3a30df14e660e1ccd63df89ff53158f",
+            "target": "icons/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png"
+          },
+          {
+            "source": "assets/source/favicon/ms-icon-150x150.png",
+            "sha256": "0c70d1c73401e8820cfb3383797c84889f9c3d73bc6f27bb20297fbf85f8385a",
+            "target": "icons/windows/msix/Assets/Square150x150Logo.scale-100.png"
+          }
+        ]
+      },
+      "single_ink": {
+        "full_input_id": "vertical-light-lockup",
+        "reduced_input_id": "heart-submark",
+        "horizontal_input_id": "horizontal-light-lockup",
+        "stacked_input_id": "vertical-light-lockup",
+        "alpha_floor": 112,
+        "alpha_transition": 80,
+        "white_knockout_floor": 239,
+        "white_knockout_transition": 56
+      },
+      "prohibitions": [
+        "Do not edit, normalize, trace, simplify, crop, recolor, or replace any supplied SVG.",
+        "Do not reconstruct the logo lettering from the delivered font files.",
+        "Do not invent a wordmark-only variant or alter the approved single-ink derivation thresholds.",
+        "Do not use a monochrome mark for an application icon or favicon.",
+        "Do not imply ShruggieTech ownership, endorsement, maintenance, or warranty."
+      ],
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The full, reduced, horizontal, vertical, and sand-treatment masters embed owner-approved SVG bytes unchanged."
+    },
+    "topology": {
+      "full": {
+        "path_count": 1,
+        "subpath_count": 0,
+        "closed_subpaths": 0,
+        "role_counts": {
+          "accent": 1
+        },
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        }
+      },
+      "reduced": {
+        "path_count": 1,
+        "subpath_count": 0,
+        "closed_subpaths": 0,
+        "role_counts": {
+          "accent": 1
+        },
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        }
+      }
+    },
+    "framing": {
+      "grid": 375,
+      "canvas_width": 375,
+      "canvas_height": 375,
+      "artwork_width": 186.75,
+      "artwork_height": 260.249993754,
+      "reduced_artwork_width": 339,
+      "reduced_artwork_height": 311.24999253,
+      "clear_space_units": 18,
+      "standalone_padding_units": {
+        "full": 18,
+        "reduced": 18
+      }
+    },
+    "palette": {
+      "accent": {
+        "bright": "#68A9DD",
+        "deep": "#1C5B8D",
+        "accessible": "#1C5B8D",
+        "dim": "#A1CFF4"
+      },
+      "semantic_colors": {
+        "emphasis": "#A1CFF4",
+        "action": "#C5342C"
+      },
+      "surfaces": {
+        "base": "#08131D",
+        "card": "#101F2C",
+        "popover": "#0C1823",
+        "secondary": "#172A3A",
+        "hover": "#203A4D"
+      },
+      "legacy_palette": [
+        "#1C5B8D",
+        "#68A9DD",
+        "#A1CFF4",
+        "#C5342C",
+        "#5D4A46",
+        "#FFFFFF",
+        "#F8F6F2",
+        "#111111",
+        "#555555"
+      ],
+      "logo_role_colors": null
+    },
+    "typography": {
+      "wordmark_text": "I Heart PR Tours",
+      "typography": {
+        "mode": "fixed",
+        "families": {
+          "display": {
+            "name": "Poppins",
+            "weights": [
+              700
+            ]
+          },
+          "body": {
+            "name": "Source Sans 3",
+            "weights": [
+              400,
+              600
+            ]
+          },
+          "mono": {
+            "name": "Courier Prime",
+            "weights": [
+              400
+            ]
+          }
+        },
+        "faces": [
+          {
+            "role": "display",
+            "path": "fonts/ttf/Poppins-Bold.ttf",
+            "weight": 700,
+            "style": "normal",
+            "format": "ttf",
+            "sha256": "7219547ee25334cbac0fe4b3acf0bf631e48ebb622c71af038edaaa652c60875",
+            "license": "OFL-1.1",
+            "provenance": "Owner-supplied Poppins.zip",
+            "usage_status": "approved"
+          },
+          {
+            "role": "body",
+            "path": "fonts/ttf/SourceSans3-Regular.ttf",
+            "weight": 400,
+            "style": "normal",
+            "format": "ttf",
+            "sha256": "393fb5b878ceed04aebc34b097e853ae5138c51d0c34b496ce8e2b47e0d0b94a",
+            "license": "OFL-1.1",
+            "provenance": "Owner-supplied Source_Sans_3.zip",
+            "usage_status": "approved"
+          },
+          {
+            "role": "body",
+            "path": "fonts/ttf/SourceSans3-SemiBold.ttf",
+            "weight": 600,
+            "style": "normal",
+            "format": "ttf",
+            "sha256": "bd2550fce2d295b0bf20bd8b1b7f1477da834f1066bd850aafdb4787a67a63ca",
+            "license": "OFL-1.1",
+            "provenance": "Owner-supplied Source_Sans_3.zip",
+            "usage_status": "approved"
+          },
+          {
+            "role": "mono",
+            "path": "fonts/ttf/CourierPrime-Regular.ttf",
+            "weight": 400,
+            "style": "normal",
+            "format": "ttf",
+            "sha256": "b4da920fa50d874bce2cab0517e4732384a6eef8fe7e1e653d2befcb8aac1aa6",
+            "license": "OFL-1.1",
+            "provenance": "Owner-supplied Courier_Prime.zip",
+            "usage_status": "approved"
+          }
+        ]
+      }
+    },
+    "sha256": "fe556e04b6274eb120262d14fc2bfbbe60f41fa86be00eec65d886d06f0cd5fc"
+  },
+  "topology": {
+    "full": {
+      "path_count": 1,
+      "subpath_count": 0,
+      "closed_subpaths": 0,
+      "role_counts": {
+        "accent": 1
+      },
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      }
+    },
+    "reduced": {
+      "path_count": 1,
+      "subpath_count": 0,
+      "closed_subpaths": 0,
+      "role_counts": {
+        "accent": 1
+      },
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      }
+    }
+  },
+  "framing": {
+    "grid": 375,
+    "canvas_width": 375,
+    "canvas_height": 375,
+    "artwork_width": 186.75,
+    "artwork_height": 260.249993754,
+    "reduced_artwork_width": 339,
+    "reduced_artwork_height": 311.24999253,
+    "clear_space_units": 18,
+    "standalone_padding_units": {
+      "full": 18,
+      "reduced": 18
+    }
+  },
+  "palette": {
+    "accent": {
+      "bright": "#68A9DD",
+      "deep": "#1C5B8D",
+      "accessible": "#1C5B8D",
+      "dim": "#A1CFF4"
+    },
+    "semantic_colors": {
+      "emphasis": "#A1CFF4",
+      "action": "#C5342C"
+    },
+    "surfaces": {
+      "base": "#08131D",
+      "card": "#101F2C",
+      "popover": "#0C1823",
+      "secondary": "#172A3A",
+      "hover": "#203A4D"
+    },
+    "legacy_palette": [
+      "#1C5B8D",
+      "#68A9DD",
+      "#A1CFF4",
+      "#C5342C",
+      "#5D4A46",
+      "#FFFFFF",
+      "#F8F6F2",
+      "#111111",
+      "#555555"
+    ],
+    "logo_role_colors": null
+  },
+  "renderer": {
+    "id": "node-resvg",
+    "version": "v24.11.0",
+    "settings_sha256": "a030aad728bb55526014cd86d9dd1e2a78136e729b16d3b9bfeafb434383c820"
+  },
+  "proofs": [
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "dark",
+      "path": "proofs/full-256-dark.png",
+      "sha256": "4ad8cdbc6bbd187bf8ea592e81b8ab286f2d22d73672da4611abc0ac8e02266c",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-dark/comparison-side-by-side.png",
+          "sha256": "2dc7838ddb331b62ea26645439c07796c0e84f80bb5303fbda5710a9de43fb1b"
+        },
+        "overlay": {
+          "path": "evidence/full-256-dark/comparison-overlay.png",
+          "sha256": "4ad8cdbc6bbd187bf8ea592e81b8ab286f2d22d73672da4611abc0ac8e02266c"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-dark/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-dark/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "light",
+      "path": "proofs/full-256-light.png",
+      "sha256": "eecc95afa4c7e145d6f78c063a7c8b6202056fdbc8b12c2341f115f487821dce",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-light/comparison-side-by-side.png",
+          "sha256": "6db0a525982f3cfea5dce7294efc82ae5aec18c7372952838c3bd5fd6b16b17e"
+        },
+        "overlay": {
+          "path": "evidence/full-256-light/comparison-overlay.png",
+          "sha256": "eecc95afa4c7e145d6f78c063a7c8b6202056fdbc8b12c2341f115f487821dce"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-light/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-light/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "black",
+      "path": "proofs/full-256-black.png",
+      "sha256": "4baede1ccd203c135f98d68fc73aa34470be6b273a6d953412238ab15c4aa644",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-black/comparison-side-by-side.png",
+          "sha256": "af030b1ff89252f40f5547a957e2d032e6a5d292d9e8f61041c2f08dd0fcba02"
+        },
+        "overlay": {
+          "path": "evidence/full-256-black/comparison-overlay.png",
+          "sha256": "4baede1ccd203c135f98d68fc73aa34470be6b273a6d953412238ab15c4aa644"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-black/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-black/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "white",
+      "path": "proofs/full-256-white.png",
+      "sha256": "bffa092f1c43c0a2d36eb8e07e915ea2f4fc1ad4fc4fe17942fc306a8e40d11d",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-white/comparison-side-by-side.png",
+          "sha256": "81a00a9049b99d6292b20b76536f9a5a71f18062be55af2a3104834620455ab7"
+        },
+        "overlay": {
+          "path": "evidence/full-256-white/comparison-overlay.png",
+          "sha256": "bffa092f1c43c0a2d36eb8e07e915ea2f4fc1ad4fc4fe17942fc306a8e40d11d"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-white/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-white/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "dark",
+      "path": "proofs/full-64-dark.png",
+      "sha256": "786cdabf49bd1c8e8e036640378b25a841a646dc464dbe81176e1ea751ef46f6",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-dark/comparison-side-by-side.png",
+          "sha256": "4c59f1741200c242b7280c614d1b69d77ba16b2339ad033b573357d1c48266b7"
+        },
+        "overlay": {
+          "path": "evidence/full-64-dark/comparison-overlay.png",
+          "sha256": "786cdabf49bd1c8e8e036640378b25a841a646dc464dbe81176e1ea751ef46f6"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-dark/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-dark/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "light",
+      "path": "proofs/full-64-light.png",
+      "sha256": "84c64546edd0bdbea162aef30e073f1e17f633c34b37073cdc39fd55678ffb04",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-light/comparison-side-by-side.png",
+          "sha256": "53ec84fe599f43f825d2b38ffa8b88eeace988278d632fb23dbc7e06ffdd17cf"
+        },
+        "overlay": {
+          "path": "evidence/full-64-light/comparison-overlay.png",
+          "sha256": "84c64546edd0bdbea162aef30e073f1e17f633c34b37073cdc39fd55678ffb04"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-light/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-light/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "black",
+      "path": "proofs/full-64-black.png",
+      "sha256": "763b172aaa8fef2a787365225a6a70faee3aafe3b6e26567141ec4fb6904c9b3",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-black/comparison-side-by-side.png",
+          "sha256": "12adde2e98e2e0437991977bc329415da61501995b4f8054dd86d48a11f840d1"
+        },
+        "overlay": {
+          "path": "evidence/full-64-black/comparison-overlay.png",
+          "sha256": "763b172aaa8fef2a787365225a6a70faee3aafe3b6e26567141ec4fb6904c9b3"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-black/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-black/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "white",
+      "path": "proofs/full-64-white.png",
+      "sha256": "73c5907ebf57e17755ce443223477bbc97de1ac713f21e4372dcca828e5cbf11",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-white/comparison-side-by-side.png",
+          "sha256": "884c0866ea8a4007d7dc3c3b061d9bc32a1a2ca0a07cb62bfa02c8ddd37e5a04"
+        },
+        "overlay": {
+          "path": "evidence/full-64-white/comparison-overlay.png",
+          "sha256": "73c5907ebf57e17755ce443223477bbc97de1ac713f21e4372dcca828e5cbf11"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-white/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-white/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "dark",
+      "path": "proofs/full-32-dark.png",
+      "sha256": "b0a1a30201060819b56aa65e5cc3a0da37f5431a639e23f65469016cb29e22cb",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-dark/comparison-side-by-side.png",
+          "sha256": "8f9a45d7548b462a10c5c96d13e867fe1f082eb183799452c8db827257e20de0"
+        },
+        "overlay": {
+          "path": "evidence/full-32-dark/comparison-overlay.png",
+          "sha256": "b0a1a30201060819b56aa65e5cc3a0da37f5431a639e23f65469016cb29e22cb"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-dark/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-dark/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "light",
+      "path": "proofs/full-32-light.png",
+      "sha256": "0c08594ccb8f5220e8c25c61f324427ef0d705b21125b368e62fa5f82254f5e5",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-light/comparison-side-by-side.png",
+          "sha256": "1aa954700b4243089062bcc3374452b12895cb6bdc94717e109c09311bff0892"
+        },
+        "overlay": {
+          "path": "evidence/full-32-light/comparison-overlay.png",
+          "sha256": "0c08594ccb8f5220e8c25c61f324427ef0d705b21125b368e62fa5f82254f5e5"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-light/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-light/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "black",
+      "path": "proofs/full-32-black.png",
+      "sha256": "a5dde17f4f31e6bf31dbc6416e732224b325299c82290119b1c0e4cf5c043883",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-black/comparison-side-by-side.png",
+          "sha256": "1807b9c598c56983131243b5ffb01b670c0f4fabd82bb7109f45e102303db28d"
+        },
+        "overlay": {
+          "path": "evidence/full-32-black/comparison-overlay.png",
+          "sha256": "a5dde17f4f31e6bf31dbc6416e732224b325299c82290119b1c0e4cf5c043883"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-black/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-black/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "white",
+      "path": "proofs/full-32-white.png",
+      "sha256": "a8442f69e8148a57623f6f72ca8be7701032de6280d6cca8f8a1523f8254b16d",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-white/comparison-side-by-side.png",
+          "sha256": "1b138593ebd75b26f06774b381ba3337e7ccbf7af732101d92575559ed15ca63"
+        },
+        "overlay": {
+          "path": "evidence/full-32-white/comparison-overlay.png",
+          "sha256": "a8442f69e8148a57623f6f72ca8be7701032de6280d6cca8f8a1523f8254b16d"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-white/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-white/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "dark",
+      "path": "proofs/full-16-dark.png",
+      "sha256": "1899762fb2de63baf91e4c23009a680fccd32a2ebf3369f170d8fa10ed2d6af3",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-dark/comparison-side-by-side.png",
+          "sha256": "65db487c463cf1c78fec6403ac2dabe387fbf9ed9501039c209512ced4d3d19b"
+        },
+        "overlay": {
+          "path": "evidence/full-16-dark/comparison-overlay.png",
+          "sha256": "1899762fb2de63baf91e4c23009a680fccd32a2ebf3369f170d8fa10ed2d6af3"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-dark/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-dark/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "light",
+      "path": "proofs/full-16-light.png",
+      "sha256": "d7b4296c40e23e9f17293e5078736f28a3600378adb1f71a2e9c72f63a09d581",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-light/comparison-side-by-side.png",
+          "sha256": "171fbef416dd9fc63687acb89b7f6116bfeaaddabe43201a9350fa7dddef8ee4"
+        },
+        "overlay": {
+          "path": "evidence/full-16-light/comparison-overlay.png",
+          "sha256": "d7b4296c40e23e9f17293e5078736f28a3600378adb1f71a2e9c72f63a09d581"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-light/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-light/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "black",
+      "path": "proofs/full-16-black.png",
+      "sha256": "7cc54da87b988b53654a87f350e1ab2b9d70e9ec68cdcb178ba3d20b630dfcc7",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-black/comparison-side-by-side.png",
+          "sha256": "c9ebde77913d03fc2a09323bf528d8d59936ee1140cc99df1594bd27e6c968a3"
+        },
+        "overlay": {
+          "path": "evidence/full-16-black/comparison-overlay.png",
+          "sha256": "7cc54da87b988b53654a87f350e1ab2b9d70e9ec68cdcb178ba3d20b630dfcc7"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-black/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-black/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "white",
+      "path": "proofs/full-16-white.png",
+      "sha256": "8f7d438f7be422bd2035f855b8ffcc0fca38238d787d2e8a2e4d08dd9d5891de",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-white/comparison-side-by-side.png",
+          "sha256": "b73d37229187d75bd0232f718c97b1ac0ab64e4ddd048c546a760b05cd49c7e6"
+        },
+        "overlay": {
+          "path": "evidence/full-16-white/comparison-overlay.png",
+          "sha256": "8f7d438f7be422bd2035f855b8ffcc0fca38238d787d2e8a2e4d08dd9d5891de"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-white/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-white/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "dark",
+      "path": "proofs/reduced-256-dark.png",
+      "sha256": "e083aefd0940cd1d784f965af2a0f5979c97bd141800cecc9d7a9406338fde9b",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-dark/comparison-side-by-side.png",
+          "sha256": "f975154f3a8a7dcf7c61e848c9e859c44e019055f6847862ea1f3898c5f25427"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-dark/comparison-overlay.png",
+          "sha256": "e083aefd0940cd1d784f965af2a0f5979c97bd141800cecc9d7a9406338fde9b"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-dark/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-dark/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "light",
+      "path": "proofs/reduced-256-light.png",
+      "sha256": "ab00d97dea04673dd96afde59cbf8ec94e4d042fca6b5ae8d5225b125b332ca3",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-light/comparison-side-by-side.png",
+          "sha256": "fda330c92cc13e1bfc726b0bacf138af9c076f7ab26018a18e9664cefc9f9b8e"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-light/comparison-overlay.png",
+          "sha256": "ab00d97dea04673dd96afde59cbf8ec94e4d042fca6b5ae8d5225b125b332ca3"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-light/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-light/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "black",
+      "path": "proofs/reduced-256-black.png",
+      "sha256": "606ffb01b8503269cb77a9dfb01e3ba9011c45931532bb819f44694d0c45dd9e",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-black/comparison-side-by-side.png",
+          "sha256": "51ec1709be2a108145277dda2cde21e7536b829e11c43034c3340fb11bd76c42"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-black/comparison-overlay.png",
+          "sha256": "606ffb01b8503269cb77a9dfb01e3ba9011c45931532bb819f44694d0c45dd9e"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-black/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-black/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "white",
+      "path": "proofs/reduced-256-white.png",
+      "sha256": "023aeb3dcaa00494cd97fcbfcee658ecedb6d897d6ad505adff018db4573102d",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-white/comparison-side-by-side.png",
+          "sha256": "42e35bd3e6615ff5422176dccb539cc28cba683b45ecc7bdbed4b5fd401bfa3c"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-white/comparison-overlay.png",
+          "sha256": "023aeb3dcaa00494cd97fcbfcee658ecedb6d897d6ad505adff018db4573102d"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-white/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-white/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "dark",
+      "path": "proofs/reduced-64-dark.png",
+      "sha256": "d6b725ca9b562abc198319c2c1b9144cabdc045c51a15bd9f872fe2b76bd6f50",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-dark/comparison-side-by-side.png",
+          "sha256": "5104fcd5ab72c15a79b0c8a50152aa104d4ebb17da03d6dd74615a78d7c6f0cb"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-dark/comparison-overlay.png",
+          "sha256": "d6b725ca9b562abc198319c2c1b9144cabdc045c51a15bd9f872fe2b76bd6f50"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-dark/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-dark/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "light",
+      "path": "proofs/reduced-64-light.png",
+      "sha256": "c512735faed18b34e3acb69ffdd1d3b778ea035a92e637ed9df34fb48f7b4c4f",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-light/comparison-side-by-side.png",
+          "sha256": "1fe985565a481d2ded96430a4f41fcb7ca9b0188ebe43fe90e647004a0c9fafb"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-light/comparison-overlay.png",
+          "sha256": "c512735faed18b34e3acb69ffdd1d3b778ea035a92e637ed9df34fb48f7b4c4f"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-light/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-light/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "black",
+      "path": "proofs/reduced-64-black.png",
+      "sha256": "bb11f1b90821b26fb5d937252af99f75990b7c31954c399ada85bf92e68053cf",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-black/comparison-side-by-side.png",
+          "sha256": "d7ab0eab73d00f65a9bf86ceb933611a002a24c6a3df0ff6e33cfc7de04a2f00"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-black/comparison-overlay.png",
+          "sha256": "bb11f1b90821b26fb5d937252af99f75990b7c31954c399ada85bf92e68053cf"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-black/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-black/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "white",
+      "path": "proofs/reduced-64-white.png",
+      "sha256": "60ec10107c216045f8452e3e709a2be736cc1df610ce2a1c1c52b36086560754",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-white/comparison-side-by-side.png",
+          "sha256": "2a45641c1e622f9c1bf4d8b645624feb764a520deb9435e9f6a92b1571846949"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-white/comparison-overlay.png",
+          "sha256": "60ec10107c216045f8452e3e709a2be736cc1df610ce2a1c1c52b36086560754"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-white/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-white/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "dark",
+      "path": "proofs/reduced-32-dark.png",
+      "sha256": "78519d00e93cc23b3e203ead92d58135eea70ecf7e8b556ec83fee2959c4401c",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-dark/comparison-side-by-side.png",
+          "sha256": "f466146a763bcada31e3213a597d6bafed93e98dd60ac26bc4c9daeef1b69e8a"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-dark/comparison-overlay.png",
+          "sha256": "78519d00e93cc23b3e203ead92d58135eea70ecf7e8b556ec83fee2959c4401c"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-dark/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-dark/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "light",
+      "path": "proofs/reduced-32-light.png",
+      "sha256": "9002b336600f25f5dc4839dd2df2c112529b2adb7619e3f5a647e108d7aa3974",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-light/comparison-side-by-side.png",
+          "sha256": "bab0aef22b6e12f1cdbedce7778074be112ed3cd5c78aad6f32d14c6087e5a06"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-light/comparison-overlay.png",
+          "sha256": "9002b336600f25f5dc4839dd2df2c112529b2adb7619e3f5a647e108d7aa3974"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-light/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-light/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "black",
+      "path": "proofs/reduced-32-black.png",
+      "sha256": "87dfcb074ce27c8c6821a12fa038867077e8eae336c289d7e4c92e3b506b04a7",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-black/comparison-side-by-side.png",
+          "sha256": "f52d8596470f853fcefed85fe412ebcaf3846b4f7c523f0359743850dbd93985"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-black/comparison-overlay.png",
+          "sha256": "87dfcb074ce27c8c6821a12fa038867077e8eae336c289d7e4c92e3b506b04a7"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-black/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-black/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "white",
+      "path": "proofs/reduced-32-white.png",
+      "sha256": "2e0d4d971ffad1357d52758989e60268766ed46566c53de3484371313d37fe87",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-white/comparison-side-by-side.png",
+          "sha256": "be3dbbad7cbef4b0ad808e2ec534248ceae8e902451c724ca1c72979f89bbb2e"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-white/comparison-overlay.png",
+          "sha256": "2e0d4d971ffad1357d52758989e60268766ed46566c53de3484371313d37fe87"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-white/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-white/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "dark",
+      "path": "proofs/reduced-16-dark.png",
+      "sha256": "aaddfa7bdb4296366067dd68c4ac804ff35b9a1b24c2aeeb9961d8ed572c3f0a",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-dark/comparison-side-by-side.png",
+          "sha256": "3f5f2ca170d3887f6be876e0f4a7147bf5c6582d6efee82125bb8f1d7f73fe37"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-dark/comparison-overlay.png",
+          "sha256": "aaddfa7bdb4296366067dd68c4ac804ff35b9a1b24c2aeeb9961d8ed572c3f0a"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-dark/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-dark/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "light",
+      "path": "proofs/reduced-16-light.png",
+      "sha256": "302f633263ed5e586105caae8601b2dc6795e89cebdf1a9c08ef2a6de931bcf4",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-light/comparison-side-by-side.png",
+          "sha256": "b1c5e4a15b6e97d386110d09137c1c28a0cc6bf1890fd84a52a2bc870405679e"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-light/comparison-overlay.png",
+          "sha256": "302f633263ed5e586105caae8601b2dc6795e89cebdf1a9c08ef2a6de931bcf4"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-light/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-light/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "black",
+      "path": "proofs/reduced-16-black.png",
+      "sha256": "53794063379e4e3770b046c686059a20ce6d99d9f8e0b92aae53052ae0d856a2",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-black/comparison-side-by-side.png",
+          "sha256": "c2e48949d80289466c6820f5a05ea871f95479f093f3d5521b570f815cc8b086"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-black/comparison-overlay.png",
+          "sha256": "53794063379e4e3770b046c686059a20ce6d99d9f8e0b92aae53052ae0d856a2"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-black/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-black/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "white",
+      "path": "proofs/reduced-16-white.png",
+      "sha256": "9b6fc002ae7c2089873f18fe70eea53dc0651d640ca7b6e0c64ccceceab9ed0e",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-white/comparison-side-by-side.png",
+          "sha256": "72f7a149d8e3ea499e9cb26c0266c900a73c3b202889748e0236d5379d88e6cb"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-white/comparison-overlay.png",
+          "sha256": "9b6fc002ae7c2089873f18fe70eea53dc0651d640ca7b6e0c64ccceceab9ed0e"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-white/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-white/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    }
+  ],
+  "approval": {
+    "bundle_id": "iheartpr-g1-r4",
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-11",
+    "owner_wording": "looks good. continue",
+    "scope": [
+      "full-master",
+      "reduced-master",
+      "palette",
+      "framing",
+      "topology",
+      "renderer",
+      "proof-matrix"
+    ],
+    "proposal_sha256": "b9227a150963b9736b2998f8fffde5d5f119b1f97de5f0be8e60f9ee2fad3759",
+    "source_snapshot_sha256": "fe556e04b6274eb120262d14fc2bfbbe60f41fa86be00eec65d886d06f0cd5fc"
+  },
+  "historical_evidence": null,
+  "palette_qualification": {
+    "status": "passed",
+    "srgb_roles": {
+      "accent.accessible": "#1C5B8D",
+      "accent.bright": "#68A9DD",
+      "accent.deep": "#1C5B8D",
+      "accent.dim": "#A1CFF4",
+      "legacy_palette.0": "#1C5B8D",
+      "legacy_palette.1": "#68A9DD",
+      "legacy_palette.2": "#A1CFF4",
+      "legacy_palette.3": "#C5342C",
+      "legacy_palette.4": "#5D4A46",
+      "legacy_palette.5": "#FFFFFF",
+      "legacy_palette.6": "#F8F6F2",
+      "legacy_palette.7": "#111111",
+      "legacy_palette.8": "#555555",
+      "semantic_colors.action": "#C5342C",
+      "semantic_colors.emphasis": "#A1CFF4",
+      "surfaces.base": "#08131D",
+      "surfaces.card": "#101F2C",
+      "surfaces.hover": "#203A4D",
+      "surfaces.popover": "#0C1823",
+      "surfaces.secondary": "#172A3A"
+    },
+    "oklch_roles": {
+      "accent.accessible": [
+        0.457361,
+        0.102833,
+        246.910437
+      ],
+      "accent.bright": [
+        0.711929,
+        0.101461,
+        244.041308
+      ],
+      "accent.deep": [
+        0.457361,
+        0.102833,
+        246.910437
+      ],
+      "accent.dim": [
+        0.834765,
+        0.071063,
+        242.961723
+      ],
+      "legacy_palette.0": [
+        0.457361,
+        0.102833,
+        246.910437
+      ],
+      "legacy_palette.1": [
+        0.711929,
+        0.101461,
+        244.041308
+      ],
+      "legacy_palette.2": [
+        0.834765,
+        0.071063,
+        242.961723
+      ],
+      "legacy_palette.3": [
+        0.547192,
+        0.183178,
+        28.065884
+      ],
+      "legacy_palette.4": [
+        0.427606,
+        0.026811,
+        31.953569
+      ],
+      "legacy_palette.5": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "legacy_palette.6": [
+        0.97357,
+        0.005723,
+        84.566126
+      ],
+      "legacy_palette.7": [
+        0.177638,
+        0.0,
+        0.0
+      ],
+      "legacy_palette.8": [
+        0.449533,
+        0.0,
+        0.0
+      ],
+      "semantic_colors.action": [
+        0.547192,
+        0.183178,
+        28.065884
+      ],
+      "semantic_colors.emphasis": [
+        0.834765,
+        0.071063,
+        242.961723
+      ],
+      "surfaces.base": [
+        0.181732,
+        0.026315,
+        246.91514
+      ],
+      "surfaces.card": [
+        0.232609,
+        0.032625,
+        245.94922
+      ],
+      "surfaces.hover": [
+        0.336577,
+        0.046467,
+        241.669403
+      ],
+      "surfaces.popover": [
+        0.203675,
+        0.028028,
+        247.260521
+      ],
+      "surfaces.secondary": [
+        0.276744,
+        0.038841,
+        245.248098
+      ]
+    },
+    "checks": {
+      "contrast": true,
+      "sibling_separation": true,
+      "color_vision": true,
+      "semantic_roles": true,
+      "surfaces": true,
+      "single_ink": true,
+      "rendered_color": true
+    },
+    "evidence_sha256": "edb84d33fcc71717166312bf7d654adf92fdf346edac696a87a60283e3694913"
+  },
+  "record_sha256": "1363a6cce56a41a8443ef7ff871e0f1881a47a44c1c1aecd2426c41defd59598"
+}

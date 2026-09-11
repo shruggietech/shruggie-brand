@@ -363,6 +363,26 @@ class IdentityContinuityTests(unittest.TestCase):
             self.assertEqual(0, result["changed_outside_edge_fraction"])
             self.assertEqual({"side_by_side", "overlay", "silhouette_xor", "color_difference"}, set(result["evidence_paths"]))
 
+    def test_small_proof_without_an_interior_core_uses_shared_silhouette_for_color(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            approved = root / "approved.png"
+            production = root / "production.png"
+            image = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+            pixels = image.load()
+            for y in range(2, 14):
+                pixels[7, y] = (0, 0, 0, 255)
+                pixels[8, y] = (0, 0, 0, 255)
+            image.save(approved, compress_level=0)
+            image.save(production, compress_level=9)
+
+            result = compare_proofs(approved, production, same_renderer=False)
+
+            self.assertFalse(result["exact_sha256"])
+            self.assertEqual(1.0, result["silhouette_iou"])
+            self.assertEqual(0.0, result["interior_delta_e_2000"])
+            self.assertTrue(result["passes"], result)
+
     def test_cueson_reconstruction_and_framing_drift_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -450,6 +470,32 @@ class IdentityContinuityTests(unittest.TestCase):
             first.write_bytes(first.read_bytes() + b"drift")
             with self.assertRaisesRegex(ContinuityError, "proof drift"):
                 validate_current_proof_matrix(record, source, renderer=record["renderer"])
+
+    def test_portable_proof_matrix_is_hash_bound_before_measured_comparison(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _approval, source, _brands, _bundle_path = self.make_promotion_bundle(root)
+            record = json.loads((source / "identity-continuity.json").read_text(encoding="utf-8"))
+            generated = source / "qc" / "identity-continuity-proofs"
+            portable = root / "portable" / "example" / "qc" / "identity-continuity-proofs"
+            generated.mkdir(parents=True)
+            portable.mkdir(parents=True)
+            for item in record["proofs"]:
+                name = "%s-%d-%s.png" % (item["variant"], item["size_px"], item["surface"])
+                payload = (source / item["path"]).read_bytes()
+                (generated / name).write_bytes(payload)
+                (portable / name).write_bytes(payload)
+            with mock.patch.dict(os.environ, {"GP_APPROVED_PROOF_ROOT": str(root / "portable")}):
+                result = validate_current_proof_matrix(
+                    record, source, renderer=record["renderer"], brand={"slug": "example"}
+                )
+                self.assertTrue(all(not item["comparison"]["same_renderer"] for item in result["proofs"]))
+                first = portable / "full-256-dark.png"
+                first.write_bytes(first.read_bytes() + b"drift")
+                with self.assertRaisesRegex(ContinuityError, "portable approved proof hash drift"):
+                    validate_current_proof_matrix(
+                        record, source, renderer=record["renderer"], brand={"slug": "example"}
+                    )
 
     def test_approved_report_binds_fresh_production_proof_matrix(self):
         with tempfile.TemporaryDirectory() as tmp:
