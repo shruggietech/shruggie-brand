@@ -23,6 +23,7 @@ from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, 
 
 # ------------------------------------------------------------------ utilities
 def R(a, b): return round(Color(a).contrast(b, method="wcag21"), 2)
+def light_base(brand): return (brand.get("light_surfaces") or {}).get("base", "#F8F8F6")
 def hue(h):
     c = Color(h).convert("oklch")
     return None if c["chroma"] < 0.02 else round(c["hue"], 1)
@@ -72,7 +73,7 @@ def c_contrast(kit, brand, rep):
         if isinstance(node, dict):
             if "hex" in node and isinstance(node.get("contrast"), dict):
                 for k, stated in node["contrast"].items():
-                    bg = brand.get("surfaces", {}).get("base", "#000000") if "dark" in k else "#F8F8F6"
+                    bg = brand.get("surfaces", {}).get("base", "#000000") if "dark" in k else light_base(brand)
                     got = R(node["hex"], bg); claims += 1
                     if abs(got - float(stated)) > 0.02:
                         mism.append("%s %s: states %s, measures %s" % (path, k, stated, got))
@@ -113,12 +114,13 @@ def c_accent(canon, brand, rep):
     if r < 4.5: fails.append("accent %s on base = %s (needs 4.5)" % (a, r))
     if not al: fails.append("no accessible light-surface variant declared")
     else:
-        rl = R(al, "#F8F8F6")
-        if rl < 4.5: fails.append("light variant %s = %s on #F8F8F6 (needs 4.5)" % (al, rl))
+        light = light_base(brand)
+        rl = R(al, light)
+        if rl < 4.5: fails.append("light variant %s = %s on %s (needs 4.5)" % (al, rl, light))
     rep.bad("accent-rule", "; ".join(fails)) if fails else \
         rep.ok("accent-rule", "%s%s:1 on base, light variant %s at %s:1"
                % (("fixture hue exempt, " if brand.get("kind") == "fixture" else "hue %s, " % hue(a)),
-                  r, al, R(al, "#F8F8F6")))
+                  r, al, R(al, light_base(brand))))
 
 def c_immutables(canon, brand, rep):
     drift = []
@@ -1714,7 +1716,7 @@ def c_aa_floor(kit, canon, brand, rep):
     NON-EXEMPTABLE. See canon accessibility.exemptions. No conformance level and
     no operator override waives a failure here; the value changes instead.
     """
-    LIGHT = "#F8F8F6"
+    LIGHT = light_base(brand)
     dark = (brand.get("surfaces") or {}).get("base") or "#000000"
     colors = brand.get("color") or {}
     if not colors:

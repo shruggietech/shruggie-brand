@@ -195,3 +195,16 @@ T050 remains the active halt. No commit, push, pull request, public surface, or 
 - Official pull request [#195](https://github.com/shruggietech/shruggie-brand/pull/195), `feat(S028): add I Heart PR Tours brand system`, was opened against `main` and closes issue #188.
 - The pull-request description records both approved candidate digests, the private zero-public-surface boundary, local verification, accessibility results, and release exclusion.
 - Hosted CI and bounded Codex and security review processing are now in progress. No merge is authorized in this work slice.
+
+## First external review round
+
+**Recorded**: 2026-09-11
+
+- The automatic Codex review completed on initial implementation commit `7aec634f002b7f4b0c59c8e4c41876589925e958` and opened five review threads: declared light PDF grounds, configured light-base contrast, supplied-icon target dimensions, supplied-lockup overwrite risk, and monochrome output without a white colourway.
+- The dark-only guide instruction was the one finding whose proposed fixed-dark remedy conflicted with the owner-approved IHPRT brief. The governing rule now retains dark as the default while permitting an explicitly declared, owner-approved, AA-measured light guide, and PDF QC remains bound to the declared ground.
+- Configured `light_surfaces.base` now drives enrichment, stated contrast re-derivation, accent validation, and the non-exemptable AA floor. IHPRT therefore measures its actual `#FFFFFF` reading surface rather than the former `#F8F8F6` fallback.
+- Supplied PNG target dimensions, supplied-lockup versus generated-wordmark exclusivity, and monochrome white-colourway availability now fail in the source contract before generation. These pre-generation guards correct the invalid configurations without changing `gen_logo.py`, `iconkit.py`, any approved transformation, or the canonical Gate 1 renderer binding.
+- Review-fix regressions pass: 49 brand-contract tests, the configured-light measurement test, the IHPRT exact-source generation test, and the full 143-test template suite. Fifty-three release, site-preparation, and continuity-audit tests pass.
+- Seven sibling kits and the rerun IHPRT kit build cleanly. IHPRT retains 434 manifest entries, zero verifier and glyph failures, zero affiliation, image, PDF, or pagination problems, and PDF QC explicitly expects `light`.
+- Site lint and TypeScript pass, the static build produces 73 pages, 11 production-origin and payload tests pass, and browser verification covers 68 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations.
+- The continuity audit passes all eight brands against `HEAD`; IHPRT retains canonical source SHA-256 `b04c0886c1e6ac09da6b470deeacdf839bf794bfacf5a54666691ea291704094` and continuity record SHA-256 `17fb05c85befc541fc205961975cdd9cc17c9438fa3778eaa9fd46225302f8af`.

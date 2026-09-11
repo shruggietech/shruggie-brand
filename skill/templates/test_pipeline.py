@@ -28,6 +28,7 @@ import gen_guidelines
 import gen_logo
 import gen_nextjs
 import build_kit
+import enrich_brand
 import probe
 import qc_images
 import verify
@@ -201,6 +202,30 @@ class PipelineTests(unittest.TestCase):
             "Never use IHPRT as a substitute logo or alter the supplied identity artwork.",
             brand["guide"]["written_form"],
         )
+
+    def test_light_surface_measurements_use_the_configured_base(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            brand_path = Path(temporary) / "brand.json"
+            brand = json.loads((ROOT / "brands" / "i-heart-pr-tours" / "brand.json").read_text(encoding="utf-8"))
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+            old_argv = sys.argv
+            try:
+                sys.argv = ["enrich_brand.py", str(brand_path)]
+                self.assertEqual(0, enrich_brand.main())
+            finally:
+                sys.argv = old_argv
+            enriched = json.loads(brand_path.read_text(encoding="utf-8"))
+            self.assertEqual("#FFFFFF", enriched["measured"]["light_base"])
+            for token in enriched["color"].values():
+                self.assertEqual(
+                    verify.R(token["hex"], "#FFFFFF"),
+                    token["contrast"]["on_light_base"],
+                )
+            report = verify.Report()
+            verify.c_contrast(temporary, enriched, report)
+            canon = json.loads((ROOT / "skill" / "references" / "01-canon.json").read_text(encoding="utf-8"))
+            verify.c_accent(canon, enriched, report)
+            self.assertFalse(report.problems)
 
     def test_guideline_color_references_are_deterministic_and_complete(self):
         reference = gen_guidelines.color_reference("primary", "#2BCC73")

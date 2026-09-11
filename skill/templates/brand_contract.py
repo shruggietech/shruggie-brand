@@ -206,6 +206,8 @@ def application_icon_profile(brand):
              "application icon source_variant must be full or reduced")
     monochrome = configured.get("monochrome_platforms", True)
     _require(isinstance(monochrome, bool), "application icon monochrome_platforms must be boolean")
+    _require(not monochrome or "colourways" not in logo or "white" in logo["colourways"],
+             "application icon monochrome platforms require a white logo colourway")
     transparent_web = configured.get("transparent_web_icons", False)
     _require(isinstance(transparent_web, bool), "application icon transparent_web_icons must be boolean")
     suppression = configured.get("shadow_suppression")
@@ -263,6 +265,63 @@ def application_icon_profile(brand):
     if targets:
         result["supplied_targets"] = normalized_targets
     return result
+
+
+def _supplied_icon_target_dimensions(target):
+    """Infer the exact generated PNG slot dimensions from its governed path."""
+    filename = target.rsplit("/", 1)[-1]
+    match = re.fullmatch(r"(?:favicon|android-chrome)-(\d+)x(\d+)\.png", filename)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+    if target == "icons/web/apple-touch-icon.png":
+        return 180, 180
+    match = re.fullmatch(
+        r"icons/android/app/src/main/res/mipmap-(mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)/ic_launcher\.png",
+        target,
+    )
+    if match:
+        size = {"mdpi": 48, "hdpi": 72, "xhdpi": 96, "xxhdpi": 144, "xxxhdpi": 192}[match.group(1)]
+        return size, size
+    match = re.search(r"\.targetsize-(\d+)", filename)
+    if match:
+        size = int(match.group(1))
+        return size, size
+    match = re.fullmatch(r"(Square(\d+)x(\d+)Logo|StoreLogo)\.scale-(100|200|400)\.png", filename)
+    if match:
+        scale = int(match.group(4))
+        width = int(match.group(2) or 50) * scale // 100
+        height = int(match.group(3) or 50) * scale // 100
+        return width, height
+    match = re.fullmatch(r"icon_(\d+)x(\d+)(?:@([12])x)?\.png", filename)
+    if match:
+        scale = int(match.group(3) or 1)
+        return int(match.group(1)) * scale, int(match.group(2)) * scale
+    match = re.search(r"(?:AppIcon-)?(\d+)(?:x(\d+))?(?:@([123])x)?\.png$", filename)
+    if match:
+        scale = int(match.group(3) or 1)
+        width = int(match.group(1)) * scale
+        height = int(match.group(2) or match.group(1)) * scale
+        return width, height
+    return None
+
+
+def validate_supplied_icon_dimensions(brand, kit):
+    """Fail before generation when supplied PNG bytes do not fit their target slot."""
+    for item in application_icon_profile(brand).get("supplied_targets", []):
+        if not item["source"].lower().endswith(".png"):
+            continue
+        expected = _supplied_icon_target_dimensions(item["target"])
+        _require(expected is not None,
+                 "supplied application icon target dimensions cannot be inferred: %s" % item["target"])
+        source = contained_path(kit, item["source"])
+        data = source.read_bytes()
+        _require(len(data) >= 24 and data.startswith(b"\x89PNG\r\n\x1a\n") and data[12:16] == b"IHDR",
+                 "supplied application icon source is not a valid PNG: %s" % item["source"])
+        actual = struct.unpack(">II", data[16:24])
+        _require(actual == expected,
+                 "supplied application icon dimensions %sx%s do not match target %s dimensions %sx%s"
+                 % (actual[0], actual[1], item["target"], expected[0], expected[1]))
+    return True
 
 
 def square_enclosure_profile(brand):
@@ -938,6 +997,10 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
             colourway: resolve_svg_binding(input_id, "%s %s lockup" % (family, colourway), {"lockup", "mark"})
             for colourway, input_id in mapping.items()
         }
+    unavailable = set(((((brand.get("approval_ledger") or {}).get("gate_1") or {})
+                       .get("unavailable_derivatives") or {})))
+    _require(not resolved["supplied_lockups"] or "wordmark-only" in unavailable,
+             "supplied lockups require wordmark-only to be explicitly unavailable so generated wordmarks cannot replace approved masters")
     single = logo.get("single_ink")
     resolved["single_ink"] = None
     if single is not None:
@@ -1075,6 +1138,7 @@ def validate_brand(brand, kit):
         _require(all(isinstance(value, str) and HEX.fullmatch(value) for value in colors.values()), "independent semantic colors must be six-digit hex values")
     validate_typography(brand, kit)
     application_icon_profile(brand)
+    validate_supplied_icon_dimensions(brand, kit)
     square_enclosure_profile(brand)
     wordmark_role_colors(brand)
     showcase_surface(brand)

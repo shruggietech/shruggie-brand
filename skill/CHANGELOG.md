@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Measured contrast against configured light bases and added fail-fast contracts for supplied icon dimensions, supplied-lockup overwrite risk, and monochrome output without a white source colourway.
+- Made the guide reading surface explicit and QC-bound, preserving dark as the default while supporting approved, accessible light-first brand guides.
 - Added an identity-locked authoritative-source path for private third-party brands, including exact supplied lockups and favicons, deterministic single-ink derivatives, light-first guide rendering, optional expressions, and private Gate 2 approval with zero public surfaces.
 - Restricted generated guide monospace typography to literal code blocks and added surface-aware logo preview wells for source assets with fixed light lettering.
 - Added source-bound canonical identity approval, atomic exact-byte promotion, proof-matrix comparison, generated continuity reports, and historical continuity baselines that cannot fabricate owner approval.

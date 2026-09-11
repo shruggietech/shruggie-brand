@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, derivative_configuration_sha256, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, vendor_boundary, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, derivative_configuration_sha256, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
 from identity_continuity import canonical_digest, identity_snapshot, record_digest
 from ingest_font import ingest_font
 
@@ -406,6 +406,45 @@ class ApplicationIconProfileTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "transparent_web_icons must be boolean"):
             application_icon_profile(brand)
 
+    def test_profile_rejects_monochrome_platforms_without_white_colourway(self):
+        brand = owned_brand()
+        brand["logo"]["colourways"] = ["color", "black"]
+        brand["logo"]["application_icon"] = {
+            "background": "#000000",
+            "monochrome_platforms": True,
+        }
+        with self.assertRaisesRegex(ContractError, "require a white logo colourway"):
+            application_icon_profile(brand)
+
+    def test_supplied_png_must_match_its_generated_target_dimensions(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "favicon.png"
+            Image.new("RGBA", (16, 16), (197, 52, 44, 127)).save(source, format="PNG")
+            brand = owned_brand()
+            brand["logo"]["application_icon"] = {
+                "background": "#FFFFFF",
+                "supplied_targets": [{
+                    "source": "favicon.png",
+                    "sha256": sha256_file(source),
+                    "target": "icons/web/favicon-32x32.png",
+                }],
+            }
+            with self.assertRaisesRegex(ContractError, "dimensions 16x16 do not match target"):
+                validate_supplied_icon_dimensions(brand, root)
+            Image.new("RGBA", (300, 300), (197, 52, 44, 127)).save(source, format="PNG")
+            brand["logo"]["application_icon"]["supplied_targets"][0].update({
+                "sha256": sha256_file(source),
+                "target": "icons/windows/msix/Assets/Square150x150Logo.scale-200.png",
+            })
+            self.assertTrue(validate_supplied_icon_dimensions(brand, root))
+            Image.new("RGBA", (256, 256), (197, 52, 44, 127)).save(source, format="PNG")
+            brand["logo"]["application_icon"]["supplied_targets"][0].update({
+                "sha256": sha256_file(source),
+                "target": "icons/windows/msix/Assets/Square44x44Logo.targetsize-256.png",
+            })
+            self.assertTrue(validate_supplied_icon_dimensions(brand, root))
+
     def test_profile_falls_back_to_canonical_base(self):
         brand = owned_brand()
         brand["surfaces"] = {"base": "#080B0D"}
@@ -739,9 +778,16 @@ class AuthoritativeInputTests(unittest.TestCase):
                     "stacked": {"color": "vertical-dark", "light": "vertical-light"},
                 },
             })
+            brand["approval_ledger"] = {
+                "gate_1": {"unavailable_derivatives": {"wordmark-only": "No approved standalone wordmark."}},
+            }
             resolved = logo_source_contract(brand, kit)
             self.assertEqual("full-light", resolved["full_colourways"]["light"]["record"]["id"])
             self.assertEqual("horizontal-dark", resolved["supplied_lockups"]["horizontal"]["color"]["record"]["id"])
+
+            del brand["approval_ledger"]
+            with self.assertRaisesRegex(ContractError, "generated wordmarks cannot replace approved masters"):
+                logo_source_contract(brand, kit)
 
     def test_authoritative_mode_rejects_construction_helper_and_reduced_redraw(self):
         with tempfile.TemporaryDirectory() as temporary:

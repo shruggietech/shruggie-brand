@@ -40,6 +40,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Measured light-surface contrast against each brand's configured base, validated supplied icon dimensions before generation, rejected supplied-lockup configurations that could be overwritten by generated wordmarks, and required a white colourway for enabled monochrome platform icons.
+- Replaced the universal dark-guide rule with an explicit declared reading-surface contract, retaining dark as the default while allowing owner-approved, fully measured light-first guides to pass matching PDF ground verification.
 - Corrected light-guide typography so Source Sans 3 carries footers, page numbers, labels, tables, and metadata while Courier Prime remains limited to literal code blocks, and bound dark-source logo previews to visible dark wells.
 - Removed the shared marketing footer from every documentation page so contextual previous and next navigation follows the content directly, while preserving the homepage footer contract and dedicated brand-guideline navigation for issue #191.
 - Prevented approved constructed glyphs from being redrawn during production handoff by reusing the exact Gate 1 centerlines through `glyphkit.capsule`, binding the result to source hashes, and adding cross-renderer silhouette, bounds, and centroid checks.
