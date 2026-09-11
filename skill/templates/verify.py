@@ -1474,7 +1474,7 @@ def _confined_gate_2_file(root, relative):
     return resolved
 
 
-def _portable_gate_2_matches(kit, brand, local_approval, expected_digest):
+def portable_gate_2_matches(kit, brand, local_approval, expected_digest):
     """Bind Gate 2 to exact canonical bytes and local pixel-equivalent derivatives."""
     try:
         canonical_root = _portable_gate_2_root(brand)
@@ -1744,7 +1744,7 @@ def c_logo_provenance(kit, brand, rep):
         if gate_2.get("status") == "approved":
             expected_digest = gate_2.get("derivative_manifest_sha256")
             if sha256_file(approval_path) != expected_digest:
-                matched, reason = _portable_gate_2_matches(kit, brand, approval_path, expected_digest)
+                matched, reason = portable_gate_2_matches(kit, brand, approval_path, expected_digest)
                 if not matched:
                     problems.append("Gate 2 approval is stale because derivative provenance changed (%s)" % reason)
     except Exception as error:

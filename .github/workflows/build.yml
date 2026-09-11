@@ -113,6 +113,8 @@ jobs:
           git diff --exit-code -- skill/AGENTS.md
       - name: Type-check and export site
         run: pnpm --dir site lint && pnpm --dir site build && pnpm --dir site test
+        env:
+          GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
       - uses: actions/upload-artifact@v7
         with:
           name: verified-brand-kits

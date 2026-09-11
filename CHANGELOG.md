@@ -20,6 +20,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-11, reused the hash-bound portable Gate 2 comparison during static-site preparation so an approved private kit remains unpublished while equivalent cross-platform PNG encodings do not invalidate its canonical Windows approval.
 - On 2026-09-11, allowed an approved private Gate 2 to bind an exact derivative manifest with an empty public-surface set, preserving the distinction between repository review authorization and public brand publication.
 - On 2026-09-11, marked the supplied I Heart PR Tours favicon index as a path-specific binary source so Git cannot normalize its approved CRLF bytes and invalidate source continuity; all authored repository text remains UTF-8 with LF endings.
 - On 2026-09-09, separated nonbinding logo direction selection from canonical production-source approval and prohibited Gate 2 from reconstructing or first revealing identity geometry.

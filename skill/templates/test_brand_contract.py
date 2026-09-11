@@ -151,6 +151,31 @@ class ApprovalLedgerTests(unittest.TestCase):
             with self.assertRaisesRegex(ContractError, "stale"):
                 public_showcase(brand, kit)
 
+    def test_private_gate_two_accepts_canonical_manifest_with_equivalent_local_inventory(self):
+        brand = approval_brand("approved")
+        brand["slug"] = "sample"
+        brand["approval_ledger"]["gate_1"]["derivative_config_sha256"] = (
+            derivative_configuration_sha256(brand))
+        brand["affiliation"]["showcase"] = "private"
+        brand["approval_ledger"]["gate_2"]["surfaces"] = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            kit = root / "local"
+            canonical = root / "portable" / brand["slug"]
+            (kit / "logos").mkdir(parents=True)
+            (canonical / "logos").mkdir(parents=True)
+            payload = {"schema_version": 1, "brand": brand["slug"], "derivatives": []}
+            local_approval = kit / "logos" / "approval.json"
+            canonical_approval = canonical / "logos" / "approval.json"
+            local_approval.write_text(
+                json.dumps(payload, separators=(",", ":")) + "\n", encoding="utf-8")
+            canonical_approval.write_text(
+                json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            brand["approval_ledger"]["gate_2"]["derivative_manifest_sha256"] = sha256_file(
+                canonical_approval)
+            with patch.dict("os.environ", {"GP_APPROVED_PROOF_ROOT": str(root / "portable")}):
+                self.assertFalse(public_showcase(brand, kit))
+
     def test_gate_1_is_required_and_hash_bound(self):
         brand = approval_brand()
         missing = copy.deepcopy(brand)

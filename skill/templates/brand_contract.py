@@ -560,8 +560,16 @@ def approval_ledger(brand, normalized_inputs=None, kit=None):
                      "public Gate 2 approval must authorize at least one public surface")
         if kit is not None:
             approval = contained_path(kit, "logos/approval.json")
-            _require(sha256_file(approval) == gate_2["derivative_manifest_sha256"],
-                     "Gate 2 approval is stale because derivative provenance changed")
+            if sha256_file(approval) != gate_2["derivative_manifest_sha256"]:
+                # Canonical Windows approval artifacts can differ bytewise from
+                # Linux output solely because embedded PNG encoders differ. Reuse
+                # the verifier's fail-closed semantic comparison when CI provides
+                # the exact canonical artifact instead of weakening this binding.
+                from verify import portable_gate_2_matches
+                matched, reason = portable_gate_2_matches(
+                    kit, brand, approval, gate_2["derivative_manifest_sha256"])
+                _require(matched,
+                         "Gate 2 approval is stale because derivative provenance changed (%s)" % reason)
     else:
         _require(gate_2["approved_by"] is None and gate_2["approved_on"] is None
                  and gate_2["derivative_manifest_sha256"] is None and gate_2["surfaces"] == [],

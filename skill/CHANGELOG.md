@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Reused the canonical-artifact Gate 2 comparison in every kit-aware approval-ledger consumer, including static-site preparation, while retaining exact manifest hashes and fail-closed decoded-pixel equivalence.
 - Bound private Gate 2 approval to generated provenance, added a source-preserved icon packaging pass for core capability, required downstream color and light masters, restored Python 3.8 test compatibility, and added exact canonical-host proof and Gate 2 evidence export with hash-bound measured comparison on alternate CI operating systems, including shared-silhouette color sampling for tiny proofs and decoded-pixel equivalence for differently encoded embedded PNGs.
 - Measured contrast against configured light bases and added fail-fast contracts for supplied icon dimensions, supplied-lockup overwrite risk, and monochrome output without a white source colourway.
 - Made the guide reading surface explicit and QC-bound, preserving dark as the default while supporting approved, accessible light-first brand guides.

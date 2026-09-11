@@ -944,18 +944,18 @@ class PipelineTests(unittest.TestCase):
             write_utf8(canonical_approval, json.dumps(approval(canonical_svg), indent=2, sort_keys=True) + "\n")
             expected = sha256_file(canonical_approval)
             with mock.patch.dict(os.environ, {"GP_APPROVED_PROOF_ROOT": str(portable)}):
-                matched, detail = verify._portable_gate_2_matches(
+                matched, detail = verify.portable_gate_2_matches(
                     str(kit), {"slug": "sample"}, str(local_approval), "0" * 64)
                 self.assertFalse(matched)
                 self.assertIn("approved manifest hash", detail)
 
-                matched, detail = verify._portable_gate_2_matches(
+                matched, detail = verify.portable_gate_2_matches(
                     str(kit), {"slug": "sample"}, str(local_approval), expected)
                 self.assertTrue(matched, detail)
 
                 write_utf8(local_svg, svg_bytes((12, 34, 57, 255), 0))
                 write_utf8(local_approval, json.dumps(approval(local_svg), indent=2, sort_keys=True) + "\n")
-                matched, detail = verify._portable_gate_2_matches(
+                matched, detail = verify.portable_gate_2_matches(
                     str(kit), {"slug": "sample"}, str(local_approval), expected)
                 self.assertFalse(matched)
                 self.assertIn("SVG drift", detail)
