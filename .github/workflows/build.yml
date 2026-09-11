@@ -2,17 +2,29 @@ name: Build
 
 on:
   push:
+    branches: [main]
+    tags: ["v*"]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/main' && 'pages' || format('{0}-{1}', github.workflow, github.run_id) }}
+  cancel-in-progress: ${{ github.ref == 'refs/heads/main' }}
 
 jobs:
   python-38-compatibility:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact source revision
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.1.0
         with:
           python-version: "3.8"
       - name: Install minimum-version test dependencies
@@ -21,6 +33,7 @@ jobs:
         run: |
           python -m compileall -q scripts skill/templates
           python scripts/build_all.py --list
+          python scripts/test_publication_workflow.py
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
@@ -34,12 +47,18 @@ jobs:
   approved-identity-proofs:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact source revision
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.1.0
         with:
           python-version: "3.12"
           cache: pip
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.2.0
         with:
           node-version: 24.11.0
       - name: Install approved proof toolchain
@@ -48,25 +67,30 @@ jobs:
           npm install --prefix skill/templates --no-save --no-package-lock @resvg/resvg-js@2.6.2
       - name: Export exact approved identity evidence
         run: python scripts/export_approved_identity_proofs.py brands/i-heart-pr-tours dist/ci-approved-proofs/i-heart-pr-tours
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
-          name: approved-identity-proofs
+          name: approved-identity-proofs-${{ github.sha }}
           path: dist/ci-approved-proofs/
           if-no-files-found: error
 
-  build:
+  verified-build:
     needs: approved-identity-proofs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact source revision
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.1.0
         with:
           python-version: "3.12"
           cache: pip
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         with:
           version: 10.28.2
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.2.0
         with:
           node-version: 24.11.0
           cache: pnpm
@@ -79,13 +103,14 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Install site and browser dependencies
         run: pnpm --dir site install --frozen-lockfile && pnpm --dir site exec playwright install chromium --with-deps
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          name: approved-identity-proofs
+          name: approved-identity-proofs-${{ github.sha }}
           path: approved-identity-proofs
-      - name: Test geometry
+      - name: Test geometry and publication contracts
         run: |
           python skill/templates/test_glyphkit.py
+          python scripts/test_publication_workflow.py
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
@@ -115,8 +140,140 @@ jobs:
         run: pnpm --dir site lint && pnpm --dir site build && pnpm --dir site test
         env:
           GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
-      - uses: actions/upload-artifact@v7
+      - name: Audit publication contents
+        run: python scripts/audit_publication_artifacts.py --kits dist --site site/out
+      - name: Stage checksummed release candidate
+        run: |
+          CANDIDATE="$RUNNER_TEMP/release-candidate"
+          mkdir -p "$CANDIDATE/files"
+          cp release/*.skill release/*.zip release/release-notes.md "$CANDIDATE/files/"
+          printf '%s\n' "$GITHUB_SHA" > "$CANDIDATE/SOURCE_COMMIT"
+          (cd "$CANDIDATE/files" && sha256sum -- ./* | sort -k2) > "$CANDIDATE/SHA256SUMS"
+          (cd "$CANDIDATE/files" && sha256sum --check ../SHA256SUMS)
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
-          name: verified-brand-kits
-          path: dist/
+          name: verified-brand-kits-${{ github.sha }}
+          path: |
+            dist/covarity/
+            dist/cueson/
+            dist/eso-weave/
+            dist/fragcap/
+            dist/glitchpad/
+            dist/go-schedule/
+            dist/i-heart-pr-tours/
+            dist/shruggietech/
           if-no-files-found: error
+          include-hidden-files: true
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-${{ github.sha }}
+          path: site/out
+          include-hidden-files: true
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+        with:
+          name: verified-release-assets-${{ github.sha }}
+          path: ${{ runner.temp }}/release-candidate/
+          if-no-files-found: error
+
+  build:
+    if: ${{ always() }}
+    needs: [python-38-compatibility, approved-identity-proofs, verified-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce successful authoritative verification
+        env:
+          PYTHON_RESULT: ${{ needs.python-38-compatibility.result }}
+          PROOF_RESULT: ${{ needs.approved-identity-proofs.result }}
+          VERIFIED_RESULT: ${{ needs.verified-build.result }}
+        run: |
+          if [ "$PYTHON_RESULT" != success ] || [ "$PROOF_RESULT" != success ] || [ "$VERIFIED_RESULT" != success ]; then
+            echo "authoritative verification failed: python=$PYTHON_RESULT proofs=$PROOF_RESULT verified=$VERIFIED_RESULT"
+            exit 1
+          fi
+
+  deploy-pages:
+    if: >-
+      ${{
+        needs.build.result == 'success' &&
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      }}
+    needs: [build, verified-build]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy exact verified Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.0
+        with:
+          artifact_name: github-pages-${{ github.sha }}
+
+  release-preflight:
+    if: >-
+      ${{
+        needs.build.result == 'success' &&
+        github.event_name == 'push' &&
+        startsWith(github.ref, 'refs/tags/v')
+      }}
+    needs: [build, verified-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact source revision
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.1.0
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: verified-release-assets-${{ github.sha }}
+          path: ${{ runner.temp }}/release-candidate
+      - name: Verify release provenance, contract, and main ancestry
+        run: |
+          CANDIDATE="$RUNNER_TEMP/release-candidate"
+          VERSION="$(python scripts/release_contract.py current)"
+          test "$GITHUB_REF_NAME" = "v$VERSION"
+          test "$(cat "$CANDIDATE/SOURCE_COMMIT")" = "$GITHUB_SHA"
+          (cd "$CANDIDATE/files" && sha256sum --check ../SHA256SUMS)
+          python scripts/release_contract.py verify --version "$VERSION" --release-dir "$CANDIDATE/files" --notes "$CANDIDATE/files/release-notes.md"
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+  publish-release:
+    if: >-
+      ${{
+        needs.release-preflight.result == 'success' &&
+        github.event_name == 'push' &&
+        startsWith(github.ref, 'refs/tags/v')
+      }}
+    needs: [build, release-preflight]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: verified-release-assets-${{ github.sha }}
+          path: ${{ runner.temp }}/release-candidate
+      - name: Recheck transport and publish verified release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          CANDIDATE="$RUNNER_TEMP/release-candidate"
+          test "$(cat "$CANDIDATE/SOURCE_COMMIT")" = "$GITHUB_SHA"
+          (cd "$CANDIDATE/files" && sha256sum --check ../SHA256SUMS)
+          gh release create "$GITHUB_REF_NAME" "$CANDIDATE"/files/*.skill "$CANDIDATE"/files/*.zip \
+            --verify-tag \
+            --title "shruggie-brandbuilder ${GITHUB_REF_NAME#v}" \
+            --notes-file "$CANDIDATE/files/release-notes.md"

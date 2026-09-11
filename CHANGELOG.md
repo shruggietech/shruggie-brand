@@ -41,6 +41,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Replaced the divergent Pages and Release rebuilds with one SHA-pinned verified Build workflow that preserves the exact protected `build` context, uploads SHA-qualified same-run Pages and checksummed release artifacts, preflights tag ancestry, rejects unsafe publication trees, and limits write credentials to checkout-free publisher jobs for issue #196.
 - Bound approved Gate 2 records to their generated derivative manifest during verification and publication, preserved approved supplied icon targets at core capability without changing the Gate 1 identity renderer, required downstream `color` and `light` logo variants, and added canonical-host proof and Gate 2 evidence export plus hash-bound measured comparison for cross-platform CI, including defined color sampling for tiny proofs with no non-edge interior and decoded-pixel equivalence for differently encoded embedded PNGs.
 - Restored Python 3.8 compatibility in the guide typography regression and skipped the exact raster-derivation integration test when no measured SVG renderer is available.
 - Measured light-surface contrast against each brand's configured base, validated supplied icon dimensions before generation, rejected supplied-lockup configurations that could be overwritten by generated wordmarks, and required a white colourway for enabled monochrome platform icons.

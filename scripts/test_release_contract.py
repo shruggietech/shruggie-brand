@@ -134,6 +134,19 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertIn("python scripts/release_contract.py current", workflow)
         self.assertNotIn("--version 1.1.2", workflow)
 
+    def test_release_publication_uses_the_verified_candidate_boundary(self):
+        workflow = (ROOT / ".github" / "workflows" / "build.yml").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertFalse((ROOT / ".github" / "workflows" / "release.yml").exists())
+        self.assertIn("verified-release-assets-${{ github.sha }}", workflow)
+        self.assertIn("SOURCE_COMMIT", workflow)
+        self.assertIn("SHA256SUMS", workflow)
+        self.assertIn("git merge-base --is-ancestor", workflow)
+        self.assertIn("gh release create", workflow)
+        self.assertIn("--verify-tag", workflow)
+
     def test_site_package_version_must_match_release(self):
         original_read_text = release_contract.read_text
 
