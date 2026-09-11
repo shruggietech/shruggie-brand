@@ -3,16 +3,10 @@
 """
 gen_guide_pdf.py: the brand guide, built to the ShruggieTech house standard.
 
-House standard, set by fragcap 1.1.0 and recorded in canon as
-pdf-surface-consistency: FULL-BLEED DARK ON EVERY SHEET. The light reading
-surface appears only as specimen chips inside dark pages. Consistent eyebrow
-and section title top-left, hairline rule above a running footer with a folio,
-outlined callout boxes for hard rules.
-
-Do not argue yourself into a light guide on ink-budget grounds. That argument
-has been made, produced a document with a floating dark cover panel and white
-body pages, and fragcap's changelog already records a light guide for a
-dark-first brand as the defect 1.1.0 fixed.
+The default house standard remains full-bleed dark on every sheet. A brand may
+explicitly declare ``guide.surface_mode: light`` when its approved identity is
+light-first. The declared mode applies to every page rather than mixing a dark
+cover with white body sheets.
 
 Prose: every section reads brand.json `guide.<key>` when present and falls back
 to a default generated from the measured values, so two operator inputs still
@@ -20,7 +14,7 @@ produce a complete document.
 
     python3 build/gen_guide_pdf.py <brand.json> <kit-dir> [--html-only]
 """
-import argparse, json, os, sys
+import argparse, base64, json, os, sys
 from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
@@ -124,16 +118,16 @@ def _variants(kit, slug, img):
         p = os.path.join(pngs, n)
         return _b64(p) if os.path.exists(p) else None
     cells = []
-    for fn, label, lite in (
-        ("%s-horizontal-color-1024.png" % slug, "Horizontal, product surface", False),
-        ("%s-mark-color-1024.png" % slug, "Mark", False),
-        ("%s-horizontal-light-1024.png" % slug, "Light surface", True),
-        ("%s-mark-reduced-color-1024.png" % slug, "Reduced master", False)):
+    for fn, label, preview_class in (
+        ("%s-horizontal-color-1024.png" % slug, "Horizontal, product surface", " dark-preview"),
+        ("%s-mark-color-1024.png" % slug, "Mark", " dark-preview"),
+        ("%s-horizontal-light-1024.png" % slug, "Light surface", " lite"),
+        ("%s-mark-reduced-color-1024.png" % slug, "Reduced master", " lite")):
         b = has(fn)
         if not b: continue
         cells.append('<div class="card%s" style="text-align:center;padding:5mm 2mm">%s'
                      '<div class="m dim" style="margin-top:3mm">%s</div></div>'
-                     % (" lite" if lite else "",
+                     % (preview_class,
                         img(b, "", "height:%dmm" % (7 if "horizontal" in fn else 9)), label))
     return "" if not cells else '<div class="grid4" style="margin-top:4mm">%s</div>' % "".join(cells)
 
@@ -152,14 +146,14 @@ def _charttable(D, L, B):
 def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
-    A, AL = D["primary"], L["primary"]
-    AD = D.get("brand-accent-deep", A)
-    OR, FA = D["brand-emphasis"], D["destructive"]
-    BG, CARD, LINE = D["background"], D["card"], D["border"]
-    # DEVIATION: MU was #8B95A8 and the footers were a hardcoded #5B6577, which
-    # measures 3.37:1 on this base and fails AA at any size, let alone 5.4pt.
-    # One muted ink now, measured, tinted toward the identity accent.
-    TX, MU = "#F2F5FA", "#B4ADC6"
+    light_first = (B.get("guide") or {}).get("surface_mode") == "light"
+    P, ALT = (L, D) if light_first else (D, L)
+    A, AL = P["primary"], ALT["primary"]
+    AD = P.get("brand-accent-deep", A)
+    OR, FA = P["brand-emphasis"], P["destructive"]
+    BG, CARD, LINE = P["background"], P["card"], P["border"]
+    TX, MU = P["foreground"], P["muted-foreground"]
+    CALLOUT, ACC_CALLOUT = P["secondary"], P["muted"]
     M = B.get("measured", {})
     sep = M.get("hue_separation_deg", {})
     near = min(sep.values()) if sep else None
@@ -168,7 +162,7 @@ def build(B, kit):
     lockups = LG.get("lockups") or {}
     horizontal_lockup = lockups.get("horizontal") or {}
     stacked_lockup = lockups.get("stacked") or {}
-    mono_logo = asset(kit, "%s-horizontal-color-1024.png" % slug)
+    mono_logo = asset(kit, "%s-horizontal-light-1024.png" % slug) if light_first else asset(kit, "%s-horizontal-color-1024.png" % slug)
     mono_light = asset(kit, "%s-horizontal-light-1024.png" % slug)
     def img(b, cls="", st=""):
         return '' if not b else '<img class="%s" style="%s" src="data:image/png;base64,%s">' % (cls, st, b)
@@ -181,7 +175,7 @@ def build(B, kit):
     F = faces(kit, B)
     css = """
 %s
-:root { --font-display:'%s'; --font-body:'%s'; --font-mono:'%s'; }
+:root { --font-display:'%s'; --font-body:'%s'; --font-mono:'%s'; --font-label-weight:%d; }
 @page { size:A4; margin:0; }
 * { box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 html,body { margin:0; padding:0; background:%s; color:%s;
@@ -191,8 +185,9 @@ h2 { font-weight:%d; font-size:16pt; letter-spacing:-.02em; line-height:1.12; ma
 h3 { font-weight:%d; font-size:10.6pt; margin:5mm 0 2mm; }
 p { margin:0 0 2.6mm; }
 .dim { color:%s; }
-.m { font-family:var(--font-mono); font-size:7.2pt; letter-spacing:.02em; }
-.ey { font-family:var(--font-mono); font-size:7pt; letter-spacing:.16em; text-transform:uppercase;
+.m { font-family:var(--font-body); font-size:7.5pt; letter-spacing:0; }
+.code-block { font-family:var(--font-mono); font-size:7.2pt; letter-spacing:.02em; }
+.ey { font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:7.8pt; letter-spacing:.08em; text-transform:uppercase;
   color:%s; margin-bottom:2mm; }
 .pg { position:relative; width:210mm; height:297mm; background:%s;
   padding:16mm 16mm 18mm 16mm; overflow:hidden; break-after:page; }
@@ -200,19 +195,19 @@ p { margin:0 0 2.6mm; }
 .pg::after { content:""; position:absolute; left:16mm; right:16mm; bottom:11mm;
   height:.25mm; background:%s; }
 .foot { position:absolute; left:16mm; right:16mm; bottom:6mm; display:flex;
-  justify-content:space-between; font-family:var(--font-mono); font-size:6.6pt;
-  letter-spacing:.14em; text-transform:uppercase; color:%s; }
+  justify-content:space-between; font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:7pt;
+  letter-spacing:.02em; color:%s; }
 .cover { padding:0; }
 .cover .inner { position:absolute; inset:0; padding:24mm 20mm 20mm 20mm; }
 .cover img.lockup { display:block; width:160mm; height:auto; margin-top:12mm; }
-.cover .sys { margin:0; font-family:var(--font-mono); font-size:7pt;
-  letter-spacing:.16em; text-transform:uppercase; color:%s; }
+.cover .sys { margin:0; font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:8pt;
+  letter-spacing:.06em; text-transform:uppercase; color:%s; }
 .cover .message { margin-top:20mm; padding:1mm 0 1mm 7mm; border-left:1mm solid; }
 .cover .tag { margin:0; font-family:var(--font-display); font-weight:%d; font-size:23pt;
   letter-spacing:-.025em; line-height:1.08; max-width:145mm; }
 .cover .idea { margin-top:4mm; font-size:11.5pt; color:%s; max-width:152mm; }
-.cover .base { position:absolute; left:20mm; bottom:18mm; font-family:var(--font-mono);
-  font-size:6.6pt; letter-spacing:.14em; text-transform:uppercase; color:%s; }
+.cover .base { position:absolute; left:20mm; bottom:18mm; font-family:var(--font-body);
+  font-size:7pt; letter-spacing:.02em; color:%s; }
 .two { display:grid; grid-template-columns:1fr 1fr; gap:7mm; }
 .three { display:grid; grid-template-columns:1fr 1fr 1fr; gap:5mm; }
 .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:3.4mm; margin:3mm 0 4mm; }
@@ -222,29 +217,31 @@ p { margin:0 0 2.6mm; }
 .card { background:%s; border:.25mm solid %s; border-radius:2.6mm; padding:4.5mm; }
 .card.lite { background:#FFFFFF; border-color:#D6DAE2; color:#0A0A0A; }
 .card.lite .dim { color:#6B6B6B; }
+.card.dark-preview { background:#08131D; border-color:#27445A; color:#FFFFFF; }
+.card.dark-preview .dim { color:#E8EDF2; }
 .rule { height:.25mm; background:%s; margin:4.5mm 0; }
-table { width:100%%; border-collapse:collapse; font-family:var(--font-mono); font-size:7.2pt; }
-th { text-align:left; font-weight:400; text-transform:uppercase; letter-spacing:.13em;
-  font-size:6.6pt; color:%s; padding:1.7mm 2mm; border-bottom:.25mm solid %s; }
+table { width:100%%; border-collapse:collapse; font-family:var(--font-body); font-size:7.8pt; }
+th { text-align:left; font-weight:var(--font-label-weight); text-transform:uppercase; letter-spacing:.04em;
+  font-size:7.3pt; color:%s; padding:1.7mm 2mm; border-bottom:.25mm solid %s; }
 td { padding:1.7mm 2mm; border-bottom:.25mm solid %s; vertical-align:top; }
 .kv { display:grid; grid-template-columns:30mm 1fr; gap:1.4mm 4mm; }
-.kv .k { font-family:var(--font-mono); font-size:6.8pt; text-transform:uppercase;
-  letter-spacing:.13em; color:%s; padding-top:.5mm; }
+.kv .k { font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:7.3pt; text-transform:uppercase;
+  letter-spacing:.04em; color:%s; padding-top:.5mm; }
 .callout { border:.25mm solid %s; border-left:1mm solid %s; border-radius:1.6mm;
-  padding:3.4mm 4mm; margin:4mm 0; background:#160C06; }
+  padding:3.4mm 4mm; margin:4mm 0; background:%s; }
 .callout .ey { color:%s; }
-.callout.acc { border-color:%s; border-left-color:%s; background:#0E0C1E; }
+.callout.acc { border-color:%s; border-left-color:%s; background:%s; }
 .callout.acc .ey { color:%s; }
-.badge { font-family:var(--font-mono); font-size:6.5pt; letter-spacing:.1em; text-transform:uppercase;
+.badge { font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:7pt; letter-spacing:.04em; text-transform:uppercase;
   border:.25mm solid currentColor; border-radius:9mm; padding:.5mm 2mm; }
 .charts { display:flex; gap:1.6mm; align-items:flex-end; height:22mm; margin:3mm 0 1mm; }
 .charts div { flex:1; border-radius:1.2mm 1.2mm 0 0; }
 ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
 .sw .m { font-size:6.6pt; }
-""" % (F, type_["display"], type_["body"], type_["mono"], BG, TX, type_["display_bold"], type_["display_regular"], MU, A, BG, LINE, MU, A, type_["display_regular"], MU, MU, CARD, LINE, LINE, MU, LINE, LINE, MU, OR, OR, OR, A, A, A)
+""" % (F, type_["display"], type_["body"], type_["mono"], type_["body_medium"], BG, TX, type_["display_bold"], type_["display_regular"], MU, A, BG, LINE, MU, A, type_["display_regular"], MU, MU, CARD, LINE, LINE, TX, LINE, LINE, TX, LINE, OR, CALLOUT, A, A, A, ACC_CALLOUT, A)
 
     def foot(n):
-        return '<div class="foot"><span>%s brand system</span><span>%02d</span></div>' % (slug, n)
+        return '<div class="foot"><span>%s | Brand System</span><span>%02d</span></div>' % (title, n)
     def pg(ey, h2, body, n):
         return '<div class="pg"><div class="ey">%s</div><h2>%s</h2>%s%s</div>' % (ey, h2, body, foot(n))
 
@@ -365,31 +362,47 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             AL, light_bars, chips(L, ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"], True))
         + _charttable(D, L, B), 5))
 
-    pages.append(pg("Typography", "Display, interface, data",
+    pages.append(pg("Typography", "Display, interface, code",
         '<p>%s uses three approved type families. %s handles display text, %s handles '
-        'interface and reading text, and %s handles identifiers, offsets, and data.</p>'
+        'interface and reading text, and %s is reserved for literal command blocks.</p>'
         '<div class="card" style="margin:4mm 0"><div style="font-family:var(--font-display);'
         'font-weight:%d;font-size:22pt;letter-spacing:-.025em;line-height:1.08">%s</div>'
-        '<div class="dim" style="margin-top:2mm">%s</div><div class="ey" style="margin-top:5mm">'
-        'Key readability test</div><div class="m" style="font-size:8pt;line-height:1.8">'
-        '0O 1lI 8B 5S 2Z &nbsp; {{ }} [ ] ( )</div></div>'
+        '<div class="dim" style="margin-top:2mm">%s</div></div>'
         '<div class="two"><div class="card"><div class="ey">Roles</div><table>'
         '<tr><th>Function</th><th>Typeface</th><th>Weights</th></tr>'
         '<tr><td>Display, headings</td><td>%s</td><td>%s</td></tr>'
         '<tr><td>Body, interface</td><td>%s</td><td>%s</td></tr>'
-        '<tr><td>Telemetry, code</td><td>%s</td><td>%s</td></tr></table></div>'
+        '<tr><td>Literal code blocks</td><td>%s</td><td>%s</td></tr></table></div>'
         '<div class="card"><div class="ey">Geometry</div><table>'
         '<tr><th>Axis</th><th>Value</th></tr>'
         '<tr><td>Radii</td><td>6 / 8 / 12 / 16 / pill</td></tr>'
         '<tr><td>Spacing</td><td>4 8 12 16 24 32 48 64 96 120</td></tr>'
         '<tr><td>Focus</td><td>2px ring at 2px offset</td></tr></table></div></div>'
         '<div class="callout"><div class="ey">Available weights</div><p style="margin:0" class="dim">'
-        'Only the listed local faces are approved. Any other weight makes the renderer synthesise a faux bold, which prints badly and forces outlined glyphs into exported PDFs. In mono, carry emphasis with colour.</p></div>' % (
+        'Only the listed local faces are approved. Any other weight makes the renderer synthesise a faux bold, which prints badly and forces outlined glyphs into exported PDFs. Courier Prime is used only for literal command blocks.</p></div>' % (
             title, type_["display"], type_["body"], type_["mono"], type_["display_bold"],
             copy_for(B, "idea", B.get("brand_idea", title)),
             copy_for(B, "descriptor", B.get("descriptor", "")),
             type_["display"], type_["display_weights"], type_["body"], type_["body_weights"], type_["mono"], type_["mono_weights"]) + _scales(), 6))
 
+    expressions = (B.get("guide") or {}).get("expressions") or []
+    if expressions:
+        cards = []
+        root = os.path.realpath(kit)
+        for index, item in enumerate(expressions):
+            if not isinstance(item, dict) or set(item) != {"title", "description", "path"}:
+                raise ValueError("guide expression %d has an invalid structure" % index)
+            source = os.path.realpath(os.path.join(kit, *item["path"].split("/")))
+            if os.path.commonpath((root, source)) != root or not os.path.isfile(source):
+                raise ValueError("guide expression path is unsafe or missing: %s" % item["path"])
+            mime = "image/svg+xml" if source.lower().endswith(".svg") else "image/png"
+            with open(source, "rb") as handle:
+                encoded = base64.b64encode(handle.read()).decode("ascii")
+            cards.append('<div class="card" style="text-align:center"><img style="height:90mm;max-width:100%%" src="data:%s;base64,%s"><h3>%s</h3><p class="dim">%s</p></div>' % (mime, encoded, item["title"], item["description"]))
+        pages.append(pg("Optional expressions", "Expressions and atmosphere",
+                        '<p>These approved treatments extend the identity for selected campaign and editorial contexts. They are not substitutes for the core logo masters.</p><div class="two" style="margin-top:4mm">%s</div><div class="callout acc"><div class="ey">Use with intention</div><p>Choose these atmospheric marks when the setting benefits from a tactile island reference. Keep the surrounding composition quiet, preserve the artwork as supplied, and pair it with the core identity whenever recognition must be immediate.</p></div>' % "".join(cards), 7))
+
+    affiliation_page = 8 if expressions else 7
     if aff["parent"]:
         pages.append(pg("Parent", endorsement,
         '<p>%s uses the ShruggieTech type families, dark product surfaces, and the inherited orange '
@@ -399,7 +412,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         'style="letter-spacing:.2em;text-transform:uppercase;color:%s">%s</div></div>'
         '<p class="dim">The approved mono family, uppercase, positive tracking. Visually subordinate and outside the '
         'logo clear space. Never a combined parent-product lockup.</p><div class="rule"></div>'
-        '<h3>Load the system</h3><div class="card"><div class="m" style="line-height:2">'
+        '<h3>Load the system</h3><div class="card"><div class="code-block" style="line-height:2">'
         'npx shadcn@latest registry add @%s=%s/r/{name}.json<br>'
         'npx shadcn@latest add @%s/theme @%s/fonts<br>npm i geist next-themes</div></div>'
         '%s' % (
@@ -408,18 +421,18 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
              " The identity accent sits %.1f degrees from its nearest sibling." % near),
             MU, endorsement, slug, B.get("registry_base", B.get("homepage", "https://shruggie.tech").rstrip("/") + "/brand"), slug, slug,
             _ships(kit) + '<div style="position:absolute;left:16mm;bottom:20mm">%s</div>'
-            % img(mono_logo, "", "height:8mm")), 7))
+            % img(mono_logo, "", "height:8mm")), affiliation_page))
     else:
         pages.append(pg("Affiliation", "Independent identity",
             '<p>This brand has no ShruggieTech parent or ownership endorsement.</p>%s%s'
-            '<div class="rule"></div><h3>Load the system</h3><div class="card"><div class="m" style="line-height:2">'
+            '<div class="rule"></div><h3>Load the system</h3><div class="card"><div class="code-block" style="line-height:2">'
             'npx shadcn@latest registry add @%s=%s/r/{name}.json<br>'
             'npx shadcn@latest add @%s/theme @%s/fonts<br>npm i next-themes</div></div>%s' % (
                 (('<div class="card" style="text-align:center;padding:7mm;margin:4mm 0"><div class="m" '
                   'style="letter-spacing:.2em;text-transform:uppercase;color:%s">%s</div></div>' % (MU, endorsement)) if endorsement else ""),
                 (('<div class="callout acc"><div class="ey">Vendor and trademark boundary</div><p style="margin:0" class="dim">%s</p></div>' % boundary["notice"]) if boundary else ""),
                 slug, B.get("registry_base", B.get("homepage", "").rstrip("/") + "/brand"), slug, slug,
-                _ships(kit)), 7))
+                _ships(kit)), affiliation_page))
 
     html = ("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>%s brand guide"
             "</title><style>%s</style></head><body>%s</body></html>"
@@ -467,7 +480,8 @@ def main():
                    margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
             b.close()
         print("wrote", pdf_path)
-        print("Now run qc_render.py --expect-ground dark AND OPEN THE CONTACT SHEET.")
+        ground = "light" if (B.get("guide") or {}).get("surface_mode") == "light" else "dark"
+        print("Now run qc_render.py --expect-ground %s AND OPEN THE CONTACT SHEET." % ground)
     except Exception as e:
         print("FAIL brand guide PDF: Chromium was probed successfully but export failed (%s)" % e)
         return 1

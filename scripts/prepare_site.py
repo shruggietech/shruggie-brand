@@ -806,9 +806,10 @@ def main() -> int:
     for source in sources:
         brand = load_brand(source)
         validate_source_identity(source, brand, seen)
-        validate_registry(source, brand)
         loaded.append((source, brand))
     public_sources = [(source, brand) for source, brand in loaded if public_showcase(brand, source)]
+    for source, brand in public_sources:
+        validate_registry(source, brand)
     remove_stale_public_brands(PUBLIC, {source.name for source, _ in public_sources})
     for source, brand in public_sources:
         brands.append(copy_kit(source, brand))

@@ -166,6 +166,7 @@ def portal_payload(B, kit):
             "voice": {"principle": B.get("governing_principle", ""), "qualities": (B.get("voice") or {}).get("qualities", []), "lead_with": (B.get("voice") or {}).get("lead_with", []), "avoid": (B.get("voice") or {}).get("avoid", []), "personality": guide.get("personality", [])},
             "logos": {"guidance": guide.get("logo", ""), "minimum_sizes": (B.get("logo") or {}).get("min_px", {}), "reduced_below_px": (B.get("logo") or {}).get("reduced_below_px"), "prohibitions": (B.get("logo") or {}).get("prohibitions", [])},
             "typography": B.get("typography", {}), "components": B.get("domain_components", {}),
+            "expressions": guide.get("expressions", []),
         },
         "palettes": {"dark": portal_colors(list(dark.items())), "light": portal_colors(list(light.items()))},
         "asset_families": families, "resources": resources, "instructions": instructions,
@@ -324,11 +325,35 @@ def clear_space_guidance(brand, clear_space):
                 % (clear_space, internal))
     return "The horizontal row records its approved master composition. C is the outlined wordmark cap height used by the stacked lockup. X is the 70-unit G channel. Keep one X clear around every master. Never resize the mark and wordmark independently."
 
+
+def expression_gallery(brand, kit):
+    items = (brand.get("guide") or {}).get("expressions") or []
+    if not items:
+        return ""
+    root = Path(kit).resolve()
+    cards = []
+    for index, item in enumerate(items):
+        if not isinstance(item, dict) or set(item) != {"title", "description", "path"}:
+            raise ValueError("guide expression %d has an invalid structure" % index)
+        path = (root / item["path"]).resolve()
+        if root not in path.parents or not path.is_file() or path.suffix.lower() not in {".svg", ".png"}:
+            raise ValueError("guide expression path is unsafe or missing: %s" % item["path"])
+        mime = "image/svg+xml" if path.suffix.lower() == ".svg" else "image/png"
+        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+        cards.append('<article class="expression"><div class="expression-art"><img src="data:%s;base64,%s" alt="%s"></div>'
+                     '<h3>%s</h3><p class="lead">%s</p></article>' % (
+                         mime, encoded, escape(item["title"], quote=True), escape(item["title"]),
+                         escape(item["description"])))
+    return ('<section id="expressions"><div class="eyebrow">Optional expressions</div>'
+            '<h2>Expressions and atmosphere</h2><p class="lead">These approved treatments extend the identity for selected campaign and editorial contexts. They are not substitutes for the core logo masters.</p>'
+            '<div class="expression-grid">%s</div></section>' % "".join(cards))
+
 def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
     A, AL = D["primary"], L["primary"]
-    logo = asset(kit, "%s-horizontal-color-1024.png" % slug)
+    light_first = (B.get("guide") or {}).get("surface_mode") == "light"
+    logo = asset(kit, "%s-horizontal-light-1024.png" % slug) if light_first else asset(kit, "%s-horizontal-color-1024.png" % slug)
     lockups = (B.get("logo") or {}).get("lockups") or {}
     horizontal_lockup = lockups.get("horizontal") or {}
     stacked_lockup = lockups.get("stacked") or {}
@@ -358,6 +383,7 @@ def build(B, kit):
 :root {
 %(lv)s  --radius-sm:6px; --radius-md:8px; --radius-xl:12px;
   --font-display:'%(display)s'; --font-body:'%(body)s'; --font-mono:'%(mono)s';
+  --font-label-weight:%(body_medium)d;
 }
 .dark {
 %(dv)s}
@@ -374,7 +400,7 @@ h1 { font-family:var(--font-display); font-weight:%(display_bold)d; font-size:cl
 h2 { font-family:var(--font-display); font-weight:%(display_regular)d; font-size:1.75rem; line-height:1.2;
   letter-spacing:-.015em; margin:0 0 8px; }
 h3 { font-family:var(--font-display); font-weight:%(display_regular)d; font-size:1.1rem; margin:32px 0 8px; }
-.eyebrow { font-family:var(--font-mono); font-size:.75rem; letter-spacing:.12em;
+.eyebrow { font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:.8rem; letter-spacing:.06em;
   text-transform:uppercase; color:var(--primary); }
 section { padding:56px 0; border-top:1px solid var(--border); }
 section { scroll-margin-top:24px; }
@@ -395,10 +421,10 @@ section { scroll-margin-top:24px; }
 .preview img { max-height:180px; }
 .dark-well { background:#090909; }
 .light-well { background:#F5F5F5; color:#111111; }
-.surface-label { align-self:start; justify-self:start; font: .65rem var(--font-mono); letter-spacing:.08em; text-transform:uppercase; }
+.surface-label { align-self:start; justify-self:start; font:var(--font-label-weight) .72rem var(--font-body); letter-spacing:.04em; text-transform:uppercase; }
 .deliveries { list-style:none; padding:0; margin:12px 0 0; }
 .deliveries li { display:grid; gap:2px; border-top:1px solid var(--border); padding:9px 0; }
-.deliveries span { color:var(--muted-foreground); font: .7rem var(--font-mono); }
+.deliveries span { color:var(--muted-foreground); font: .75rem var(--font-body); }
 .theme-wells { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px; }
 .theme-well { border:1px solid var(--border); border-radius:var(--radius-xl); padding:20px; background:var(--background); color:var(--foreground); }
 .theme-well .mini-bars { display:flex; gap:5px; height:64px; align-items:flex-end; }
@@ -407,7 +433,7 @@ section { scroll-margin-top:24px; }
 .back-top { position:fixed; right:16px; bottom:16px; min-width:44px; min-height:44px; opacity:0; pointer-events:none; transform:translateY(8px); }
 .back-top.visible,.back-top:focus { opacity:1; pointer-events:auto; transform:none; }
 .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
-.mono { font-family:var(--font-mono); font-size:.75rem; margin-top:6px; }
+.mono { font-family:var(--font-body); font-size:.75rem; margin-top:6px; }
 .dim { color:var(--muted-foreground); }
 .card { background:var(--card); border:1px solid var(--border);
   border-radius:var(--radius-xl); padding:24px; }
@@ -418,22 +444,26 @@ section { scroll-margin-top:24px; }
   padding:10px 18px; border:1px solid transparent; cursor:pointer; }
 .btn-primary { background:var(--primary); color:var(--primary-foreground); }
 .btn-secondary { background:transparent; color:var(--foreground); border-color:var(--border); }
-.badge { font-family:var(--font-mono); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase;
+.badge { font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:.75rem; letter-spacing:.04em; text-transform:uppercase;
   border-radius:999px; padding:4px 12px; border:1px solid currentColor; }
 input { font-family:var(--font-body); font-size:.875rem; background:var(--card); color:var(--foreground);
   border:1px solid var(--input); border-radius:var(--radius-md); padding:10px 12px; width:100%%; }
 :focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
-table { width:100%%; border-collapse:collapse; font-family:var(--font-mono); font-size:.8rem; margin-top:16px; }
-th { text-align:left; color:var(--muted-foreground); font-weight:400; letter-spacing:.08em;
-  text-transform:uppercase; font-size:.7rem; padding:8px 12px; border-bottom:1px solid var(--border); }
+table { width:100%%; border-collapse:collapse; font-family:var(--font-body); font-size:.875rem; margin-top:16px; }
+th { text-align:left; color:var(--foreground); font-weight:var(--font-label-weight); letter-spacing:.04em;
+  text-transform:uppercase; font-size:.75rem; padding:8px 12px; border-bottom:1px solid var(--border); }
 td { padding:8px 12px; border-bottom:1px solid var(--border); }
-.endorse { font-family:var(--font-mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
+.endorse { font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:.75rem; letter-spacing:.04em; text-transform:uppercase;
   color:var(--muted-foreground); padding:48px 0 96px; }
 img { max-width:100%%; height:auto; object-fit:contain; }
 img.logo { max-height:56px; } img.mark { max-height:40px; } img.stacked { max-height:160px; }
-code { font-family:var(--font-mono); font-variant-ligatures:none; }
+.expression-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%%,360px),1fr)); gap:24px; margin-top:24px; }
+.expression { min-width:0; }
+.expression-art { min-height:240px; display:grid; place-items:center; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-xl); background:#FFFFFF; padding:24px; }
+.expression-art img { max-height:360px; width:100%%; }
+code { font-family:var(--font-body); font-weight:var(--font-label-weight); font-variant-ligatures:none; }
 @media(prefers-reduced-motion:reduce){ *{ animation-duration:.01ms!important; transition-duration:.01ms!important; } }
-</style></head><body class="dark"><div class="wrap">
+</style></head><body class="%(body_class)s"><div class="wrap">
 <header id="top">%(logoimg)s
 <div class="eyebrow" style="margin-top:32px">Brand guidelines</div>
 <h1>%(idea)s</h1>
@@ -443,6 +473,7 @@ code { font-family:var(--font-mono); font-variant-ligatures:none; }
 <nav class="contents" aria-label="On this page"><strong>On this page</strong><ul>
 <li><a href="#colors">Colors</a></li><li><a href="#themes">Theme examples</a></li>
 <li><a href="#type-components">Type and components</a></li><li><a href="#assets">Asset catalog</a></li>
+%(expression_nav)s
 </ul></nav>
 
 <main><section id="colors"><div class="eyebrow">Colour</div><h2>Identity accent</h2>
@@ -490,7 +521,9 @@ Below %(red)d px the reduced master takes over.</p>
 <tr><td>stacked</td><td>%(smark).2fC</td><td>%(sgap).2fC</td><td>centered on wordmark ink width</td></tr></table>
 <p class="lead">%(clear_space_guidance)s</p>
 %(catalog)s
-</section></main>
+</section>
+%(expressions)s
+</main>
 
 %(vendor_boundary)s
 %(endorsement)s
@@ -504,6 +537,9 @@ for(const button of document.querySelectorAll('[data-copy]'))button.addEventList
 if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;const syncTopButton=()=>{const show=!topVisible||document.activeElement===topButton;topButton.classList.toggle('visible',show);topButton.tabIndex=show?0:-1;};new IntersectionObserver(([entry])=>{topVisible=entry.isIntersecting;syncTopButton();}).observe(topTarget);topButton.addEventListener('blur',syncTopButton);topButton.addEventListener('click',()=>{topTarget.scrollIntoView({behavior:reduced.matches?'auto':'smooth'});topTarget.setAttribute('tabindex','-1');topTarget.focus({preventScroll:true});});}
 </script></body></html>""" % {
         "title": title, "faces": faces(kit, B), "lv": lv, "dv": dv,
+        "body_class": "" if light_first else "dark",
+        "expression_nav": '<li><a href="#expressions">Expressions</a></li>' if (B.get("guide") or {}).get("expressions") else "",
+        "expressions": expression_gallery(B, kit),
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),
         "idea": copy_for(B, "idea", B.get("brand_idea", title)),
         "descriptor": copy_for(B, "descriptor", B.get("descriptor", "")),

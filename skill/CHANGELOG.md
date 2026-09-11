@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added an identity-locked authoritative-source path for private third-party brands, including exact supplied lockups and favicons, deterministic single-ink derivatives, light-first guide rendering, optional expressions, and private Gate 2 approval with zero public surfaces.
+- Restricted generated guide monospace typography to literal code blocks and added surface-aware logo preview wells for source assets with fixed light lettering.
 - Added source-bound canonical identity approval, atomic exact-byte promotion, proof-matrix comparison, generated continuity reports, and historical continuity baselines that cannot fabricate owner approval.
 - Separated nonbinding direction selection from production-source approval and made Gate 2 reject reconstructed or newly introduced master geometry.
 - Added optional variant-specific standalone mark framing while preserving the existing clear-space default, and verified the selected Full or Reduced source variant during independent PNG reproduction.

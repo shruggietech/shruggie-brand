@@ -133,8 +133,12 @@ def main():
         fail += rc
     pdf = os.path.join(kit, "brand-guide.pdf")
     if os.path.exists(pdf):
+        with open(brand, encoding="utf-8") as source:
+            surface_mode = ((json.load(source).get("guide") or {}).get("surface_mode") or "dark")
+        if surface_mode not in {"dark", "light"}:
+            raise ValueError("guide.surface_mode must be dark or light")
         rc, out = run("qc_render.py", [pdf, "--out", os.path.join(kit, "qc"),
-                                       "--expect-ground", "dark"], here)
+                                       "--expect-ground", surface_mode], here)
         print("%-5s %-42s %s" % ("ok" if rc == 0 else "FAIL", "PDF QC",
                                  "0 problems" if rc == 0 else "%d problems" % rc))
         if rc:

@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import subprocess
@@ -117,6 +118,59 @@ class IconKitTests(unittest.TestCase):
                 rgb = image.convert("RGB")
                 self.assertEqual((255, 255, 255), rgb.getpixel((512, 512)))
                 self.assertEqual((0, 0, 0), rgb.getpixel((512, 256)))
+
+    def test_explicitly_unavailable_monochrome_omits_platform_derivatives(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            kit.mkdir()
+            full = kit / "full.svg"
+            reduced = kit / "reduced.svg"
+            for source in (full, reduced):
+                source.write_text('<svg xmlns="http://www.w3.org/2000/svg"/>\n', encoding="utf-8")
+            manifest = generate_icon_suites(
+                brand_fixture(), kit, full, reduced, fake_render,
+                {"tier": "full", "svg_raster": True, "ico_writer": True},
+                monochrome_svg=None,
+            )
+            self.assertIsNone(manifest["source_masters"]["monochrome"])
+            android = kit / "icons" / "android" / "app" / "src" / "main" / "res"
+            self.assertFalse((android / "drawable-nodpi" / "ic_launcher_monochrome.png").exists())
+            adaptive = (android / "mipmap-anydpi-v26" / "ic_launcher.xml").read_text(encoding="utf-8")
+            self.assertNotIn("<monochrome", adaptive)
+            ios = kit / "icons" / "apple" / "ios" / "Assets.xcassets" / "AppIcon.appiconset"
+            self.assertFalse((ios / "AppIcon-1024-tinted.png").exists())
+            contents = json.loads((ios / "Contents.json").read_text(encoding="utf-8"))
+            self.assertNotIn("tinted", {image.get("appearances", [{}])[0].get("value") for image in contents["images"]})
+
+    def test_supplied_favicon_target_replaces_generated_bytes_exactly(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            kit.mkdir()
+            full = kit / "full.svg"
+            reduced = kit / "reduced.svg"
+            for source in (full, reduced):
+                source.write_text('<svg xmlns="http://www.w3.org/2000/svg"/>\n', encoding="utf-8")
+            supplied = kit / "source.png"
+            Image.new("RGBA", (32, 32), (197, 52, 44, 127)).save(supplied, format="PNG")
+            brand = brand_fixture()
+            brand["logo"]["application_icon"].update({
+                "monochrome_platforms": False,
+                "supplied_targets": [{
+                    "source": "source.png",
+                    "sha256": hashlib.sha256(supplied.read_bytes()).hexdigest(),
+                    "target": "icons/web/favicon-32x32.png",
+                }],
+            })
+            manifest = generate_icon_suites(
+                brand, kit, full, reduced, fake_render,
+                {"tier": "full", "svg_raster": True, "ico_writer": True},
+            )
+            target = kit / "icons" / "web" / "favicon-32x32.png"
+            self.assertEqual(supplied.read_bytes(), target.read_bytes())
+            record = next(item for item in manifest["artifacts"] if item["path"] == "icons/web/favicon-32x32.png")
+            self.assertEqual("source-preserved", record["source_variant"])
+            self.assertEqual("transparent", record["alpha"])
+            self.assertIsNone(manifest["source_masters"]["monochrome"])
 
     def generate(self, root):
         kit = Path(root) / "kit"

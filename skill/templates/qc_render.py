@@ -142,7 +142,8 @@ def main():
         foot_rows = rows[int(sh * 0.945):]
         has_folio = any(foot_rows)
         # sample text contrast: darkest and lightest pixel in the busiest row band
-        mid = im.crop((0, int(h * 0.25), w, int(h * 0.75))).resize((160, 160))
+        mid = im.crop((0, int(h * 0.25), w, int(h * 0.75)))
+        mid.thumbnail((640, 640), Image.Resampling.LANCZOS)
         cl = list(mid.convert("RGB").getdata())
         dark = min(cl, key=luminance); light = max(cl, key=luminance)
         ctr = contrast(dark, light)

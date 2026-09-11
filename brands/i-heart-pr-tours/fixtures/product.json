@@ -1,0 +1,16 @@
+{
+  "tour": {
+    "name": "Old San Juan Story Walk",
+    "destination": "San Juan, Puerto Rico",
+    "duration": "Half day",
+    "summary": "A guided route connecting architecture, public spaces, local context, and media-ready story points.",
+    "availability": "Dates confirmed during booking"
+  },
+  "itinerary": [
+    {"time": "09:00", "place": "Meeting point", "activity": "Welcome and route briefing", "accessibility_note": "Step-free meeting area"},
+    {"time": "10:00", "place": "Historic district", "activity": "Guided story walk", "accessibility_note": "Mixed paving conditions"},
+    {"time": "12:00", "place": "Closing stop", "activity": "Questions and next steps", "accessibility_note": "Seating available"}
+  ],
+  "booking": {"party_size": "Up to 12 guests", "date": "Selected with the organizer", "price_context": "Quote supplied before confirmation", "next_step": "Request tour details"},
+  "testimonial": {"quote": "The route was clear, thoughtful, and easy for our group to follow.", "attribution": "Sample guest", "trip_context": "Representative content fixture"}
+}

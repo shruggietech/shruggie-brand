@@ -148,6 +148,60 @@ class PipelineTests(unittest.TestCase):
             shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
             validate_brand(brand, str(kit))
 
+    def test_i_heart_pr_tours_generation_preserves_exact_sources_and_approved_derivations(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "i-heart-pr-tours"
+            shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            self.write_probe(kit)
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                self.assertEqual(0, gen_logo.main())
+            finally:
+                sys.argv = old_argv
+
+            svg_dir = kit / "logos" / "svg"
+            exact_outputs = {
+                "i-heart-pr-tours-horizontal-color.svg": "horizontal_darkbg.svg",
+                "i-heart-pr-tours-horizontal-light.svg": "horizontal_lightbg.svg",
+                "i-heart-pr-tours-mark-color.svg": "vertical_darkbg.svg",
+                "i-heart-pr-tours-mark-light.svg": "vertical_lightbg.svg",
+                "i-heart-pr-tours-mark-reduced-color.svg": "heart.svg",
+                "i-heart-pr-tours-mark-reduced-light.svg": "heart.svg",
+                "i-heart-pr-tours-stacked-color.svg": "vertical_darkbg.svg",
+                "i-heart-pr-tours-stacked-light.svg": "vertical_lightbg.svg",
+            }
+            for output_name, source_name in exact_outputs.items():
+                self.assertEqual(
+                    (kit / "assets" / "source" / source_name).read_bytes(),
+                    (svg_dir / output_name).read_bytes(),
+                )
+            self.assertFalse(any("wordmark" in path.name for path in svg_dir.glob("*.svg")))
+            single_ink = {path.name for path in svg_dir.glob("*.svg") if path.name.endswith(("-black.svg", "-white.svg"))}
+            self.assertEqual(8, len(single_ink))
+            for name in single_ink:
+                self.assertIn("data:image/png;base64,", (svg_dir / name).read_text(encoding="utf-8"))
+            icon_manifest = json.loads((kit / "icons" / "manifest.json").read_text(encoding="utf-8"))
+            self.assertIsNone(icon_manifest["source_masters"]["monochrome"])
+
+    def test_i_heart_pr_tours_revised_contract_is_light_first_and_exact(self):
+        brand = json.loads((ROOT / "brands" / "i-heart-pr-tours" / "brand.json").read_text(encoding="utf-8"))
+        self.assertEqual("Experience Puerto Rico", brand["brand_idea"])
+        self.assertEqual("Thoughtfully guided tours on the island we love.", brand["descriptor"])
+        self.assertEqual("light", brand["guide"]["surface_mode"])
+        self.assertEqual(["vertical_sand.svg", "horizontal_sand.svg"],
+                         [Path(item["path"]).name for item in brand["guide"]["expressions"]])
+        self.assertFalse(brand["logo"]["application_icon"]["monochrome_platforms"])
+        self.assertTrue(brand["logo"]["application_icon"]["transparent_web_icons"])
+        self.assertEqual({"#FFFFFF", "#F8F6F2"}, {brand["light_surfaces"]["base"], brand["light_surfaces"]["secondary"]})
+        self.assertEqual(
+            "Use I Heart PR Tours for the formal company name and identity applications. "
+            "IHPRT is approved for casual shorthand and general prose after the full name is established. "
+            "Never use IHPRT as a substitute logo or alter the supplied identity artwork.",
+            brand["guide"]["written_form"],
+        )
+
     def test_guideline_color_references_are_deterministic_and_complete(self):
         reference = gen_guidelines.color_reference("primary", "#2BCC73")
         self.assertEqual("#2BCC73", reference["hex"])
@@ -627,6 +681,74 @@ class PipelineTests(unittest.TestCase):
                 html = gen_guide_pdf.build(brand, kit)
             self.assertIn("h2 { font-weight:650;", html)
             self.assertIn("h3 { font-weight:350;", html)
+
+    def test_guides_use_brand_fonts_for_semantic_labels_and_tables(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "input"
+            self.copy_production_test_input(kit)
+            brand_path = kit / "brand.json"
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["slug"] = "i-heart-pr-tours"
+            brand["title"] = "I Heart PR Tours"
+            brand_path.write_text(json.dumps(brand, indent=2) + "\n", encoding="utf-8", newline="\n")
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_nextjs.py", str(brand_path), str(kit)]
+                gen_nextjs.main()
+            finally:
+                sys.argv = old_argv
+
+            (kit / "logos").mkdir(exist_ok=True)
+            (kit / "logos" / "provenance.json").write_text(
+                json.dumps({"derivatives": []}), encoding="utf-8")
+            (kit / "icons").mkdir(exist_ok=True)
+            (kit / "icons" / "manifest.json").write_text(
+                json.dumps({"artifacts": [], "suites": [], "aliases": {}}), encoding="utf-8")
+
+            pdf_html = gen_guide_pdf.build(brand, kit)
+            portable_html = gen_guidelines.build(brand, kit)
+
+            self.assertIn("--font-label-weight:", pdf_html)
+            self.assertIn(".ey { font-family:var(--font-body); font-weight:var(--font-label-weight);", pdf_html)
+            self.assertIn("table { width:100%; border-collapse:collapse; font-family:var(--font-body);", pdf_html)
+            self.assertIn("th { text-align:left; font-weight:var(--font-label-weight);", pdf_html)
+            self.assertIn(".kv .k { font-family:var(--font-body); font-weight:var(--font-label-weight);", pdf_html)
+            self.assertIn(".m { font-family:var(--font-body);", pdf_html)
+            self.assertIn(".foot { position:absolute;", pdf_html)
+            self.assertIn("justify-content:space-between; font-family:var(--font-body);", pdf_html)
+            self.assertIn(".cover .sys { margin:0; font-family:var(--font-body);", pdf_html)
+            self.assertIn(".cover .base { position:absolute; left:20mm; bottom:18mm; font-family:var(--font-body);", pdf_html)
+            self.assertIn("I Heart PR Tours | Brand System", pdf_html)
+            self.assertEqual(1, pdf_html.count("font-family:var(--font-mono)"))
+            self.assertIn(".code-block { font-family:var(--font-mono); font-size:7.2pt; letter-spacing:.02em; }", pdf_html)
+            self.assertIn('<div class="code-block" style="line-height:2">', pdf_html)
+            self.assertIn(".card.dark-preview", pdf_html)
+
+            self.assertIn("--font-label-weight:", portable_html)
+            self.assertIn(".eyebrow { font-family:var(--font-body); font-weight:var(--font-label-weight);", portable_html)
+            self.assertIn(".surface-label { align-self:start; justify-self:start; font:var(--font-label-weight)", portable_html)
+            self.assertIn("table { width:100%; border-collapse:collapse; font-family:var(--font-body);", portable_html)
+            self.assertIn("th { text-align:left; color:var(--foreground); font-weight:var(--font-label-weight);", portable_html)
+            self.assertNotIn("font-family:var(--font-mono)", portable_html)
+
+    def test_pdf_logo_variants_use_surface_correct_preview_wells(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            pngs = kit / "logos" / "png"
+            pngs.mkdir(parents=True)
+            for name in (
+                "sample-horizontal-color-1024.png",
+                "sample-mark-color-1024.png",
+                "sample-horizontal-light-1024.png",
+                "sample-mark-reduced-color-1024.png",
+            ):
+                Image.new("RGBA", (8, 8), (255, 255, 255, 255)).save(pngs / name)
+            html = gen_guide_pdf._variants(
+                kit, "sample", lambda payload, class_name="", style="": "<img style=\"%s\">" % style)
+            self.assertEqual(2, html.count('class="card dark-preview"'))
+            self.assertEqual(2, html.count('class="card lite"'))
+            self.assertIn("Horizontal, product surface", html)
+            self.assertIn("Light surface", html)
 
     def test_core_logo_generation_keeps_vectors_and_skips_rasters(self):
         with tempfile.TemporaryDirectory() as tmp:

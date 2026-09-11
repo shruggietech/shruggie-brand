@@ -11,15 +11,17 @@ import base64
 import hashlib
 import json
 import os
+import pathlib
 import re
 import shutil
 import struct
 import subprocess
 import sys
+import tempfile
 import zlib
 
 from svgelements import Path
-from brand_contract import font_face_path, logo_source_contract, semantic_colors, square_enclosure_profile, typography_families
+from brand_contract import _image_dimensions, font_face_path, logo_source_contract, semantic_colors, square_enclosure_profile, typography_families
 from capabilities import load_capabilities
 from iconkit import contain_visible, generate_icon_suites
 from process_utils import hidden_process_kwargs
@@ -186,7 +188,7 @@ def raster(args):
     source = args[-3] if "-o" in args else args[-2]
     output = args[args.index("-o") + 1]
     native = shutil.which("rsvg-convert")
-    if native:
+    if native and pathlib.Path(native).suffix.lower() not in {".js", ".py"}:
         command = [native] + args
     elif shutil.which("resvg"):
         command = [shutil.which("resvg")]
@@ -343,6 +345,7 @@ def main():
     if brand["affiliation"]["inheritance"] == "independent":
         role_maps["color"]["emphasis"] = semantic["emphasis"]
         role_maps["light"]["emphasis"] = semantic["action"]
+    role_maps = {colourway: role_maps[colourway] for colourway in authority["colourways"]}
 
     svg_dir = os.path.join(kit, "logos", "svg")
     png_dir = os.path.join(kit, "logos", "png")
@@ -354,6 +357,39 @@ def main():
     def write(path, value):
         with open(path, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(value)
+
+    def derive_single_ink(source_entry, colour, width, height, metadata):
+        """Build the approved mask from the same immutable source used at Gate 1."""
+        from PIL import Image, ImageChops
+        settings = authority["single_ink"]["settings"]
+        temporary = pathlib.Path(svg_dir) / ("_%s-single-ink-source.png" % slug)
+        longest = 2048
+        args = (["-w", str(longest)] if width >= height else ["-h", str(longest)])
+        raster(args + [str(source_entry["path"]), "-o", str(temporary)])
+        try:
+            with Image.open(str(temporary)) as rendered:
+                rgba = rendered.convert("RGBA")
+            alpha = rgba.getchannel("A").point(
+                lambda value: max(0, min(255, round(255 * (value - settings["alpha_floor"]) /
+                                                       settings["alpha_transition"]))))
+            red, green, blue, _ = rgba.split()
+            minimum = ImageChops.darker(ImageChops.darker(red, green), blue)
+            ink = minimum.point(
+                lambda value: max(0, min(255, round(255 * (settings["white_knockout_floor"] - value) /
+                                                       settings["white_knockout_transition"]))))
+            mask = ImageChops.multiply(alpha, ink)
+            fill = Image.new("RGBA", rgba.size, tuple(int(colour[i:i + 2], 16) for i in (1, 3, 5)) + (255,))
+            fill.putalpha(mask)
+            with tempfile.SpooledTemporaryFile() as handle:
+                fill.save(handle, format="PNG", optimize=True)
+                handle.seek(0)
+                encoded = base64.b64encode(handle.read()).decode("ascii")
+            body = ('  <image x="0" y="0" width="%g" height="%g" preserveAspectRatio="xMidYMid meet" '
+                    'href="data:image/png;base64,%s"/>') % (width, height, encoded)
+            return svg(width, height, body, metadata)
+        finally:
+            if temporary.exists():
+                temporary.unlink()
 
     def raster_mask_file(item, colour):
         source = os.path.join(kit, item["source"])
@@ -471,13 +507,14 @@ def main():
     derivatives = []
     svg_records = {}
 
-    def derivative_record(filename, kind, variant, colourway, is_svg=True):
-        source = authority.get(variant) if variant else None
+    def derivative_record(filename, kind, variant, colourway, is_svg=True, source_override=None,
+                          embedded_metadata=None):
+        source = source_override or (authority.get(variant) if variant else None)
         if source:
             record = source["record"]
             base_transform = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
             transformations = [base_transform, "resize"]
-            if kind == "lockup":
+            if kind == "lockup" and source_override is None:
                 transformations.append("place-in-lockup")
             input_id = record["id"]
             source_sha256 = record["sha256"]
@@ -495,7 +532,7 @@ def main():
             "input_id": input_id,
             "source_sha256": source_sha256,
             "transformations": transformations,
-            "embedded_metadata": bool(is_svg),
+            "embedded_metadata": (bool(is_svg) if embedded_metadata is None else bool(embedded_metadata)),
         }
         derivatives.append(item)
         if is_svg:
@@ -551,20 +588,37 @@ def main():
     contextual = logo.get("contextual_variants") or {}
 
     def contextual_mark(colourway, reduced=False):
+        if colourway in {"white", "black"} and authority.get("single_ink"):
+            key = "reduced_input_id" if reduced else "full_input_id"
+            source = authority["single_ink"][key]
+            element = dict(source.get("element") or {})
+            if not element:
+                width, height = _image_dimensions(source["path"])
+                element = {"element": "image", "source": source["record"]["path"],
+                           "x": 0, "y": 0, "width": width, "height": height}
+            element["x"] = (canvas_width - float(element["width"])) / 2.0
+            element["y"] = (canvas_height - float(element["height"])) / 2.0
+            return [element], "reduced" if reduced else "full", source
         selected = contextual.get(colourway)
         if colourway in {"white", "black"} and selected == "single-ink":
             single = paths.get("single-ink") or []
             if not single:
                 raise ValueError("contextual single-ink output requires logo.paths.single-ink")
-            return single, None
+            return single, None, None
         if reduced or selected == "reduced":
-            return paths.get("reduced") or paths["full"], "reduced"
-        return paths["full"], "full"
+            return paths.get("reduced") or paths["full"], "reduced", authority.get("reduced")
+        supplied = authority["full_colourways"].get(colourway)
+        if supplied:
+            element = dict(supplied["element"])
+            element["x"] = (canvas_width - float(element["width"])) / 2.0
+            element["y"] = (canvas_height - float(element["height"])) / 2.0
+            return [element], "full", supplied
+        return paths["full"], "full", authority.get("full")
 
     variants = (("mark", False), ("mark-reduced", True))
     for variant, force_reduced in variants:
         for colourway, roles in role_maps.items():
-            path_list, source_variant = contextual_mark(colourway, force_reduced)
+            path_list, source_variant, source_entry = contextual_mark(colourway, force_reduced)
             box = paths_bbox(path_list)
             if enclosure:
                 square_content_geometry(path_list)
@@ -572,13 +626,57 @@ def main():
                 assert box[0] >= -0.5 and box[1] >= -0.5
                 assert box[2] <= canvas_width + 0.5 and box[3] <= canvas_height + 0.5
             filename = "%s-%s-%s.svg" % (slug, variant, colourway)
-            record = derivative_record(filename, "mark", source_variant, colourway)
-            write(os.path.join(svg_dir, filename), svg(canvas_width, canvas_height, render_mark(path_list, roles, colourway), svg_metadata(record)))
+            direct = bool(colourway not in {"white", "black"}
+                          and source_entry and source_entry["record"]["format"] == "svg"
+                          and logo.get("direct_source_outputs"))
+            record = derivative_record(filename, "mark", source_variant, colourway,
+                                       source_override=source_entry,
+                                       embedded_metadata=not direct)
+            output = os.path.join(svg_dir, filename)
+            if colourway in {"white", "black"} and authority.get("single_ink"):
+                record["transformations"] = ["derive-single-ink", "resize"]
+                write(output, derive_single_ink(source_entry, roles["accent"], canvas_width,
+                                                 canvas_height, svg_metadata(record)))
+            elif direct:
+                shutil.copyfile(str(source_entry["path"]), output)
+            else:
+                write(output, svg(canvas_width, canvas_height, render_mark(path_list, roles, colourway), svg_metadata(record)))
             written.append(filename)
 
     if proof_stage_only:
         print("wrote production mark SVGs for identity continuity proofing")
         return 0
+
+    for family, mappings in authority["supplied_lockups"].items():
+        for colourway, source_entry in mappings.items():
+            element = source_entry["element"]
+            width = float(element["width"])
+            height = float(element["height"])
+            filename = "%s-%s-%s.svg" % (slug, family, colourway)
+            direct = bool(logo.get("direct_source_outputs"))
+            record = derivative_record(filename, "lockup", "full", colourway,
+                                       source_override=source_entry,
+                                       embedded_metadata=not direct)
+            output = os.path.join(svg_dir, filename)
+            if direct:
+                shutil.copyfile(str(source_entry["path"]), output)
+            else:
+                body = render_paths([element], role_maps[colourway])
+                write(output, svg(width, height, body, svg_metadata(record)))
+            written.append(filename)
+
+    if authority.get("single_ink"):
+        for family in ("horizontal", "stacked"):
+            source = authority["single_ink"][family + "_input_id"]
+            width, height = _image_dimensions(source["path"])
+            for colourway in ("black", "white"):
+                filename = "%s-%s-%s.svg" % (slug, family, colourway)
+                record = derivative_record(filename, "lockup", "full", colourway,
+                                           source_override=source, embedded_metadata=True)
+                record["transformations"] = ["derive-single-ink", "resize"]
+                write(os.path.join(svg_dir, filename), derive_single_ink(
+                    source, role_maps[colourway]["accent"], width, height, svg_metadata(record)))
+                written.append(filename)
 
     mark_box = ((enclosure["inset"] - enclosure["stroke_width"] / 2.0,) * 2
                 + (enclosure["canvas_size"] - enclosure["inset"] + enclosure["stroke_width"] / 2.0,) * 2
@@ -587,8 +685,10 @@ def main():
     mark_height = mark_box[3] - mark_box[1]
 
     families = typography_families(brand)
+    unavailable = set((((brand.get("approval_ledger") or {}).get("gate_1") or {})
+                      .get("unavailable_derivatives", {})))
     ttf_path, _ = font_face_path(brand, kit, "display", max(families["display"]["weights"]), outline=True)
-    ttf = str(ttf_path)
+    ttf = None if "wordmark-only" in unavailable else str(ttf_path)
 
     wordmark_d = ""
     wordmark_advance = 0
@@ -668,7 +768,7 @@ def main():
             word_y = (horizontal_height - wordmark_ink_height_raw * word_scale) / 2.0 if supplied_wordmark else word_baseline
             word_x = lockup_pad + mark_render_width + gap
             lockup_width = mark_render_width + gap + wordmark_advance * word_scale + lockup_pad * 2.0
-            lockup_paths, lockup_variant = contextual_mark(colourway)
+            lockup_paths, lockup_variant, _lockup_source = contextual_mark(colourway)
             lockup_box = paths_bbox(lockup_paths)
             lockup_mark_width = lockup_box[2] - lockup_box[0]
             lockup_mark_height = lockup_box[3] - lockup_box[1]
@@ -807,6 +907,11 @@ def main():
     capabilities = load_capabilities(kit)
     icon_full_svg = os.path.join(svg_dir, "%s-mark-color.svg" % slug)
     icon_reduced_svg = os.path.join(svg_dir, "%s-mark-reduced-color.svg" % slug)
+    icon_profile = (logo.get("application_icon") or {}).get("source_variant", "full")
+    if icon_profile == "reduced":
+        icon_full_svg = icon_reduced_svg
+    monochrome_svg = (None if "single-ink" in unavailable or not (logo.get("application_icon") or {}).get("monochrome_platforms", True)
+                      else os.path.join(svg_dir, "%s-mark-white.svg" % slug))
 
     def render_icon_source(source, output, size):
         from PIL import Image
@@ -833,7 +938,7 @@ def main():
         write_provenance()
         generate_icon_suites(
             brand, kit, icon_full_svg, icon_reduced_svg, render_icon_source,
-            capabilities, monochrome_svg=os.path.join(svg_dir, "%s-mark-white.svg" % slug),
+            capabilities, monochrome_svg=monochrome_svg,
         )
         print("SKIP raster exports and native icon binaries: %s at core tier"
               % capabilities.get("raster_reason", "required raster capability unavailable"))
@@ -875,7 +980,7 @@ def main():
 
     generate_icon_suites(
         brand, kit, icon_full_svg, icon_reduced_svg, render_icon_source,
-        capabilities, monochrome_svg=os.path.join(svg_dir, "%s-mark-white.svg" % slug),
+        capabilities, monochrome_svg=monochrome_svg,
     )
 
     print("canvas %g x %g; artwork width %g" % (canvas_width, canvas_height, artwork_width))

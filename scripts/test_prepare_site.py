@@ -57,6 +57,22 @@ class PrepareSiteTests(unittest.TestCase):
         )
         self.assertTrue(prepare_site.public_showcase(brand))
 
+    def test_i_heart_pr_tours_source_remains_private_and_unpublished(self):
+        path = prepare_site.ROOT / "brands" / "i-heart-pr-tours" / "brand.json"
+        brand = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual("third-party", brand["affiliation"]["ownership"])
+        self.assertEqual("private", brand["affiliation"]["showcase"])
+        self.assertEqual("approved", brand["approval_ledger"]["gate_2"]["status"])
+        self.assertEqual("repository owner", brand["approval_ledger"]["gate_2"]["approved_by"])
+        self.assertEqual("2026-09-11", brand["approval_ledger"]["gate_2"]["approved_on"])
+        self.assertEqual(
+            "9aae47141e989c34ea64e460a3594179192e2443012e15922dd3f6e49bccd41b",
+            brand["approval_ledger"]["gate_2"]["derivative_manifest_sha256"],
+        )
+        self.assertEqual([], brand["approval_ledger"]["gate_2"]["surfaces"])
+        self.assertFalse(prepare_site.public_showcase(brand, path.parent))
+        self.assertIsNone(brand.get("registry_base"))
+
     def test_copy_kit_emits_only_explicit_governed_showcase_surface(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

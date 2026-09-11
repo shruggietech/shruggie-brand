@@ -6,6 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added the identity-locked private I Heart PR Tours source system for issue #188, including exact supplied source and favicon authority, locally licensed typography, a light-first guide, deterministic single-ink derivatives, optional sand expressions, and complete continuity evidence.
 - Added source-bound identity continuity records, canonical approval packets, exact-byte promotion, pre-derivative drift rejection, calibrated visual comparison evidence, and truthful historical baselines for all seven production brands for issue #185.
 - Added the approved Cueson production identity and seventh public brand kit for issue #184, including exact Cueframe source continuity, Cue Teal color governance, complete lockups and application icons, generated guidelines and specimen, and a manifest-certified future consumer handoff.
 - Added deterministic, manifest-certified complete brand-kit downloads for all seven public production brands, with staged verification and atomic publication shared by release and static-site builds.
@@ -19,6 +20,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-11, allowed an approved private Gate 2 to bind an exact derivative manifest with an empty public-surface set, preserving the distinction between repository review authorization and public brand publication.
+- On 2026-09-11, marked the supplied I Heart PR Tours favicon index as a path-specific binary source so Git cannot normalize its approved CRLF bytes and invalidate source continuity; all authored repository text remains UTF-8 with LF endings.
 - On 2026-09-09, separated nonbinding logo direction selection from canonical production-source approval and prohibited Gate 2 from reconstructing or first revealing identity geometry.
 - On 2026-09-09, separated external clear-space governance from optional variant-specific standalone presentation padding so approved Full and Reduced concept framing can survive deterministic production export.
 - On 2026-09-09, consolidated each brand portal into the approved Overview, Voice, Identity, Components, Assets, and Integration hierarchy, grouped project documentation into its approved five-section table of contents, and removed redundant brand-root pages while preserving every nested guideline, download, registry, and asset endpoint for issues #175, #179, and #180.
@@ -37,6 +40,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Corrected light-guide typography so Source Sans 3 carries footers, page numbers, labels, tables, and metadata while Courier Prime remains limited to literal code blocks, and bound dark-source logo previews to visible dark wells.
 - Prevented approved constructed glyphs from being redrawn during production handoff by reusing the exact Gate 1 centerlines through `glyphkit.capsule`, binding the result to source hashes, and adding cross-renderer silhouette, bounds, and centroid checks.
 - Centered documentation pagination chevrons with wrapped and unwrapped labels, preserved right-to-left rotation through independent optical translation, and restored pointer plus disabled cursor treatment and minimum targets for shared theme controls.
 - Restored complete Glitchpad black and white horizontal and stacked lockups by giving the shared square-knockout mask an explicit local coordinate extent, then added structural, rendered-height, and SVG-to-PNG verification for the failure.

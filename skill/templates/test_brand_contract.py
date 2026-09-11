@@ -5,11 +5,13 @@
 from __future__ import annotations
 
 import copy
+import base64
 import hashlib
 import json
 import shutil
 import tempfile
 import unittest
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -123,6 +125,17 @@ class ApprovalLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "stale"):
             approval_ledger(brand, with_input)
 
+    def test_private_brand_may_record_approved_gate_two_with_zero_public_surfaces(self):
+        brand = approval_brand("approved")
+        brand["affiliation"]["showcase"] = "private"
+        brand["approval_ledger"]["gate_2"]["surfaces"] = []
+        approved_input = [({"id": "source-mark", "sha256": "a" * 64,
+                            "usage_status": "approved", "role": "mark"}, Path("unused"))]
+        ledger = approval_ledger(brand, approved_input)
+        self.assertEqual("approved", ledger["gate_2"]["status"])
+        self.assertEqual([], ledger["gate_2"]["surfaces"])
+        self.assertFalse(public_showcase(brand))
+
     def test_gate_1_is_required_and_hash_bound(self):
         brand = approval_brand()
         missing = copy.deepcopy(brand)
@@ -138,8 +151,23 @@ class ApprovalLedgerTests(unittest.TestCase):
             approval_ledger(changed)
         incomplete = copy.deepcopy(brand)
         incomplete["approval_ledger"]["gate_1"]["scope"].pop()
-        with self.assertRaisesRegex(ContractError, "every derivative family"):
+        with self.assertRaisesRegex(ContractError, "account for every derivative family"):
             approval_ledger(incomplete)
+
+    def test_gate_1_can_explicitly_mark_unavailable_derivative_families(self):
+        brand = approval_brand()
+        brand["approval_ledger"]["gate_1"]["scope"] = [
+            "horizontal-lockup", "reduced-and-platform", "stacked-lockup",
+        ]
+        brand["approval_ledger"]["gate_1"]["unavailable_derivatives"] = {
+            "single-ink": "No monochrome source was supplied.",
+            "wordmark-only": "No standalone wordmark source was supplied.",
+        }
+        brand["approval_ledger"]["gate_1"]["derivative_config_sha256"] = derivative_configuration_sha256(brand)
+        self.assertEqual(2, len(approval_ledger(brand)["gate_1"]["unavailable_derivatives"]))
+        brand["approval_ledger"]["gate_1"]["scope"].append("single-ink")
+        with self.assertRaisesRegex(ContractError, "both approved and unavailable"):
+            approval_ledger(brand)
 
     def test_publication_waits_for_gate_2(self):
         self.assertFalse(public_showcase(approval_brand("pending")))
@@ -359,6 +387,25 @@ class ApplicationIconProfileTests(unittest.TestCase):
             application_icon_profile(brand),
         )
 
+    def test_profile_rejects_supplied_target_path_escape(self):
+        brand = owned_brand()
+        brand["logo"]["application_icon"] = {
+            "background": "#FFFFFF",
+            "supplied_targets": [{"source": "../favicon.png", "sha256": "0" * 64,
+                                  "target": "icons/web/favicon-32x32.png"}],
+        }
+        with self.assertRaisesRegex(ContractError, "stay inside the kit"):
+            application_icon_profile(brand)
+
+    def test_profile_requires_explicit_boolean_for_transparent_web_icons(self):
+        brand = owned_brand()
+        brand["logo"]["application_icon"] = {
+            "background": "#FFFFFF",
+            "transparent_web_icons": "yes",
+        }
+        with self.assertRaisesRegex(ContractError, "transparent_web_icons must be boolean"):
+            application_icon_profile(brand)
+
     def test_profile_falls_back_to_canonical_base(self):
         brand = owned_brand()
         brand["surfaces"] = {"base": "#080B0D"}
@@ -546,6 +593,45 @@ class AuthoritativeInputTests(unittest.TestCase):
                     with self.assertRaisesRegex(ContractError, message):
                         validate_brand(brand, kit)
 
+    def test_svg_allows_only_self_contained_base64_png_images(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            stage_house_fonts(kit)
+            png = BytesIO()
+            Image.new("RGBA", (1, 1), (17, 34, 51, 255)).save(png, format="PNG")
+            encoded = base64.b64encode(png.getvalue()).decode("ascii")
+            source = kit / "mark.svg"
+            source.write_text(
+                '<svg xmlns="http://www.w3.org/2000/svg"><image href="data:image/png;base64,%s"/></svg>\n' % encoded,
+                encoding="utf-8",
+            )
+            brand = owned_brand()
+            brand["authoritative_inputs"] = [{"id": "svg-mark", "role": "reference-art", "path": "mark.svg", "format": "svg", "sha256": sha256_file(source), "color_profile": "none", "usage_status": "reference-only", "license": "Test fixture", "approved_transformations": []}]
+            validate_brand(brand, kit)
+            cases = (
+                ("data:image/png;base64,SGVsbG8=", "not a PNG"),
+                ("data:image/png;base64,%%%", "malformed"),
+                ("data:text/plain;base64,SGVsbG8=", "external reference"),
+            )
+            for payload, message in cases:
+                source.write_text('<svg xmlns="http://www.w3.org/2000/svg"><image href="%s"/></svg>\n' % payload, encoding="utf-8")
+                brand["authoritative_inputs"][0]["sha256"] = sha256_file(source)
+                with self.subTest(payload=payload), self.assertRaisesRegex(ContractError, message):
+                    validate_brand(brand, kit)
+
+    def test_multiple_supplied_lockups_are_allowed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            stage_house_fonts(kit)
+            source = kit / "lockup.svg"
+            source.write_text('<svg xmlns="http://www.w3.org/2000/svg"><path fill="#112233" d="M0 0H1V1Z"/></svg>\n', encoding="utf-8")
+            copy_path = kit / "lockup-copy.svg"
+            shutil.copy2(source, copy_path)
+            record = {"role": "lockup", "format": "svg", "sha256": sha256_file(source), "color_profile": "none", "usage_status": "approved", "license": "Test fixture", "approved_transformations": ["embed-unchanged", "resize"]}
+            brand = owned_brand()
+            brand["authoritative_inputs"] = [dict(record, id="horizontal-lockup", path="lockup.svg"), dict(record, id="vertical-lockup", path="lockup-copy.svg")]
+            validate_brand(brand, kit)
+
     def test_authoritative_input_path_escape_and_role_collision_fail(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -626,6 +712,36 @@ class AuthoritativeInputTests(unittest.TestCase):
             for broken, message in cases:
                 with self.subTest(message=message), self.assertRaisesRegex(ContractError, message):
                     validate_brand(broken, kit)
+
+    def test_authoritative_colourways_and_supplied_lockups_bind_exact_sources(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _ = self.make_raster_brand(kit)
+            for name in ("full-light", "horizontal-dark", "horizontal-light", "vertical-dark", "vertical-light"):
+                path = kit / "assets" / (name + ".svg")
+                path.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 1"><path fill="#112233" d="M0 0H2V1H0Z"/></svg>\n', encoding="utf-8")
+                brand["authoritative_inputs"].append({
+                    "id": name,
+                    "role": "lockup",
+                    "path": "assets/%s.svg" % name,
+                    "format": "svg",
+                    "sha256": sha256_file(path),
+                    "color_profile": "none",
+                    "usage_status": "approved",
+                    "license": "Test fixture",
+                    "approved_transformations": ["embed-unchanged", "resize"],
+                })
+            brand["logo"].update({
+                "colourways": ["color", "light"],
+                "full_colourway_input_ids": {"light": "full-light"},
+                "supplied_lockup_input_ids": {
+                    "horizontal": {"color": "horizontal-dark", "light": "horizontal-light"},
+                    "stacked": {"color": "vertical-dark", "light": "vertical-light"},
+                },
+            })
+            resolved = logo_source_contract(brand, kit)
+            self.assertEqual("full-light", resolved["full_colourways"]["light"]["record"]["id"])
+            self.assertEqual("horizontal-dark", resolved["supplied_lockups"]["horizontal"]["color"]["record"]["id"])
 
     def test_authoritative_mode_rejects_construction_helper_and_reduced_redraw(self):
         with tempfile.TemporaryDirectory() as temporary:
