@@ -1476,7 +1476,10 @@ def _confined_gate_2_file(root, relative):
 
 def _portable_gate_2_matches(kit, brand, local_approval, expected_digest):
     """Bind Gate 2 to exact canonical bytes and local pixel-equivalent derivatives."""
-    canonical_root = _portable_gate_2_root(brand)
+    try:
+        canonical_root = _portable_gate_2_root(brand)
+    except ValueError as error:
+        return False, str(error)
     if canonical_root is None:
         return False, "canonical Gate 2 artifact is unavailable"
     canonical_approval = _confined_gate_2_file(canonical_root, "logos/approval.json")
