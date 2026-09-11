@@ -40,7 +40,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
-- Bound approved private Gate 2 records to their generated derivative manifest during verification and publication, preserved approved supplied icon targets at core capability without changing the Gate 1 identity renderer, required downstream `color` and `light` logo variants, and added canonical-host proof export plus hash-bound measured comparison for cross-platform CI.
+- Bound approved private Gate 2 records to their generated derivative manifest during verification and publication, preserved approved supplied icon targets at core capability without changing the Gate 1 identity renderer, required downstream `color` and `light` logo variants, and added canonical-host proof export plus hash-bound measured comparison for cross-platform CI, including defined color sampling for tiny proofs with no non-edge interior.
 - Restored Python 3.8 compatibility in the guide typography regression and skipped the exact raster-derivation integration test when no measured SVG renderer is available.
 - Measured light-surface contrast against each brand's configured base, validated supplied icon dimensions before generation, rejected supplied-lockup configurations that could be overwritten by generated wordmarks, and required a white colourway for enabled monochrome platform icons.
 - Replaced the universal dark-guide rule with an explicit declared reading-surface contract, retaining dark as the default while allowing owner-approved, fully measured light-first guides to pass matching PDF ground verification.

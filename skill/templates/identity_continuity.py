@@ -690,7 +690,26 @@ def validate_current_proof_matrix(record, root, renderer=None, brand=None):
         evidence_dir = path.parent / "comparisons" / ("%s-%d-%s" % coordinate)
         comparison = compare_proofs(approved_path, path, same_renderer=same_renderer,
                                     evidence_dir=evidence_dir, prefix="comparison")
-        _require(comparison["passes"], "current production comparison failed: %s" % path.name)
+        comparison_summary = {
+            key: comparison[key]
+            for key in (
+                "exact_sha256",
+                "approved_topology",
+                "production_topology",
+                "silhouette_iou",
+                "changed_outside_edge_fraction",
+                "approved_bbox",
+                "production_bbox",
+                "bbox_delta_max_px",
+                "centroid_delta_px",
+                "interior_delta_e_2000",
+            )
+        }
+        _require(
+            comparison["passes"],
+            "current production comparison failed: %s (%s)"
+            % (path.name, json.dumps(comparison_summary, sort_keys=True)),
+        )
         generated_evidence = {}
         for kind in EVIDENCE_KINDS:
             evidence_path = evidence_dir / comparison["evidence_paths"][kind]
@@ -913,7 +932,8 @@ def compare_proofs(approved_path, production_path, same_renderer, evidence_dir=N
         centroid_delta = math.hypot(approved_centroid[0] - production_centroid[0],
                                     approved_centroid[1] - production_centroid[1])
     interior = intersection - edge_band
-    delta_e = _delta_e(_average_color(approved, interior), _average_color(production, interior))
+    color_sample = interior if interior else intersection
+    delta_e = _delta_e(_average_color(approved, color_sample), _average_color(production, color_sample))
     approved_topology = _topology(approved_mask, width, height)
     production_topology = _topology(production_mask, width, height)
     exact = canonical_digest(approved_file.read_bytes()) == canonical_digest(production_file.read_bytes())

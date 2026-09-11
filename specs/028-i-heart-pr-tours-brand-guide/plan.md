@@ -92,7 +92,7 @@ dist/i-heart-pr-tours/               # Ignored private intake and gate packets
 
 **Structure Decision**: Reuse the existing source-first brand directory and authoritative-input contract. Do not create production files before Gate 1. Prefer current S027/S016 capabilities; change shared generator code only if exact approved lockup assets expose a fidelity gap that cannot be represented without reconstruction.
 
-**Hosted proof decision**: The approved Windows host remains the canonical exact-render authority. Hosted Windows CI must regenerate the 32-proof matrix with the bound Node 24.11.0 and resvg 2.6.2 stack, reject any hash drift, and publish those ephemeral proofs only as a workflow artifact. Linux CI must hash-bind that artifact to the approved record before applying the existing cross-renderer topology, edge-band, bounds, centroid, and color comparisons. No generated proof raster is committed.
+**Hosted proof decision**: The approved Windows host remains the canonical exact-render authority. Hosted Windows CI must regenerate the 32-proof matrix with the bound Node 24.11.0 and resvg 2.6.2 stack, reject any hash drift, and publish those ephemeral proofs only as a workflow artifact. Linux CI must hash-bind that artifact to the approved record before applying the existing cross-renderer topology, edge-band, bounds, centroid, and color comparisons. Color uses the non-edge interior when present and the shared silhouette when a tiny proof has no interior core. Thresholds remain unchanged. No generated proof raster is committed.
 
 ## Delivery Sequence and Halt Gates
 

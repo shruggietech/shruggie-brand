@@ -363,6 +363,26 @@ class IdentityContinuityTests(unittest.TestCase):
             self.assertEqual(0, result["changed_outside_edge_fraction"])
             self.assertEqual({"side_by_side", "overlay", "silhouette_xor", "color_difference"}, set(result["evidence_paths"]))
 
+    def test_small_proof_without_an_interior_core_uses_shared_silhouette_for_color(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            approved = root / "approved.png"
+            production = root / "production.png"
+            image = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+            pixels = image.load()
+            for y in range(2, 14):
+                pixels[7, y] = (0, 0, 0, 255)
+                pixels[8, y] = (0, 0, 0, 255)
+            image.save(approved, compress_level=0)
+            image.save(production, compress_level=9)
+
+            result = compare_proofs(approved, production, same_renderer=False)
+
+            self.assertFalse(result["exact_sha256"])
+            self.assertEqual(1.0, result["silhouette_iou"])
+            self.assertEqual(0.0, result["interior_delta_e_2000"])
+            self.assertTrue(result["passes"], result)
+
     def test_cueson_reconstruction_and_framing_drift_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
