@@ -9,7 +9,7 @@ const contentTypes = {
   '.txt': ['text/plain'],
   '.webmanifest': ['application/manifest+json', 'application/json'],
   '.xml': ['application/xml', 'text/xml'],
-  '.zip': ['application/zip'],
+  '.zip': ['application/zip', 'application/x-zip-compressed'],
 };
 
 function decodeUtf8(body) {
