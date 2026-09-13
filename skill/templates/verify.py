@@ -175,7 +175,9 @@ def c_globals(kit, rep):
             if back != hx.upper(): fails.append("%s/%s oklch->%s != %s" % (scope, k, back, hx))
     pairs = [("foreground","background"),("card-foreground","card"),("popover-foreground","popover"),
              ("primary-foreground","primary"),("secondary-foreground","secondary"),
-             ("muted-foreground","muted"),("accent-foreground","accent")]
+             ("muted-foreground","muted"),("accent-foreground","accent"),
+             ("brand-cta-foreground","brand-cta"),
+             ("brand-cta-outline-foreground","background")]
     for scope, tbl in (("dark", dark), ("light", light)):
         for fg, bg in pairs:
             if fg in tbl and bg in tbl:

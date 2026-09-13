@@ -748,6 +748,85 @@ try {
   }
   await page.setViewportSize({ width: 1280, height: 900 });
   for (const route of tableRoutes) { await page.goto(base + route); check(await page.locator('table').count() > 0, `${route} does not render its Markdown table semantically`); }
+  const portableGuideRoute = '/i-heart-pr-tours/downloads/files/i-heart-pr-tours-portable-guidelines.html';
+  await page.goto(base + portableGuideRoute);
+  const portableCtas = page.locator('.btn-primary');
+  check(await portableCtas.count() === 3, `${portableGuideRoute} does not expose all three primary CTA specimens`);
+  const portableDefaults = await portableCtas.evaluateAll((elements) => elements.map((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, color: style.color, border: style.borderColor }; }));
+  for (const [index, style] of portableDefaults.entries()) {
+    check(style.background === 'rgb(197, 52, 44)', `${portableGuideRoute} CTA ${index + 1} does not use #C5342C (${JSON.stringify(style)})`);
+    check(style.color === 'rgb(255, 255, 255)', `${portableGuideRoute} CTA ${index + 1} does not use the measured white foreground (${JSON.stringify(style)})`);
+    check(style.border === 'rgb(197, 52, 44)', `${portableGuideRoute} CTA ${index + 1} default border differs from its governed fill (${JSON.stringify(style)})`);
+  }
+  if (await portableCtas.count() > 0) {
+    const specimen = portableCtas.first();
+    await specimen.hover();
+    await page.waitForTimeout(200);
+    const hover = await specimen.evaluate((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, color: style.color, border: style.borderColor, transform: style.transform }; });
+    check(hover.background === 'rgb(197, 52, 44)' && hover.color === 'rgb(255, 255, 255)' && hover.border === 'rgb(255, 255, 255)' && hover.transform !== 'none', `${portableGuideRoute} hover state lacks its accessible non-color cue (${JSON.stringify(hover)})`);
+    const box = await specimen.boundingBox();
+    if (box) {
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      const active = await specimen.evaluate((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, color: style.color, shadow: style.boxShadow }; });
+      check(active.background === 'rgb(197, 52, 44)' && active.color === 'rgb(255, 255, 255)' && active.shadow.includes('inset'), `${portableGuideRoute} active state lacks its accessible inset cue (${JSON.stringify(active)})`);
+      await page.mouse.up();
+    }
+    await page.keyboard.press('Tab');
+    await specimen.focus();
+    await page.waitForTimeout(200);
+    const focus = await specimen.evaluate((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, color: style.color, outlineStyle: style.outlineStyle, outlineWidth: Number.parseFloat(style.outlineWidth), shadow: style.boxShadow }; });
+    check(focus.background === 'rgb(197, 52, 44)' && focus.color === 'rgb(255, 255, 255)' && focus.outlineStyle !== 'none' && focus.outlineWidth >= 2 && focus.shadow !== 'none', `${portableGuideRoute} focus-visible state lacks its dual-tone indicator (${JSON.stringify(focus)})`);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await specimen.hover();
+    await page.waitForTimeout(20);
+    const reduced = await specimen.evaluate((element) => { const style = getComputedStyle(element); return { duration: style.transitionDuration, border: style.borderColor, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }; });
+    check(reduced.reduced && Number.parseFloat(reduced.duration) <= 0.001 && reduced.border === 'rgb(255, 255, 255)', `${portableGuideRoute} reduced-motion state loses its non-motion cue (${JSON.stringify(reduced)})`);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+  }
+  const portableSecondaryCtas = page.locator('main .btn-secondary');
+  check(await portableSecondaryCtas.count() === 3, `${portableGuideRoute} does not expose all three secondary CTA specimens`);
+  const portableSecondaryDefaults = await portableSecondaryCtas.evaluateAll((elements) => elements.map((element) => {
+    const style = getComputedStyle(element);
+    const surface = getComputedStyle(element.closest('.theme-well') ?? document.body).backgroundColor;
+    return { background: style.backgroundColor, color: style.color, border: style.borderColor, surface };
+  }));
+  for (const [index, style] of portableSecondaryDefaults.entries()) {
+    const expectedForeground = style.surface === 'rgb(8, 19, 29)' ? 'rgb(255, 255, 255)' : 'rgb(197, 52, 44)';
+    check(style.background === 'rgba(0, 0, 0, 0)', `${portableGuideRoute} secondary CTA ${index + 1} default fill is not transparent (${JSON.stringify(style)})`);
+    check(style.border === 'rgb(197, 52, 44)', `${portableGuideRoute} secondary CTA ${index + 1} does not use the #C5342C outline (${JSON.stringify(style)})`);
+    check(style.color === expectedForeground, `${portableGuideRoute} secondary CTA ${index + 1} does not use its surface-aware AA foreground (${JSON.stringify(style)})`);
+  }
+  if (await portableSecondaryCtas.count() > 0) {
+    const specimen = portableSecondaryCtas.first();
+    await specimen.hover();
+    await page.waitForTimeout(200);
+    const hover = await specimen.evaluate((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, color: style.color, border: style.borderColor, transform: style.transform }; });
+    check(hover.background === 'rgb(197, 52, 44)' && hover.color === 'rgb(255, 255, 255)' && hover.border === 'rgb(197, 52, 44)' && hover.transform !== 'none', `${portableGuideRoute} secondary hover state does not use the filled CTA pair and non-color cue (${JSON.stringify(hover)})`);
+    const box = await specimen.boundingBox();
+    if (box) {
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      const active = await specimen.evaluate((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, color: style.color, shadow: style.boxShadow }; });
+      check(active.background === 'rgb(197, 52, 44)' && active.color === 'rgb(255, 255, 255)' && active.shadow.includes('inset'), `${portableGuideRoute} secondary active state lacks its accessible inset cue (${JSON.stringify(active)})`);
+      await page.mouse.up();
+    }
+    await page.mouse.move(0, 899);
+    await page.keyboard.press('Tab');
+    await specimen.focus();
+    await page.waitForTimeout(200);
+    const focus = await specimen.evaluate((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, color: style.color, border: style.borderColor, outlineStyle: style.outlineStyle, outlineWidth: Number.parseFloat(style.outlineWidth), shadow: style.boxShadow }; });
+    check(focus.background === 'rgba(0, 0, 0, 0)' && focus.color === 'rgb(255, 255, 255)' && focus.border === 'rgb(197, 52, 44)' && focus.outlineStyle !== 'none' && focus.outlineWidth >= 2 && focus.shadow !== 'none', `${portableGuideRoute} secondary focus-visible state loses its red outline or dual-tone indicator (${JSON.stringify(focus)})`);
+    await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await specimen.hover();
+    await page.waitForTimeout(20);
+    const reduced = await specimen.evaluate((element) => { const style = getComputedStyle(element); return { duration: style.transitionDuration, background: style.backgroundColor, color: style.color, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }; });
+    check(reduced.reduced && Number.parseFloat(reduced.duration) <= 0.001 && reduced.background === 'rgb(197, 52, 44)' && reduced.color === 'rgb(255, 255, 255)', `${portableGuideRoute} secondary reduced-motion state loses its filled CTA cue (${JSON.stringify(reduced)})`);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+  }
+  const portableAxe = await new AxeBuilder({ page }).include('.btn-primary, main .btn-secondary').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  for (const violation of portableAxe.violations) failures.push(`${portableGuideRoute} fails ${violation.id}: ${violation.nodes.map((node) => node.target.join(' ')).join(', ')}`);
   await page.goto(base + '/');
   const primaryAction = page.locator('.hero .button.primary');
   const actionStyle = await primaryAction.evaluate((element) => { const style = getComputedStyle(element); const probe = document.createElement('i'); probe.style.backgroundColor = 'var(--brand-cta)'; document.body.append(probe); const result = { background: style.backgroundColor, cta: getComputedStyle(probe).backgroundColor, color: style.color, transitionDuration: style.transitionDuration }; probe.remove(); return result; });

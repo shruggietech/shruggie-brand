@@ -153,10 +153,14 @@ def build_slots(canon, brand):
         light["chart-%d" % i] = hx
 
     # brand-layer extras beyond shadcn's own slot list
+    action = semantic["action"]
+    action_foreground = legal_fg(action)
     dark.update({"brand-accent-deep": ad, "brand-emphasis": semantic["emphasis"],
-                 "brand-cta": semantic["action"]})
+                 "brand-cta": action, "brand-cta-foreground": action_foreground,
+                 "brand-cta-outline-foreground": action if ratio(action, base_dark) >= 4.5 else dark["foreground"]})
     light.update({"brand-accent-deep": ad, "brand-emphasis": semantic["action"],
-                  "brand-cta": semantic["action"]})
+                  "brand-cta": action, "brand-cta-foreground": action_foreground,
+                  "brand-cta-outline-foreground": action if ratio(action, light_background) >= 4.5 else light["foreground"]})
     return dark, light
 
 SEMANTIC = ["background","foreground","card","card-foreground","popover",
@@ -165,7 +169,8 @@ SEMANTIC = ["background","foreground","card","card-foreground","popover",
     "destructive","border","input","ring","chart-1","chart-2","chart-3","chart-4",
     "chart-5","sidebar","sidebar-foreground","sidebar-primary",
     "sidebar-primary-foreground","sidebar-accent","sidebar-accent-foreground",
-    "sidebar-border","sidebar-ring","brand-accent-deep","brand-emphasis","brand-cta"]
+    "sidebar-border","sidebar-ring","brand-accent-deep","brand-emphasis","brand-cta",
+    "brand-cta-foreground","brand-cta-outline-foreground"]
 
 # ------------------------------------------------------------------- emitters
 def emit_globals(canon, brand, dark, light):

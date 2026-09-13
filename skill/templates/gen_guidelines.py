@@ -441,9 +441,15 @@ section { scroll-margin-top:24px; }
 @media(max-width:800px){ .two,.theme-wells{ grid-template-columns:1fr; } }
 .row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-top:24px; }
 .btn { font-family:var(--font-body); font-weight:%(body_medium)d; font-size:.875rem; border-radius:var(--radius-md);
-  padding:10px 18px; border:1px solid transparent; cursor:pointer; }
-.btn-primary { background:var(--primary); color:var(--primary-foreground); }
-.btn-secondary { background:transparent; color:var(--foreground); border-color:var(--border); }
+  padding:10px 18px; border:1px solid transparent; cursor:pointer; transition:border-color 160ms ease,transform 160ms ease,box-shadow 160ms ease; }
+.btn-primary { background:var(--brand-cta); color:var(--brand-cta-foreground); border-color:var(--brand-cta); }
+.btn-primary:hover { background:var(--brand-cta); color:var(--brand-cta-foreground); border-color:var(--brand-cta-foreground); transform:translateY(-1px); }
+.btn-primary:active { background:var(--brand-cta); color:var(--brand-cta-foreground); transform:none; box-shadow:inset 0 0 0 2px var(--brand-cta-foreground); }
+.btn-primary:focus-visible { background:var(--brand-cta); color:var(--brand-cta-foreground); outline:2px solid #FFFFFF; outline-offset:2px; box-shadow:0 0 0 4px #000000; }
+.btn-secondary { background:transparent; color:var(--brand-cta-outline-foreground); border-color:var(--brand-cta); }
+.btn-secondary:hover { background:var(--brand-cta); color:var(--brand-cta-foreground); border-color:var(--brand-cta); transform:translateY(-1px); }
+.btn-secondary:active { background:var(--brand-cta); color:var(--brand-cta-foreground); border-color:var(--brand-cta); transform:none; box-shadow:inset 0 0 0 2px var(--brand-cta-foreground); }
+.btn-secondary:focus-visible { background:transparent; color:var(--brand-cta-outline-foreground); border-color:var(--brand-cta); outline:2px solid #FFFFFF; outline-offset:2px; box-shadow:0 0 0 4px #000000; }
 .badge { font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:.75rem; letter-spacing:.04em; text-transform:uppercase;
   border-radius:999px; padding:4px 12px; border:1px solid currentColor; }
 input { font-family:var(--font-body); font-size:.875rem; background:var(--card); color:var(--foreground);
@@ -462,7 +468,7 @@ img.logo { max-height:56px; } img.mark { max-height:40px; } img.stacked { max-he
 .expression-art { min-height:240px; display:grid; place-items:center; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-xl); background:#FFFFFF; padding:24px; }
 .expression-art img { max-height:360px; width:100%%; }
 code { font-family:var(--font-body); font-weight:var(--font-label-weight); font-variant-ligatures:none; }
-@media(prefers-reduced-motion:reduce){ *{ animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+@media(prefers-reduced-motion:reduce){ *{ animation-duration:.01ms!important; transition-duration:.01ms!important; } .btn-primary:hover,.btn-secondary:hover{transform:none;} }
 </style></head><body class="%(body_class)s"><div class="wrap">
 <header id="top">%(logoimg)s
 <div class="eyebrow" style="margin-top:32px">Brand guidelines</div>
@@ -476,7 +482,7 @@ code { font-family:var(--font-body); font-weight:var(--font-label-weight); font-
 %(expression_nav)s
 </ul></nav>
 
-<main><section id="colors"><div class="eyebrow">Colour</div><h2>Identity accent</h2>
+<main><section id="colors"><div class="eyebrow">Color</div><h2>Identity accent</h2>
 <p class="lead">%(sepline)s</p>
 <p class="lead">HEX uses uppercase pairs; sRGB uses integer 0-255 channels; HSL uses degrees and percentages rounded to one decimal; OKLCH uses four decimals for lightness and chroma plus one for hue; CIELAB uses D50 with lightness as a percentage and two decimals per channel.</p>
 %(color_reference_html)s
