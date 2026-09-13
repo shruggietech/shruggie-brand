@@ -20,6 +20,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-12, defined `application/zip` and GitHub Pages' `application/x-zip-compressed` as the exact accepted ZIP media types while retaining independent opening-signature and end-record validation.
 - On 2026-09-11, corrected S028's mistaken private-publication assumption: every production brand built with the skill is now required in the public website inventory, generated brand export directories are ignored generically, and I Heart PR Tours uses the complete governed website surface set with a white showcase card and colored heart icon.
 - On 2026-09-11, reused the hash-bound portable Gate 2 comparison during static-site preparation so equivalent cross-platform PNG encodings do not invalidate canonical Windows approval.
 - On 2026-09-11, marked the supplied I Heart PR Tours favicon index as a path-specific binary source so Git cannot normalize its approved CRLF bytes and invalidate source continuity; all authored repository text remains UTF-8 with LF endings.
@@ -41,6 +42,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Accepted GitHub Pages' ZIP MIME alias in the shared local and production payload verifier, with fail-closed regressions for malformed bodies and unsupported media types, for issue #198.
 - Replaced the divergent Pages and Release rebuilds with one SHA-pinned verified Build workflow that preserves the exact protected `build` context, uploads SHA-qualified same-run Pages and checksummed release artifacts, preflights tag ancestry, rejects unsafe publication trees, and limits write credentials to checkout-free publisher jobs for issue #196.
 - Bound approved Gate 2 records to their generated derivative manifest during verification and publication, preserved approved supplied icon targets at core capability without changing the Gate 1 identity renderer, required downstream `color` and `light` logo variants, and added canonical-host proof and Gate 2 evidence export plus hash-bound measured comparison for cross-platform CI, including defined color sampling for tiny proofs with no non-edge interior and decoded-pixel equivalence for differently encoded embedded PNGs.
 - Restored Python 3.8 compatibility in the guide typography regression and skipped the exact raster-derivation integration test when no measured SVG renderer is available.
