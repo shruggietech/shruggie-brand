@@ -58,18 +58,41 @@ def _sharp_edge(B):
     return ('<div class="callout" style="margin:0"><div class="ey">The sharp edge</div>'
             '<p style="margin:0" class="dim">%s</p></div>' % edge)
 
-def _semantics(B, D, A, OR, FA):
+def _semantics(B, A, CTA, CTA_FG, OR, FA):
     emphasis_name = "Orange" if affiliation(B)["inheritance"] == "shruggietech-house" else "Emphasis"
+    i_heart_secondary = B.get("slug") == "i-heart-pr-tours"
+    if not i_heart_secondary:
+        return ('<div class="two"><div class="card"><div class="ey">Semantic use</div><table>'
+                '<tr><th>Color</th><th>Means</th></tr>'
+                '<tr><td style="color:%s">Accent</td><td>Primary value, selection, links, focus</td></tr>'
+                '<tr><td style="color:%s">%s</td><td>Needs attention, threshold exceeded</td></tr>'
+                '<tr><td style="color:%s">Destructive</td><td>Failed or timed out. Always with text.</td></tr>'
+                '</table></div><div class="card"><div class="ey">Color vision</div>'
+                '<p class="dim" style="margin:0">The emphasis and failure colors may not be reliably separable '
+                'under deuteranopia. That is acceptable only because state '
+                'is never carried by color alone: every state ships a written label.</p></div></div>'
+                % (A, OR, emphasis_name, FA))
+    secondary = ('<span class="cta-sample secondary"><b>Secondary action</b><small>Red outline</small></span>'
+                 if i_heart_secondary else "")
+    boundary = ("CTA red fills primary actions and outlines secondary ones. It does not replace identity, link, focus, chart, emphasis, or destructive colors."
+                if i_heart_secondary else
+                "The CTA color is reserved for the primary action. It does not replace identity, link, focus, chart, emphasis, or destructive colors.")
     return ('<div class="two"><div class="card"><div class="ey">Semantic use</div><table>'
-            '<tr><th>Colour</th><th>Means</th></tr>'
+            '<tr><th>Color</th><th>Means</th></tr>'
             '<tr><td style="color:%s">Accent</td><td>Primary value, selection, links, focus</td></tr>'
+            '<tr><td style="color:%s">Primary CTA button</td><td>%s fill with %s text</td></tr>'
             '<tr><td style="color:%s">%s</td><td>Needs attention, threshold exceeded</td></tr>'
-            '<tr><td style="color:%s">Fault</td><td>Failed or timed out. Always with text.</td></tr>'
-            '</table></div><div class="card"><div class="ey">Colour vision</div>'
-            '<p class="dim" style="margin:0">The emphasis and failure colors may not be reliably separable '
-            'under deuteranopia. That is acceptable only because state '
-            'is never carried by colour alone: every state ships a written label.</p></div></div>'
-            % (A, OR, emphasis_name, FA))
+            '<tr><td style="color:%s">Destructive</td><td>Failed or timed out. Always with text.</td></tr>'
+            '</table></div><div class="card"><div class="ey">CTA states</div>'
+            '<div class="cta-states" style="--cta:%s;--cta-fg:%s">'
+            '<span class="cta-sample">Default</span><span class="cta-sample hover">Hover</span>'
+            '<span class="cta-sample active">Active</span><span class="cta-sample focus">Focus visible</span>'
+            '%s</div>'
+            '<div class="ey" style="margin-top:3mm">Color vision</div>'
+            '<p class="m dim" style="margin:0">State is never carried by color alone. Every state keeps its written label and a shape, border, depth, or focus cue.</p>'
+            '</div></div><div class="callout acc"><div class="ey">Role boundary</div>'
+            '<p class="m dim" style="margin:0">%s</p></div>'
+            % (A, CTA, CTA, CTA_FG, OR, emphasis_name, FA, CTA, CTA_FG, secondary, boundary))
 
 def _scales():
     disp = [("display-xl", 72, "-0.030em"), ("display-lg", 56, "-0.025em"),
@@ -87,7 +110,7 @@ def _scales():
 
 def _ships(kit):
     """Read from the kit that actually exists rather than a hardcoded list."""
-    want = [("logos/svg", "Vector masters, every lockup and colourway"),
+    want = [("logos/svg", "Vector masters, every lockup and colorway"),
             ("icons", "Web, Android, Apple, macOS, and Windows application suites"),
             ("favicons", "Compatibility aliases for the authoritative web suite"),
             ("fonts/woff2", "Web faces plus OFL licences"),
@@ -138,7 +161,7 @@ def _charttable(D, L, B):
             'Derived values</div><table><tr><th>Series</th><th>Dark</th><th>Light</th></tr>%s</table>'
             '</div><div class="card"><div class="ey">Rules of use</div>'
             '<p class="m dim" style="margin:0">Series order is fixed: chart-1 is always the primary '
-            'measurement. Never reorder to make a chart look better. Never introduce a sixth colour; '
+            'measurement. Never reorder to make a chart look better. Never introduce a sixth color; '
             'past five series, switch to a form that does not depend on hue. A series never uses the '
             'semantic emphasis or failure colors, because those carry state.</p></div></div>' % rows)
 
@@ -151,6 +174,7 @@ def build(B, kit):
     A, AL = P["primary"], ALT["primary"]
     AD = P.get("brand-accent-deep", A)
     OR, FA = P["brand-emphasis"], P["destructive"]
+    CTA, CTA_FG = P["brand-cta"], P["brand-cta-foreground"]
     BG, CARD, LINE = P["background"], P["card"], P["border"]
     TX, MU = P["foreground"], P["muted-foreground"]
     CALLOUT, ACC_CALLOUT = P["secondary"], P["muted"]
@@ -236,6 +260,13 @@ td { padding:1.7mm 2mm; border-bottom:.25mm solid %s; vertical-align:top; }
   border:.25mm solid currentColor; border-radius:9mm; padding:.5mm 2mm; }
 .charts { display:flex; gap:1.6mm; align-items:flex-end; height:22mm; margin:3mm 0 1mm; }
 .charts div { flex:1; border-radius:1.2mm 1.2mm 0 0; }
+.cta-states { display:grid; grid-template-columns:1fr 1fr; gap:1mm; margin:1.4mm 0 0; }
+.cta-sample { display:grid; place-items:center; min-height:7mm; border:.4mm solid var(--cta); border-radius:1.6mm; background:var(--cta); color:var(--cta-fg); font-weight:var(--font-label-weight); }
+.cta-sample.hover { border-color:var(--cta-fg); transform:translateY(-.5mm); }
+.cta-sample.active { box-shadow:inset 0 0 0 .6mm var(--cta-fg); }
+.cta-sample.focus { outline:.6mm solid #FFFFFF; outline-offset:.6mm; box-shadow:0 0 0 1.2mm #000000; }
+.cta-sample.secondary { grid-column:1 / -1; grid-template-columns:auto auto; gap:2mm; background:transparent; color:var(--cta); border-color:var(--cta); }
+.cta-sample.secondary small { font-size:6.5pt; font-weight:var(--font-body-regular); text-transform:uppercase; letter-spacing:.04em; }
 ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
 .sw .m { font-size:6.6pt; }
 """ % (F, type_["display"], type_["body"], type_["mono"], type_["body_medium"], BG, TX, type_["display_bold"], type_["display_regular"], MU, A, BG, LINE, MU, A, type_["display_regular"], MU, MU, CARD, LINE, LINE, TX, LINE, LINE, TX, LINE, OR, CALLOUT, A, A, A, ACC_CALLOUT, A)
@@ -299,7 +330,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         '%.1f percent of artwork width. No text, border, icon or crop enters that band.</p></div>'
         '<div class="card"><div class="ey">Minimum size</div><table>%s</table>'
         '<p class="m dim" style="margin-top:3mm">Below %d px the reduced master takes over. '
-        'It ships as its own file. Do not rasterise the full mark down at runtime.</p></div></div>'
+        'It ships as its own file. Do not rasterize the full mark down at runtime.</p></div></div>'
         '<div class="rule"></div><h3>Fixed lockup proportions</h3>'
         '<table><tr><th>Lockup</th><th>Mark height</th><th>Gap</th><th>Alignment</th></tr>'
         '<tr><td>Horizontal</td><td>%.0f units</td><td>%.0f units</td><td>Optical center</td></tr>'
@@ -308,7 +339,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         'wordmark cap height used by the stacked lockup. X is the clear-space unit declared above. '
         'Keep one X clear around every master and never resize the mark and wordmark independently.</p>'
         '<div class="callout"><div class="ey">Prohibited</div><p style="margin:0" class="dim">'
-        'No rotation, skew, stretch, outline, bevel or glow. Never recolour individual elements. '
+        'No rotation, skew, stretch, outline, bevel or glow. Never recolor individual elements. '
         'Never set the wordmark in live text or a substitute typeface. %s</p></div>' % (
             copy_for(B, "logo", "The mark is built on a declared grid and ships as filled outlines, "
                                 "never live text."),
@@ -324,22 +355,27 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             if aff["parent"] else "Never combine this mark with another organization’s mark into one lockup.")
         + _variants(kit, slug, img), 3))
 
-    pages.append(pg("Colour", "Palette",
-        '<p>%s</p><h3 style="margin-top:4mm">Accents on dark surfaces</h3><div class="grid4">%s</div>'
+    i_heart_cta = slug == "i-heart-pr-tours"
+    role_grid = "grid5" if i_heart_cta else "grid4"
+    role_tokens = (["primary", "brand-accent-deep", "brand-emphasis", "brand-cta", "destructive"]
+                   if i_heart_cta else ["primary", "brand-accent-deep", "brand-emphasis", "destructive"])
+    cta_note = ((" The primary CTA button uses %s with %s text in both themes, and the generated verifier enforces AA for that pair." % (CTA, CTA_FG))
+                if i_heart_cta else " Every fill token in brand.json carries its measured foreground.")
+    pages.append(pg("Color", "Palette",
+        '<p>%s</p><h3 style="margin-top:4mm">Role colors on dark surfaces</h3><div class="%s">%s</div>'
         '<h3>Neutrals, dark surfaces</h3><div class="grid4">%s</div>'
         '<div class="card lite" style="margin-top:4mm"><div class="ey" style="color:%s">'
         'Light reading surface</div><div class="grid4" style="margin-bottom:0">%s</div></div>'
         '<div class="callout"><div class="ey">Light surfaces</div><p style="margin:0" class="dim">'
         'The bright accent %s measures <b style="color:%s">%s:1</b> on the light reading surface and is '
         'never text there. The light token block substitutes %s at %s:1 automatically. The legal '
-        'foreground on an accent fill is %s at %s:1. Every fill token in brand.json carries its '
-        'measured foreground.</p></div>' % (
+        'foreground on an accent fill is %s at %s:1.%s</p></div>' % (
             copy_for(B, "palette", ("Dark and close to monochrome. The accent is the signal; the "
                                     "inherited orange marks a state needing attention."
                                     if inherits_house else
                                     "Dark and close to monochrome. The accent is the signal; the "
                                     "brand-specific emphasis color marks a state needing attention.")),
-            chips(D, ["primary", "brand-accent-deep", "brand-emphasis", "destructive"]),
+            role_grid, chips(D, role_tokens),
             chips(D, ["background", "card", "secondary", "border"]),
             AL, chips(L, ["primary", "background", "muted", "muted-foreground"], True),
             A,
@@ -349,9 +385,10 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             (B.get("color", {}).get("accent-accessible", {}).get("contrast", {}) or {}).get("on_light_base", "?"),
             (B.get("color", {}).get("accent-bright", {}).get("legal_foreground_when_used_as_fill", {}) or {}).get("color", "?"),
             (B.get("color", {}).get("accent-bright", {}).get("legal_foreground_when_used_as_fill", {}) or {}).get("ratio", "?"),
-        ) + _semantics(B, D, A, OR, FA), 4))
+            cta_note,
+        ) + _semantics(B, A, CTA, CTA_FG, OR, FA), 4))
 
-    pages.append(pg("Colour", "Chart colors",
+    pages.append(pg("Color", "Chart colors",
         '<p>Chart colors serve data visualization. Brand applications use the identity accent and the neutral surfaces. Each chart color is derived from the identity accent and measured against its surface so every entry clears 4.5:1.</p>'
         '<div class="charts">%s</div><div class="grid5">%s</div>'
         '<div class="callout acc"><div class="ey">Contrast checks</div>'
@@ -379,7 +416,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         '<tr><td>Spacing</td><td>4 8 12 16 24 32 48 64 96 120</td></tr>'
         '<tr><td>Focus</td><td>2px ring at 2px offset</td></tr></table></div></div>'
         '<div class="callout"><div class="ey">Available weights</div><p style="margin:0" class="dim">'
-        'Only the listed local faces are approved. Any other weight makes the renderer synthesise a faux bold, which prints badly and forces outlined glyphs into exported PDFs. Courier Prime is used only for literal command blocks.</p></div>' % (
+        'Only the listed local faces are approved. Any other weight makes the renderer synthesize a faux bold, which prints badly and forces outlined glyphs into exported PDFs. Courier Prime is used only for literal command blocks.</p></div>' % (
             title, type_["display"], type_["body"], type_["mono"], type_["display_bold"],
             copy_for(B, "idea", B.get("brand_idea", title)),
             copy_for(B, "descriptor", B.get("descriptor", "")),

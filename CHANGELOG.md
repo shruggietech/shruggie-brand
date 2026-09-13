@@ -42,6 +42,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Corrected I Heart PR Tours CTA guidance for issues #201 and #203: primary controls now use the governed `#C5342C` fill, secondary controls use the matching red-outline treatment with surface-aware AA text, the PDF documents both action roles and states, and shared reader-facing guide prose uses American English.
 - Accepted GitHub Pages' ZIP MIME alias in the shared local and production payload verifier, with fail-closed regressions for malformed bodies and unsupported media types, for issue #198.
 - Replaced the divergent Pages and Release rebuilds with one SHA-pinned verified Build workflow that preserves the exact protected `build` context, uploads SHA-qualified same-run Pages and checksummed release artifacts, preflights tag ancestry, rejects unsafe publication trees, and limits write credentials to checkout-free publisher jobs for issue #196.
 - Bound approved Gate 2 records to their generated derivative manifest during verification and publication, preserved approved supplied icon targets at core capability without changing the Gate 1 identity renderer, required downstream `color` and `light` logo variants, and added canonical-host proof and Gate 2 evidence export plus hash-bound measured comparison for cross-platform CI, including defined color sampling for tiny proofs with no non-edge interior and decoded-pixel equivalence for differently encoded embedded PNGs.

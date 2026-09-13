@@ -499,9 +499,9 @@
       "Anonymous testimonials",
       "Unclear pricing claims"
     ],
-    "sharp_edge": "Use the fixed red only in AA-compliant pairings. Lighter blues and sand tones are supporting fills, not ordinary text on white.",
+    "sharp_edge": "Use CTA red #C5342C as the fill for primary action controls and the outline for secondary actions. Filled controls use the measured white foreground; outlined controls use a surface-appropriate AA foreground. Keep CTA red separate from identity blue, links, focus, charts, emphasis, and destructive states. Lighter blues and sand tones are supporting fills, not ordinary text on white.",
     "logo": "Use the exact supplied dark or light lockup for its intended surface. Use the colored heart for reduced, favicon, and application-icon contexts. Single-ink files are derived only through the approved source-faithful mask process.",
-    "palette": "White paper and soft paper establish the light-first identity. Red carries action, blue provides the primary supporting structure, and brown appears occasionally as a warm secondary note.",
+    "palette": "White paper and soft paper establish the light-first identity. CTA red #C5342C fills the primary action button and outlines secondary actions, blue provides identity structure, and brown appears occasionally as a warm secondary note. CTA red is not a substitute for links, focus, charts, emphasis, or destructive status.",
     "specimen_line": "Experience Puerto Rico",
     "specimen_body": "Thoughtfully guided tours on the island we love.",
     "expressions": [

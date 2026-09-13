@@ -468,6 +468,114 @@ class PipelineTests(unittest.TestCase):
         shutil.copytree(ROOT / "brands" / "covarity", destination)
         shutil.copytree(ROOT / "assets" / "fonts", destination / "fonts")
 
+    def i_heart_pr_tours_guide_fixture(self, destination, action="#C5342C"):
+        """Build the shared token inputs needed by both I Heart PR Tours guides."""
+        shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", destination)
+        shutil.copytree(ROOT / "assets" / "fonts", destination / "fonts")
+        brand_path = destination / "brand.json"
+        brand = json.loads(brand_path.read_text(encoding="utf-8"))
+        brand["semantic_colors"]["action"] = action
+        write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+        canon = json.loads((ROOT / "skill" / "references" / "01-canon.json").read_text(encoding="utf-8"))
+        dark, light = gen_nextjs.build_slots(canon, brand)
+        nextjs = destination / "nextjs"
+        nextjs.mkdir()
+        write_utf8(nextjs / "globals.css", gen_nextjs.emit_globals(canon, brand, dark, light))
+        (destination / "logos").mkdir()
+        write_utf8(destination / "logos" / "provenance.json", json.dumps({"derivatives": []}) + "\n")
+        (destination / "icons").mkdir()
+        write_utf8(destination / "icons" / "manifest.json", json.dumps({"artifacts": [], "suites": [], "aliases": {}}) + "\n")
+        return brand, dark, light
+
+    def test_cta_tokens_are_measured_isolated_and_fail_closed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "guide"
+            brand, dark, light = self.i_heart_pr_tours_guide_fixture(kit)
+            for scope in (dark, light):
+                self.assertEqual("#C5342C", scope["brand-cta"])
+                self.assertEqual("#FFFFFF", scope["brand-cta-foreground"])
+                self.assertNotEqual(scope["primary"], scope["brand-cta"])
+                self.assertNotEqual(scope["destructive"], scope["brand-cta"])
+                self.assertGreaterEqual(gen_nextjs.ratio(scope["brand-cta"], scope["brand-cta-foreground"]), 4.5)
+
+            isolated = Path(temporary) / "isolated"
+            _, isolated_dark, isolated_light = self.i_heart_pr_tours_guide_fixture(isolated, "#006565")
+            self.assertEqual("#006565", isolated_dark["brand-cta"])
+            self.assertEqual("#006565", isolated_light["brand-cta"])
+            self.assertNotIn("#C5342C", (isolated / "nextjs" / "globals.css").read_text(encoding="utf-8"))
+
+            css_path = kit / "nextjs" / "globals.css"
+            css = css_path.read_text(encoding="utf-8")
+            legal = "--brand-cta-foreground: %s; /* #FFFFFF */" % gen_nextjs.oklch("#FFFFFF")
+            write_utf8(css_path, css.replace(legal, "--brand-cta-foreground: oklch(0 0 0); /* #000000 */", 1))
+            report = verify.Report()
+            verify.c_globals(str(kit), report)
+            self.assertTrue(any("brand-cta-foreground on brand-cta" in problem for problem in report.problems))
+
+    def test_portable_primary_ctas_use_the_accessible_action_contract(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "guide"
+            brand, _, _ = self.i_heart_pr_tours_guide_fixture(kit)
+            html = gen_guidelines.build(brand, kit)
+            self.assertEqual(3, html.count('class="btn btn-primary"'))
+            self.assertIn(".btn-primary { background:var(--brand-cta); color:var(--brand-cta-foreground); border-color:var(--brand-cta); }", html)
+            self.assertIn(".btn-primary:hover", html)
+            self.assertIn(".btn-primary:active", html)
+            self.assertIn(".btn-primary:focus-visible", html)
+            self.assertIn("box-shadow", html)
+            self.assertIn("prefers-reduced-motion:reduce", html)
+            self.assertEqual(2, html.count("--brand-cta-foreground:#FFFFFF"))
+
+    def test_secondary_ctas_use_the_surface_aware_red_outline_contract(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "guide"
+            brand, dark, light = self.i_heart_pr_tours_guide_fixture(kit)
+            self.assertEqual("#FFFFFF", dark["brand-cta-outline-foreground"])
+            self.assertEqual("#C5342C", light["brand-cta-outline-foreground"])
+            self.assertGreaterEqual(gen_nextjs.ratio(dark["brand-cta-outline-foreground"], dark["background"]), 4.5)
+            self.assertGreaterEqual(gen_nextjs.ratio(light["brand-cta-outline-foreground"], light["background"]), 4.5)
+
+            html = gen_guidelines.build(brand, kit)
+            self.assertEqual(3, html.count('class="btn btn-secondary"'))
+            self.assertIn(".btn-secondary { background:transparent; color:var(--brand-cta-outline-foreground); border-color:var(--brand-cta); }", html)
+            self.assertIn(".btn-secondary:hover", html)
+            self.assertIn(".btn-secondary:active", html)
+            self.assertIn(".btn-secondary:focus-visible", html)
+            self.assertIn(".btn-secondary:hover{transform:none;}", html)
+
+            pdf_html = gen_guide_pdf.build(brand, kit)
+            self.assertIn("Secondary action", pdf_html)
+            self.assertIn("Red outline", pdf_html)
+            self.assertIn("fills primary actions and outlines secondary ones", pdf_html)
+
+    def test_pdf_documents_the_same_cta_role_and_state_contract(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "guide"
+            brand, _, _ = self.i_heart_pr_tours_guide_fixture(kit)
+            pdf_html = gen_guide_pdf.build(brand, kit)
+            portable_html = gen_guidelines.build(brand, kit)
+            for required in ("brand-cta", "#C5342C", "Primary CTA button", "#FFFFFF",
+                             "Default", "Hover", "Active", "Focus visible"):
+                self.assertIn(required, pdf_html)
+            for separate_role in ("identity", "link", "focus", "chart", "destructive"):
+                self.assertIn(separate_role, pdf_html.lower())
+            self.assertIn("--brand-cta:#C5342C", portable_html)
+            self.assertIn("--brand-cta-foreground:#FFFFFF", portable_html)
+
+    def test_reader_facing_guides_use_american_english_without_schema_renames(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "guide"
+            brand, _, _ = self.i_heart_pr_tours_guide_fixture(kit)
+            combined = gen_guide_pdf.build(brand, kit) + gen_guidelines.build(brand, kit)
+            reader_text = re.sub(r"<[^>]+>", " ", combined)
+            for british in ("colour", "colourway", "recolour", "rasterise", "synthesise"):
+                self.assertIsNone(re.search(r"\b%s\b" % british, reader_text, re.IGNORECASE), british)
+            grouped = gen_guidelines.group_asset_deliveries([
+                {"family": "web", "platform": "web", "kind": "icon", "variant": "mark",
+                 "colourway": "color", "path": "icons/sample.svg"}
+            ])
+            self.assertEqual("color", grouped[0]["key"][4])
+
     @staticmethod
     def rebind_historical_continuity(brand_path, source_class):
         brand = json.loads(brand_path.read_text(encoding="utf-8"))
