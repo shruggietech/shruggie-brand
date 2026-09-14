@@ -6,12 +6,15 @@ import type { Brand } from '@/lib/brands';
 
 const noticeId = 'portfolio-third-party-notice';
 
+function usesDarkShowcaseSurface(brand: Brand) {
+  return Boolean(brand.showcaseSurface && brand.showcaseForeground?.toUpperCase() === '#FFFFFF');
+}
+
 function brandStyle(brand: Brand) {
   return {
     '--brand-accent': brand.accent,
-    ...(brand.showcaseSurface ? {
+    ...(usesDarkShowcaseSurface(brand) ? {
       '--brand-showcase-surface': brand.showcaseSurface,
-      '--brand-showcase-foreground': brand.showcaseForeground,
     } : {}),
   } as CSSProperties;
 }
@@ -32,15 +35,17 @@ function DesktopBrandCard({ brand }: { brand: Brand }) {
   const [dismissed, setDismissed] = useState(false);
   return <article
     className="brand-card"
+    aria-label={`${brand.title} portfolio card. Focus to reveal actions.`}
     data-actions-dismissed={dismissed ? 'true' : undefined}
-    data-showcase-surface={brand.showcaseSurface ? 'governed' : undefined}
+    data-showcase-surface={usesDarkShowcaseSurface(brand) ? 'governed-dark' : undefined}
     onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDismissed(false); }}
     onFocusCapture={(event) => { if (event.target !== event.currentTarget) setDismissed(false); }}
     onKeyDown={(event) => { if (event.key === 'Escape') { setDismissed(true); card.current?.focus(); } }}
-    onPointerLeave={() => setDismissed(false)}
+    onPointerEnter={() => setDismissed(false)}
+    onPointerLeave={() => { if (!card.current?.contains(document.activeElement)) setDismissed(false); }}
     ref={card}
     style={brandStyle(brand)}
-    tabIndex={-1}
+    tabIndex={0}
   >
     <span className="brand-icon"><img src={brand.icon} alt="" /></span>
     <h3><BrandName brand={brand} /></h3>
@@ -52,20 +57,20 @@ function DesktopBrandCard({ brand }: { brand: Brand }) {
 }
 
 export function BrandPortfolio({ brands }: { brands: Brand[] }) {
-  const notices = [...new Set(brands.flatMap((brand) => brand.vendorBoundary ? [brand.vendorBoundary] : []))];
+  const hasThirdPartyProjects = brands.some((brand) => Boolean(brand.vendorBoundary));
   return <>
     <div className="brand-grid brand-grid-desktop">
       {brands.map((brand) => <DesktopBrandCard brand={brand} key={brand.slug} />)}
     </div>
     <div className="brand-accordion-list">
-      {brands.map((brand) => <details className="brand-accordion" data-showcase-surface={brand.showcaseSurface ? 'governed' : undefined} key={brand.slug} style={brandStyle(brand)}>
+      {brands.map((brand) => <details className="brand-accordion" data-showcase-surface={usesDarkShowcaseSurface(brand) ? 'governed-dark' : undefined} key={brand.slug} style={brandStyle(brand)}>
         <summary><span className="brand-icon"><img src={brand.icon} alt="" /></span><span className="mobile-brand-title"><BrandName brand={brand} /></span></summary>
         <div className="brand-accordion-panel"><p>{brand.descriptor}</p><BrandActions brand={brand} /></div>
       </details>)}
     </div>
-    {notices.length > 0 && <aside className="portfolio-vendor-notice" id={noticeId} aria-label="Third-party brand notice">
-      {notices.map((notice) => <p key={notice}>* {notice}</p>)}
+    {hasThirdPartyProjects && <aside className="portfolio-vendor-notice" id={noticeId} aria-label="Third-party brand notice">
+      <p>* Third-party projects are independently owned and operated.</p>
     </aside>}
-    <noscript><style>{'.brand-card .brand-card-description{opacity:0}.brand-card .brand-actions{opacity:1;pointer-events:auto;transform:none}'}</style></noscript>
+    <noscript><style>{'.brand-card .brand-card-description{opacity:0}.brand-card .brand-actions{opacity:1;visibility:visible;pointer-events:auto;transform:none}'}</style></noscript>
   </>;
 }
