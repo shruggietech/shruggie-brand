@@ -93,7 +93,7 @@ CHANGELOG.md                         # unreleased S033 correction
 
 ### 2026-09-13 - Preserve governed dark surfaces only
 
-Use a generated white legal foreground as the eligibility signal for retaining a brand's governed homepage surface. If the generated foreground is not white, the homepage uses the existing accent-derived dark fallback. This preserves approved dark surfaces for Cueson, ESO Weave, and Glitchpad while preventing the white I Heart PR Tours guideline surface from breaking the dark portfolio system.
+Use a generated white legal foreground as the eligibility signal for retaining a brand's governed homepage surface. If the generated foreground is not white, the homepage uses an accent-derived fallback pinned to the theme-invariant dark base `#111315`. This preserves approved dark surfaces for Cueson, ESO Weave, and Glitchpad while preventing brand-specific or site-theme light surfaces from breaking the dark portfolio system.
 
 ### 2026-09-13 - Make the card itself the keyboard reveal entry
 

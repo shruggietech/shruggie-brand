@@ -115,6 +115,16 @@
 
 ---
 
+## Phase 7: Post-review light-theme correction
+
+**Purpose**: Correct the review-discovered fallback regression without changing the approved white-copy or dark-family contract.
+
+- [x] T029 [US1] Add source and rendered regressions proving desktop cards and mobile disclosures retain the same dark surfaces and white foregrounds in both site themes in `site/tests/site.test.mjs` and `site/scripts/verify-site.mjs`
+- [x] T030 [US1] Pin the accent-derived desktop and mobile fallback gradients to a theme-invariant dark base in `site/app/globals.css`
+- [x] T031 Rebuild the static site, run the focused site validation, record evidence in `specs/033-portfolio-card-consistency/evidence.md`, and present the corrected light-theme preview before changing the local commit
+
+---
+
 ## Dependencies and Execution Order
 
 ### Phase Dependencies

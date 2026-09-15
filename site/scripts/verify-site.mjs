@@ -369,6 +369,19 @@ try {
   check(await page.locator('.brand-card').count() === 8, 'homepage must render exactly eight desktop brand cards');
   check(await page.locator('.brand-accordion').count() === 8, 'homepage must render exactly eight mobile brand disclosures');
   check(await page.locator('.brand-card a').count() === 16, 'desktop cards must expose exactly two actions per brand');
+  let darkPortfolioPresentation;
+  for (const theme of ['dark', 'light']) {
+    await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
+    await page.reload({ waitUntil: 'networkidle' });
+    check(await page.locator('html').evaluate((element) => element.classList.contains('dark')) === (theme === 'dark'), `homepage did not apply the requested ${theme} theme`);
+    const presentation = await page.locator('.brand-card, .brand-accordion').evaluateAll((elements) => elements.map((element) => {
+      const style = getComputedStyle(element); const title = element.querySelector('h3, .mobile-brand-title'); const description = element.querySelector('.brand-card-description, .brand-accordion-panel > p'); const action = element.querySelector('.brand-actions a');
+      return { surface: element.getAttribute('data-showcase-surface'), backgroundColor: style.backgroundColor, backgroundImage: style.backgroundImage, color: style.color, titleColor: title ? getComputedStyle(title).color : null, descriptionColor: description ? getComputedStyle(description).color : null, actionColor: action ? getComputedStyle(action).color : null };
+    }));
+    check(presentation.length === 16 && presentation.every((sample) => [sample.color, sample.titleColor, sample.descriptionColor, sample.actionColor].every(isWhiteColor)), `homepage ${theme} portfolio copy is not uniformly white (${JSON.stringify(presentation)})`);
+    if (theme === 'dark') darkPortfolioPresentation = presentation;
+    else check(JSON.stringify(presentation) === JSON.stringify(darkPortfolioPresentation), `portfolio surfaces or foregrounds change with the site theme (${JSON.stringify({ dark: darkPortfolioPresentation, light: presentation })})`);
+  }
   check(await page.locator('.portfolio-vendor-notice').count() === 1, 'portfolio must render exactly one shared third-party notice');
   check(await page.locator('.vendor-boundary').count() === 0, 'portfolio must not repeat card-level vendor notices');
   const markerDetails = await page.locator('.brand-card .vendor-marker').evaluateAll((markers) => markers.map((marker) => ({ brand: marker.closest('.brand-card')?.querySelector('h3')?.textContent?.replace(' Independent third-party project', '').replace('*', '').trim(), describedBy: marker.getAttribute('aria-describedby'), equivalent: marker.querySelector('.sr-only')?.textContent?.trim() })));

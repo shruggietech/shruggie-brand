@@ -64,3 +64,14 @@ The global Corepack `pnpm` shim points to a missing cached pnpm 12.3.4 entry. Th
 - `git diff --check`: PASS. Markdown policy, UTF-8 BOM/CR scans, and mojibake scans passed with no findings.
 - The intended commit set is limited to `CHANGELOG.md`, four site source/test files, and the S033 Spec Kit directory. No generated `dist/`, `site/out/`, PDF, archive, registry, release, dependency, cache, or test-result path is included.
 - The requirements checklist remains 16 of 16 complete. The 22-item UX/accessibility checklist remains reviewer-owned and intentionally unmodified, as required by the checklist workflow.
+
+## Post-review light-theme correction
+
+- Visual review exposed that non-governed portfolio fallbacks inherited `--panel`, which resolved to a light surface in the light site theme while the required copy remained white.
+- A new source regression failed before implementation because both desktop and mobile fallbacks were not pinned to a theme-invariant dark surface. The rendered cross-theme regression also exposed that fallback mobile disclosure containers inherited the light page foreground.
+- Desktop cards and mobile disclosures now derive their accent gradient from the fixed dark base `#111315`; mobile disclosure containers explicitly use white foreground. Governed dark brand surfaces and all approved icon sources remain unchanged.
+- `node site/tests/site.test.mjs`: PASS.
+- `site/node_modules/.bin/tsc.CMD --noEmit`: PASS.
+- `site/node_modules/.bin/next.CMD build`: PASS, with 81 static pages generated.
+- `node site/scripts/verify-site.mjs`: PASS, `verified 76 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations`.
+- Direct browser inspection of the rebuilt homepage in light mode confirmed all eight desktop cards retain the dark family and exact white titles and descriptions. The corrected local preview was presented before any commit amendment or push.

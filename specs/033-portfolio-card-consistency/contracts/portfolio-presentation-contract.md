@@ -4,7 +4,7 @@
 
 - Every production portfolio entry appears once as a desktop article and once as a mobile native disclosure.
 - Every visible title, descriptor, and action label computes to `rgb(255, 255, 255)`.
-- A governed surface is retained only when its generated legal foreground is `#FFFFFF`; all other entries use the accent-derived dark fallback.
+- A governed surface is retained only when its generated legal foreground is `#FFFFFF`; all other entries use the accent-derived fallback pinned to dark base `#111315` in both site themes.
 - I Heart PR Tours uses the approved color heart icon and the shared dark fallback, not its white guideline surface.
 - Approved icon source files, geometry, colors, proportions, and transparency remain unchanged.
 - Visible description or action content retains at least 16 CSS pixels of clearance from the card's bottom border.

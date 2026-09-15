@@ -76,7 +76,7 @@ A visitor sees one short shared notice explaining the meaning of asterisks on th
 ### Functional Requirements
 
 - **FR-001**: Every visible portfolio-card title, description, and action label MUST render white in every applicable interaction state.
-- **FR-002**: Every homepage portfolio entry, including I Heart PR Tours, MUST use the shared dark card and accordion presentation rather than a brand-specific light surface.
+- **FR-002**: Every homepage portfolio entry, including I Heart PR Tours, MUST use the shared dark card and accordion presentation in both site themes rather than a brand-specific or theme-inherited light surface.
 - **FR-003**: The homepage-only dark treatment MUST preserve each brand's approved logo artwork and accent and MUST NOT change the brand's own guideline presentation or source identity.
 - **FR-004**: Every card MUST retain at least 16 CSS pixels of visible bottom clearance beneath its description or revealed actions, with no clipping or border collision.
 - **FR-005**: The desktop action reveal MUST preserve card and grid geometry without layout shift.
@@ -108,7 +108,7 @@ A visitor sees one short shared notice explaining the meaning of asterisks on th
 ### Measurable Outcomes
 
 - **SC-001**: 100 percent of visible portfolio titles, descriptions, and action labels compute to white across tested states and viewports.
-- **SC-002**: All eight production portfolio entries use the shared dark showcase treatment on the homepage, with zero changes to approved logo source bytes or brand-specific guideline surfaces.
+- **SC-002**: All eight production portfolio entries use the same shared dark showcase treatment in both homepage themes, with zero changes to approved logo source bytes or brand-specific guideline surfaces.
 - **SC-003**: Every card preserves at least 16 CSS pixels below its visible content at desktop, narrow, mobile, and 200 percent zoom layouts.
 - **SC-004**: 100 percent of portfolio actions meet 4.5:1 text contrast, 3:1 focus-indicator contrast, keyboard-operability, hidden-focus, and 44-by-44 target requirements.
 - **SC-005**: Revealing or dismissing actions changes no measured card dimension or grid position by more than 0.5 CSS pixels.

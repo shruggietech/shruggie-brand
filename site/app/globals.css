@@ -74,7 +74,7 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 2rem; margin-bottom: 2rem; }
 .section-heading > p { max-width: 42ch; color: var(--muted-text); }
 .brand-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 1rem; }
-.brand-card { box-sizing: border-box; display: flex; height: 20rem; flex-direction: column; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-showcase-surface, linear-gradient(145deg, color-mix(in srgb, var(--brand-accent) 12%, var(--panel)), var(--panel) 54%)); color: #fff; transition: border-color .2s, box-shadow .2s; }
+.brand-card { box-sizing: border-box; display: flex; height: 20rem; flex-direction: column; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-showcase-surface, linear-gradient(145deg, color-mix(in srgb, var(--brand-accent) 12%, #111315), #111315 54%)); color: #fff; transition: border-color .2s, box-shadow .2s; }
 .brand-card:hover, .brand-card:focus-within { border-color: var(--brand-accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-accent) 55%, transparent); }
 .brand-card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 4px var(--brand-accent); }
 .brand-card[data-showcase-surface='governed-dark'] { color: #fff; }
@@ -97,7 +97,7 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .brand-actions a:focus-visible { border-color: var(--brand-accent); outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 4px var(--brand-accent); }
 .brand-actions a:active { transform: translateY(1px); }
 .brand-accordion-list { display: none; }
-.brand-accordion { box-sizing: border-box; min-width: 0; max-width: 100%; overflow: clip; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-showcase-surface, linear-gradient(145deg, color-mix(in srgb, var(--brand-accent) 12%, var(--panel)), var(--panel) 54%)); }
+.brand-accordion { box-sizing: border-box; min-width: 0; max-width: 100%; overflow: clip; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-showcase-surface, linear-gradient(145deg, color-mix(in srgb, var(--brand-accent) 12%, #111315), #111315 54%)); color: #fff; }
 .brand-accordion + .brand-accordion { margin-top: .75rem; }
 .brand-accordion[data-showcase-surface='governed-dark'] { color: #fff; }
 .brand-accordion summary { display: grid; min-height: 5.75rem; grid-template-columns: 3.5rem minmax(0, 1fr) 1.5rem; align-items: center; gap: .85rem; padding: .75rem 1rem; cursor: pointer; list-style: none; }
