@@ -281,6 +281,200 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(1, len(groups))
         self.assertEqual({"favicon", "apple-touch", "installable"}, {item["role"] for item in groups[0]["deliveries"]})
 
+    @staticmethod
+    def portable_preview_fixture(destination, include_fully_transparent=False):
+        """Create isolated visual, metadata, container, and mixed-delivery fixtures."""
+        kit = Path(destination)
+        (kit / "logos").mkdir(parents=True)
+        (kit / "icons" / "integration").mkdir(parents=True)
+        write_utf8(kit / "logos" / "provenance.json", json.dumps({"derivatives": []}) + "\n")
+
+        def visual(name, color, appearance, role, opaque=False):
+            path = kit / "icons" / "integration" / name
+            image = Image.new("RGBA", (8, 8), color if opaque else (0, 0, 0, 0))
+            if not opaque:
+                image.paste(color, (1, 1, 7, 7))
+            image.save(path)
+            return {
+                "path": path.relative_to(kit).as_posix(), "platform": "integration",
+                "role": role, "appearance": appearance, "source_variant": "full",
+                "format": "png", "width": 8, "height": 8,
+                "destination": "Preview fixture",
+            }
+
+        artifacts = [
+            visual("transparent-dark.png", (8, 19, 29, 255), "default", "transparent-dark"),
+            visual("black.png", (0, 0, 0, 255), "black", "declared-black"),
+            visual("white.png", (255, 255, 255, 255), "white", "declared-white"),
+        ]
+        full_color = kit / "icons" / "integration" / "full-color.png"
+        image = Image.new("RGBA", (8, 8), (0, 255, 255, 255))
+        image.paste((255, 255, 0, 255), (4, 0, 8, 8))
+        image.save(full_color)
+        artifacts.append({
+            "path": full_color.relative_to(kit).as_posix(), "platform": "integration",
+            "role": "full-color", "appearance": "default", "source_variant": "full",
+            "format": "png", "width": 8, "height": 8,
+            "destination": "Full-color fixture",
+        })
+
+        metadata = kit / "icons" / "integration" / "metadata.json"
+        write_utf8(metadata, '{"kind":"metadata"}\n')
+        declaration = kit / "icons" / "integration" / "adaptive.xml"
+        write_utf8(declaration, '<adaptive-icon/>\n')
+        mixed_visual = kit / "icons" / "integration" / "mixed.png"
+        Image.new("RGBA", (8, 8), (255, 255, 255, 255)).save(mixed_visual)
+        mixed_metadata = kit / "icons" / "integration" / "mixed.xml"
+        write_utf8(mixed_metadata, '<mixed destination="safe"/>\n')
+        ico = kit / "icons" / "integration" / "app.ico"
+        ico.write_bytes(b"\x00\x00\x01\x00\x02\x00" + bytes([16, 16]) + bytes(14) + bytes([0, 0]) + bytes(14))
+        icns = kit / "icons" / "integration" / "AppIcon.icns"
+        chunks = b"icp4\x00\x00\x00\x08" + b"ic10\x00\x00\x00\x08"
+        icns.write_bytes(b"icns" + (len(chunks) + 8).to_bytes(4, "big") + chunks)
+        artifacts.extend([
+            {"path": metadata.relative_to(kit).as_posix(), "platform": "android", "role": "metadata-<unsafe>", "appearance": "default", "source_variant": "metadata", "format": "json", "destination": 'Install <script>alert("unsafe")</script> & retain metadata'},
+            {"path": declaration.relative_to(kit).as_posix(), "platform": "android", "role": "adaptive-declaration", "appearance": "default", "source_variant": "metadata", "format": "xml", "destination": "Android resource declaration"},
+            {"path": ico.relative_to(kit).as_posix(), "platform": "windows", "role": "classic-ico", "appearance": "default", "source_variant": "mixed", "format": "ico", "destination": "Win32 application"},
+            {"path": icns.relative_to(kit).as_posix(), "platform": "apple-macos", "role": "icns", "appearance": "default", "source_variant": "full", "format": "icns", "destination": "macOS application bundle"},
+            {"path": mixed_visual.relative_to(kit).as_posix(), "platform": "integration", "role": "mixed-delivery", "appearance": "white", "source_variant": "full", "format": "png", "width": 8, "height": 8, "destination": "Mixed visual delivery"},
+            {"path": mixed_metadata.relative_to(kit).as_posix(), "platform": "integration", "role": "mixed-delivery", "appearance": "white", "source_variant": "full", "format": "xml", "destination": "Mixed metadata delivery"},
+        ])
+        if include_fully_transparent:
+            blank = kit / "icons" / "integration" / "fully-transparent.png"
+            Image.new("RGBA", (8, 8), (0, 0, 0, 0)).save(blank)
+            artifacts.append({
+                "path": blank.relative_to(kit).as_posix(), "platform": "integration",
+                "role": "fully-transparent", "appearance": "default", "source_variant": "full",
+                "format": "png", "width": 8, "height": 8,
+                "destination": "Invalid visual fixture",
+            })
+        write_utf8(kit / "icons" / "manifest.json", json.dumps({
+            "artifacts": artifacts, "suites": [], "aliases": {},
+        }, indent=2) + "\n")
+        return kit, artifacts
+
+    @staticmethod
+    def portable_preview_card(html, path):
+        matches = [card for card in re.findall(r'<article class="asset-card".*?</article>', html, re.DOTALL)
+                   if path in card]
+        if len(matches) != 1:
+            raise AssertionError("expected exactly one portable preview card for %s, found %d" % (path, len(matches)))
+        return matches[0]
+
+    def test_portable_preview_surfaces_cover_transparent_black_white_and_full_color(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit, _ = self.portable_preview_fixture(temporary)
+            html = gen_guidelines._asset_catalog(kit, "Preview fixtures")
+            expected = {
+                "icons/integration/transparent-dark.png": "light",
+                "icons/integration/black.png": "light",
+                "icons/integration/white.png": "dark",
+                "icons/integration/full-color.png": "dark",
+            }
+            for path, surface in expected.items():
+                with self.subTest(path=path):
+                    card = self.portable_preview_card(html, path)
+                    self.assertIn("%s-well" % surface, card)
+                    self.assertIn('data-preview-kind="visual"', card)
+                    self.assertIn('data-preview-surface="%s"' % surface, card)
+                    match = re.search(r'data-preview-contrast="([0-9]+(?:\.[0-9]+)?)"', card)
+                    self.assertIsNotNone(match, card)
+                    self.assertGreaterEqual(float(match.group(1)), 3.0)
+                    self.assertIn("<img ", card)
+
+    def test_portable_preview_measures_svg_only_group_without_changing_embedded_bytes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit, artifacts = self.portable_preview_fixture(temporary)
+            svg = kit / "icons" / "integration" / "svg-only.svg"
+            write_utf8(svg, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><path fill="#08131D" d="M0 0h8v8H0z"/></svg>\n')
+            artifacts.append({
+                "path": svg.relative_to(kit).as_posix(), "platform": "integration",
+                "role": "svg-only", "appearance": "default", "source_variant": "full",
+                "format": "svg", "width": 8, "height": 8,
+                "destination": "SVG-only fixture",
+            })
+            write_utf8(kit / "icons" / "manifest.json", json.dumps({
+                "artifacts": artifacts, "suites": [], "aliases": {},
+            }, indent=2) + "\n")
+            scores = {
+                "light": {"coverage": 1.0, "contrast": 8.9},
+                "dark": {"coverage": 0.0, "contrast": 2.0},
+            }
+            original = svg.read_bytes()
+            with mock.patch.object(gen_guidelines, "_svg_preview_scores", return_value=scores) as measure:
+                html = gen_guidelines._asset_catalog(kit, "Preview fixtures")
+            card = self.portable_preview_card(html, "icons/integration/svg-only.svg")
+            encoded = base64.b64encode(original).decode("ascii")
+            measure.assert_called_once_with(svg)
+            self.assertIn('data-preview-basis="measured"', card)
+            self.assertIn('data-preview-surface="light"', card)
+            self.assertIn('data-preview-contrast="8.90"', card)
+            self.assertIn("base64,%s" % encoded, card)
+            self.assertEqual(original, svg.read_bytes())
+
+    def test_portable_preview_nonvisual_metadata_and_containers_are_explicit(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit, _ = self.portable_preview_fixture(temporary)
+            html = gen_guidelines._asset_catalog(kit, "Preview fixtures")
+            expected = {
+                "icons/integration/metadata.json": "JSON",
+                "icons/integration/adaptive.xml": "XML",
+                "icons/integration/app.ico": "ICO",
+                "icons/integration/AppIcon.icns": "ICNS",
+            }
+            for path, format_ in expected.items():
+                with self.subTest(path=path):
+                    card = self.portable_preview_card(html, path)
+                    self.assertIn('data-preview-kind="nonvisual"', card)
+                    self.assertIn('class="nonvisual-resource"', card)
+                    self.assertIn("Nonvisual resource", card)
+                    self.assertIn(format_, card)
+                    self.assertNotIn("<img ", card)
+                    self.assertNotIn('class="no-preview"', card)
+            self.assertIn("embedded: 16 × 16, 256 × 256", self.portable_preview_card(html, "icons/integration/app.ico"))
+            self.assertIn("embedded: 16 × 16, 1024 × 1024", self.portable_preview_card(html, "icons/integration/AppIcon.icns"))
+
+    def test_portable_preview_mixed_group_retains_visual_and_identifies_nonvisual_delivery(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit, _ = self.portable_preview_fixture(temporary)
+            html = gen_guidelines._asset_catalog(kit, "Preview fixtures")
+            card = self.portable_preview_card(html, "icons/integration/mixed.png")
+            self.assertIn("icons/integration/mixed.xml", card)
+            self.assertEqual(1, card.count("<img "))
+            self.assertIn('data-preview-kind="visual"', card)
+            metadata_row = next(row for row in re.findall(r"<li.*?</li>", card, re.DOTALL)
+                                if "icons/integration/mixed.xml" in row)
+            self.assertIn('data-delivery-kind="nonvisual"', metadata_row)
+            self.assertIn("XML", metadata_row)
+            self.assertEqual(1, html.count('href="../icons/integration/mixed.png"'))
+            self.assertEqual(1, html.count('href="../icons/integration/mixed.xml"'))
+
+    def test_portable_preview_generation_is_deterministic_byte_preserving_and_self_contained(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit, artifacts = self.portable_preview_fixture(temporary)
+            original = {path.relative_to(kit).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+                        for path in kit.rglob("*") if path.is_file()}
+            first = gen_guidelines._asset_catalog(kit, "Preview fixtures")
+            second = gen_guidelines._asset_catalog(kit, "Preview fixtures")
+            after = {path.relative_to(kit).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+                     for path in kit.rglob("*") if path.is_file()}
+            self.assertEqual(first, second)
+            self.assertEqual(original, after)
+            for item in artifacts:
+                self.assertEqual(1, first.count('href="../%s"' % item["path"]))
+                if item["format"] == "png" and item["role"] != "fully-transparent":
+                    encoded = base64.b64encode((kit / item["path"]).read_bytes()).decode("ascii")
+                    self.assertIn("base64,%s" % encoded, first)
+            self.assertNotIn('<script>alert("unsafe")</script>', first)
+            self.assertIn("&lt;script&gt;alert(&quot;unsafe&quot;)&lt;/script&gt; &amp; retain metadata", first)
+            self.assertIn('href="../icons/integration/metadata.json"', first)
+
+    def test_portable_preview_rejects_fully_transparent_visuals(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit, _ = self.portable_preview_fixture(temporary, include_fully_transparent=True)
+            with self.assertRaisesRegex(ValueError, "no meaningful visible pixels"):
+                gen_guidelines._asset_catalog(kit, "Preview fixtures")
+
     def test_portal_colors_are_hex_first_and_keep_aliases_secondary(self):
         entries = gen_guidelines.portal_colors([
             ("primary", "#2BCC73"),
@@ -313,7 +507,7 @@ class PipelineTests(unittest.TestCase):
             (kit / "logos" / "svg").mkdir(parents=True)
             (kit / "icons" / "web").mkdir(parents=True)
             (kit / "logos" / "svg" / "alpha-mark-color.svg").write_text(
-                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"></svg>\n', encoding="utf-8")
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path fill="#2BCC73" d="M1 1h8v8H1z"/></svg>\n', encoding="utf-8")
             (kit / "logos" / "provenance.json").write_text(json.dumps({"derivatives": [{
                 "path": "logos/svg/alpha-mark-color.svg", "kind": "mark", "variant": "full", "colourway": "color",
             }]}), encoding="utf-8")

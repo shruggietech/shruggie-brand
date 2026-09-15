@@ -1,6 +1,7 @@
 import { createReadStream, existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { inflateSync } from 'node:zlib';
@@ -864,6 +865,138 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   for (const route of tableRoutes) { await page.goto(base + route); check(await page.locator('table').count() > 0, `${route} does not render its Markdown table semantically`); }
   const portableGuideRoute = '/i-heart-pr-tours/downloads/files/i-heart-pr-tours-portable-guidelines.html';
+  const auditPortablePreviews = async (target, sourceLabel, width, zoom = 1) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(target, { waitUntil: 'load' });
+    await page.evaluate((scale) => { document.documentElement.style.zoom = scale === 1 ? '' : String(scale); }, zoom);
+    const cards = page.locator('#assets .asset-card');
+    const cardCount = await cards.count();
+    check(cardCount > 0, `${portableGuideRoute} ${sourceLabel} has no portable asset preview cards at ${width}px and ${zoom * 100} percent zoom`);
+    const samples = await cards.evaluateAll((elements) => {
+      const parseColor = (value) => {
+        const match = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/.exec(value);
+        return match ? match.slice(1, 4).map(Number) : null;
+      };
+      const luminance = (color) => {
+        const channels = color.map((channel) => channel / 255).map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+      };
+      const contrast = (left, right) => {
+        const values = [luminance(left), luminance(right)].sort((a, b) => b - a);
+        return (values[0] + 0.05) / (values[1] + 0.05);
+      };
+      const contained = (inner, outer) => inner.left >= outer.left - 1 && inner.top >= outer.top - 1 && inner.right <= outer.right + 1 && inner.bottom <= outer.bottom + 1;
+      const visibleContrast = (image, surface, alternate) => {
+        if (!image.complete || !image.naturalWidth || !image.naturalHeight) return { error: 'image did not load', visible: 0 };
+        const rendered = image.getBoundingClientRect();
+        const ratio = image.naturalWidth / image.naturalHeight;
+        const canvas = document.createElement('canvas');
+        const sampleWidth = rendered.width || rendered.height * ratio;
+        const sampleHeight = rendered.height || sampleWidth / ratio;
+        const sampleScale = Math.min(1, 256 / sampleWidth, 256 / sampleHeight);
+        canvas.width = Math.max(1, Math.round(sampleWidth * sampleScale));
+        canvas.height = Math.max(1, Math.round(sampleHeight * sampleScale));
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        if (!context) return { error: 'canvas context unavailable', visible: 0 };
+        try { context.drawImage(image, 0, 0, canvas.width, canvas.height); }
+        catch (error) { return { error: `image sampling failed: ${error}`, visible: 0 }; }
+        let pixels;
+        try { pixels = context.getImageData(0, 0, canvas.width, canvas.height).data; }
+        catch (error) { return { error: `image pixels unavailable: ${error}`, visible: 0 }; }
+        const scores = (background) => {
+          const ratios = [];
+          let eligible = 0;
+          for (let index = 0; index < pixels.length; index += 4) {
+            const alpha = pixels[index + 3] / 255;
+            if (alpha < 0.5) continue;
+            eligible += 1;
+            const composited = [0, 1, 2].map((channel) => pixels[index + channel] * alpha + background[channel] * (1 - alpha));
+            ratios.push(contrast(composited, background));
+          }
+          ratios.sort((left, right) => left - right);
+          return { coverage: ratios.filter((ratioValue) => ratioValue >= 3).length / Math.max(1, ratios.length), median: ratios[Math.floor(ratios.length / 2)] ?? 0, eligible };
+        };
+        let transparent = false;
+        for (let index = 3; index < pixels.length; index += 4) if (pixels[index] < 255) { transparent = true; break; }
+        return { error: null, visible: scores(surface).eligible, transparent, selected: scores(surface), alternate: scores(alternate) };
+      };
+      return elements.map((card) => {
+        const preview = card.querySelector('.preview');
+        const image = preview?.querySelector('img') ?? null;
+        const fallback = preview?.querySelector('.no-preview, .nonvisual-resource') ?? null;
+        const surfaceLabel = preview?.querySelector('.surface-label') ?? null;
+        const wells = ['light-well', 'dark-well', 'nonvisual-well'].filter((name) => preview?.classList.contains(name));
+        const previewRect = preview?.getBoundingClientRect() ?? null;
+        const imageRect = image?.getBoundingClientRect() ?? null;
+        const labelRect = surfaceLabel?.getBoundingClientRect() ?? null;
+        const fallbackRect = fallback?.getBoundingClientRect() ?? null;
+        const background = preview ? parseColor(getComputedStyle(preview).backgroundColor) : null;
+        const alternate = wells.includes('light-well') ? [9, 9, 9] : [245, 245, 245];
+        const labelColor = surfaceLabel ? parseColor(getComputedStyle(surfaceLabel).color) : null;
+        const fallbackColor = fallback ? parseColor(getComputedStyle(fallback).color) : null;
+        return {
+          title: card.querySelector('h3')?.textContent?.trim() || 'untitled asset',
+          wells,
+          hasImage: Boolean(image),
+          hasFallback: Boolean(fallback),
+          fallbackText: fallback?.textContent?.trim() || '',
+          surfaceLabelText: surfaceLabel?.textContent?.trim() || '',
+          imageLoaded: Boolean(image?.complete && image.naturalWidth && image.naturalHeight),
+          imageContained: Boolean(imageRect && previewRect && contained(imageRect, previewRect)),
+          imageObjectFit: image ? getComputedStyle(image).objectFit : null,
+          imageTransform: image ? getComputedStyle(image).transform : null,
+          imageFilter: image ? getComputedStyle(image).filter : null,
+          labelContained: Boolean(labelRect && previewRect && contained(labelRect, previewRect)),
+          fallbackContained: !fallbackRect || Boolean(previewRect && contained(fallbackRect, previewRect)),
+          cardOverflow: card.scrollWidth - card.clientWidth,
+          previewOverflow: preview ? preview.scrollWidth - preview.clientWidth : Infinity,
+          textContrast: background && labelColor ? contrast(labelColor, background) : 0,
+          fallbackContrast: background && fallbackColor ? contrast(fallbackColor, background) : null,
+          visualContrast: image && background && !wells.includes('nonvisual-well') ? visibleContrast(image, background, alternate) : null,
+        };
+      });
+    });
+    for (const sample of samples) {
+      const prefix = `${portableGuideRoute} ${sourceLabel} ${sample.title} at ${width}px and ${zoom * 100} percent zoom`;
+      check(sample.wells.length === 1, `${prefix} must use exactly one light, dark, or nonvisual well (${sample.wells.join(', ') || 'none'})`);
+      check(sample.hasImage !== sample.hasFallback, `${prefix} must expose exactly one visual image or nonvisual resource treatment`);
+      check(sample.wells.includes('nonvisual-well') === sample.hasFallback, `${prefix} does not keep nonvisual content exclusive to the nonvisual well`);
+      check(sample.surfaceLabelText.length > 0 && sample.labelContained, `${prefix} lacks a visible, contained well label`);
+      check(sample.textContrast >= 4.5, `${prefix} well label contrast is ${sample.textContrast.toFixed(2)}:1`);
+      check(sample.cardOverflow <= 1 && sample.previewOverflow <= 1, `${prefix} overflows its card by ${Math.max(sample.cardOverflow, sample.previewOverflow)}px`);
+      if (sample.hasImage) {
+        check(sample.imageLoaded, `${prefix} image is missing or undecodable`);
+        check(sample.imageContained, `${prefix} image crosses the preview boundary`);
+        check(sample.imageObjectFit === 'contain' && sample.imageTransform === 'none' && sample.imageFilter === 'none', `${prefix} image is cropped or presentation-transformed (${sample.imageObjectFit}, ${sample.imageTransform}, ${sample.imageFilter})`);
+        check(!sample.visualContrast?.error, `${prefix} ${sample.visualContrast?.error}`);
+        check((sample.visualContrast?.visible ?? 0) > 0, `${prefix} has no measurable visible pixels`);
+        if (sample.visualContrast?.transparent) {
+          check(sample.visualContrast.selected.median >= 3, `${prefix} meaningful visible output measures ${sample.visualContrast.selected.median.toFixed(2)}:1 against its well`);
+          check(sample.visualContrast.selected.coverage + 0.001 >= sample.visualContrast.alternate.coverage, `${prefix} uses the weaker well (${(sample.visualContrast.selected.coverage * 100).toFixed(1)} percent versus ${(sample.visualContrast.alternate.coverage * 100).toFixed(1)} percent of visible pixels at 3:1)`);
+        }
+      } else {
+        check(sample.fallbackContained && sample.fallbackText.length > 0, `${prefix} lacks readable, contained nonvisual resource text`);
+        check(/nonvisual|metadata|declaration|container|resource/i.test(`${sample.surfaceLabelText} ${sample.fallbackText}`), `${prefix} does not identify the resource as nonvisual metadata, a declaration, or a container`);
+        check((sample.fallbackContrast ?? 0) >= 4.5, `${prefix} nonvisual fallback contrast is ${(sample.fallbackContrast ?? 0).toFixed(2)}:1`);
+      }
+    }
+    const wellCounts = await page.locator('#assets .preview').evaluateAll((elements) => Object.fromEntries(['light-well', 'dark-well', 'nonvisual-well'].map((name) => [name, elements.filter((element) => element.classList.contains(name)).length])));
+    for (const well of ['light-well', 'dark-well', 'nonvisual-well']) check(wellCounts[well] > 0, `${portableGuideRoute} ${sourceLabel} has no ${well} examples at ${width}px and ${zoom * 100} percent zoom`);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    check(overflow <= 1, `${portableGuideRoute} ${sourceLabel} overflows horizontally by ${overflow}px at ${width}px and ${zoom * 100} percent zoom`);
+    const assetAxe = await new AxeBuilder({ page }).include('#assets').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    for (const violation of assetAxe.violations) failures.push(`${portableGuideRoute} ${sourceLabel} at ${width}px and ${zoom * 100} percent zoom fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
+    const screenshotLabel = `${sourceLabel}-${width}-${zoom === 1 ? '100' : '200'}`.replace(/[^a-z0-9-]+/gi, '-').toLowerCase();
+    await page.screenshot({ path: join(visualRoot, `i-heart-pr-tours-portable-assets-${screenshotLabel}.png`), fullPage: true });
+    await page.evaluate(() => { document.documentElement.style.zoom = ''; });
+  };
+  const portableGuideFileUrl = pathToFileURL(diskPath(portableGuideRoute)).href;
+  for (const [target, sourceLabel] of [[base + portableGuideRoute, 'staged-http'], [portableGuideFileUrl, 'direct-file']]) {
+    await auditPortablePreviews(target, sourceLabel, 1280);
+    await auditPortablePreviews(target, sourceLabel, 360);
+    await auditPortablePreviews(target, sourceLabel, 1280, 2);
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(base + portableGuideRoute);
   const portableCtas = page.locator('.btn-primary');
   check(await portableCtas.count() === 3, `${portableGuideRoute} does not expose all three primary CTA specimens`);

@@ -66,6 +66,98 @@ def group_asset_deliveries(deliveries):
 def _humanize(value):
     return re.sub(r"\s+", " ", str(value or "").replace("_", " ").replace("-", " ")).strip().title()
 
+PREVIEW_BACKGROUNDS = {"light": (245, 245, 245), "dark": (9, 9, 9)}
+
+def _relative_luminance(channels):
+    values = []
+    for channel in channels:
+        value = channel / 255
+        values.append(value / 12.92 if value <= .04045 else ((value + .055) / 1.055) ** 2.4)
+    return values[0] * .2126 + values[1] * .7152 + values[2] * .0722
+
+def _contrast_ratio(left, right):
+    bright, dark = sorted((_relative_luminance(left), _relative_luminance(right)), reverse=True)
+    return (bright + .05) / (dark + .05)
+
+def _weighted_median(values):
+    total = sum(weight for _, weight in values)
+    midpoint = total / 2
+    cursor = 0
+    for value, weight in sorted(values):
+        cursor += weight
+        if cursor >= midpoint:
+            return value
+    return 0
+
+def _image_preview_scores(image, path):
+    from PIL import Image
+    image.thumbnail((180, 180), Image.Resampling.LANCZOS)
+    pixels = list(image.get_flattened_data())
+    maximum_alpha = max((pixel[3] for pixel in pixels), default=0)
+    if maximum_alpha == 0:
+        raise ValueError("preview image has no meaningful visible pixels: %s" % path)
+    threshold = max(1, math.ceil(maximum_alpha / 2))
+    meaningful = [pixel for pixel in pixels if pixel[3] >= threshold]
+    scores = {}
+    for surface, background in PREVIEW_BACKGROUNDS.items():
+        ratios = []
+        passing = 0
+        total_weight = 0
+        for red, green, blue, alpha_byte in meaningful:
+            alpha = alpha_byte / 255
+            composited = tuple(channel * alpha + backdrop * (1 - alpha)
+                               for channel, backdrop in zip((red, green, blue), background))
+            ratio = _contrast_ratio(composited, background)
+            weight = alpha_byte
+            ratios.append((ratio, weight))
+            total_weight += weight
+            if ratio >= 3:
+                passing += weight
+        scores[surface] = {
+            "coverage": passing / total_weight,
+            "contrast": _weighted_median(ratios),
+        }
+    return scores
+
+def _png_preview_scores(path):
+    from PIL import Image
+    with Image.open(str(path)) as source:
+        image = source.convert("RGBA")
+    return _image_preview_scores(image, path)
+
+def _svg_preview_scores(path):
+    from qc_images import rsvg
+    return _image_preview_scores(rsvg(str(path), 180), path)
+
+def _declared_preview_surface(item):
+    semantics = {str(item.get("colourway") or "").lower(), str(item.get("appearance") or "").lower()}
+    if semantics & {"light", "black", "tinted", "light-unplated"}:
+        return "light"
+    if semantics & {"white", "dark", "dark-unplated"}:
+        return "dark"
+    return None
+
+def _preview_presentation(kit, group):
+    visual = [item for item in group["deliveries"] if item.get("format") in {"png", "svg"}]
+    if not visual:
+        return {"kind": "nonvisual", "surface": "nonvisual", "basis": "nonvisual",
+                "preview": group["representative"], "contrast": None}
+    pngs = [item for item in visual if item.get("format") == "png"]
+    if kit is not None:
+        preview = (max(pngs, key=lambda item: (int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
+                   if pngs else group["representative"])
+        path = Path(kit, preview["path"])
+        scores = _png_preview_scores(path) if preview.get("format") == "png" else _svg_preview_scores(path)
+        surface = max(("light", "dark"), key=lambda name: (scores[name]["coverage"], scores[name]["contrast"], name == "dark"))
+        contrast = scores[surface]["contrast"]
+        return {"kind": "visual", "surface": surface, "basis": "measured",
+                "preview": preview, "contrast": contrast}
+    surface = _declared_preview_surface(group["representative"])
+    if not surface:
+        surface = "dark"
+    return {"kind": "visual", "surface": surface, "basis": "declared",
+            "preview": group["representative"], "contrast": None}
+
 def portal_colors(values):
     """Return one compact reference row per canonical value."""
     grouped = {}
@@ -108,7 +200,8 @@ def portal_assets(deliveries, kit=None):
             })
         if not previews:
             continue
-        representative = max(previews, key=lambda item: (item.get("format") == "svg", int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
+        presentation = _preview_presentation(kit, group)
+        representative = presentation["preview"]
         family_key = _asset_family(representative)
         family = families.setdefault(family_key, {
             "key": family_key,
@@ -124,7 +217,9 @@ def portal_assets(deliveries, kit=None):
             "role": representative.get("role") or representative.get("kind") or "asset",
             "platform": representative.get("platform") or "identity",
             "appearance": representative.get("appearance") or representative.get("colourway") or "default",
-            "surface": "light" if representative.get("colourway") in {"light", "black"} or representative.get("appearance") in {"light", "tinted", "light-unplated"} else "dark",
+            "surface": presentation["surface"],
+            "preview_basis": presentation["basis"],
+            "preview_contrast": round(presentation["contrast"], 2) if presentation["contrast"] is not None else None,
             "summary": "Use this %s for %s." % (_humanize(representative.get("role") or representative.get("kind") or "asset").lower(), str(representative.get("destination") or "its declared destination").lower()),
             "formats": sorted({item["format"] for item in records}),
             "variants": sorted({str(item.get("source_variant") or item.get("variant") or "default") for item in records}),
@@ -246,7 +341,10 @@ def asset_deliveries(kit):
 def _preview(kit, item, title):
     path = Path(kit, item["path"])
     if item.get("format") not in {"png", "svg"}:
-        return '<div class="no-preview">Container asset</div>'
+        return ('<div class="nonvisual-resource"><strong>Nonvisual resource</strong>'
+                '<span>%s · %s</span></div>' %
+                (escape(str(item.get("format") or "resource").upper()),
+                 escape(_humanize(item.get("role") or "integration resource"))))
     mime = "image/svg+xml" if item["format"] == "svg" else "image/png"
     payload = base64.b64encode(path.read_bytes()).decode("ascii")
     return '<img src="data:%s;base64,%s" alt="%s preview">' % (mime, payload, escape(title, quote=True))
@@ -257,7 +355,8 @@ def _asset_catalog(kit, title):
     groups = group_asset_deliveries([item for item in deliveries if item.get("format") != "markdown"])
     cards = []
     for group in groups:
-        row = group["representative"]
+        presentation = _preview_presentation(kit, group)
+        row = presentation["preview"]
         label = " ".join(str(value) for value in group["key"] if value != "default").replace("-", " ").title()
         entries = []
         for item in group["deliveries"]:
@@ -267,22 +366,26 @@ def _asset_catalog(kit, title):
                 size = "embedded: " + ", ".join("%d × %d" % (value, value) for value in item["embedded_sizes"])
             else:
                 size = "container or metadata"
-            entries.append('<li><a data-kit-asset href="../%s">%s</a><span>%s · %s · %s · %s</span></li>' %
-                           (escape(item["path"], quote=True), escape(item["path"]), escape(str(item.get("role") or "asset")),
+            delivery_kind = "visual" if item.get("format") in {"png", "svg"} else "nonvisual"
+            entries.append('<li data-delivery-kind="%s"><a data-kit-asset href="../%s">%s</a><span>%s · %s · %s · %s</span></li>' %
+                           (delivery_kind, escape(item["path"], quote=True), escape(item["path"]), escape(str(item.get("role") or "asset")),
                             size, item["format"].upper(),
                             escape(str(item.get("destination") or "Kit delivery"))))
-        light_surface = row.get("colourway") in {"light", "black"} or row.get("appearance") in {"light", "tinted", "light-unplated"}
-        surface_class = "light-well" if light_surface else "dark-well"
-        surface_label = "Light surface" if light_surface else "Dark surface"
+        surface = presentation["surface"]
+        surface_class = "%s-well" % surface
+        surface_label = "%s resource" % _humanize(surface) if surface == "nonvisual" else "%s surface" % _humanize(surface)
+        contrast_attribute = (' data-preview-contrast="%.2f"' % presentation["contrast"]
+                              if presentation["contrast"] is not None else "")
         raster_widths = [int(item["width"]) for item in group["deliveries"] if item.get("format") == "png" and item.get("width")]
         sizing = ("Smallest delivered raster: %d px. Do not synthesize missing sizes." % min(raster_widths)
                   if raster_widths else "Use the declared container or vector at its listed destination.")
         handling = ("Follow the clear-space and reduction threshold above."
                     if row["family"] == "logo" else "Preserve declared plate and transparency behavior.")
-        cards.append('<article class="asset-card" id="%s"><h3>%s</h3><div class="preview %s"><span class="surface-label">%s</span>%s</div>'
+        cards.append('<article class="asset-card" id="%s"><h3>%s</h3><div class="preview %s" data-preview-kind="%s" data-preview-surface="%s" data-preview-basis="%s"%s><span class="surface-label">%s</span>%s</div>'
                      '<p class="dim">Use the declared %s form on compatible backgrounds. %s %s</p>'
                      '<ul class="deliveries">%s</ul></article>' %
-                     (group["id"], escape(label), surface_class, surface_label, _preview(kit, row, "%s %s" % (title, label)),
+                     (group["id"], escape(label), surface_class, presentation["kind"], surface,
+                      presentation["basis"], contrast_attribute, surface_label, _preview(kit, row, "%s %s" % (title, label)),
                       escape(str(row.get("role") or row.get("kind") or "identity")), sizing, handling, "".join(entries)))
     skipped = [suite["id"] for suite in suites if suite.get("status") == "skipped"]
     note = ("<p class=\"notice\">Unavailable at this capability tier: %s.</p>" % escape(", ".join(skipped))) if skipped else ""
@@ -418,10 +521,12 @@ section { scroll-margin-top:24px; }
 .color-value code,.deliveries a,.deliveries span { overflow-wrap:anywhere; }
 .copy { min-width:44px; min-height:44px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--secondary); color:var(--foreground); cursor:pointer; }
 .preview { display:grid; place-items:center; min-height:180px; border:1px solid var(--border); border-radius:var(--radius-md); padding:20px; overflow:hidden; }
-.preview img { max-height:180px; }
-.dark-well { background:#090909; }
-.light-well { background:#F5F5F5; color:#111111; }
+.preview img { max-width:100%%; max-height:180px; object-fit:contain; transform:none; }
+.dark-well { background:#090909; color:#F5F5F5; }
+.light-well,.nonvisual-well { background:#F5F5F5; color:#111111; }
 .surface-label { align-self:start; justify-self:start; font:var(--font-label-weight) .72rem var(--font-body); letter-spacing:.04em; text-transform:uppercase; }
+.nonvisual-resource { display:grid; gap:4px; place-items:center; max-width:100%%; text-align:center; overflow-wrap:anywhere; }
+.nonvisual-resource span { font:.75rem var(--font-body); }
 .deliveries { list-style:none; padding:0; margin:12px 0 0; }
 .deliveries li { display:grid; gap:2px; border-top:1px solid var(--border); padding:9px 0; }
 .deliveries span { color:var(--muted-foreground); font: .75rem var(--font-body); }

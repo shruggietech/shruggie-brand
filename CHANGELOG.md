@@ -42,6 +42,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Restored I Heart PR Tours integration preview visibility for issue #202 with measured light/dark well selection, accessible well copy, explicit metadata and container treatments, and portable desktop, narrow, zoom, and direct-file regression coverage.
 - Normalized the homepage portfolio for issues #199 and #200 with dark card surfaces, exact white card copy, accessible explicit actions, reliable lower spacing, and one concise generic third-party notice.
 - Corrected I Heart PR Tours CTA guidance for issues #201 and #203: primary controls now use the governed `#C5342C` fill, secondary controls use the matching red-outline treatment with surface-aware AA text, the PDF documents both action roles and states, and shared reader-facing guide prose uses American English.
 - Accepted GitHub Pages' ZIP MIME alias in the shared local and production payload verifier, with fail-closed regressions for malformed bodies and unsupported media types, for issue #198.
