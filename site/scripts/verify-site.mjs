@@ -94,6 +94,44 @@ function geometryProblems(reference, sample, fields = ['left', 'right', 'width',
 }
 check(geometryProblems({ left: 10, right: 110, width: 100, center: 60 }, { left: 10.5, right: 110.5, width: 100, center: 60.5 }).length === 0, 'geometry helper rejects raster-rounding tolerance');
 check(geometryProblems({ left: 10, right: 110, width: 100, center: 60 }, { left: 13, right: 113, width: 100, center: 63 }).length === 3, 'geometry helper accepts visible horizontal drift');
+function cssColorChannels(value) {
+  const rgb = /^rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)/.exec(value);
+  if (rgb) return rgb.slice(1, 4).map(Number);
+  const srgb = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/.exec(value);
+  if (srgb) return srgb.slice(1, 4).map((channel) => Number(channel) * 255);
+  const lab = /^lab\(\s*([\d.]+)(?:%|)\s+(-?[\d.]+)\s+(-?[\d.]+)/.exec(value);
+  if (lab) {
+    const [lightness, a, b] = lab.slice(1, 4).map(Number);
+    const f1 = (lightness + 16) / 116;
+    const inverse = (component) => component ** 3 > 216 / 24389 ? component ** 3 : (116 * component - 16) / (24389 / 27);
+    const x50 = 0.96422 * inverse(f1 + a / 500); const y50 = inverse(f1); const z50 = 0.82521 * inverse(f1 - b / 200);
+    const x = 0.9555766 * x50 - 0.0230393 * y50 + 0.0631636 * z50;
+    const y = -0.0282895 * x50 + 1.0099416 * y50 + 0.0210077 * z50;
+    const z = 0.0122982 * x50 - 0.020483 * y50 + 1.3299098 * z50;
+    const encode = (channel) => 255 * Math.max(0, Math.min(1, channel <= 0.0031308 ? 12.92 * channel : 1.055 * channel ** (1 / 2.4) - 0.055));
+    return [encode(3.2404542 * x - 1.5371385 * y - 0.4985314 * z), encode(-0.969266 * x + 1.8760108 * y + 0.041556 * z), encode(0.0556434 * x - 0.2040259 * y + 1.0572252 * z)];
+  }
+  throw new Error(`unsupported computed color: ${value}`);
+}
+function isWhiteColor(value) {
+  return cssColorChannels(value).every((channel) => channel >= 254.5);
+}
+function contrastRatio(left, right) {
+  const luminance = (value) => {
+    const channels = cssColorChannels(value).map((channel) => channel / 255).map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+    return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+  };
+  const values = [luminance(left), luminance(right)].sort((a, b) => b - a);
+  return (values[0] + 0.05) / (values[1] + 0.05);
+}
+function portfolioGeometryProblems(reference, sample) {
+  return geometryProblems(reference, sample, ['x', 'y', 'width', 'height'], 0.5);
+}
+check(Math.abs(contrastRatio('rgb(255, 255, 255)', 'rgb(5, 7, 8)') - 20.19) < 0.1, 'contrast helper rejects the portfolio white/dark pair');
+check(isWhiteColor('lab(100 0 0)'), 'white-color helper rejects optimized CSS white');
+check(contrastRatio('rgb(255, 255, 255)', 'rgb(197, 52, 44)') >= 4.5, 'contrast helper rejects the approved I Heart PR Tours red/white pair');
+check(portfolioGeometryProblems({ x: 10, y: 20, width: 100, height: 200 }, { x: 10.5, y: 20.5, width: 100.5, height: 200.5 }).length === 0, 'portfolio geometry helper rejects allowed rounding tolerance');
+check(portfolioGeometryProblems({ x: 10, y: 20, width: 100, height: 200 }, { x: 11, y: 20, width: 102, height: 200 }).length === 2, 'portfolio geometry helper accepts visible position or size drift');
 function paeth(left, above, upperLeft) {
   const estimate = left + above - upperLeft;
   const dl = Math.abs(estimate - left); const da = Math.abs(estimate - above); const du = Math.abs(estimate - upperLeft);
@@ -331,62 +369,132 @@ try {
   check(await page.locator('.brand-card').count() === 8, 'homepage must render exactly eight desktop brand cards');
   check(await page.locator('.brand-accordion').count() === 8, 'homepage must render exactly eight mobile brand disclosures');
   check(await page.locator('.brand-card a').count() === 16, 'desktop cards must expose exactly two actions per brand');
+  let darkPortfolioPresentation;
+  for (const theme of ['dark', 'light']) {
+    await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
+    await page.reload({ waitUntil: 'networkidle' });
+    check(await page.locator('html').evaluate((element) => element.classList.contains('dark')) === (theme === 'dark'), `homepage did not apply the requested ${theme} theme`);
+    const presentation = await page.locator('.brand-card, .brand-accordion').evaluateAll((elements) => elements.map((element) => {
+      const style = getComputedStyle(element); const title = element.querySelector('h3, .mobile-brand-title'); const description = element.querySelector('.brand-card-description, .brand-accordion-panel > p'); const action = element.querySelector('.brand-actions a');
+      return { surface: element.getAttribute('data-showcase-surface'), backgroundColor: style.backgroundColor, backgroundImage: style.backgroundImage, color: style.color, titleColor: title ? getComputedStyle(title).color : null, descriptionColor: description ? getComputedStyle(description).color : null, actionColor: action ? getComputedStyle(action).color : null };
+    }));
+    check(presentation.length === 16 && presentation.every((sample) => [sample.color, sample.titleColor, sample.descriptionColor, sample.actionColor].every(isWhiteColor)), `homepage ${theme} portfolio copy is not uniformly white (${JSON.stringify(presentation)})`);
+    if (theme === 'dark') darkPortfolioPresentation = presentation;
+    else check(JSON.stringify(presentation) === JSON.stringify(darkPortfolioPresentation), `portfolio surfaces or foregrounds change with the site theme (${JSON.stringify({ dark: darkPortfolioPresentation, light: presentation })})`);
+  }
   check(await page.locator('.portfolio-vendor-notice').count() === 1, 'portfolio must render exactly one shared third-party notice');
   check(await page.locator('.vendor-boundary').count() === 0, 'portfolio must not repeat card-level vendor notices');
-  const applicableBrands = new Set((await page.locator('.brand-card .vendor-marker').evaluateAll((markers) => markers.map((marker) => marker.closest('.brand-card')?.querySelector('h3')?.textContent?.replace(' Independent third-party project', '').replace('*', '').trim()))).filter(Boolean));
+  const markerDetails = await page.locator('.brand-card .vendor-marker').evaluateAll((markers) => markers.map((marker) => ({ brand: marker.closest('.brand-card')?.querySelector('h3')?.textContent?.replace(' Independent third-party project', '').replace('*', '').trim(), describedBy: marker.getAttribute('aria-describedby'), equivalent: marker.querySelector('.sr-only')?.textContent?.trim() })));
+  const applicableBrands = new Set(markerDetails.map((marker) => marker.brand).filter(Boolean));
   check(JSON.stringify([...applicableBrands].sort()) === JSON.stringify(brands.filter((brand) => brand.vendorBoundary).map((brand) => brand.title).sort()), `portfolio vendor markers differ from generated applicability (${JSON.stringify([...applicableBrands])})`);
-  const sharedNoticeText = await page.locator('.portfolio-vendor-notice').innerText();
-  for (const notice of [...new Set(brands.flatMap((brand) => brand.vendorBoundary ? [brand.vendorBoundary] : []))]) check(sharedNoticeText.includes(notice), 'shared third-party notice does not preserve generated wording');
+  check(markerDetails.every((marker) => marker.describedBy === 'portfolio-third-party-notice' && marker.equivalent === 'Independent third-party project'), `portfolio markers lack the shared association or accessible equivalent (${JSON.stringify(markerDetails)})`);
+  const sharedNotice = page.locator('.portfolio-vendor-notice');
+  const sharedNoticeText = (await sharedNotice.innerText()).trim();
+  check(await sharedNotice.locator(':scope > p').count() === 1, 'portfolio third-party notice must contain exactly one paragraph');
+  check(sharedNoticeText === '* Third-party projects are independently owned and operated.', `portfolio third-party notice differs from the exact generic copy (${sharedNoticeText})`);
+  for (const notice of [...new Set(brands.flatMap((brand) => brand.vendorBoundary ? [brand.vendorBoundary] : []))]) check(!sharedNoticeText.includes(notice), 'homepage notice still contains detailed brand-specific vendor-boundary wording');
   const measurePortfolioIcons = async (selector, label) => {
+    const tolerance = 1.1;
     for (const card of await page.locator(selector).all()) {
       const title = await card.locator(selector === '.brand-card' ? 'h3' : '.mobile-brand-title').textContent();
-      const wrapper = await card.locator('.brand-icon').boundingBox();
-      const image = await card.locator('.brand-icon img').boundingBox();
+      const { wrapper, image } = await card.evaluate((element) => {
+        const bounds = (node) => { if (!node) return null; const rect = node.getBoundingClientRect(); return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }; };
+        return { wrapper: bounds(element.querySelector('.brand-icon')), image: bounds(element.querySelector('.brand-icon img')) };
+      });
       check(Boolean(wrapper && image), `${title} ${label} icon lacks measurable bounds`);
       if (!wrapper || !image) continue;
-      check(Math.abs(wrapper.width - wrapper.height) <= 0.5, `${title} ${label} icon wrapper is not square (${wrapper.width}x${wrapper.height})`);
-      check(Math.abs(image.width - image.height) <= 0.5, `${title} ${label} icon image box is not square (${image.width}x${image.height})`);
-      check(image.x >= wrapper.x && image.y >= wrapper.y && image.x + image.width <= wrapper.x + wrapper.width + 0.5 && image.y + image.height <= wrapper.y + wrapper.height + 0.5, `${title} ${label} icon escapes its wrapper`);
-      check(Math.abs((image.x - wrapper.x) - (wrapper.x + wrapper.width - image.x - image.width)) <= 0.5, `${title} ${label} icon has asymmetric horizontal margins`);
-      check(Math.abs((image.y - wrapper.y) - (wrapper.y + wrapper.height - image.y - image.height)) <= 0.5, `${title} ${label} icon has asymmetric vertical margins`);
+      const measurement = JSON.stringify({ wrapper, image });
+      check(Math.abs(wrapper.width - wrapper.height) <= tolerance, `${title} ${label} icon wrapper is not square (${measurement})`);
+      check(Math.abs(image.width - image.height) <= tolerance, `${title} ${label} icon image box is not square (${measurement})`);
+      check(image.x >= wrapper.x - tolerance && image.y >= wrapper.y - tolerance && image.x + image.width <= wrapper.x + wrapper.width + tolerance && image.y + image.height <= wrapper.y + wrapper.height + tolerance, `${title} ${label} icon escapes its wrapper (${measurement})`);
+      check(Math.abs((image.x - wrapper.x) - (wrapper.x + wrapper.width - image.x - image.width)) <= tolerance, `${title} ${label} icon has asymmetric horizontal margins (${measurement})`);
+      check(Math.abs((image.y - wrapper.y) - (wrapper.y + wrapper.height - image.y - image.height)) <= tolerance, `${title} ${label} icon has asymmetric vertical margins (${measurement})`);
     }
   };
   await measurePortfolioIcons('.brand-card', 'desktop');
   for (const [index, card] of (await page.locator('.brand-card').all()).entries()) {
     check(await card.evaluate((element) => element.tagName === 'ARTICLE' && !element.hasAttribute('href')), `${brands[index].slug} desktop card is an implicit navigation target`);
-    const before = await card.boundingBox();
+    check(await card.getAttribute('tabindex') === '0' && await card.getAttribute('aria-label') === `${brands[index].title} portfolio card. Focus to reveal actions.`, `${brands[index].slug} desktop card lacks its labeled keyboard reveal entry`);
+    const measureCardLayout = async () => card.evaluate((element) => ({ x: element.offsetLeft, y: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight }));
+    const before = await measureCardLayout();
+    const resting = await card.evaluate((element) => {
+      const cardStyle = getComputedStyle(element); const titleStyle = getComputedStyle(element.querySelector('h3')); const description = element.querySelector('.brand-card-description'); const descriptionStyle = getComputedStyle(description); const actions = element.querySelector('.brand-actions'); const actionsStyle = getComputedStyle(actions); const cardBox = element.getBoundingClientRect(); const descriptionBox = description.getBoundingClientRect();
+      return { cardColor: cardStyle.color, titleColor: titleStyle.color, descriptionColor: descriptionStyle.color, descriptionOpacity: descriptionStyle.opacity, actionsOpacity: actionsStyle.opacity, actionsVisibility: actionsStyle.visibility, actionsPointerEvents: actionsStyle.pointerEvents, descriptionBottomClearance: cardBox.bottom - descriptionBox.bottom };
+    });
+    check(isWhiteColor(resting.cardColor) && isWhiteColor(resting.titleColor) && isWhiteColor(resting.descriptionColor), `${brands[index].slug} desktop copy is not uniformly white (${JSON.stringify(resting)})`);
+    check(resting.descriptionOpacity === '1' && resting.actionsOpacity === '0' && resting.actionsVisibility === 'hidden' && resting.actionsPointerEvents === 'none', `${brands[index].slug} resting action layer is visible or interactive (${JSON.stringify(resting)})`);
+    check(resting.descriptionBottomClearance >= 16, `${brands[index].slug} description has only ${resting.descriptionBottomClearance.toFixed(2)} CSS pixels of bottom clearance`);
     const links = await card.locator('.brand-actions a').evaluateAll((anchors) => anchors.map((anchor) => ({ label: anchor.textContent?.trim(), href: anchor.getAttribute('href'), download: anchor.getAttribute('download') })));
     check(JSON.stringify(links) === JSON.stringify([
       { label: 'Guidelines', href: brands[index].guidelinesPath, download: null },
       { label: 'Download Kit', href: brands[index].kitArchive, download: brands[index].kitArchiveFilename },
     ]), `${brands[index].slug} desktop actions differ from generated destinations (${JSON.stringify(links)})`);
+    const firstAction = card.locator('.brand-actions a').first();
+    await firstAction.evaluate((element) => element.focus());
+    check(!await firstAction.evaluate((element) => document.activeElement === element), `${brands[index].slug} hidden action accepts focus before reveal`);
+    await card.focus();
+    await page.waitForTimeout(20);
+    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).visibility) === 'visible', `${brands[index].slug} actions do not reveal when the card receives keyboard focus`);
+    const keyboardRevealed = await measureCardLayout();
+    await page.keyboard.press('Tab');
+    check(await firstAction.evaluate((element) => document.activeElement === element), `${brands[index].slug} first action is not next after the keyboard reveal entry`);
+    const focusStyle = await firstAction.evaluate((element) => { const style = getComputedStyle(element); return { color: style.color, background: style.backgroundColor, outline: style.outlineColor, outlineStyle: style.outlineStyle, outlineWidth: Number.parseFloat(style.outlineWidth), shadow: style.boxShadow, width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }; });
+    check(isWhiteColor(focusStyle.color) && contrastRatio(focusStyle.color, focusStyle.background) >= 4.5, `${brands[index].slug} focused action fails 4.5:1 white-text contrast (${JSON.stringify(focusStyle)})`);
+    check(focusStyle.outlineStyle !== 'none' && focusStyle.outlineWidth >= 2 && contrastRatio(focusStyle.outline, focusStyle.background) >= 3 && focusStyle.shadow !== 'none', `${brands[index].slug} focused action lacks its 3:1 dual focus indicator (${JSON.stringify(focusStyle)})`);
+    check(focusStyle.width >= 43.5 && focusStyle.height >= 43.5, `${brands[index].slug} focused action target differs from its 44-by-44 CSS-pixel minimum beyond rendering tolerance (${JSON.stringify(focusStyle)})`);
+    check(Boolean(before && keyboardRevealed && portfolioGeometryProblems(before, keyboardRevealed).length === 0), `${brands[index].slug} card geometry changes during keyboard reveal (${JSON.stringify({ before, keyboardRevealed })})`);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(20);
+    const dismissed = await card.locator('.brand-actions').evaluate((element) => ({ opacity: getComputedStyle(element).opacity, visibility: getComputedStyle(element).visibility }));
+    check(dismissed.visibility === 'hidden' && await card.evaluate((element) => document.activeElement === element), `${brands[index].slug} Escape does not hide actions and return focus to the card (${JSON.stringify(dismissed)})`);
+    await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(20);
     await card.hover();
     await page.waitForTimeout(200);
-    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity) === '1', `${brands[index].slug} desktop actions do not remain revealed on hover`);
-    const hovered = await card.boundingBox();
-    await card.locator('.brand-actions a').first().focus();
-    const focused = await card.boundingBox();
-    check(Boolean(before && hovered && focused && Math.abs(before.width - hovered.width) <= .5 && Math.abs(before.height - hovered.height) <= .5 && Math.abs(before.width - focused.width) <= .5 && Math.abs(before.height - focused.height) <= .5), `${brands[index].slug} card geometry changes across interaction states`);
+    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity === '1' && getComputedStyle(element).visibility === 'visible'), `${brands[index].slug} desktop actions do not remain revealed on hover`);
+    const hovered = await measureCardLayout();
+    const actionClearance = await card.evaluate((element) => { const cardBox = element.getBoundingClientRect(); const actionsBox = element.querySelector('.brand-actions').getBoundingClientRect(); return cardBox.bottom - actionsBox.bottom; });
+    check(actionClearance >= 16, `${brands[index].slug} actions have only ${actionClearance.toFixed(2)} CSS pixels of bottom clearance`);
+    await firstAction.focus();
+    const focused = await measureCardLayout();
+    check(Boolean(before && hovered && focused && portfolioGeometryProblems(before, hovered).length === 0 && portfolioGeometryProblems(before, focused).length === 0), `${brands[index].slug} card geometry changes across interaction states`);
     await page.keyboard.press('Escape');
     await page.waitForTimeout(200);
-    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity) === '0' && await card.locator('.brand-card-description').evaluate((element) => getComputedStyle(element).opacity) === '1', `${brands[index].slug} action panel is not dismissible with Escape`);
+    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity === '0' && getComputedStyle(element).visibility === 'hidden') && await card.locator('.brand-card-description').evaluate((element) => getComputedStyle(element).opacity) === '1', `${brands[index].slug} action panel is not dismissible with Escape`);
   }
   const glitchpadCard = page.locator('.brand-card', { hasText: 'Glitchpad' });
   const glitchpadCardStyle = await glitchpadCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-showcase-surface'), shadow: getComputedStyle(element.querySelector('.brand-icon')).boxShadow }));
-  check(glitchpadCardStyle.surface === 'governed' && glitchpadCardStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadCardStyle.backgroundImage === 'none', `Glitchpad card does not use its governed charcoal surface (${JSON.stringify(glitchpadCardStyle)})`);
-  check(glitchpadCardStyle.foreground === 'rgb(255, 255, 255)' && glitchpadCardStyle.bodyForeground === 'rgb(255, 255, 255)', `Glitchpad card does not use its generated contrast foreground (${JSON.stringify(glitchpadCardStyle)})`);
+  check(glitchpadCardStyle.surface === 'governed-dark' && glitchpadCardStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadCardStyle.backgroundImage === 'none', `Glitchpad card does not retain its governed dark surface (${JSON.stringify(glitchpadCardStyle)})`);
+  check(isWhiteColor(glitchpadCardStyle.foreground) && isWhiteColor(glitchpadCardStyle.bodyForeground), `Glitchpad card does not use its generated contrast foreground (${JSON.stringify(glitchpadCardStyle)})`);
   check(glitchpadCardStyle.shadow === 'none', `Glitchpad card retains an accent showcase glow (${glitchpadCardStyle.shadow})`);
   const ihprtCard = page.locator('.brand-card', { hasText: 'I Heart PR Tours' });
-  const ihprtCardStyle = await ihprtCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-showcase-surface'), iconSource: element.querySelector('.brand-icon img')?.getAttribute('src') }));
-  check(ihprtCardStyle.surface === 'governed' && ihprtCardStyle.backgroundColor === 'rgb(255, 255, 255)', `I Heart PR Tours card does not use its governed white surface (${JSON.stringify(ihprtCardStyle)})`);
-  check(ihprtCardStyle.foreground === 'rgb(0, 0, 0)' && ihprtCardStyle.bodyForeground === 'rgb(0, 0, 0)', `I Heart PR Tours card does not use its generated dark foreground (${JSON.stringify(ihprtCardStyle)})`);
+  const ihprtCardStyle = await ihprtCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-showcase-surface'), iconSource: element.querySelector('.brand-icon img')?.getAttribute('src') }));
+  check(ihprtCardStyle.surface === null && ihprtCardStyle.backgroundColor !== 'rgb(255, 255, 255)' && ihprtCardStyle.backgroundImage !== 'none', `I Heart PR Tours card does not use the shared dark fallback (${JSON.stringify(ihprtCardStyle)})`);
+  check(isWhiteColor(ihprtCardStyle.foreground) && isWhiteColor(ihprtCardStyle.bodyForeground), `I Heart PR Tours card copy is not white (${JSON.stringify(ihprtCardStyle)})`);
   check(ihprtCardStyle.iconSource?.endsWith('/i-heart-pr-tours-mark-color.svg'), `I Heart PR Tours card does not use the colored heart icon (${JSON.stringify(ihprtCardStyle)})`);
   for (const card of await page.locator('.brand-card').all()) {
-    if ((await card.locator('h3').textContent()) === 'Glitchpad') continue;
     const style = await card.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
-    if (style.surface === 'governed') check(style.image === 'none', `${await card.locator('h3').textContent()} governed showcase added an unapproved background image (${JSON.stringify(style)})`);
+    if (style.surface === 'governed-dark') check(style.image === 'none', `${await card.locator('h3').textContent()} governed dark showcase added an unapproved background image (${JSON.stringify(style)})`);
     else check(style.surface === null && style.image !== 'none', `${await card.locator('h3').textContent()} lost its existing showcase fallback (${JSON.stringify(style)})`);
   }
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const reducedCard = page.locator('.brand-card').first();
+  await reducedCard.hover();
+  const reducedPortfolioMotion = await reducedCard.evaluate((element) => ({ cardDuration: getComputedStyle(element).transitionDuration, cardTransform: getComputedStyle(element).transform, descriptionDuration: getComputedStyle(element.querySelector('.brand-card-description')).transitionDuration, actionsDuration: getComputedStyle(element.querySelector('.brand-actions')).transitionDuration, linkDuration: getComputedStyle(element.querySelector('.brand-actions a')).transitionDuration, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }));
+  check(reducedPortfolioMotion.reduced && [reducedPortfolioMotion.cardDuration, reducedPortfolioMotion.descriptionDuration, reducedPortfolioMotion.actionsDuration, reducedPortfolioMotion.linkDuration].every((value) => Number.parseFloat(value) <= 0.001) && reducedPortfolioMotion.cardTransform === 'none', `portfolio reduced-motion contract failed (${JSON.stringify(reducedPortfolioMotion)})`);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.setViewportSize({ width: 900, height: 900 });
+  await page.goto(base + '/');
+  for (const card of await page.locator('.brand-card').all()) check(await card.evaluate((element) => element.scrollHeight <= element.clientHeight + 1), `${await card.locator('h3').textContent()} clips at the representative narrow desktop width`);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(base + '/');
+  await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+  for (const card of await page.locator('.brand-card').all()) {
+    const clearance = await card.evaluate((element) => { const cardBox = element.getBoundingClientRect(); const descriptionBox = element.querySelector('.brand-card-description').getBoundingClientRect(); return { bottom: cardBox.bottom - descriptionBox.bottom, clipped: element.scrollHeight > element.clientHeight + 1 }; });
+    check(clearance.bottom >= 16 && !clearance.clipped, `${await card.locator('h3').textContent()} loses clearance or clips at 200 percent zoom (${JSON.stringify(clearance)})`);
+  }
+  await page.evaluate(() => { document.documentElement.style.zoom = ''; });
   const homeText = (await page.locator('body').innerText()).toLowerCase();
   for (const rejected of ['a shruggietech project', 'skill 1.', 'canon', 'example brand', 'read the system']) check(!homeText.includes(rejected), `homepage contains retired wording: ${rejected}`);
   const visibleHeaderLinks = async () => page.locator('#nd-nav a').evaluateAll((links) => links.filter((link) => { const rect = link.getBoundingClientRect(); return ['Documentation', 'Company', 'Download Skill', 'View on GitHub'].includes(link.textContent?.trim()) && rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth; }).map((link) => ({ text: link.textContent?.trim(), href: link.getAttribute('href') })));
@@ -398,6 +506,10 @@ try {
   for (const [index, disclosure] of (await page.locator('.brand-accordion').all()).entries()) {
     check(!(await disclosure.evaluate((element) => element.open)), `${brands[index].slug} mobile disclosure does not begin collapsed`);
     check(!(await disclosure.locator('.brand-actions a').first().isVisible()), `${brands[index].slug} collapsed disclosure exposes hidden actions`);
+    const disclosureStyle = await disclosure.evaluate((element) => ({ title: getComputedStyle(element.querySelector('.mobile-brand-title')).color, color: getComputedStyle(element).color, background: getComputedStyle(element).backgroundColor, image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
+    check(isWhiteColor(disclosureStyle.title) && isWhiteColor(disclosureStyle.color) && !isWhiteColor(disclosureStyle.background), `${brands[index].slug} mobile disclosure is not dark with white copy (${JSON.stringify(disclosureStyle)})`);
+    if (disclosureStyle.surface === 'governed-dark') check(disclosureStyle.image === 'none', `${brands[index].slug} governed dark mobile disclosure has an unexpected gradient`);
+    else check(disclosureStyle.surface === null && disclosureStyle.image !== 'none', `${brands[index].slug} mobile disclosure lost the dark fallback gradient`);
     const summary = disclosure.locator('summary');
     const summaryBox = await summary.boundingBox();
     check(Boolean(summaryBox && summaryBox.width >= 44 && summaryBox.height >= 44), `${brands[index].slug} disclosure target is smaller than 44 by 44 CSS pixels`);
@@ -407,6 +519,9 @@ try {
   await page.keyboard.press('Enter');
   check(await firstDisclosure.evaluate((element) => element.open), 'keyboard activation does not expand a mobile disclosure');
   check(await firstDisclosure.locator('.brand-actions a').count() === 2 && await firstDisclosure.locator('.brand-actions a').first().isVisible(), 'expanded mobile disclosure lacks both visible actions');
+  const openDisclosure = await firstDisclosure.evaluate((element) => { const panel = element.querySelector('.brand-accordion-panel'); const description = panel.querySelector('p'); const actions = panel.querySelector('.brand-actions'); const lastAction = actions.querySelector('a:last-child'); const outer = element.getBoundingClientRect(); const actionBox = lastAction.getBoundingClientRect(); return { descriptionColor: getComputedStyle(description).color, actionColors: [...actions.querySelectorAll('a')].map((action) => getComputedStyle(action).color), bottomClearance: outer.bottom - actionBox.bottom }; });
+  check(isWhiteColor(openDisclosure.descriptionColor) && openDisclosure.actionColors.every(isWhiteColor), `expanded mobile disclosure copy is not uniformly white (${JSON.stringify(openDisclosure)})`);
+  check(openDisclosure.bottomClearance >= 16, `expanded mobile actions have only ${openDisclosure.bottomClearance.toFixed(2)} CSS pixels of bottom clearance`);
   await measurePortfolioIcons('.brand-accordion', 'mobile');
   await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
   await measurePortfolioIcons('.brand-accordion', '200-percent zoom');
