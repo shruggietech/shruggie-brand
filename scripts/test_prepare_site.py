@@ -124,6 +124,31 @@ class PrepareSiteTests(unittest.TestCase):
                 mock.patch.stopall()
                 prepare_site.PUBLIC = original_public
 
+    def test_specimen_publication_rejects_a_nonidentical_hosted_copy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "kit"
+            public = root / "public"
+            source_specimens = source / "specimens"
+            source_specimens.mkdir(parents=True)
+            (source_specimens / "alpha-type-specimen.svg").write_bytes(b"<svg>canonical</svg>\n")
+            original_replace = prepare_site.replace_tree
+            original_public = prepare_site.PUBLIC
+            prepare_site.PUBLIC = public
+            public.mkdir()
+
+            def corrupting_replace_tree(source_path, destination_path):
+                original_replace(source_path, destination_path)
+                if Path(source_path).name == "specimens":
+                    (Path(destination_path) / "alpha-type-specimen.svg").write_bytes(b"<svg>drift</svg>\n")
+
+            try:
+                with mock.patch.object(prepare_site, "replace_tree", side_effect=corrupting_replace_tree):
+                    with self.assertRaisesRegex(ValueError, "hosted specimen differs"):
+                        prepare_site.copy_verified_specimens(source_specimens, public / "specimens")
+            finally:
+                prepare_site.PUBLIC = original_public
+
     def test_authoritative_canon_is_not_derived_from_brand_metadata(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

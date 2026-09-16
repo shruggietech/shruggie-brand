@@ -17,7 +17,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
-from brand_contract import _image_dimensions, affiliation, application_icon_profile, logo_source_contract, sha256_file
+from brand_contract import _image_dimensions, affiliation, application_icon_profile, logo_source_contract, sha256_file, specimen_mark_paths
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 
@@ -322,6 +322,135 @@ def c_svg(kit, rep):
         rep.bad("svg-viewbox", "; ".join(vb_hits[:6])) if vb_hits else \
             rep.ok("svg-viewbox", "%d vector SVGs resolved inside viewBox; %d lossless raster wrappers use generator-checked bounds"
                    % (len(svgs) - len(raster_wrappers), len(raster_wrappers)))
+
+
+SPECIMEN_MEDIA_TYPES = {
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+}
+
+
+def _specimen_data_payload(value):
+    match = re.fullmatch(r"data:([^;,]+);base64,([A-Za-z0-9+/]*={0,2})", value or "")
+    if not match:
+        raise ValueError("image reference is not a base64 data payload")
+    try:
+        return match.group(1), base64.b64decode(match.group(2), validate=True)
+    except Exception as error:
+        raise ValueError("image reference has malformed base64 data") from error
+
+
+def _specimen_visible_pixels(specimen, brand):
+    from PIL import Image
+    from gen_logo import raster
+    with tempfile.TemporaryDirectory(prefix="specimen-render-") as temporary:
+        rendered = os.path.join(temporary, "specimen.png")
+        raster(["-w", "1600", str(specimen), "-o", rendered])
+        with Image.open(rendered) as output:
+            rgba = output.convert("RGBA")
+            crop = rgba.crop((66, 66, 236, 236))
+            background = (brand.get("surfaces") or {}).get("base", "#000000")
+            if not re.fullmatch(r"#[0-9A-Fa-f]{6}", background or ""):
+                raise ValueError("specimen background is not a six-digit hex color")
+            expected = tuple(int(background[index:index + 2], 16) for index in (1, 3, 5))
+            pixels = crop.get_flattened_data() if hasattr(crop, "get_flattened_data") else crop.getdata()
+            visible = sum(
+                1 for red, green, blue, alpha in pixels
+                if alpha > 0 and max(abs(red - expected[0]), abs(green - expected[1]), abs(blue - expected[2])) > 2
+            )
+    return visible, crop.width * crop.height
+
+
+def c_specimen(kit, brand, rep):
+    specimens = sorted(Path(kit).joinpath("specimens").glob("*.svg"))
+    if not specimens:
+        rep.skip("specimen-portability", "no generated type specimen found")
+        return rep.skip("specimen-mark-visible", "no generated type specimen found")
+    if len(specimens) != 1:
+        rep.bad("specimen-portability", "expected one generated type specimen, found %d" % len(specimens))
+        return rep.bad("specimen-mark-visible", "mark region is ambiguous across multiple specimens")
+
+    specimen = specimens[0]
+    problems = []
+    try:
+        root = ET.parse(str(specimen)).getroot()
+    except Exception as error:
+        rep.bad("specimen-portability", "%s cannot be parsed: %s" % (specimen.name, error))
+        return rep.bad("specimen-mark-visible", "%s cannot be rendered because it is invalid" % specimen.name)
+
+    references = [
+        value for node in root.iter() for raw_name, value in node.attrib.items()
+        if raw_name.rsplit("}", 1)[-1] == "href"
+    ]
+    unresolved = [value for value in references if not (value.startswith("data:") or value.startswith("#"))]
+    if unresolved:
+        problems.append("unresolved dependency: %s" % ", ".join(unresolved[:4]))
+
+    mark_groups = [node for node in root.iter() if node.get("id") == "specimen-mark"]
+    if len(mark_groups) != 1:
+        problems.append("expected one stable specimen-mark group")
+        images = []
+    else:
+        images = [node for node in mark_groups[0].iter() if node.tag.rsplit("}", 1)[-1] == "image"]
+
+    expected_items = specimen_mark_paths(brand, kit)
+    expected_images = [item for item in expected_items if item.get("element", "path") == "image"]
+    if len(images) != len(expected_images):
+        problems.append("specimen mark has %d image components, expected %d" % (len(images), len(expected_images)))
+    for index, (image, item) in enumerate(zip(images, expected_images)):
+        href = image.get("href")
+        legacy = image.get("{http://www.w3.org/1999/xlink}href")
+        if href != legacy:
+            problems.append("image %d href and xlink:href differ" % index)
+        try:
+            media_type, payload = _specimen_data_payload(href)
+            source = (Path(kit).resolve() / Path(item["source"])).resolve()
+            try:
+                source.relative_to(Path(kit).resolve())
+            except ValueError as error:
+                raise ValueError("governed source escapes staged kit") from error
+            expected_media = SPECIMEN_MEDIA_TYPES.get(source.suffix.lower())
+            if expected_media is None or media_type != expected_media:
+                problems.append("image %d media type %s does not match %s" % (index, media_type, expected_media))
+            if not source.is_file() or payload != source.read_bytes():
+                problems.append("image %d embedded bytes differ from governed source %s" % (index, item["source"]))
+        except (KeyError, OSError, ValueError) as error:
+            problems.append("image %d %s" % (index, error))
+        for attribute in ("x", "y", "width", "height"):
+            try:
+                if abs(float(image.get(attribute)) - float(item.get(attribute, 0))) > 1e-5:
+                    problems.append("image %d %s differs from governed placement" % (index, attribute))
+            except (TypeError, ValueError):
+                problems.append("image %d has invalid %s placement" % (index, attribute))
+        if image.get("preserveAspectRatio") != "xMidYMid meet":
+            problems.append("image %d changes governed aspect-ratio containment" % index)
+
+    if problems:
+        rep.bad("specimen-portability", "; ".join(problems[:12]))
+    else:
+        rep.ok("specimen-portability", "%d references self-contained; %d image sources byte-exact" %
+               (len(references), len(expected_images)))
+
+    try:
+        capabilities = load_capabilities(kit)
+    except Exception as error:
+        return rep.bad("specimen-mark-visible", "capability probe unavailable: %s" % error)
+    if not capabilities.get("svg_raster"):
+        return rep.skip("specimen-mark-visible", capabilities.get("raster_reason", "SVG rasterizer unavailable"))
+    try:
+        visible, area = _specimen_visible_pixels(specimen, brand)
+    except Exception as error:
+        return rep.bad("specimen-mark-visible", "%s cannot render its mark region: %s" % (specimen.name, error))
+    minimum = max(1, int(area * 0.001))
+    if visible < minimum:
+        rep.bad("specimen-mark-visible", "%s mark region has no visible pixels (%d/%d, minimum %d)" %
+                (specimen.name, visible, area, minimum))
+    else:
+        rep.ok("specimen-mark-visible", "%s mark region has %d non-background pixels" %
+               (specimen.name, visible))
 
 def c_ico(kit, rep):
     source_root = os.path.normcase(os.path.join(os.path.abspath(kit), "assets", "source"))
@@ -1928,6 +2057,7 @@ def main():
     c_logo_provenance(kit, brand, rep)
     c_capability_artifacts(kit, rep)
     c_icon_suites(kit, brand, rep)
+    c_specimen(kit, brand, rep)
     c_svg(kit, rep)
     c_ico(kit, rep)
     c_pdf(kit, rep)

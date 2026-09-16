@@ -103,6 +103,23 @@ def replace_tree(source: Path, destination: Path) -> None:
     shutil.copytree(source, destination)
 
 
+def copy_verified_specimens(source: Path, destination: Path) -> str:
+    """Copy the verified specimen tree and prove the hosted bytes are identical."""
+    specimens = sorted(path for path in source.rglob("*") if path.is_file())
+    svg_specimens = [path for path in specimens if path.suffix.lower() == ".svg"]
+    if len(svg_specimens) != 1:
+        raise ValueError(f"expected one verified SVG specimen, found {len(svg_specimens)}")
+    replace_tree(source, destination)
+    source_inventory = {path.relative_to(source).as_posix(): path.read_bytes() for path in specimens}
+    hosted_inventory = {
+        path.relative_to(destination).as_posix(): path.read_bytes()
+        for path in destination.rglob("*") if path.is_file()
+    }
+    if hosted_inventory != source_inventory:
+        raise ValueError("hosted specimen differs from the verified kit specimen")
+    return svg_specimens[0].name
+
+
 def load_brand(source: Path) -> dict:
     return json.loads((source / "brand.json").read_text(encoding="utf-8"))
 
@@ -574,8 +591,9 @@ def copy_kit(source: Path, brand: dict) -> dict:
     if not portable_guide.is_file() or not portal_payload_path.is_file():
         raise ValueError(f"{slug}: verified guideline portal output is missing")
     shutil.copy2(portable_guide, downloads / f"{slug}-portable-guidelines.html")
-    for name in ("logos", "favicons", "icons", "specimens"):
+    for name in ("logos", "favicons", "icons"):
         replace_tree(source / name, downloads / name)
+    specimen_name = copy_verified_specimens(source / "specimens", downloads / "specimens")
     handoff = source / "consumer-handoff.json"
     if handoff.is_file():
         shutil.copy2(handoff, downloads / handoff.name)
@@ -587,7 +605,6 @@ def copy_kit(source: Path, brand: dict) -> dict:
         root=ROOT,
         expected_canon=authoritative_canon(),
     )
-    specimen_name = next((source / "specimens").glob("*.svg")).name
     logo_root = f"/{slug}/downloads/files/logos/svg"
     aff = affiliation(brand)
     boundary = vendor_boundary(brand)

@@ -10,6 +10,7 @@ read from brand.json now and the file is named for the brand.
 Glyphs are outlined from the bundled TTFs, so the specimen never depends on a
 font being installed. That defect is item four on the fragcap 1.1.0 list.
 """
+import base64
 import json
 import sys
 from pathlib import Path
@@ -17,7 +18,35 @@ from pathlib import Path
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
-from brand_contract import font_face_path, typography_families
+from brand_contract import font_face_path, specimen_mark_paths, typography_families
+
+
+IMAGE_MEDIA_TYPES = {
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+}
+
+
+def embedded_image_uri(kit, relative):
+    """Return exact governed source bytes as a contained, media-typed data URI."""
+    if not isinstance(relative, str) or not relative or Path(relative).is_absolute():
+        raise ValueError("specimen image source must be a relative path inside the staged kit")
+    root = Path(kit).resolve()
+    source = (root / Path(relative)).resolve()
+    try:
+        source.relative_to(root)
+    except ValueError as error:
+        raise ValueError("specimen image source escapes staged kit: %s" % relative) from error
+    if not source.is_file():
+        raise ValueError("specimen image source is missing: %s" % relative)
+    media_type = IMAGE_MEDIA_TYPES.get(source.suffix.lower())
+    if media_type is None:
+        raise ValueError("specimen image source has unsupported media type: %s" % relative)
+    payload = base64.b64encode(source.read_bytes()).decode("ascii")
+    return "data:%s;base64,%s" % (media_type, payload)
 
 def outlined_text(text, font_path, size, x, baseline, fill):
     font = TTFont(font_path)
@@ -44,9 +73,9 @@ def clip(text, n):
 
 
 def mark(brand, kit, x, y, height):
-    """The reduced mark, scaled into the specimen header."""
+    """The governed specimen lockup, scaled into the specimen header."""
     lg = brand.get("logo") or {}
-    paths = (lg.get("paths") or {}).get("full") or (lg.get("paths") or {}).get("reduced") or []
+    paths = specimen_mark_paths(brand, kit)
     if not paths:
         return ""
     grid = float(lg.get("grid", 1000))
@@ -57,7 +86,7 @@ def mark(brand, kit, x, y, height):
     for item in paths:
         colour = roles.get(item.get("role", "accent"), acc)
         if item.get("element", "path") == "image":
-            source = "../" + item["source"].replace("\\", "/")
+            source = embedded_image_uri(kit, item["source"])
             elements.append(
                 '<image x="%g" y="%g" width="%g" height="%g" '
                 'preserveAspectRatio="xMidYMid meet" href="%s" xlink:href="%s"/>' % (
@@ -82,13 +111,14 @@ def mark(brand, kit, x, y, height):
         else:
             elements.append('<path d="%s"%s/>' % (item["d"], paint))
     inner = "".join(elements)
-    return '<g transform="translate(%g,%g) scale(%g)">%s</g>' % (x, y, s, inner)
+    return '<g id="specimen-mark" transform="translate(%g,%g) scale(%g)">%s</g>' % (x, y, s, inner)
 
 
 def main():
     spec = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path.cwd() / "brand.json"
     kit = spec.parent
-    B = json.load(open(spec, encoding="utf-8"))
+    with open(spec, encoding="utf-8") as handle:
+        B = json.load(handle)
     out = kit / "specimens"
     out.mkdir(parents=True, exist_ok=True)
 
