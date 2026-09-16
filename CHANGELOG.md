@@ -20,6 +20,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-15, made exact-byte base64 data URIs the governed transport for image-backed specimen marks, with contained source resolution, explicit media types, byte-identical verified-kit-to-site publication, and preference for an already approved supplied horizontal color lockup when declared.
 - On 2026-09-12, defined `application/zip` and GitHub Pages' `application/x-zip-compressed` as the exact accepted ZIP media types while retaining independent opening-signature and end-record validation.
 - On 2026-09-11, corrected S028's mistaken private-publication assumption: every production brand built with the skill is now required in the public website inventory, generated brand export directories are ignored generically, and I Heart PR Tours uses the complete governed website surface set with a white showcase card and colored heart icon.
 - On 2026-09-11, reused the hash-bound portable Gate 2 comparison during static-site preparation so equivalent cross-platform PNG encodings do not invalidate canonical Windows approval.
@@ -42,6 +43,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
+- Embedded the missing I Heart PR Tours logo in its generated type specimen for issue #204 and applied the owner's wider stacked-lockup correction, preserving authoritative artwork and proportions while adding unresolved-reference, decoded-byte, lockup-selection, rendered-pixel, direct-hosted, offline, and publication-copy regression gates.
 - Normalized the homepage portfolio for issues #199 and #200 with dark card surfaces, exact white card copy, accessible explicit actions, reliable lower spacing, and one concise generic third-party notice.
 - Corrected I Heart PR Tours CTA guidance for issues #201 and #203: primary controls now use the governed `#C5342C` fill, secondary controls use the matching red-outline treatment with surface-aware AA text, the PDF documents both action roles and states, and shared reader-facing guide prose uses American English.
 - Accepted GitHub Pages' ZIP MIME alias in the shared local and production payload verifier, with fail-closed regressions for malformed bodies and unsupported media types, for issue #198.

@@ -27,6 +27,7 @@ import gen_guide_pdf
 import gen_guidelines
 import gen_logo
 import gen_nextjs
+import build_specimen
 import build_kit
 import enrich_brand
 import probe
@@ -45,6 +46,141 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def image_specimen_fixture(self, destination):
+        """Create an isolated image-backed brand without production discovery."""
+        shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", destination)
+        shutil.copytree(ROOT / "assets" / "fonts", destination / "fonts")
+        source = destination / "assets" / "source" / "specimen-mark.svg"
+        source.write_bytes(
+            b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+            b'<rect x="10" y="15" width="80" height="70" fill="#C5342C"/></svg>\n'
+        )
+        brand_path = destination / "brand.json"
+        brand = json.loads(brand_path.read_text(encoding="utf-8"))
+        brand["slug"] = "specimen-image-fixture"
+        brand["title"] = "Specimen Image Fixture"
+        brand["logo"]["grid"] = 100
+        brand["logo"].pop("supplied_lockup_input_ids", None)
+        brand["logo"]["paths"]["full"] = [{
+            "element": "image", "role": "accent", "source": "assets/source/specimen-mark.svg",
+            "x": 0, "y": 0, "width": 100, "height": 100,
+        }]
+        brand["authoritative_inputs"] = [{
+            "id": "specimen-mark", "role": "mark", "path": "assets/source/specimen-mark.svg",
+            "format": "svg", "sha256": sha256_file(source), "color_profile": "embedded",
+            "usage_status": "approved", "license": "Synthetic regression input",
+            "approved_transformations": ["embed-unchanged", "resize"],
+        }]
+        write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+        return brand_path, source
+
+    def build_image_specimen(self, brand_path):
+        old_argv = sys.argv
+        try:
+            sys.argv = ["build_specimen.py", str(brand_path)]
+            build_specimen.main()
+        finally:
+            sys.argv = old_argv
+        brand = json.loads(brand_path.read_text(encoding="utf-8"))
+        return brand_path.parent / "specimens" / (brand["slug"] + "-type-specimen.svg")
+
+    def test_image_specimen_is_self_contained_source_exact_and_fail_closed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "specimen-image-fixture"
+            brand_path, source = self.image_specimen_fixture(kit)
+            specimen = self.build_image_specimen(brand_path)
+            root = verify.ET.parse(str(specimen)).getroot()
+            mark_group = next(node for node in root.iter() if node.get("id") == "specimen-mark")
+            image = next(node for node in mark_group.iter() if node.tag.rsplit("}", 1)[-1] == "image")
+            href = image.get("href")
+            legacy_href = image.get("{http://www.w3.org/1999/xlink}href")
+            self.assertEqual(href, legacy_href)
+            self.assertTrue(href.startswith("data:image/svg+xml;base64,"))
+            self.assertEqual(source.read_bytes(), base64.b64decode(href.split(",", 1)[1], validate=True))
+            self.assertEqual(("0", "0", "100", "100"), tuple(image.get(name) for name in ("x", "y", "width", "height")))
+
+            self.write_probe(kit)
+            report = verify.Report()
+            verify.c_specimen(str(kit), json.loads(brand_path.read_text(encoding="utf-8")), report)
+            self.assertFalse(report.problems, report.problems)
+
+            image.set("href", "../assets/source/specimen-mark.svg")
+            image.set("{http://www.w3.org/1999/xlink}href", "../assets/source/specimen-mark.svg")
+            verify.ET.ElementTree(root).write(str(specimen), encoding="unicode")
+            report = verify.Report()
+            verify.c_specimen(str(kit), json.loads(brand_path.read_text(encoding="utf-8")), report)
+            self.assertTrue(any("unresolved dependency" in problem for problem in report.problems), report.problems)
+
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["logo"]["paths"]["full"][0]["source"] = "../outside.svg"
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+            (kit.parent / "outside.svg").write_text("<svg xmlns=\"http://www.w3.org/2000/svg\"/>\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "escapes staged kit"):
+                self.build_image_specimen(brand_path)
+
+    def test_image_specimen_prefers_an_approved_supplied_horizontal_lockup(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "specimen-image-fixture"
+            brand_path, full_source = self.image_specimen_fixture(kit)
+            specimen_source = kit / "assets" / "source" / "specimen-wide.svg"
+            specimen_source.write_bytes(
+                b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 80">'
+                b'<rect x="5" y="5" width="150" height="70" fill="#C5342C"/></svg>\n'
+            )
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["authoritative_inputs"].append({
+                "id": "specimen-wide", "role": "lockup", "path": "assets/source/specimen-wide.svg",
+                "format": "svg", "sha256": sha256_file(specimen_source), "color_profile": "embedded",
+                "usage_status": "approved", "license": "Synthetic regression input",
+                "approved_transformations": ["embed-unchanged", "resize"],
+            })
+            brand["logo"]["supplied_lockup_input_ids"] = {
+                "horizontal": {"color": "specimen-wide"},
+            }
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+
+            specimen = self.build_image_specimen(brand_path)
+            root = verify.ET.parse(str(specimen)).getroot()
+            image = next(node for node in root.iter() if node.tag.rsplit("}", 1)[-1] == "image")
+            payload = base64.b64decode(image.get("href").split(",", 1)[1], validate=True)
+            self.assertEqual(specimen_source.read_bytes(), payload)
+            self.assertNotEqual(full_source.read_bytes(), payload)
+            self.assertEqual(("0", "25", "100", "50"), tuple(
+                image.get(name) for name in ("x", "y", "width", "height")
+            ))
+
+    def test_i_heart_pr_tours_specimen_uses_approved_wide_lockup(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "i-heart-pr-tours"
+            shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            specimen = self.build_image_specimen(kit / "brand.json")
+            root = verify.ET.parse(str(specimen)).getroot()
+            image = next(node for node in root.iter() if node.tag.rsplit("}", 1)[-1] == "image")
+            payload = base64.b64decode(image.get("href").split(",", 1)[1], validate=True)
+            source = kit / "assets" / "source" / "horizontal_darkbg.svg"
+            self.assertEqual(source.read_bytes(), payload)
+            self.assertEqual(("39", "95.625", "297", "183.75"), tuple(
+                image.get(name) for name in ("x", "y", "width", "height")
+            ))
+
+    def test_specimen_rendered_mark_gate_rejects_invisible_pixels(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "specimen-image-fixture"
+            brand_path, _source = self.image_specimen_fixture(kit)
+            self.build_image_specimen(brand_path)
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+
+            def render_blank(arguments):
+                output = Path(arguments[arguments.index("-o") + 1])
+                Image.new("RGBA", (1600, 1000), (8, 19, 29, 255)).save(output)
+
+            with mock.patch.object(verify, "load_capabilities", return_value={"svg_raster": True}), \
+                    mock.patch("gen_logo.raster", side_effect=render_blank):
+                report = verify.Report()
+                verify.c_specimen(str(kit), brand, report)
+            self.assertTrue(any("no visible pixels" in problem for problem in report.problems), report.problems)
+
     def test_continuity_contract_stops_cueson_source_and_governed_drift(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "cueson"

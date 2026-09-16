@@ -417,6 +417,45 @@ def logo_metrics(brand):
     return clear_space, canvas_width, canvas_height, artwork_width
 
 
+def specimen_mark_paths(brand, kit=None):
+    """Prefer an approved wide lockup for the specimen without changing identity paths."""
+    logo = brand.get("logo") or {}
+    logo_paths = logo.get("paths") or {}
+    fallback = logo_paths.get("full") or logo_paths.get("reduced") or []
+    supplied = logo.get("supplied_lockup_input_ids") or {}
+    horizontal = supplied.get("horizontal") if isinstance(supplied, dict) else None
+    input_id = horizontal.get("color") if isinstance(horizontal, dict) else None
+    if not input_id:
+        return fallback
+    _require(kit is not None, "specimen supplied lockup resolution requires the staged kit")
+    record = next((item for item in (brand.get("authoritative_inputs") or [])
+                   if item.get("id") == input_id), None)
+    _require(record is not None and record.get("role") == "lockup"
+             and record.get("usage_status") == "approved",
+             "specimen horizontal lockup must reference an approved authoritative input")
+    _require(record.get("format") in {"svg", "png"}
+             and "embed-unchanged" in (record.get("approved_transformations") or [])
+             and "resize" in (record.get("approved_transformations") or []),
+             "specimen horizontal lockup must approve exact embedding and resize")
+    source = contained_path(kit, record["path"])
+    width, height = _image_dimensions(source)
+    grid = float(logo.get("grid", 1000))
+    _require(grid > 0 and width > 0 and height > 0,
+             "specimen horizontal lockup requires positive grid and source dimensions")
+    scale = min(1.0, grid / float(width), grid / float(height))
+    target_width = float(width) * scale
+    target_height = float(height) * scale
+    return [{
+        "element": "image",
+        "role": "accent",
+        "source": record["path"],
+        "x": (grid - target_width) / 2.0,
+        "y": (grid - target_height) / 2.0,
+        "width": target_width,
+        "height": target_height,
+    }]
+
+
 def wordmark_role_colors(brand):
     """Resolve optional source-owned dark and light wordmark colors."""
     role_colors = ((brand.get("logo") or {}).get("role_colors") or {})

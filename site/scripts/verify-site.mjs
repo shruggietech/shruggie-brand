@@ -1,6 +1,7 @@
-import { createReadStream, existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { inflateSync } from 'node:zlib';
@@ -137,7 +138,7 @@ function paeth(left, above, upperLeft) {
   const dl = Math.abs(estimate - left); const da = Math.abs(estimate - above); const du = Math.abs(estimate - upperLeft);
   return dl <= da && dl <= du ? left : da <= du ? above : upperLeft;
 }
-function pngInfo(buffer) {
+function pngInfo(buffer, background = null) {
   if (!buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) throw new Error('invalid PNG signature');
   let offset = 8; let width = 0; let height = 0; let depth = 0; let colorType = 0; let srgb = false; const compressed = [];
   while (offset + 12 <= buffer.length) {
@@ -148,23 +149,24 @@ function pngInfo(buffer) {
     offset += 12 + length;
     if (kind === 'IEND') break;
   }
-  if (!width || !height || depth !== 8 || colorType !== 6) throw new Error(`unsupported PNG ${width}x${height} depth ${depth} color ${colorType}`);
-  const raw = inflateSync(Buffer.concat(compressed)); const stride = width * 4; let cursor = 0; let previous = Buffer.alloc(stride); let minAlpha = 255; let visible = 0; let artwork = 0; let chromatic = 0; const corners = [];
+  if (!width || !height || depth !== 8 || ![2, 6].includes(colorType)) throw new Error(`unsupported PNG ${width}x${height} depth ${depth} color ${colorType}`);
+  const channels = colorType === 6 ? 4 : 3;
+  const raw = inflateSync(Buffer.concat(compressed)); const stride = width * channels; let cursor = 0; let previous = Buffer.alloc(stride); let minAlpha = 255; let visible = 0; let artwork = 0; let chromatic = 0; let different = 0; const corners = [];
   for (let y = 0; y < height; y += 1) {
     const filter = raw[cursor]; const row = Buffer.from(raw.subarray(cursor + 1, cursor + 1 + stride)); cursor += stride + 1;
     for (let i = 0; i < stride; i += 1) {
-      const left = i >= 4 ? row[i - 4] : 0; const above = previous[i]; const upperLeft = i >= 4 ? previous[i - 4] : 0;
+      const left = i >= channels ? row[i - channels] : 0; const above = previous[i]; const upperLeft = i >= channels ? previous[i - channels] : 0;
       if (filter === 1) row[i] = (row[i] + left) & 255;
       else if (filter === 2) row[i] = (row[i] + above) & 255;
       else if (filter === 3) row[i] = (row[i] + Math.floor((left + above) / 2)) & 255;
       else if (filter === 4) row[i] = (row[i] + paeth(left, above, upperLeft)) & 255;
       else if (filter !== 0) throw new Error(`unsupported PNG filter ${filter}`);
     }
-    for (let i = 3; i < stride; i += 4) { minAlpha = Math.min(minAlpha, row[i]); if (row[i] > 0) visible += 1; if (row[i] > 0 && (row[i - 3] !== 0 || row[i - 2] !== 0 || row[i - 1] !== 0)) artwork += 1; if (row[i] > 0 && (row[i - 3] !== row[i - 2] || row[i - 2] !== row[i - 1])) chromatic += 1; }
-    if (y === 0 || y === height - 1) for (const x of [0, width - 1]) corners.push([...row.subarray(x * 4, x * 4 + 4)]);
+    for (let i = 0; i < stride; i += channels) { const alpha = channels === 4 ? row[i + 3] : 255; minAlpha = Math.min(minAlpha, alpha); if (alpha > 0) visible += 1; if (alpha > 0 && (row[i] !== 0 || row[i + 1] !== 0 || row[i + 2] !== 0)) artwork += 1; if (alpha > 0 && (row[i] !== row[i + 1] || row[i + 1] !== row[i + 2])) chromatic += 1; if (background && alpha > 0 && Math.max(Math.abs(row[i] - background[0]), Math.abs(row[i + 1] - background[1]), Math.abs(row[i + 2] - background[2])) > 2) different += 1; }
+    if (y === 0 || y === height - 1) for (const x of [0, width - 1]) { const start = x * channels; corners.push([row[start], row[start + 1], row[start + 2], channels === 4 ? row[start + 3] : 255]); }
     previous = row;
   }
-  return { width, height, opaque: minAlpha === 255, srgb, visible, artwork, chromatic, corners };
+  return { width, height, opaque: minAlpha === 255, srgb, visible, artwork, chromatic, different, corners };
 }
 function icoEntries(buffer) {
   if (buffer.length < 6 || !buffer.subarray(0, 4).equals(Buffer.from([0, 0, 1, 0]))) throw new Error('invalid ICO signature');
@@ -179,6 +181,48 @@ const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
   const page = await context.newPage();
+  const specimenBrand = brands.find((brand) => brand.slug === 'i-heart-pr-tours');
+  check(Boolean(specimenBrand), 'generated brand registry lacks I Heart PR Tours specimen metadata');
+  if (specimenBrand) {
+    const relativeSpecimen = specimenBrand.specimen.replace(/^\//, '');
+    const hostedSpecimen = join(root, relativeSpecimen);
+    const kitSpecimen = resolve(root, '..', '..', 'dist', specimenBrand.slug, 'specimens', `${specimenBrand.slug}-type-specimen.svg`);
+    check(existsSync(hostedSpecimen) && existsSync(kitSpecimen), 'I Heart PR Tours specimen is missing from the verified kit or hosted copy');
+    if (existsSync(hostedSpecimen) && existsSync(kitSpecimen)) check(readFileSync(hostedSpecimen).equals(readFileSync(kitSpecimen)), 'hosted I Heart PR Tours specimen differs from the verified kit bytes');
+
+    const verifySpecimenNavigation = async (url, label, expectHttp) => {
+      const response = await page.goto(url, { waitUntil: 'load' });
+      if (expectHttp) {
+        check(response?.status() === 200, `${label} specimen direct navigation does not return 200`);
+        check((response?.headers()['content-type'] ?? '').startsWith('image/svg+xml'), `${label} specimen direct navigation has the wrong media type`);
+      }
+      check(await page.locator('svg').count() === 1, `${label} specimen does not load as one SVG document`);
+      const references = await page.evaluate(() => [...document.querySelectorAll('*')].flatMap((element) => [...element.attributes].filter((attribute) => attribute.localName === 'href').map((attribute) => attribute.value)));
+      check(references.length >= 2, `${label} specimen lacks the expected dual image references`);
+      check(references.every((reference) => reference.startsWith('data:') || reference.startsWith('#')), `${label} specimen retains a relative, filesystem, or network dependency (${JSON.stringify(references)})`);
+      const mark = page.locator('#specimen-mark');
+      check(await mark.count() === 1, `${label} specimen lacks one stable mark region`);
+      if (await mark.count() === 1) {
+        const background = await page.locator('svg > rect').first().getAttribute('fill');
+        const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(background ?? '');
+        check(Boolean(match), `${label} specimen background cannot be measured`);
+        if (match) {
+          const image = page.locator('#specimen-mark image');
+          check(await image.count() === 1, `${label} specimen mark lacks the approved image component`);
+          if (await image.count() === 1) {
+            const links = await image.evaluate((element) => ({ href: element.getAttribute('href'), legacy: element.getAttributeNS('http://www.w3.org/1999/xlink', 'href') }));
+            check(Boolean(links.href?.startsWith('data:image/svg+xml;base64,') && links.href === links.legacy), `${label} specimen image links are not identical embedded SVG payloads`);
+          }
+          const screenshot = await mark.screenshot();
+          const info = pngInfo(screenshot, match.slice(1).map((channel) => Number.parseInt(channel, 16)));
+          check(info.different >= Math.max(1, Math.ceil(info.width * info.height * 0.001)), `${label} specimen mark region has no visible artwork pixels (${JSON.stringify(info)})`);
+        }
+      }
+    };
+
+    await verifySpecimenNavigation(base + specimenBrand.specimen, 'hosted', true);
+    await verifySpecimenNavigation(pathToFileURL(hostedSpecimen).href, 'offline', false);
+  }
   const measurePreviewLayouts = async (route, selector, dividerSelector, label) => {
     const samples = await page.locator(selector).evaluateAll((elements, divider) => elements.map((outerElement) => {
       const mediaElement = outerElement.querySelector('.asset-preview-media');
