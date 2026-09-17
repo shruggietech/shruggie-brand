@@ -79,7 +79,7 @@
 - [x] T024 Run the full all-brand build and confirm zero `verify.py` and glyph failures without committing `dist/`
 - [x] T025 Run site lint/build/test, publication audit, instruction synchronization, mojibake scan, LF/BOM scan, `git diff --check`, and tracked-generated-artifact checks
 - [x] T026 Run Spec Kit analysis, review the complete diff for identity isolation, security, accessibility, version integrity, and scope alignment, then resolve every finding
-- [ ] T027 Commit with a Conventional Commit subject including S039, push `codex/039-egui-adapter-version-contracts`, and open an official PR closing #216 and #218
+- [x] T027 Commit with a Conventional Commit subject including S039, push `codex/039-egui-adapter-version-contracts`, and open an official PR closing #216 and #218
 - [ ] T028 Wait for CI and every external review, address each comment, and trigger at most one authorized `@Codex` second review round
 - [ ] T029 Confirm all checks and both review rounds are satisfied, then request the user's final review and merge ritual without merging
 

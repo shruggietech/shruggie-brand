@@ -6,6 +6,8 @@
 
 **Issues**: #216 and #218
 
+**Pull request**: #228
+
 ## Chronological verification record
 
 1. The Spec Kit requirements and native/version review checklists completed with every item satisfied. Primary egui 0.36.1, `egui_kittest` 0.36.1, Rust 1.88, and SemVer evidence was recorded before implementation.
