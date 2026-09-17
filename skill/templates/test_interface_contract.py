@@ -82,6 +82,16 @@ class InterfaceCanonTests(unittest.TestCase):
         self.assertEqual("#037B40", resolved["roles_by_theme"]["light"]["focus.ring"])
         self.assertEqual(["light", "dark"], resolved["system_theme_resolution"])
 
+        tour = read_json(ROOT / "brands" / "i-heart-pr-tours" / "brand.json")
+        tour_roles = resolve_interface_contract(tour, canon=self.canon)["roles_by_theme"]["light"]
+        self.assertEqual(tour["accent"]["accessible"], tour_roles["text.muted"])
+        self.assertNotEqual(tour["accent"]["dim"], tour_roles["text.muted"])
+
+        glitchpad = read_json(ROOT / "brands" / "glitchpad" / "brand.json")
+        glitchpad_roles = resolve_interface_contract(glitchpad, canon=self.canon)["roles_by_theme"]["dark"]
+        self.assertEqual(glitchpad["accent"]["bright"], glitchpad_roles["text.muted"])
+        self.assertNotEqual(glitchpad["accent"]["dim"], glitchpad_roles["text.muted"])
+
     def test_unknown_missing_invalid_and_cyclic_roles_fail_closed(self):
         unknown = copy.deepcopy(self.canon)
         unknown["aliases"]["product.hero.layout"] = "$primitive.spacing.4"
@@ -227,6 +237,21 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual(brand["version"], gap["consumer"]["brand_version"])
 
             contract_path = kit / "enforcement" / "consumer-contract.json"
+            for field, value in (("title", "Impostor"), ("affiliation", {"parent": "false-owner"})):
+                contract = read_json(contract_path)
+                contract["brand"][field] = value
+                contract_path.write_text(json.dumps(contract), encoding="utf-8")
+                problems = verify_consumer_contract(kit)
+                self.assertTrue(any("brand metadata disagrees" in problem for problem in problems), problems)
+                contract_path.write_bytes(before["enforcement/consumer-contract.json"])
+
+            contract = read_json(contract_path)
+            contract["authority"]["instructions"] = "enforcement/missing.md"
+            contract_path.write_text(json.dumps(contract), encoding="utf-8")
+            problems = verify_consumer_contract(kit)
+            self.assertTrue(any("file is missing" in problem for problem in problems), problems)
+            contract_path.write_bytes(before["enforcement/consumer-contract.json"])
+
             contract = read_json(contract_path)
             contract["provenance"] = contract["provenance"][:-1]
             contract_path.write_text(json.dumps(contract), encoding="utf-8")

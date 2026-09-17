@@ -93,12 +93,15 @@
     "layout.gutter.expanded": "$primitive.layout.gutter_expanded"
   },
   "theme_aliases": {
-    "dark": {},
+    "dark": {
+      "text.muted": "$resolved.muted"
+    },
     "light": {
       "surface.background": "$brand.light_surfaces.base",
       "surface.card": "$brand.light_surfaces.card",
       "surface.overlay": "$brand.light_surfaces.popover",
-      "text.primary": "$brand_canon.color.immutable.black.hex"
+      "text.primary": "$brand_canon.color.immutable.black.hex",
+      "text.muted": "$resolved.muted"
     }
   },
   "runtime": {
@@ -134,6 +137,7 @@
   },
   "state_pairs": [
     {"id": "primary-text", "foreground": "text.primary", "background": "surface.background", "minimum_contrast": 4.5},
+    {"id": "muted-text", "foreground": "text.muted", "background": "surface.background", "minimum_contrast": 4.5},
     {"id": "action-fill", "foreground": "text.on_action", "background": "action.primary", "minimum_contrast": 4.5},
     {"id": "accent-fill", "foreground": "text.on_accent", "background": "focus.ring", "minimum_contrast": 4.5},
     {"id": "focus-indicator", "foreground": "focus.ring", "background": "surface.background", "minimum_contrast": 3.0}

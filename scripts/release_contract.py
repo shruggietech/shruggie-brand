@@ -287,6 +287,37 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             validate_json_schema(consumer, consumer_schema)
         except SchemaValidationError as error:
             raise ValueError("%s consumer contract schema violation: %s" % (path.name, error)) from error
+        authority = consumer.get("authority") or {}
+        capability_gap = consumer.get("capability_gap") or {}
+        recovery = consumer.get("recovery") or {}
+        declared_paths = {
+            "brand source": authority.get("brand_source"),
+            "instructions": authority.get("instructions"),
+            "Interface Canon": authority.get("interface_canon"),
+            "capability-gap template": capability_gap.get("template_path"),
+            "recovery distribution": recovery.get("path"),
+        }
+        for label, declared_path in declared_paths.items():
+            if not isinstance(declared_path, str):
+                raise ValueError("%s consumer %s path is missing" % (path.name, label))
+            pure = PurePosixPath(declared_path)
+            if (pure.is_absolute() or ".." in pure.parts or "\\" in declared_path
+                    or not pure.parts or ":" in pure.parts[0]):
+                raise ValueError("%s consumer %s path is unsafe" % (path.name, label))
+            if declared_path not in entries:
+                raise ValueError("%s consumer declared %s path is missing: %s"
+                                 % (path.name, label, declared_path))
+        declared_brand = _read_json(archive, authority["brand_source"], path.name)
+        if declared_brand != brand:
+            raise ValueError("%s consumer authority brand_source differs from brand.json" % path.name)
+        expected_brand = {
+            "slug": brand.get("slug"),
+            "title": brand.get("title"),
+            "affiliation": brand.get("affiliation"),
+            "brand_version": brand.get("version", "1.0.0"),
+        }
+        if consumer.get("brand") != expected_brand:
+            raise ValueError("%s consumer brand metadata disagrees with brand.json" % path.name)
         versions = consumer.get("versions") or {}
         if versions.get("brand_version") != version:
             raise ValueError("%s consumer brand_version disagrees" % path.name)
@@ -295,17 +326,10 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         if expected_canon is not None and versions.get("canon_version") != expected_canon:
             raise ValueError("%s consumer canon differs from authoritative canon %s"
                              % (path.name, expected_canon))
-        interface_canon = _read_json(archive, "enforcement/interface-canon.json", path.name)
+        interface_canon = _read_json(archive, authority["interface_canon"], path.name)
         if versions.get("interface_canon_version") != interface_canon.get("version"):
             raise ValueError("%s consumer interface_canon_version disagrees" % path.name)
-        recovery = consumer.get("recovery") or {}
         recovery_path = recovery.get("path")
-        if not isinstance(recovery_path, str):
-            raise ValueError("%s consumer recovery path is missing" % path.name)
-        recovery_pure = PurePosixPath(recovery_path)
-        if (recovery_pure.is_absolute() or ".." in recovery_pure.parts or "\\" in recovery_path
-                or not recovery_pure.parts or ":" in recovery_pure.parts[0]):
-            raise ValueError("%s consumer recovery path is unsafe" % path.name)
         try:
             recovery_bytes = archive.read(recovery_path)
         except KeyError as error:
@@ -358,7 +382,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
         if agents.count(begin) != 1 or agents.count(end) != 1 or agents.index(begin) > agents.index(end):
             raise ValueError("%s governed consumer instruction markers are invalid" % path.name)
-        gap = _read_json(archive, "enforcement/capability-gap.example.json", path.name)
+        gap = _read_json(archive, capability_gap["template_path"], path.name)
         if gap.get("submission_authorized") is not False:
             raise ValueError("%s capability gap grants submission authority" % path.name)
         consumer_recorded = set()
@@ -379,8 +403,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             "brand.json", "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
             "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
             "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json",
-            recovery_path,
-        }
+        } | set(declared_paths.values())
         if not required_provenance.issubset(consumer_recorded):
             raise ValueError("%s consumer provenance omits required authority" % path.name)
         if not archive.read("brand-guide.pdf").startswith(b"%PDF-"):

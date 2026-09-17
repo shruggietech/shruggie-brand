@@ -252,6 +252,24 @@ def _legal_foreground(fill):
     return "#000000" if black >= white else "#FFFFFF"
 
 
+def _legal_muted(brand, background, theme, minimum):
+    from coloraide import Color
+
+    candidates = (
+        ("accent.accessible", "accent.dim", "accent.deep", "accent.bright")
+        if theme == "light"
+        else ("accent.dim", "accent.bright", "accent.accessible", "accent.deep")
+    )
+    seen = set()
+    for dotted in candidates:
+        candidate = _lookup_brand(brand, dotted)
+        contrast = Color(candidate).contrast(background, method="wcag21")
+        if candidate not in seen and contrast + 1e-9 >= minimum:
+            return candidate
+        seen.add(candidate)
+    return _legal_foreground(background)
+
+
 def resolve_interface_contract(brand, canon=None, brand_canon=None):
     canon = validate_interface_canon(canon or load_interface_canon())
     brand_canon = brand_canon or load_brand_canon()
@@ -286,6 +304,8 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
         aliases = dict(canon["aliases"])
         aliases.update(canon["theme_aliases"][theme])
         aliases.update(overrides)
+        surface = "light_surfaces.base" if theme == "light" else "surfaces.base"
+        background = _lookup_brand(brand, surface)
         accent = _lookup_brand(brand, "accent.accessible" if theme == "light" else "accent.bright")
         resolved_context = {
             "action": semantic["action"],
@@ -293,6 +313,7 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
             "action_foreground": _legal_foreground(semantic["action"]),
             "accent": accent,
             "accent_foreground": _legal_foreground(accent),
+            "muted": _legal_muted(brand, background, theme, canon["invariants"]["minimum_text_contrast"]),
         }
         resolved_roles = {}
         visiting = []
@@ -648,10 +669,29 @@ def verify_consumer_contract(kit):
         except SchemaValidationError as error:
             raise InterfaceContractError("consumer contract schema violation: %s" % error) from error
         brand = _read_json(kit / "brand.json")
-        _require(contract["brand"]["slug"] == brand.get("slug"), "consumer contract brand slug disagrees")
+        authority = contract["authority"]
+        recovery = contract["recovery"]
+        declared_authority = {
+            authority["brand_source"],
+            authority["instructions"],
+            authority["interface_canon"],
+            contract["capability_gap"]["template_path"],
+            recovery["path"],
+        }
+        for relative in declared_authority:
+            _contained_kit_file(kit, relative)
+        declared_brand = _read_json(_contained_kit_file(kit, authority["brand_source"]))
+        _require(declared_brand == brand, "consumer authority brand_source differs from brand.json")
+        expected_brand = {
+            "slug": brand.get("slug"),
+            "title": brand.get("title"),
+            "affiliation": brand.get("affiliation"),
+            "brand_version": brand.get("version", "1.0.0"),
+        }
+        _require(contract["brand"] == expected_brand, "consumer contract brand metadata disagrees")
         _require(contract["versions"]["brand_version"] == brand.get("version", "1.0.0"), "consumer contract brand_version disagrees")
         _require(contract["versions"]["canon_version"] == brand.get("canon", "1.2.1"), "consumer contract canon_version disagrees")
-        copied_canon = _read_json(_contained_kit_file(kit, contract["authority"]["interface_canon"]))
+        copied_canon = _read_json(_contained_kit_file(kit, authority["interface_canon"]))
         _require(contract["versions"]["interface_canon_version"] == copied_canon.get("version"), "consumer contract interface_canon_version disagrees")
         environment = contract["environment"]
         _require("operating_system" not in environment and "os" not in environment,
@@ -666,7 +706,6 @@ def verify_consumer_contract(kit):
             payload = path.read_bytes()
             _require(hashlib.sha256(payload).hexdigest() == item["sha256"], "consumer provenance checksum mismatch: %s" % item["path"])
             _require(len(payload) == item["bytes"], "consumer provenance byte count mismatch: %s" % item["path"])
-        recovery = contract["recovery"]
         expected_entry_points = [
             "python3 %s/templates/verify.py ." % recovery["extract_to"],
             "python3 %s/templates/validate_glyph.py brand.json" % recovery["extract_to"],
@@ -674,15 +713,10 @@ def verify_consumer_contract(kit):
         _require(contract["verification"]["entry_points"] == expected_entry_points,
                  "consumer verification entry points disagree with recovery location")
         required_provenance = {
-            contract["authority"]["brand_source"],
             "enforcement/AGENTS.md",
-            contract["authority"]["instructions"],
-            contract["authority"]["interface_canon"],
             "enforcement/interface-canon.schema.json",
             "enforcement/consumer-contract.schema.json",
-            contract["capability_gap"]["template_path"],
-            recovery["path"],
-        }
+        } | declared_authority
         _require(required_provenance.issubset(recorded),
                  "consumer provenance omits required authority: %s" %
                  ", ".join(sorted(required_provenance - recorded)))

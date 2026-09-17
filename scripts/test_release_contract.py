@@ -109,6 +109,17 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
     return values
 
 
+def replace_consumer(entries, consumer):
+    consumer_bytes = json.dumps(consumer).encode("utf-8")
+    entries["enforcement/consumer-contract.json"] = consumer_bytes
+    manifest = json.loads(entries["manifest.json"].decode("utf-8"))
+    for item in manifest["files"]:
+        if item["path"] == "enforcement/consumer-contract.json":
+            item["bytes"] = len(consumer_bytes)
+            item["sha256"] = hashlib.sha256(consumer_bytes).hexdigest()
+    entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
+
+
 class ReleaseContractTests(unittest.TestCase):
     def test_production_logo_source_modes_and_identity_fingerprints_are_pinned(self):
         expected = {
@@ -318,6 +329,38 @@ class ReleaseContractTests(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, "consumer contract schema violation"):
                 release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
+
+    def test_production_archive_binds_complete_consumer_brand_metadata(self):
+        for field, value in (("title", "Impostor"), ("affiliation", {"parent": "false-owner"})):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+                entries = brand_archive_entries()
+                consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+                consumer["brand"][field] = value
+                replace_consumer(entries, consumer)
+                write_zip(path, entries)
+
+                with self.assertRaisesRegex(ValueError, "consumer brand metadata disagrees"):
+                    release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
+
+    def test_production_archive_requires_every_contract_declared_authority_path(self):
+        cases = (
+            ("authority", "brand_source"),
+            ("authority", "instructions"),
+            ("authority", "interface_canon"),
+            ("capability_gap", "template_path"),
+        )
+        for section, field in cases:
+            with self.subTest(section=section, field=field), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+                entries = brand_archive_entries()
+                consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+                consumer[section][field] = "enforcement/missing-%s.json" % field
+                replace_consumer(entries, consumer)
+                write_zip(path, entries)
+
+                with self.assertRaisesRegex(ValueError, "consumer declared .* path is missing"):
+                    release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
 
     def test_production_archive_requires_verification_and_qc_manifest_coverage(self):
         with tempfile.TemporaryDirectory() as tmp:
