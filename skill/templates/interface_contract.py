@@ -18,6 +18,7 @@ SKILL_ROOT = HERE.parent
 REFERENCES = SKILL_ROOT / "references"
 INTERFACE_CANON = REFERENCES / "interface-canon.json"
 BRAND_CANON = REFERENCES / "01-canon.json"
+VERSION_POLICY = REFERENCES / "version-policy.json"
 BEGIN_MARKER = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
 END_MARKER = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
 SEMVER = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
@@ -60,6 +61,113 @@ def load_interface_canon(path=None):
 
 def load_brand_canon(path=None):
     return _read_json(path or BRAND_CANON)
+
+
+VERSION_DOMAINS = {
+    "brand_canon", "interface_canon", "component_recipes", "web_react_adapter",
+    "egui_adapter", "compiler", "brand",
+}
+
+
+def load_version_policy(path=None):
+    return _read_json(path or VERSION_POLICY)
+
+
+def validate_version_policy(policy):
+    required = {"schema_version", "id", "kind", "version", "domains", "compatibility_rules", "lifecycle_states", "recovery"}
+    _require(isinstance(policy, dict) and set(policy) == required,
+             "version policy fields are invalid")
+    _require(policy["id"] == "shruggie-version-policy" and policy["kind"] == "version-policy",
+             "version policy identity is invalid")
+    _require(policy["schema_version"] == 1, "version policy schema version is unsupported")
+    _require(isinstance(policy["version"], str) and SEMVER.fullmatch(policy["version"]),
+             "version policy version must be semantic")
+    domains = policy["domains"]
+    _require(isinstance(domains, dict) and set(domains) == VERSION_DOMAINS,
+             "version policy domains must be exactly %s" % ", ".join(sorted(VERSION_DOMAINS)))
+    domain_fields = {"meaning", "patch", "minor", "major", "compatibility_keys", "publication"}
+    for name, domain in domains.items():
+        _require(isinstance(domain, dict) and set(domain) == domain_fields,
+                 "version domain %s fields are invalid" % name)
+        _require(all(isinstance(domain[key], str) and domain[key].strip()
+                     for key in ("meaning", "publication")),
+                 "version domain %s meaning or publication is empty" % name)
+        for level in ("patch", "minor", "major"):
+            values = domain[level]
+            _require(isinstance(values, list) and values and len(values) == len(set(values))
+                     and all(isinstance(value, str) and value.strip() for value in values),
+                     "version domain %s %s rules are invalid" % (name, level))
+        compatibility = domain["compatibility_keys"]
+        _require(isinstance(compatibility, list) and len(compatibility) == len(set(compatibility))
+                 and set(compatibility).issubset(VERSION_DOMAINS - {name}),
+                 "version domain %s compatibility keys are invalid" % name)
+    rules = policy["compatibility_rules"]
+    _require(isinstance(rules, list) and rules, "version compatibility rules are missing")
+    recorded = set()
+    for rule in rules:
+        _require(isinstance(rule, dict) and set(rule) == {"dependent", "dependent_major", "dependency", "supported"},
+                 "version compatibility rule fields are invalid")
+        edge = (rule["dependent"], rule["dependency"])
+        _require(edge not in recorded, "duplicate version compatibility rule: %s -> %s" % edge)
+        recorded.add(edge)
+        _require(rule["dependent"] in VERSION_DOMAINS and rule["dependency"] in VERSION_DOMAINS
+                 and rule["dependency"] in domains[rule["dependent"]]["compatibility_keys"],
+                 "version compatibility rule has an undeclared dependency")
+        _require(isinstance(rule["dependent_major"], int) and not isinstance(rule["dependent_major"], bool)
+                 and rule["dependent_major"] >= 0,
+                 "version compatibility rule has an invalid dependent major")
+        _require(isinstance(rule["supported"], list) and rule["supported"]
+                 and len(rule["supported"]) == len(set(rule["supported"]))
+                 and all(isinstance(value, str) and SEMVER.fullmatch(value) for value in rule["supported"]),
+                 "version compatibility rule has invalid supported versions")
+    expected_edges = {
+        (dependent, dependency)
+        for dependent, domain in domains.items()
+        for dependency in domain["compatibility_keys"]
+    }
+    _require(recorded == expected_edges, "version compatibility rules do not cover every declared edge")
+    states = policy["lifecycle_states"]
+    _require(isinstance(states, list) and {item.get("id") for item in states if isinstance(item, dict)}
+             == {"compatible", "candidate", "published", "unadopted", "adopted"},
+             "version lifecycle states must distinguish candidate, published, unadopted, and adopted contracts")
+    for item in states:
+        _require(set(item) == {"id", "meaning"} and isinstance(item["meaning"], str) and item["meaning"].strip(),
+                 "version lifecycle state is invalid")
+    recovery = policy["recovery"]
+    _require(recovery == {
+        "pin_exact_versions": True,
+        "require_sha256": True,
+        "prefer_delivered_offline_bytes": True,
+        "allow_latest_substitution": False,
+    }, "version recovery policy must require exact checksummed offline recovery")
+    return policy
+
+
+def validate_version_combination(versions, policy=None):
+    policy = validate_version_policy(policy or load_version_policy())
+    _require(isinstance(versions, dict) and set(versions) == VERSION_DOMAINS,
+             "version combination must contain exactly %s" % ", ".join(sorted(VERSION_DOMAINS)))
+    _require(all(isinstance(value, str) and SEMVER.fullmatch(value) for value in versions.values()),
+             "version combination contains a non-semantic version")
+    for rule in policy["compatibility_rules"]:
+        dependent_version = versions[rule["dependent"]]
+        dependent_major = int(dependent_version.split(".", 1)[0])
+        _require(dependent_major == rule["dependent_major"],
+                 "%s %s is incompatible with policy major %d; migrate or publish a matching compatibility rule" % (
+                     rule["dependent"], dependent_version, rule["dependent_major"]))
+        actual = versions[rule["dependency"]]
+        _require(actual in rule["supported"],
+                 "%s %s is incompatible with %s %s; supported %s" % (
+                     rule["dependent"], versions[rule["dependent"]], rule["dependency"], actual,
+                     ", ".join(rule["supported"])))
+    return {
+        "policy_version": policy["version"],
+        "status": "compatible",
+        "validated_versions": dict(sorted(versions.items())),
+        "rules_checked": len(policy["compatibility_rules"]),
+        "publication_status": "candidate",
+        "adoption_status": "unadopted",
+    }
 
 
 def _lookup(value, dotted, label):
@@ -428,7 +536,9 @@ def skill_metadata(path=None):
                       frontmatter.group("body"), re.MULTILINE)
     _require(block is not None, "%s lacks skill metadata" % path)
     values = {}
-    for output, key in (("version", "version"), ("canon", "canon"), ("interface_canon", "interface-canon")):
+    for output, key in (("version", "version"), ("canon", "canon"), ("interface_canon", "interface-canon"),
+                        ("component_recipes", "component-recipes"), ("web_react_adapter", "web-react-adapter"),
+                        ("egui_adapter", "egui-adapter")):
         match = re.search(r"^\s+%s:\s*([^\s#]+)\s*$" % key, block.group("body"), re.MULTILINE)
         _require(match is not None, "%s metadata lacks %s" % (path, key))
         values[output] = match.group(1).strip("\"'")
@@ -512,7 +622,7 @@ def _governed_block(brand, versions, recovery_path, recovery_sha):
     return """{begin}
 ## Governed BrandBuilder contract
 
-BrandBuilder is mandatory for brand-system authoring, consumer implementation, and conformance audit. This kit pins Brand Canon `{canon}`, Interface Canon `{interface}`, component recipes `{recipes}`, Web/React adapter `{adapter}`, compiler `{compiler}`, and brand `{brand_version}`.
+BrandBuilder is mandatory for brand-system authoring, consumer implementation, and conformance audit. This kit pins Brand Canon `{canon}`, Interface Canon `{interface}`, component recipes `{recipes}`, Web/React adapter `{adapter}`, egui adapter `{egui}`, compiler `{compiler}`, and brand `{brand_version}`.
 
 Read `consumer-contract.json`, then `IMPLEMENTATION.md`. The pinned contract outranks screenshots, legacy stylesheets, and inferred local values. Do not reinterpret identity or create a permanent parallel design system.
 
@@ -522,7 +632,7 @@ If BrandBuilder `{compiler}` is absent, verify SHA-256 `{sha}` and extract `{rec
 {end}""".format(
         begin=BEGIN_MARKER, end=END_MARKER, canon=versions["canon_version"],
         interface=versions["interface_canon_version"], recipes=versions["component_recipe_version"],
-        adapter=versions["web_react_adapter_version"], compiler=versions["compiler_version"],
+        adapter=versions["web_react_adapter_version"], egui=versions["egui_adapter_version"], compiler=versions["compiler_version"],
         brand_version=versions["brand_version"], sha=recovery_sha, recovery=recovery_path,
         affiliation=affiliation_line,
     )
@@ -548,6 +658,7 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         "interface-canon.schema.json": REFERENCES / "interface-canon.schema.json",
         "component-recipes.json": REFERENCES / "component-recipes.json",
         "component-recipes.schema.json": REFERENCES / "component-recipes.schema.json",
+        "version-policy.json": REFERENCES / "version-policy.json",
         "consumer-contract.schema.json": REFERENCES / "consumer-contract.schema.json",
     }
     for name, source in copied.items():
@@ -558,18 +669,40 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
     recovery_sha = write_deterministic_skill_bundle(distribution)
     web_adapter = kit / "web" / "adapter.json"
     support_matrix = kit / "web" / "support-matrix.json"
+    egui_adapter = kit / "native" / "egui" / "adapter.json"
+    egui_support = kit / "native" / "egui" / "support-matrix.json"
     _require(web_adapter.is_file(), "Web/React adapter manifest is missing before consumer contract generation")
     _require(support_matrix.is_file(), "Web support matrix is missing before consumer contract generation")
+    _require(egui_adapter.is_file(), "egui adapter manifest is missing before consumer contract generation")
+    _require(egui_support.is_file(), "egui support matrix is missing before consumer contract generation")
     adapter = _read_json(web_adapter)
+    native_adapter = _read_json(egui_adapter)
     recipe_catalog = _read_json(REFERENCES / "component-recipes.json")
+    _require(metadata["component_recipes"] == recipe_catalog["version"],
+             "skill component recipe metadata does not match the catalog")
+    _require(metadata["web_react_adapter"] == adapter["adapter_version"],
+             "skill Web/React adapter metadata does not match generated output")
+    _require(metadata["egui_adapter"] == native_adapter["adapter_version"],
+             "skill egui adapter metadata does not match generated output")
     versions = {
         "canon_version": resolved["canon_version"],
         "interface_canon_version": resolved["interface_canon_version"],
         "component_recipe_version": recipe_catalog["version"],
         "web_react_adapter_version": adapter["adapter_version"],
+        "egui_adapter_version": native_adapter["adapter_version"],
         "compiler_version": metadata["version"],
         "brand_version": brand.get("version", "1.0.0"),
     }
+    domain_versions = {
+        "brand_canon": versions["canon_version"],
+        "interface_canon": versions["interface_canon_version"],
+        "component_recipes": versions["component_recipe_version"],
+        "web_react_adapter": versions["web_react_adapter_version"],
+        "egui_adapter": versions["egui_adapter_version"],
+        "compiler": versions["compiler_version"],
+        "brand": versions["brand_version"],
+    }
+    compatibility = validate_version_combination(domain_versions)
     gap = {
         "schema_version": 1,
         "consumer": {"brand": brand["slug"], "brand_version": versions["brand_version"]},
@@ -598,14 +731,17 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         enforcement / "interface-canon.schema.json",
         enforcement / "component-recipes.json",
         enforcement / "component-recipes.schema.json",
+        enforcement / "version-policy.json",
         enforcement / "consumer-contract.schema.json",
         web_adapter,
         support_matrix,
+        egui_adapter,
+        egui_support,
         gap_path,
         distribution,
     ]
     payload = {
-        "schema_version": 2,
+        "schema_version": 3,
         "brand": {
             "slug": brand["slug"],
             "title": brand["title"],
@@ -618,24 +754,29 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
             "interface_canon_version": "Interface Canon governing renderer-neutral UI semantics.",
             "component_recipe_version": "Bounded shared component grammar and behavior contract.",
             "web_react_adapter_version": "Generated Web/React implementation contract.",
+            "egui_adapter_version": "Generated Rust and egui implementation contract.",
             "compiler_version": "BrandBuilder distribution that generated this contract.",
             "brand_version": "Consumer brand source contract version.",
         },
+        "compatibility": compatibility,
         "environment": {
             "renderer": "renderer-neutral",
             "host": "none",
             "supported_targets": ["web", "native"],
             "viewport_profiles": list(load_interface_canon()["runtime"]["window_classes"]),
-            "adapter_versions": {"web-tokens": adapter["adapter_version"], "web-react": adapter["adapter_version"], "nextjs-compatibility": metadata["version"]},
+            "adapter_versions": {"web-tokens": adapter["adapter_version"], "web-react": adapter["adapter_version"], "egui": native_adapter["adapter_version"], "nextjs-compatibility": metadata["version"]},
         },
         "authority": {
             "brand_source": "brand.json",
             "interface_canon": "enforcement/interface-canon.json",
             "component_recipes": "enforcement/component-recipes.json",
+            "version_policy": "enforcement/version-policy.json",
             "web_adapter": "web/adapter.json",
             "support_matrix": "web/support-matrix.json",
+            "egui_adapter": "native/egui/adapter.json",
+            "egui_support_matrix": "native/egui/support-matrix.json",
             "instructions": "enforcement/IMPLEMENTATION.md",
-            "precedence": ["brand.json", "enforcement/interface-canon.json", "enforcement/component-recipes.json", "enforcement/consumer-contract.json", "human instructions that do not conflict"],
+            "precedence": ["brand.json", "enforcement/interface-canon.json", "enforcement/component-recipes.json", "enforcement/version-policy.json", "enforcement/consumer-contract.json", "human instructions that do not conflict"],
             "permitted_exceptions": ["token definition files may contain governed literals", "renderer metadata may contain documented platform-required literals"],
         },
         "verification": {
@@ -697,8 +838,11 @@ def verify_consumer_contract(kit):
             authority["instructions"],
             authority["interface_canon"],
             authority["component_recipes"],
+            authority["version_policy"],
             authority["web_adapter"],
             authority["support_matrix"],
+            authority["egui_adapter"],
+            authority["egui_support_matrix"],
             contract["capability_gap"]["template_path"],
             recovery["path"],
         }
@@ -719,11 +863,28 @@ def verify_consumer_contract(kit):
         _require(contract["versions"]["interface_canon_version"] == copied_canon.get("version"), "consumer contract interface_canon_version disagrees")
         copied_recipes = _read_json(_contained_kit_file(kit, authority["component_recipes"]))
         _require(contract["versions"]["component_recipe_version"] == copied_recipes.get("version"), "consumer contract component_recipe_version disagrees")
+        copied_policy = validate_version_policy(_read_json(_contained_kit_file(kit, authority["version_policy"])))
         web_adapter = _read_json(_contained_kit_file(kit, authority["web_adapter"]))
         _require(contract["versions"]["web_react_adapter_version"] == web_adapter.get("adapter_version"), "consumer contract web_react_adapter_version disagrees")
         _require(web_adapter.get("component_recipe_version") == copied_recipes.get("version"), "Web/React adapter recipe version disagrees")
         support = _read_json(_contained_kit_file(kit, authority["support_matrix"]))
         _require(support.get("adapter_version") == web_adapter.get("adapter_version"), "Web support matrix adapter version disagrees")
+        egui_adapter = _read_json(_contained_kit_file(kit, authority["egui_adapter"]))
+        _require(contract["versions"]["egui_adapter_version"] == egui_adapter.get("adapter_version"), "consumer contract egui_adapter_version disagrees")
+        _require(egui_adapter.get("component_recipe_version") == copied_recipes.get("version"), "egui adapter recipe version disagrees")
+        egui_support = _read_json(_contained_kit_file(kit, authority["egui_support_matrix"]))
+        _require(egui_support.get("adapter_version") == egui_adapter.get("adapter_version"), "egui support matrix adapter version disagrees")
+        domain_versions = {
+            "brand_canon": contract["versions"]["canon_version"],
+            "interface_canon": contract["versions"]["interface_canon_version"],
+            "component_recipes": contract["versions"]["component_recipe_version"],
+            "web_react_adapter": contract["versions"]["web_react_adapter_version"],
+            "egui_adapter": contract["versions"]["egui_adapter_version"],
+            "compiler": contract["versions"]["compiler_version"],
+            "brand": contract["versions"]["brand_version"],
+        }
+        _require(contract["compatibility"] == validate_version_combination(domain_versions, copied_policy),
+                 "consumer compatibility record disagrees with version policy")
         environment = contract["environment"]
         _require("operating_system" not in environment and "os" not in environment,
                  "consumer environment cannot contain an operating-system route")
@@ -747,6 +908,7 @@ def verify_consumer_contract(kit):
             "enforcement/AGENTS.md",
             "enforcement/interface-canon.schema.json",
             "enforcement/component-recipes.schema.json",
+            "enforcement/version-policy.json",
             "enforcement/consumer-contract.schema.json",
         } | declared_authority
         _require(required_provenance.issubset(recorded),
@@ -773,6 +935,7 @@ def verify_consumer_contract(kit):
             _require(len(names) == len(set(names)), "recovery distribution has duplicate paths")
             _require({"SKILL.md", "AGENTS.md", "references/interface-canon.json",
                       "references/component-recipes.json", "references/component-recipes.schema.json",
+                      "references/version-policy.json",
                       "references/consumer-contract.schema.json", "templates/verify.py",
                       "templates/validate_glyph.py"}.issubset(names),
                      "recovery distribution lacks governed entry points")
@@ -788,12 +951,21 @@ def verify_consumer_contract(kit):
                      "recovery Brand Canon version disagrees")
             _require(metadata["interface_canon"] == contract["versions"]["interface_canon_version"],
                      "recovery Interface Canon metadata disagrees")
+            _require(metadata["component_recipes"] == contract["versions"]["component_recipe_version"],
+                     "recovery component recipe metadata disagrees")
+            _require(metadata["web_react_adapter"] == contract["versions"]["web_react_adapter_version"],
+                     "recovery Web/React adapter metadata disagrees")
+            _require(metadata["egui_adapter"] == contract["versions"]["egui_adapter_version"],
+                     "recovery egui adapter metadata disagrees")
             bundled_canon = json.loads(archive.read("references/interface-canon.json").decode("utf-8"))
             _require(bundled_canon["version"] == contract["versions"]["interface_canon_version"],
                      "recovery Interface Canon version disagrees")
             bundled_recipes = json.loads(archive.read("references/component-recipes.json").decode("utf-8"))
             _require(bundled_recipes["version"] == contract["versions"]["component_recipe_version"],
                      "recovery component recipe version disagrees")
+            bundled_policy = validate_version_policy(json.loads(archive.read("references/version-policy.json").decode("utf-8")))
+            _require(bundled_policy["version"] == contract["compatibility"]["policy_version"],
+                     "recovery version policy disagrees")
             _require(archive.read("references/consumer-contract.schema.json") == schema_path.read_bytes(),
                      "recovery consumer schema disagrees with delivered schema")
     except (InterfaceContractError, SchemaValidationError, OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError, zipfile.BadZipFile) as error:
@@ -807,7 +979,9 @@ def skill_metadata_from_text(text):
     block = re.search(r"^metadata:\s*$\n(?P<body>(?:^[ \t]+.*(?:\n|\Z))+)", frontmatter.group("body"), re.MULTILINE)
     _require(block is not None, "bundled SKILL.md lacks metadata")
     values = {}
-    for output, key in (("version", "version"), ("canon", "canon"), ("interface_canon", "interface-canon")):
+    for output, key in (("version", "version"), ("canon", "canon"), ("interface_canon", "interface-canon"),
+                        ("component_recipes", "component-recipes"), ("web_react_adapter", "web-react-adapter"),
+                        ("egui_adapter", "egui-adapter")):
         match = re.search(r"^\s+%s:\s*([^\s#]+)\s*$" % key, block.group("body"), re.MULTILINE)
         _require(match is not None, "bundled SKILL.md metadata lacks %s" % key)
         values[output] = match.group(1).strip("\"'")

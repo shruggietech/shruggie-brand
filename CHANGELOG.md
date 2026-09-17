@@ -6,6 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added the S039 native egui adapter and independent version contracts for issues #216 and #218, including generated typed Rust tokens, idiomatic immediate-mode helpers, explicit support and gap records, `egui_kittest` rendered-state evidence, machine-validated compatibility, and exact checksummed recovery.
 - Added the S037 Interface Contract foundation for issues #210, #211, and #212, including a renderer-neutral Interface Canon, contextual Author, Implementation, and Audit routing, generated consumer authority manifests, deterministic merge-safe instructions, checksummed exact-version offline recovery, and authorization-preserving capability-gap records.
 - Added the identity-locked public I Heart PR Tours source system for issue #188, including exact supplied source and favicon authority, locally licensed typography, a light-first guide, deterministic single-ink derivatives, optional sand expressions, complete continuity evidence, and full brand-website publication.
 - Added source-bound identity continuity records, canonical approval packets, exact-byte promotion, pre-derivative drift rejection, calibrated visual comparison evidence, and truthful historical baselines for all seven production brands for issue #185.
