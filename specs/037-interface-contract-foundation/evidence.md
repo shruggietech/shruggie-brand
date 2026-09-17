@@ -35,11 +35,11 @@ The initial Core-only icon regression also exposed an eager `coloraide` import i
 
 ## Focused verification
 
-- `python skill/templates/test_interface_contract.py`: 11 tests passed, including canonical shape, schema integrity, every production source, negative alias/role/target/cycle/compatibility/override/affiliation/accessibility cases, three mixed runtime profiles, operating-system-key rejection, all routing fixtures, host synchronization, deterministic merge, malformed markers, provenance mutations, host-generated dependency exclusion, and exact offline recovery.
-- Independent JSON Schema validation with `jsonschema` passed for `interface-canon.json` and a freshly generated `consumer-contract.json`. The focused suite also walks both published schemas to ensure every closed required object defines its required properties.
+- `python skill/templates/test_interface_contract.py`: 12 tests passed, including canonical shape, complete offline schema validation, theme-indexed dark and light role resolution, every production source, negative alias/role/target/cycle/compatibility/override/affiliation/accessibility cases, three mixed runtime profiles, operating-system-key rejection, all routing fixtures, host synchronization, deterministic merge, malformed markers, provenance mutations, host-generated dependency exclusion, and exact offline recovery.
+- The standard-library offline schema validator passed for `interface-canon.json` and a freshly generated `consumer-contract.json`. Focused mutation cases reject empty version semantics, unsupported renderers, empty target lists, missing precedence, unsafe paths, malformed provenance, and recovery-schema disagreement.
 - `python skill/templates/test_iconkit.py`: 17 tests passed, including the Core-only optional-dependency boundary.
 - `python scripts/test_package_release.py`: 7 tests passed, including deterministic archive output, host-generated dependency exclusion, consumer handoff coverage, corrupt recovery rejection, and destination preservation on failure.
-- `python scripts/test_release_contract.py`: 16 tests passed, including required consumer files, recorded manifest coverage, exact recovery integrity, coordinated recovery-version drift rejection, deterministic source/version behavior, and release-boundary rejection cases.
+- `python scripts/test_release_contract.py`: 17 tests passed, including required consumer files, complete consumer-schema enforcement, recorded manifest coverage, exact recovery integrity, coordinated recovery-version drift rejection, deterministic source/version behavior, and release-boundary rejection cases.
 - `python skill/templates/test_pipeline.py`: 68 tests ran; 67 passed and the sole local error was the deliberate I Heart PR Tours renderer lock rejecting Node `26.5.0` in `test_i_heart_pr_tours_generation_preserves_exact_sources_and_approved_derivations`. The workflow installs Node `24.11.0` and exports that proof before the verified build, so CI is the authoritative result for this test.
 
 ## Complete local verification
@@ -63,8 +63,8 @@ The initial Core-only icon regression also exposed an eager `coloraide` import i
 - Repeated consumer generation produced byte-identical governed outputs and recovery archives. The verifier rejects altered provenance bytes, altered recovery bytes, unsafe paths, malformed markers, missing governed entry points, version drift, and unauthorized gap submission.
 - Both the delivered recovery writer and official release writer exclude host-generated dependency, virtual-environment, bytecode, and cache trees, so installed renderer tooling cannot alter or inflate a skill archive.
 - Human text before and after a valid governed block is preserved exactly, including trailing blank lines. Missing blocks append deterministically; duplicate, missing-half, or reversed markers fail closed.
-- The recovery archive contains exact `SKILL.md`, `AGENTS.md`, and Interface Canon authority, is selected before any network source, and is bound to the generated contract by SHA-256 and semantic versions.
-- Final changed-file scan covered 38 source/specification files: zero UTF-8 BOMs, zero CRLF files, zero mojibake matches, and zero `git diff --check` findings.
+- The recovery archive contains exact `SKILL.md`, `AGENTS.md`, Interface Canon authority, consumer schema, and both declared verification scripts. It is selected before any network source, extracted to the pinned `enforcement/brandbuilder` path, and bound to the generated contract by SHA-256 and semantic versions.
+- Final changed-file scan covered 42 source/specification files: zero UTF-8 BOMs, zero CRLF files, zero mojibake matches, and zero `git diff --check` findings.
 - `.specify/feature.json`, representative `dist/`, `release/`, and `site/out/` paths are ignored. Final status contains only intended source, workflow, documentation, test, and S037 specification changes.
 
 ## Cross-artifact analysis
@@ -75,4 +75,6 @@ The final pass reconciled issue scope, specification requirements and success cr
 
 Official pull request: [#224](https://github.com/shruggietech/shruggie-brand/pull/224), published from commit `52eed68` and configured to close slice issue #223 plus implementation issues #210, #211, and #212.
 
-CI, review comments, reactions, thread resolution, and the single authorized second Codex review request remain in publication autopilot.
+The first Codex round reviewed opening commit `52eed68` and raised four actionable threads. Commit `64e5ffe` corrected all four: recovered verifier commands now target bundled executable scripts, role resolution validates dark and light theme maps independently, the full delivered consumer schema is enforced by both kit and release verification, and consumer implementation without a pinned contract asks one narrow clarification. All four threads received commit-backed replies and were resolved. No separate security-bot finding or pull-request reaction was present at that checkpoint.
+
+CI on `64e5ffe`, the single authorized second Codex review request, second-round triage, and final owner handoff remain in publication autopilot.
