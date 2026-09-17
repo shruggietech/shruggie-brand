@@ -31,6 +31,7 @@ from interface_contract import (
     verify_consumer_contract,
     write_deterministic_skill_bundle,
 )
+from gen_web_react import generate_web_react
 from schema_validation import validate_json_schema
 
 
@@ -51,7 +52,7 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_published_schemas_are_valid_json_and_define_closed_required_fields(self):
         references = ROOT / "skill" / "references"
-        for name in ("interface-canon.schema.json", "consumer-contract.schema.json"):
+        for name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json"):
             schema = read_json(references / name)
             pending = [schema]
             while pending:
@@ -208,12 +209,18 @@ class ConsumerContractTests(unittest.TestCase):
             kit = Path(temporary) / "shruggietech"
             kit.mkdir()
             (kit / "brand.json").write_bytes(brand_source.read_bytes())
+            generate_web_react(kit / "brand.json", kit)
             first = emit_consumer_contract(brand, kit / "brand.json", kit, "# Implementation\n\nExact guidance.\n")
             tracked = [kit / item["path"] for item in first["provenance"]] + [kit / "enforcement" / "consumer-contract.json"]
             before = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
             second = emit_consumer_contract(brand, kit / "brand.json", kit, "# Implementation\n\nExact guidance.\n")
             after = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
             self.assertEqual(first, second)
+            self.assertEqual(2, first["schema_version"])
+            self.assertEqual("1.0.0", first["versions"]["component_recipe_version"])
+            self.assertEqual("1.0.0", first["versions"]["web_react_adapter_version"])
+            self.assertEqual("enforcement/component-recipes.json", first["authority"]["component_recipes"])
+            self.assertEqual("web/adapter.json", first["authority"]["web_adapter"])
             self.assertEqual(before, after)
             self.assertEqual([], verify_consumer_contract(kit))
 

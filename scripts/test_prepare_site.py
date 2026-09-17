@@ -41,6 +41,46 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
 
 
 class PrepareSiteTests(unittest.TestCase):
+    def test_generated_web_adapters_are_staged_for_next_and_vite_type_checks(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            generated = root / "generated"
+            sources = []
+            for slug in ("alpha", "beta"):
+                source = root / slug
+                react = source / "web" / "react"
+                react.mkdir(parents=True)
+                (source / "web" / "adapter.json").write_text(json.dumps({"brand": slug}), encoding="utf-8")
+                for name, content in (("server.tsx", "export const AppFrame = 1; export const Button = 1; export const Card = 1;\n"), ("client.tsx", "export const Tabs = 1; export const Dialog = 1;\n"), ("index.ts", 'export * from "./server";\n')):
+                    (react / name).write_text(content, encoding="utf-8")
+                sources.append(source)
+            stale = generated / "adapters" / "stale"
+            stale.mkdir(parents=True)
+            (stale / "old.ts").write_text("old\n", encoding="utf-8")
+
+            prepare_site.stage_web_adapters(sources, generated)
+
+            self.assertFalse(stale.exists())
+            for slug in ("alpha", "beta"):
+                target = generated / "adapters" / slug
+                self.assertTrue((target / "server.tsx").is_file())
+                self.assertIn("./server", (target / "next-smoke.tsx").read_text(encoding="utf-8"))
+                self.assertIn("./client", (target / "vite-smoke.tsx").read_text(encoding="utf-8"))
+
+    def test_generated_web_adapter_staging_rejects_brand_path_escape(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "alpha"
+            react = source / "web" / "react"
+            react.mkdir(parents=True)
+            (source / "web" / "adapter.json").write_text(json.dumps({"brand": "../../escape"}), encoding="utf-8")
+            for name in ("server.tsx", "client.tsx", "index.ts"):
+                (react / name).write_text("export {}\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "must match its source directory"):
+                prepare_site.stage_web_adapters([source], root / "generated")
+            self.assertFalse((root / "escape").exists())
+
     def test_every_public_reference_has_description_and_navigation(self):
         stems = {path.stem for path in prepare_site.REFERENCES.glob("*.md")}
         self.assertTrue(stems.issubset(prepare_site.DOC_DESCRIPTIONS))

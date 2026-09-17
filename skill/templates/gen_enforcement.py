@@ -256,6 +256,12 @@ Two settings ship, and both are correct in the right place. Default for
 marketing and reading surfaces; compact for dense tabular data. Do not invent
 a third.
 
+## Components and AppFrame
+
+Read `component-recipes.json` and `../web/adapter.json` before composing shared controls. Use `../tokens/interface.css` for semantic custom properties without React. React consumers import static components from `../web/react/server.tsx` and behavior-heavy controls from `../web/react/client.tsx` with exact `radix-ui@1.6.7`.
+
+`AppFrame` is the application shell owner. It owns safe areas, dynamic viewport behavior, root scrolling, fixed chrome, IME obstruction, titlebar avoidance, and global focus unless the selected browser, Tauri, or Wails profile transfers that one responsibility to the host. Never apply the same inset in native and web layers. Product screens, navigation trees, raw style props, and open-ended element substitution are outside the recipe grammar.
+
 ## Icons
 
 lucide, inline SVG, `currentColor`, 1.5 to 2px stroke on a 24 grid. Do not
@@ -335,6 +341,8 @@ def main():
                 "| `IMPLEMENTATION.md` | complete brand-specific implementation guidance |\n"
                 "| `consumer-contract.json` | exact versions, authority, environment, provenance, recovery, and checks |\n"
                 "| `interface-canon.json` | exact renderer-neutral Interface Canon used by this kit |\n"
+                "| `component-recipes.json` | exact bounded component grammar used by this kit |\n"
+                "| `component-recipes.schema.json` | structural component recipe schema |\n"
                 "| `capability-gap.example.json` | local reusable-gap record that does not authorize submission |\n"
                 "| `distributions/*.skill` | exact checksummed offline BrandBuilder recovery bundle |\n"
                 "| `eslint.brand.mjs` | `npx eslint --config enforcement/eslint.brand.mjs .` |\n"

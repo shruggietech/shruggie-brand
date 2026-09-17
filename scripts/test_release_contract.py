@@ -32,6 +32,8 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 1.2.1\n  canon: %s\n  interface-canon: 1.0.0\n---\n" % canon)
         bundle.writestr("AGENTS.md", "instructions\n")
         bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
+        bundle.writestr("references/component-recipes.json", json.dumps({"version": "1.0.0"}))
+        bundle.writestr("references/component-recipes.schema.json", (ROOT / "skill" / "references" / "component-recipes.schema.json").read_bytes())
         bundle.writestr("references/consumer-contract.schema.json", consumer_schema)
         bundle.writestr("templates/verify.py", "# verifier\n")
         bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")
@@ -47,7 +49,11 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "enforcement/IMPLEMENTATION.md": b"# Implementation\n",
         "enforcement/interface-canon.json": json.dumps({"version": "1.0.0"}).encode("utf-8"),
         "enforcement/interface-canon.schema.json": b"{}\n",
+        "enforcement/component-recipes.json": json.dumps({"version": "1.0.0"}).encode("utf-8"),
+        "enforcement/component-recipes.schema.json": (ROOT / "skill" / "references" / "component-recipes.schema.json").read_bytes(),
         "enforcement/consumer-contract.schema.json": consumer_schema,
+        "web/adapter.json": json.dumps({"adapter_version": "1.0.0", "component_recipe_version": "1.0.0"}).encode("utf-8"),
+        "web/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode("utf-8"),
         "enforcement/capability-gap.example.json": json.dumps({"submission_authorized": False}).encode("utf-8"),
         distribution: bundle,
     }
@@ -56,22 +62,24 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
     provenance_names = [
         "brand.json", "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
         "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
+        "enforcement/component-recipes.json", "enforcement/component-recipes.schema.json",
+        "web/adapter.json", "web/support-matrix.json",
         "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
     ]
     consumer = {
-        "schema_version": 1,
+        "schema_version": 2,
         "brand": {"slug": slug, "title": slug.title(), "affiliation": None, "brand_version": version},
-        "versions": {"brand_version": version, "canon_version": canon, "interface_canon_version": "1.0.0", "compiler_version": "1.2.1"},
+        "versions": {"brand_version": version, "canon_version": canon, "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "compiler_version": "1.2.1"},
         "version_semantics": {
             "brand_version": "Brand version.", "canon_version": "Brand Canon version.",
-            "interface_canon_version": "Interface Canon version.", "compiler_version": "Compiler version.",
+            "interface_canon_version": "Interface Canon version.", "component_recipe_version": "Component recipe version.", "web_react_adapter_version": "Web adapter version.", "compiler_version": "Compiler version.",
         },
         "environment": {
             "renderer": "renderer-neutral", "host": "none", "supported_targets": ["web"],
             "viewport_profiles": ["compact"], "adapter_versions": {"vanilla": "1.2.1"},
         },
         "authority": {
-            "brand_source": "brand.json", "interface_canon": "enforcement/interface-canon.json",
+            "brand_source": "brand.json", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json",
             "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"],
             "permitted_exceptions": [],
         },
@@ -291,6 +299,8 @@ class ReleaseContractTests(unittest.TestCase):
                 bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 9.9.9\n  canon: 1.1.2\n  interface-canon: 1.0.0\n---\n")
                 bundle.writestr("AGENTS.md", "instructions\n")
                 bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
+                bundle.writestr("references/component-recipes.json", json.dumps({"version": "1.0.0"}))
+                bundle.writestr("references/component-recipes.schema.json", (ROOT / "skill" / "references" / "component-recipes.schema.json").read_bytes())
                 bundle.writestr("references/consumer-contract.schema.json", (ROOT / "skill" / "references" / "consumer-contract.schema.json").read_bytes())
                 bundle.writestr("templates/verify.py", "# verifier\n")
                 bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")

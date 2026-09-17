@@ -812,6 +812,24 @@ def copy_site_identity(source: Path, public: Path = PUBLIC) -> None:
     write_utf8(public / "site.webmanifest", json.dumps(manifest, indent=2) + "\n")
 
 
+def stage_web_adapters(sources: list[Path], generated: Path = GENERATED) -> None:
+    """Copy verified generated TSX into the ignored site tree for compiler smoke checks."""
+    target = generated / "adapters"
+    if target.exists():
+        shutil.rmtree(target)
+    for source in sources:
+        adapter = json.loads((source / "web" / "adapter.json").read_text(encoding="utf-8"))
+        slug = adapter["brand"]
+        if slug != source.name or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", slug):
+            raise ValueError(f"{source.name}: Web adapter brand must match its source directory")
+        destination = target / slug
+        destination.mkdir(parents=True, exist_ok=True)
+        for name in ("server.tsx", "client.tsx", "index.ts"):
+            shutil.copy2(source / "web" / "react" / name, destination / name)
+        write_utf8(destination / "next-smoke.tsx", 'import { AppFrame, Button } from "./server";\nimport { Tabs } from "./client";\nexport const NextSmoke = () => <AppFrame><Button>OK</Button><Tabs label="Smoke" defaultValue="one" items={[{ value: "one", label: "One", content: "One" }]} /></AppFrame>;\n')
+        write_utf8(destination / "vite-smoke.tsx", 'import { Card } from "./server";\nimport { Dialog } from "./client";\nexport const ViteSmoke = () => <Card heading="Smoke"><Dialog triggerLabel="Open" title="Title" description="Description">Body</Dialog></Card>;\n')
+
+
 def main() -> int:
     if not DIST.is_dir():
         raise SystemExit("dist/ is missing; run python scripts/build_all.py first")
@@ -821,6 +839,7 @@ def main() -> int:
     portals = []
     seen: set[str] = set()
     sources = source_dirs()
+    stage_web_adapters(sources)
     loaded = []
     for source in sources:
         brand = load_brand(source)

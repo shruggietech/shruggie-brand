@@ -31,6 +31,7 @@ STEPS = [
     ("enrich brand.json with measured values", ["enrich_brand.py", "{brand}"]),
     ("outlined type specimen",                      ["build_specimen.py", "{brand}"]),
     ("vanilla tokens, styles.css, components",     ["gen_vanilla.py", "{brand}", "{kit}"]),
+    ("semantic web tokens and React adapter",      ["gen_web_react.py", "{brand}", "{kit}"]),
     ("tokens, shadcn registry, fonts, provider", ["gen_nextjs.py", "{brand}", "{kit}"]),
     ("agent contract and lint configs",         ["gen_enforcement.py", "{brand}", "{kit}"]),
     ("logo colourways, lockups, categorized application icons", ["gen_logo.py", "{brand}", "{kit}"]),

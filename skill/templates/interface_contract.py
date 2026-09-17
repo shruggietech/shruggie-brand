@@ -511,7 +511,7 @@ def _governed_block(brand, versions, recovery_path, recovery_sha):
     return """{begin}
 ## Governed BrandBuilder contract
 
-BrandBuilder is mandatory for brand-system authoring, consumer implementation, and conformance audit. This kit pins Brand Canon `{canon}`, Interface Canon `{interface}`, compiler `{compiler}`, and brand `{brand_version}`.
+BrandBuilder is mandatory for brand-system authoring, consumer implementation, and conformance audit. This kit pins Brand Canon `{canon}`, Interface Canon `{interface}`, component recipes `{recipes}`, Web/React adapter `{adapter}`, compiler `{compiler}`, and brand `{brand_version}`.
 
 Read `consumer-contract.json`, then `IMPLEMENTATION.md`. The pinned contract outranks screenshots, legacy stylesheets, and inferred local values. Do not reinterpret identity or create a permanent parallel design system.
 
@@ -520,7 +520,8 @@ Read `consumer-contract.json`, then `IMPLEMENTATION.md`. The pinned contract out
 If BrandBuilder `{compiler}` is absent, verify SHA-256 `{sha}` and extract `{recovery}` into the empty directory `enforcement/brandbuilder`. Never substitute another version. Run `python3 enforcement/brandbuilder/templates/verify.py .` and `python3 enforcement/brandbuilder/templates/validate_glyph.py brand.json`; both must report zero failures.
 {end}""".format(
         begin=BEGIN_MARKER, end=END_MARKER, canon=versions["canon_version"],
-        interface=versions["interface_canon_version"], compiler=versions["compiler_version"],
+        interface=versions["interface_canon_version"], recipes=versions["component_recipe_version"],
+        adapter=versions["web_react_adapter_version"], compiler=versions["compiler_version"],
         brand_version=versions["brand_version"], sha=recovery_sha, recovery=recovery_path,
         affiliation=affiliation_line,
     )
@@ -544,6 +545,8 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
     copied = {
         "interface-canon.json": REFERENCES / "interface-canon.json",
         "interface-canon.schema.json": REFERENCES / "interface-canon.schema.json",
+        "component-recipes.json": REFERENCES / "component-recipes.json",
+        "component-recipes.schema.json": REFERENCES / "component-recipes.schema.json",
         "consumer-contract.schema.json": REFERENCES / "consumer-contract.schema.json",
     }
     for name, source in copied.items():
@@ -552,9 +555,17 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
     distribution_name = "shruggie-brandbuilder-%s.skill" % metadata["version"]
     distribution = enforcement / "distributions" / distribution_name
     recovery_sha = write_deterministic_skill_bundle(distribution)
+    web_adapter = kit / "web" / "adapter.json"
+    support_matrix = kit / "web" / "support-matrix.json"
+    _require(web_adapter.is_file(), "Web/React adapter manifest is missing before consumer contract generation")
+    _require(support_matrix.is_file(), "Web support matrix is missing before consumer contract generation")
+    adapter = _read_json(web_adapter)
+    recipe_catalog = _read_json(REFERENCES / "component-recipes.json")
     versions = {
         "canon_version": resolved["canon_version"],
         "interface_canon_version": resolved["interface_canon_version"],
+        "component_recipe_version": recipe_catalog["version"],
+        "web_react_adapter_version": adapter["adapter_version"],
         "compiler_version": metadata["version"],
         "brand_version": brand.get("version", "1.0.0"),
     }
@@ -584,12 +595,16 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         enforcement / "IMPLEMENTATION.md",
         enforcement / "interface-canon.json",
         enforcement / "interface-canon.schema.json",
+        enforcement / "component-recipes.json",
+        enforcement / "component-recipes.schema.json",
         enforcement / "consumer-contract.schema.json",
+        web_adapter,
+        support_matrix,
         gap_path,
         distribution,
     ]
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "brand": {
             "slug": brand["slug"],
             "title": brand["title"],
@@ -600,6 +615,8 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         "version_semantics": {
             "canon_version": "Brand Canon governing identity and inherited brand values.",
             "interface_canon_version": "Interface Canon governing renderer-neutral UI semantics.",
+            "component_recipe_version": "Bounded shared component grammar and behavior contract.",
+            "web_react_adapter_version": "Generated Web/React implementation contract.",
             "compiler_version": "BrandBuilder distribution that generated this contract.",
             "brand_version": "Consumer brand source contract version.",
         },
@@ -608,13 +625,16 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
             "host": "none",
             "supported_targets": ["web", "native"],
             "viewport_profiles": list(load_interface_canon()["runtime"]["window_classes"]),
-            "adapter_versions": {"vanilla": metadata["version"], "nextjs": metadata["version"], "enforcement": metadata["version"]},
+            "adapter_versions": {"web-tokens": adapter["adapter_version"], "web-react": adapter["adapter_version"], "nextjs-compatibility": metadata["version"]},
         },
         "authority": {
             "brand_source": "brand.json",
             "interface_canon": "enforcement/interface-canon.json",
+            "component_recipes": "enforcement/component-recipes.json",
+            "web_adapter": "web/adapter.json",
+            "support_matrix": "web/support-matrix.json",
             "instructions": "enforcement/IMPLEMENTATION.md",
-            "precedence": ["brand.json", "enforcement/interface-canon.json", "enforcement/consumer-contract.json", "human instructions that do not conflict"],
+            "precedence": ["brand.json", "enforcement/interface-canon.json", "enforcement/component-recipes.json", "enforcement/consumer-contract.json", "human instructions that do not conflict"],
             "permitted_exceptions": ["token definition files may contain governed literals", "renderer metadata may contain documented platform-required literals"],
         },
         "verification": {
@@ -675,6 +695,9 @@ def verify_consumer_contract(kit):
             authority["brand_source"],
             authority["instructions"],
             authority["interface_canon"],
+            authority["component_recipes"],
+            authority["web_adapter"],
+            authority["support_matrix"],
             contract["capability_gap"]["template_path"],
             recovery["path"],
         }
@@ -693,6 +716,13 @@ def verify_consumer_contract(kit):
         _require(contract["versions"]["canon_version"] == brand.get("canon", "1.2.1"), "consumer contract canon_version disagrees")
         copied_canon = _read_json(_contained_kit_file(kit, authority["interface_canon"]))
         _require(contract["versions"]["interface_canon_version"] == copied_canon.get("version"), "consumer contract interface_canon_version disagrees")
+        copied_recipes = _read_json(_contained_kit_file(kit, authority["component_recipes"]))
+        _require(contract["versions"]["component_recipe_version"] == copied_recipes.get("version"), "consumer contract component_recipe_version disagrees")
+        web_adapter = _read_json(_contained_kit_file(kit, authority["web_adapter"]))
+        _require(contract["versions"]["web_react_adapter_version"] == web_adapter.get("adapter_version"), "consumer contract web_react_adapter_version disagrees")
+        _require(web_adapter.get("component_recipe_version") == copied_recipes.get("version"), "Web/React adapter recipe version disagrees")
+        support = _read_json(_contained_kit_file(kit, authority["support_matrix"]))
+        _require(support.get("adapter_version") == web_adapter.get("adapter_version"), "Web support matrix adapter version disagrees")
         environment = contract["environment"]
         _require("operating_system" not in environment and "os" not in environment,
                  "consumer environment cannot contain an operating-system route")
@@ -715,6 +745,7 @@ def verify_consumer_contract(kit):
         required_provenance = {
             "enforcement/AGENTS.md",
             "enforcement/interface-canon.schema.json",
+            "enforcement/component-recipes.schema.json",
             "enforcement/consumer-contract.schema.json",
         } | declared_authority
         _require(required_provenance.issubset(recorded),
@@ -740,6 +771,7 @@ def verify_consumer_contract(kit):
             names = archive.namelist()
             _require(len(names) == len(set(names)), "recovery distribution has duplicate paths")
             _require({"SKILL.md", "AGENTS.md", "references/interface-canon.json",
+                      "references/component-recipes.json", "references/component-recipes.schema.json",
                       "references/consumer-contract.schema.json", "templates/verify.py",
                       "templates/validate_glyph.py"}.issubset(names),
                      "recovery distribution lacks governed entry points")
@@ -758,6 +790,9 @@ def verify_consumer_contract(kit):
             bundled_canon = json.loads(archive.read("references/interface-canon.json").decode("utf-8"))
             _require(bundled_canon["version"] == contract["versions"]["interface_canon_version"],
                      "recovery Interface Canon version disagrees")
+            bundled_recipes = json.loads(archive.read("references/component-recipes.json").decode("utf-8"))
+            _require(bundled_recipes["version"] == contract["versions"]["component_recipe_version"],
+                     "recovery component recipe version disagrees")
             _require(archive.read("references/consumer-contract.schema.json") == schema_path.read_bytes(),
                      "recovery consumer schema disagrees with delivered schema")
     except (InterfaceContractError, SchemaValidationError, OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError, zipfile.BadZipFile) as error:
