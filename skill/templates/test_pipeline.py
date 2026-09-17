@@ -27,6 +27,7 @@ import gen_guide_pdf
 import gen_guidelines
 import gen_logo
 import gen_nextjs
+import gen_enforcement
 import build_specimen
 import build_kit
 import enrich_brand
@@ -46,6 +47,39 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_enforcement_emits_deterministic_merge_safe_consumer_contract(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "shruggietech"
+            kit.mkdir()
+            brand_source = ROOT / "brands" / "shruggietech" / "brand.json"
+            (kit / "brand.json").write_bytes(brand_source.read_bytes())
+            enforcement = kit / "enforcement"
+            enforcement.mkdir()
+            write_utf8(enforcement / "AGENTS.md", "# Local instructions\n\nKeep this human text.\n")
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_enforcement.py", str(kit / "brand.json"), str(kit)]
+                gen_enforcement.main()
+                first = {
+                    path.relative_to(enforcement).as_posix(): path.read_bytes()
+                    for path in enforcement.rglob("*") if path.is_file()
+                }
+                gen_enforcement.main()
+                second = {
+                    path.relative_to(enforcement).as_posix(): path.read_bytes()
+                    for path in enforcement.rglob("*") if path.is_file()
+                }
+            finally:
+                sys.argv = old_argv
+            self.assertEqual(first, second)
+            agents = (enforcement / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertTrue(agents.startswith("# Local instructions\n\nKeep this human text.\n"))
+            self.assertEqual(1, agents.count("BEGIN SHRUGGIE-BRANDBUILDER"))
+            self.assertEqual(1, agents.count("END SHRUGGIE-BRANDBUILDER"))
+            report = verify.Report()
+            verify.c_consumer_contract(str(kit), report)
+            self.assertFalse(report.problems)
+
     def image_specimen_fixture(self, destination):
         """Create an isolated image-backed brand without production discovery."""
         shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", destination)

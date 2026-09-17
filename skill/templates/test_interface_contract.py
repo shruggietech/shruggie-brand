@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+"""Contract tests for the renderer-neutral canon and consumer handover."""
+
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+sys.path.insert(0, str(HERE))
+
+from interface_contract import (
+    BEGIN_MARKER,
+    END_MARKER,
+    InterfaceContractError,
+    emit_consumer_contract,
+    load_interface_canon,
+    merge_governed_block,
+    resolve_interface_contract,
+    route_operating_mode,
+    validate_interface_canon,
+    validate_runtime_profile,
+    verify_consumer_contract,
+)
+
+
+def read_json(path):
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+class InterfaceCanonTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.canon = load_interface_canon()
+
+    def test_canon_is_structurally_valid_and_all_roles_resolve(self):
+        validate_interface_canon(self.canon)
+        self.assertEqual(set(self.canon["role_catalog"]), set(self.canon["aliases"]))
+        self.assertTrue(set(self.canon["required_roles"]).issubset(self.canon["aliases"]))
+
+    def test_published_schemas_are_valid_json_and_define_closed_required_fields(self):
+        references = ROOT / "skill" / "references"
+        for name in ("interface-canon.schema.json", "consumer-contract.schema.json"):
+            schema = read_json(references / name)
+            pending = [schema]
+            while pending:
+                node = pending.pop()
+                if isinstance(node, dict):
+                    if node.get("type") == "object" and node.get("additionalProperties") is False:
+                        self.assertTrue(set(node.get("required", [])).issubset(node.get("properties", {})), name)
+                    pending.extend(node.values())
+                elif isinstance(node, list):
+                    pending.extend(node)
+
+    def test_every_production_brand_resolves_without_identity_mutation(self):
+        for brand_path in sorted((ROOT / "brands").glob("*/brand.json")):
+            before = brand_path.read_bytes()
+            brand = json.loads(before.decode("utf-8"))
+            resolved = resolve_interface_contract(brand, canon=self.canon)
+            self.assertEqual(self.canon["version"], resolved["interface_canon_version"])
+            self.assertEqual(brand.get("canon", "1.2.1"), resolved["canon_version"])
+            self.assertEqual(before, brand_path.read_bytes())
+
+    def test_unknown_missing_invalid_and_cyclic_roles_fail_closed(self):
+        unknown = copy.deepcopy(self.canon)
+        unknown["aliases"]["product.hero.layout"] = "$primitive.spacing.4"
+        with self.assertRaisesRegex(InterfaceContractError, "unknown role"):
+            validate_interface_canon(unknown)
+
+        missing = copy.deepcopy(self.canon)
+        del missing["aliases"][missing["required_roles"][0]]
+        with self.assertRaisesRegex(InterfaceContractError, "missing required role"):
+            validate_interface_canon(missing)
+
+        invalid = copy.deepcopy(self.canon)
+        invalid["aliases"][invalid["required_roles"][0]] = "$renderer.css.padding"
+        with self.assertRaisesRegex(InterfaceContractError, "reference root"):
+            validate_interface_canon(invalid)
+
+        cyclic = copy.deepcopy(self.canon)
+        first, second = cyclic["required_roles"][:2]
+        cyclic["aliases"][first] = "$alias.%s" % second
+        cyclic["aliases"][second] = "$alias.%s" % first
+        with self.assertRaisesRegex(InterfaceContractError, "alias cycle"):
+            validate_interface_canon(cyclic)
+
+    def test_unsupported_cross_boundary_and_inaccessible_overrides_fail(self):
+        brand = read_json(ROOT / "brands" / "i-heart-pr-tours" / "brand.json")
+        brand["interface"] = {"canon": self.canon["version"], "overrides": {"focus.width": "$primitive.focus.width"}}
+        with self.assertRaisesRegex(InterfaceContractError, "unsupported override"):
+            resolve_interface_contract(brand, canon=self.canon)
+
+        brand["interface"]["overrides"] = {"action.primary": "$brand_canon.color.immutable.orange-cta.hex"}
+        with self.assertRaisesRegex(InterfaceContractError, "crosses affiliation"):
+            resolve_interface_contract(brand, canon=self.canon)
+
+        inaccessible = copy.deepcopy(self.canon)
+        inaccessible["aliases"]["text.primary"] = "$alias.surface.background"
+        with self.assertRaisesRegex(InterfaceContractError, "contrast"):
+            resolve_interface_contract(read_json(ROOT / "brands" / "shruggietech" / "brand.json"), canon=inaccessible)
+
+    def test_runtime_accepts_mixed_capabilities_and_rejects_os_inference(self):
+        for profile in self.canon["runtime"]["mixed_profile_examples"]:
+            validate_runtime_profile(profile, self.canon)
+        profile = copy.deepcopy(self.canon["runtime"]["mixed_profile_examples"][0])
+        profile["operating_system"] = "Windows"
+        with self.assertRaisesRegex(InterfaceContractError, "operating-system"):
+            validate_runtime_profile(profile, self.canon)
+
+
+class RoutingTests(unittest.TestCase):
+    def test_behavioral_fixtures_select_expected_mode_without_new_authority(self):
+        payload = read_json(ROOT / "skill" / "references" / "routing-fixtures.json")
+        for fixture in payload["fixtures"]:
+            decision = route_operating_mode(fixture["signals"])
+            self.assertEqual(fixture["expected_mode"], decision["mode"], fixture["id"])
+            self.assertEqual(fixture["requires_clarification"], decision["requires_clarification"], fixture["id"])
+            self.assertTrue(decision["authority_preserved"], fixture["id"])
+            if decision["requires_clarification"]:
+                self.assertTrue(decision["clarification"])
+
+    def test_skill_and_ambient_host_instructions_have_equivalent_body(self):
+        from sync_agents_md import PREAMBLE, body_of
+
+        skill = ROOT / "skill" / "SKILL.md"
+        ambient = (ROOT / "skill" / "AGENTS.md").read_text(encoding="utf-8")
+        body = body_of(str(skill))
+        lines = body.splitlines()
+        if lines and lines[0].startswith("# "):
+            lines = lines[1:]
+            while lines and not lines[0].strip():
+                lines = lines[1:]
+        self.assertEqual(PREAMBLE + "\n".join(lines).rstrip() + "\n", ambient)
+        for phrase in ("Author mode", "Implementation mode", "Audit mode", "consumer-contract.json", "exact pinned"):
+            self.assertIn(phrase, ambient)
+
+
+class ConsumerContractTests(unittest.TestCase):
+    def test_governed_block_merge_preserves_human_content_and_rejects_malformed_markers(self):
+        block = "%s\nnew governed content\n%s" % (BEGIN_MARKER, END_MARKER)
+        existing = "# Human instructions\n\nkeep before\n\n%s\nold\n%s\n\nkeep after\n\n" % (BEGIN_MARKER, END_MARKER)
+        merged = merge_governed_block(existing, block)
+        self.assertTrue(merged.startswith("# Human instructions\n\nkeep before\n\n"))
+        self.assertTrue(merged.endswith("\n\nkeep after\n\n"))
+        self.assertIn("new governed content", merged)
+        self.assertNotIn("\nold\n", merged)
+
+        appended = merge_governed_block("# Human only\n", block)
+        self.assertEqual("# Human only\n\n" + block + "\n", appended)
+        for malformed in (BEGIN_MARKER, END_MARKER, BEGIN_MARKER + "\n" + BEGIN_MARKER + "\n" + END_MARKER):
+            with self.assertRaisesRegex(InterfaceContractError, "marker"):
+                merge_governed_block(malformed, block)
+
+    def test_emitted_contract_is_deterministic_verifiable_and_offline_complete(self):
+        brand_source = ROOT / "brands" / "shruggietech" / "brand.json"
+        brand = read_json(brand_source)
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "shruggietech"
+            kit.mkdir()
+            (kit / "brand.json").write_bytes(brand_source.read_bytes())
+            first = emit_consumer_contract(brand, kit / "brand.json", kit, "# Implementation\n\nExact guidance.\n")
+            tracked = [kit / item["path"] for item in first["provenance"]] + [kit / "enforcement" / "consumer-contract.json"]
+            before = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
+            second = emit_consumer_contract(brand, kit / "brand.json", kit, "# Implementation\n\nExact guidance.\n")
+            after = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
+            self.assertEqual(first, second)
+            self.assertEqual(before, after)
+            self.assertEqual([], verify_consumer_contract(kit))
+
+            recovery = first["recovery"]
+            distribution = kit / recovery["path"]
+            self.assertTrue(distribution.is_file())
+            self.assertEqual(recovery["sha256"], hashlib.sha256(distribution.read_bytes()).hexdigest())
+            self.assertEqual("delivered-bundle", recovery["sources"][0]["kind"])
+            self.assertNotIn("latest", json.dumps(recovery).lower())
+
+            gap = read_json(kit / first["capability_gap"]["template_path"])
+            self.assertFalse(gap["submission_authorized"])
+            self.assertEqual(brand["version"], gap["consumer"]["brand_version"])
+
+            contract_path = kit / "enforcement" / "consumer-contract.json"
+            contract = read_json(contract_path)
+            contract["provenance"] = contract["provenance"][:-1]
+            contract_path.write_text(json.dumps(contract), encoding="utf-8")
+            problems = verify_consumer_contract(kit)
+            self.assertTrue(any("omits required authority" in problem for problem in problems))
+            contract_path.write_bytes(before["enforcement/consumer-contract.json"])
+
+            implementation = kit / "enforcement" / "IMPLEMENTATION.md"
+            implementation.write_text(implementation.read_text(encoding="utf-8") + "drift\n", encoding="utf-8")
+            problems = verify_consumer_contract(kit)
+            self.assertTrue(any("checksum" in problem for problem in problems))
+
+
+if __name__ == "__main__":
+    unittest.main()

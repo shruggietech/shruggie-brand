@@ -39,6 +39,7 @@ jobs:
           python scripts/test_prepare_site.py
           python scripts/test_identity_continuity_audit.py
           python skill/templates/test_brand_contract.py
+          python skill/templates/test_interface_contract.py
           python skill/templates/test_identity_continuity.py
           python skill/templates/test_iconkit.py
           python skill/templates/test_pipeline.py
@@ -116,6 +117,7 @@ jobs:
           python scripts/test_prepare_site.py
           python scripts/test_identity_continuity_audit.py
           python skill/templates/test_brand_contract.py
+          python skill/templates/test_interface_contract.py
           python skill/templates/test_identity_continuity.py
           python skill/templates/test_iconkit.py
           GP_APPROVED_PROOF_ROOT="$GITHUB_WORKSPACE/approved-identity-proofs" python skill/templates/test_pipeline.py

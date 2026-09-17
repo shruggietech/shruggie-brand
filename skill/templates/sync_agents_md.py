@@ -44,7 +44,8 @@ can proceed without it.
 
 
 def body_of(skill_md):
-    text = open(skill_md, encoding="utf-8").read()
+    with open(skill_md, encoding="utf-8") as handle:
+        text = handle.read()
     if text.startswith("---"):
         end = text.index("\n---", 3)
         text = text[end + 4:]

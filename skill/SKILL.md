@@ -6,6 +6,7 @@ compatibility: Python 3.8 or newer. `coloraide` is required for color work, font
 metadata:
   version: 1.2.1
   canon: 1.2.1
+  interface-canon: 1.0.0
   parent: ShruggieTech
 allowed-tools:
   - Read
@@ -19,6 +20,20 @@ allowed-tools:
 # shruggie-brandbuilder
 
 Builds brand kits for ShruggieTech-owned and third-party identities. Every kit declares ownership, public showcase permission, parentage, inheritance, endorsement, service credit, typography mode, and any authoritative supplied inputs explicitly before generation.
+
+## Operating modes
+
+Infer one mode from the requested outcome, repository evidence, and any pinned consumer contract. The operator does not need magic wording. Read `references/operating-modes.md` for the complete policy and fixtures.
+
+| Evidence | Mode | Boundary |
+| --- | --- | --- |
+| The authorized task changes Brand Canon, Interface Canon, identity source, a brand contract, generator, adapter, recipe, schema, or governed instructions | **Author mode** | Retain Spec Kit, identity approval, provenance, accessibility, publication, and release gates. Mode selection grants no new permission. |
+| The authorized task applies an existing pinned contract inside a consumer repository | **Implementation mode** | Read `enforcement/consumer-contract.json`, then `enforcement/IMPLEMENTATION.md`. Preserve identity and affiliation, and do not invent a permanent parallel system. |
+| The task assesses conformance, accessibility, integrity, provenance, recovery, or adoption without remediation authority | **Audit mode** | Remain read-only and hand remediation to separately authorized Author or Implementation work. |
+
+If BrandBuilder is absent during Implementation mode, use the exact pinned distribution under the consumer contract's `recovery.path`, verify its SHA-256, and install it through the host's local workflow. Prefer delivered offline bytes and never substitute another version.
+
+Mode inference never authorizes source changes, identity redesign, consumer mutation, publication, upstream submission, or issue creation. When a request genuinely conflicts, ask one narrow question about the exact mutation boundary. A screenshot or legacy stylesheet that contradicts the pinned contract is drift evidence, not authority.
 
 ## Start here
 
@@ -130,7 +145,7 @@ It validates the explicit contract first, then probes, runs the glyph gate, and 
     python3 templates/build_specimen.py <brand.json>          # outlined type specimen
     python3 templates/gen_vanilla.py    <brand.json> <kit>    # tokens, styles.css, components
     python3 templates/gen_nextjs.py     <brand.json> <kit>    # globals.css, registry, fonts, provider
-    python3 templates/gen_enforcement.py <brand.json> <kit>   # AGENTS.md, oxlint, stylelint
+    python3 templates/gen_enforcement.py <brand.json> <kit>   # consumer contract, AGENTS.md, ESLint, stylelint
     python3 templates/gen_logo.py       <brand.json> <kit>    # colourways, lockups, native icon suites
     python3 templates/gen_guidelines.py <brand.json> <kit>    # portal payload and portable guide
     python3 templates/gen_guide_pdf.py  <brand.json> <kit>    # the brand guide, full-bleed dark
@@ -186,9 +201,15 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `references/07-voice.md` | registers, the principle and descriptor shapes, banned rhetoric |
 | `references/08-glyph-construction.md` | how to produce a mark that is not wrong |
 | `references/09-portability.md` | capability tiers and the cross-provider rules |
+| `references/interface-canon.json` | renderer-neutral semantic roles, logical units, runtime capabilities, invariants, and override boundaries |
+| `references/interface-canon.schema.json` | authoring schema for the Interface Canon |
+| `references/consumer-contract.schema.json` | generated consumer authority and recovery schema |
+| `references/operating-modes.md` | contextual Author, Implementation, and Audit routing policy |
+| `references/routing-fixtures.json` | behavioral routing cases shared across host surfaces |
 | `references/identity-continuity.md` | direction selection, canonical approval, byte-copy promotion, proof comparison, and invalidation |
 | `templates/probe.py` | what this machine can do, as JSON the pipeline reads |
 | `templates/brand_contract.py` | shared fail-closed affiliation, supplied-input, palette, and typography contract |
+| `templates/interface_contract.py` | Interface Canon validation, runtime profiles, contextual routing, deterministic consumer contracts, and offline recovery |
 | `templates/identity_continuity.py` | canonical source snapshots, continuity records, proof comparison, and generated-report validation |
 | `templates/promote_identity.py` | bounded atomic promotion of exact approved source bytes |
 | `templates/validate_brand.py` | first-step runtime contract validation |

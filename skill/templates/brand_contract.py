@@ -15,6 +15,8 @@ import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 
+from interface_contract import resolve_interface_contract
+
 
 OWNED = "shruggietech-owned"
 THIRD_PARTY = "third-party"
@@ -1224,7 +1226,9 @@ def validate_brand_file(path):
     brand = load_brand(path)
     _require("identity_continuity" in brand,
              "identity_continuity is required for every production brand source")
-    return brand, validate_brand(brand, path.parent)
+    evidence = validate_brand(brand, path.parent)
+    resolve_interface_contract(brand)
+    return brand, evidence
 
 
 def scan_affiliation_output(brand, kit):

@@ -6,6 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added the S037 Interface Contract foundation for issues #210, #211, and #212, including a renderer-neutral Interface Canon, contextual Author, Implementation, and Audit routing, generated consumer authority manifests, deterministic merge-safe instructions, checksummed exact-version offline recovery, and authorization-preserving capability-gap records.
 - Added the identity-locked public I Heart PR Tours source system for issue #188, including exact supplied source and favicon authority, locally licensed typography, a light-first guide, deterministic single-ink derivatives, optional sand expressions, complete continuity evidence, and full brand-website publication.
 - Added source-bound identity continuity records, canonical approval packets, exact-byte promotion, pre-derivative drift rejection, calibrated visual comparison evidence, and truthful historical baselines for all seven production brands for issue #185.
 - Added the approved Cueson production identity and seventh public brand kit for issue #184, including exact Cueframe source continuity, Cue Teal color governance, complete lockups and application icons, generated guidelines and specimen, and a manifest-certified future consumer handoff.
@@ -20,6 +21,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-17, separated Brand Canon identity authority from Interface Canon semantic UI authority, defined precise brand, canon, interface, and compiler version meanings, and made delivered exact bytes the first recovery source for fresh consumer sessions.
 - On 2026-09-15, made exact-byte base64 data URIs the governed transport for image-backed specimen marks, with contained source resolution, explicit media types, byte-identical verified-kit-to-site publication, and preference for an already approved supplied horizontal color lockup when declared.
 - On 2026-09-12, defined `application/zip` and GitHub Pages' `application/x-zip-compressed` as the exact accepted ZIP media types while retaining independent opening-signature and end-record validation.
 - On 2026-09-11, corrected S028's mistaken private-publication assumption: every production brand built with the skill is now required in the public website inventory, generated brand export directories are ignored generically, and I Heart PR Tours uses the complete governed website surface set with a white showcase card and colored heart icon.

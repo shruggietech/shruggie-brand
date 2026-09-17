@@ -20,6 +20,7 @@ from capabilities import load_capabilities
 from brand_contract import _image_dimensions, affiliation, application_icon_profile, logo_source_contract, sha256_file, specimen_mark_paths
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
+from interface_contract import verify_consumer_contract
 
 # ------------------------------------------------------------------ utilities
 def R(a, b): return round(Color(a).contrast(b, method="wcag21"), 2)
@@ -1094,6 +1095,14 @@ def c_manifest(kit, rep):
         rep.ok("manifest-checksums", "%d files match" % len(man.get("files", [])))
 
 
+def c_consumer_contract(kit, rep):
+    problems = verify_consumer_contract(kit)
+    if problems:
+        rep.bad("consumer-contract", "; ".join(problems[:8]))
+    else:
+        rep.ok("consumer-contract", "versions, authority, provenance, recovery, and gap authorization verified")
+
+
 def c_capability_artifacts(kit, rep):
     try:
         capabilities = load_capabilities(kit)
@@ -2061,6 +2070,7 @@ def main():
     c_svg(kit, rep)
     c_ico(kit, rep)
     c_pdf(kit, rep)
+    c_consumer_contract(kit, rep)
     c_manifest(kit, rep)
 
     lines = ["# Verification", "",

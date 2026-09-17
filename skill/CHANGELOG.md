@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a renderer-neutral Interface Canon, contextual Author, Implementation, and Audit routing, and deterministic generated consumer contracts with exact versions, provenance, merge-safe instructions, offline recovery bytes, and reusable-gap records.
 - Required every production brand to enter the generated public website inventory after approval, and added governed `light.<role>` showcase-surface resolution for light-first brand cards.
 - Reused the canonical-artifact Gate 2 comparison in every kit-aware approval-ledger consumer, including static-site preparation, while retaining exact manifest hashes and fail-closed decoded-pixel equivalence.
 - Bound Gate 2 approval to generated provenance, added a source-preserved icon packaging pass for core capability, required downstream color and light masters, restored Python 3.8 test compatibility, and added exact canonical-host proof and Gate 2 evidence export with hash-bound measured comparison on alternate CI operating systems, including shared-silhouette color sampling for tiny proofs and decoded-pixel equivalence for differently encoded embedded PNGs.

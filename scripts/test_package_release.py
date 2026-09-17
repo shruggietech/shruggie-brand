@@ -2,6 +2,7 @@
 """Regression tests for release packaging version selection."""
 
 import hashlib
+import io
 import json
 import tempfile
 import unittest
@@ -21,12 +22,49 @@ class PackageReleaseTests(unittest.TestCase):
             (root / name).write_text(name + "\n", encoding="utf-8")
         source = root / "alpha"
         source.mkdir()
+        brand = {"slug": "alpha", "title": "Alpha", "version": "1.0.0", "canon": "1.2.1", "affiliation": {}}
+        bundle_buffer = io.BytesIO()
+        with zipfile.ZipFile(bundle_buffer, "w") as bundle:
+            bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 1.2.1\n  canon: 1.2.1\n  interface-canon: 1.0.0\n---\n")
+            bundle.writestr("AGENTS.md", "instructions\n")
+            bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
+        bundle = bundle_buffer.getvalue()
+        begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
+        end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
+        distribution = "enforcement/distributions/shruggie-brandbuilder-1.2.1.skill"
         values = {
-            "brand.json": json.dumps({"slug": "alpha", "version": "1.0.0", "canon": "1.2.1"}).encode(),
+            "brand.json": json.dumps(brand).encode(),
             "VERIFY.md": b"verified\n",
             "brand-guide.pdf": b"%PDF-1.4\n",
             "logos/mark.svg": b"<svg/>\n",
+            "enforcement/AGENTS.md": (begin + "\ncontract\n" + end + "\n").encode(),
+            "enforcement/IMPLEMENTATION.md": b"# Implementation\n",
+            "enforcement/interface-canon.json": json.dumps({"version": "1.0.0"}).encode(),
+            "enforcement/interface-canon.schema.json": b"{}\n",
+            "enforcement/consumer-contract.schema.json": b"{}\n",
+            "enforcement/capability-gap.example.json": json.dumps({"submission_authorized": False}).encode(),
+            distribution: bundle,
         }
+        provenance_names = [
+            "brand.json", "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
+            "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
+            "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
+        ]
+        consumer = {
+            "versions": {"brand_version": "1.0.0", "canon_version": "1.2.1", "interface_canon_version": "1.0.0", "compiler_version": "1.2.1"},
+            "recovery": {
+                "distribution": "shruggie-brandbuilder-1.2.1.skill",
+                "path": distribution,
+                "sha256": hashlib.sha256(bundle).hexdigest(),
+                "sources": [{"kind": "delivered-bundle", "path": distribution, "network_required": False}],
+                "instruction": "Use exact delivered bytes.",
+            },
+            "provenance": [
+                {"path": name, "bytes": len(values[name]), "sha256": hashlib.sha256(values[name]).hexdigest()}
+                for name in provenance_names
+            ],
+        }
+        values["enforcement/consumer-contract.json"] = json.dumps(consumer).encode()
         for name, value in values.items():
             path = source / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -63,10 +101,24 @@ class PackageReleaseTests(unittest.TestCase):
             package_release.write_brand_archive(source, second, root=root, expected_canon="1.2.1")
             self.assertEqual(first.read_bytes(), second.read_bytes())
             with zipfile.ZipFile(first) as archive:
+                expected = {
+                    path.relative_to(source).as_posix()
+                    for path in source.rglob("*") if path.is_file()
+                } | set(package_release.LICENSES)
                 self.assertEqual(
                     set(archive.namelist()),
-                    {"brand.json", "manifest.json", "VERIFY.md", "brand-guide.pdf", "logos/mark.svg", *package_release.LICENSES},
+                    expected,
                 )
+
+    def test_brand_archive_rejects_corrupt_offline_recovery(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = self.make_brand_source(root)
+            distribution = source / "enforcement" / "distributions" / "shruggie-brandbuilder-1.2.1.skill"
+            distribution.write_bytes(distribution.read_bytes() + b"drift")
+            destination = root / "release" / "alpha-brand-1.0.0.zip"
+            with self.assertRaisesRegex(ValueError, "recovery checksum mismatch"):
+                package_release.write_brand_archive(source, destination, root=root, expected_canon="1.2.1")
 
     def test_brand_archive_writer_preserves_destination_when_verification_fails(self):
         with tempfile.TemporaryDirectory() as tmp:

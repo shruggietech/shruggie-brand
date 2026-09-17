@@ -73,12 +73,22 @@ def manifest(kit, complete=False):
     else:
         B = {}
     aff = affiliation(B) if B else {}
+    payload = {"name": "%s-brand-kit" % B.get("slug", "brand"),
+               "version": B.get("version", "1.0.0"),
+               "parent": aff.get("parent"), "affiliation": aff,
+               "canon": B.get("canon", "1.0.0"),
+               "files": files}
+    consumer_path = os.path.join(kit, "enforcement", "consumer-contract.json")
+    if os.path.isfile(consumer_path):
+        with open(consumer_path, encoding="utf-8") as source:
+            consumer = json.load(source)
+        payload["consumer_contract"] = {
+            "path": "enforcement/consumer-contract.json",
+            "schema_version": consumer["schema_version"],
+            "versions": consumer["versions"],
+        }
     with open(os.path.join(kit, "manifest.json"), "w", encoding="utf-8", newline="\n") as f:
-        json.dump({"name": "%s-brand-kit" % B.get("slug", "brand"),
-                   "version": B.get("version", "1.0.0"),
-                   "parent": aff.get("parent"), "affiliation": aff,
-                   "canon": B.get("canon", "1.0.0"),
-                   "files": files}, f, indent=2)
+        json.dump(payload, f, indent=2)
         f.write("\n")
     return len(files)
 

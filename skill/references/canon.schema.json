@@ -11,6 +11,7 @@
     "title": {"type": "string", "minLength": 1},
     "slug": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
     "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "interface": {"$ref": "#/$defs/interfaceDeclaration"},
     "showcase_surface": {"type": "string", "minLength": 1},
     "affiliation": {"$ref": "#/$defs/affiliation"},
     "semantic_colors": {
@@ -101,6 +102,19 @@
   ],
   "$defs": {
     "hexColor": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+    "interfaceDeclaration": {
+      "type": "object",
+      "required": ["canon"],
+      "additionalProperties": false,
+      "properties": {
+        "canon": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "overrides": {
+          "type": "object",
+          "propertyNames": {"pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"},
+          "additionalProperties": {"type": "string", "pattern": "^\\$(primitive|alias|brand|brand_canon|resolved)\\.[A-Za-z0-9_.-]+$"}
+        }
+      }
+    },
     "applicationIcon": {
       "type": "object",
       "required": ["background"],

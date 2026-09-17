@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import re
 import zipfile
@@ -249,7 +250,13 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                          expected_canon: Optional[str] = None,
                          root: Optional[Path] = None) -> None:
     entries = archive_entries(path)
-    required = set(LICENSES) | {"brand.json", "manifest.json", "VERIFY.md", "brand-guide.pdf"}
+    required = set(LICENSES) | {
+        "brand.json", "manifest.json", "VERIFY.md", "brand-guide.pdf",
+        "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
+        "enforcement/consumer-contract.json", "enforcement/interface-canon.json",
+        "enforcement/interface-canon.schema.json", "enforcement/consumer-contract.schema.json",
+        "enforcement/capability-gap.example.json",
+    }
     require_entries(path, entries, required)
     with zipfile.ZipFile(str(path)) as archive:
         if root is not None:
@@ -267,6 +274,90 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             raise ValueError("%s manifest version disagrees" % path.name)
         if manifest.get("canon") != brand.get("canon"):
             raise ValueError("%s manifest canon disagrees" % path.name)
+        consumer = _read_json(archive, "enforcement/consumer-contract.json", path.name)
+        versions = consumer.get("versions") or {}
+        if versions.get("brand_version") != version:
+            raise ValueError("%s consumer brand_version disagrees" % path.name)
+        if versions.get("canon_version") != brand.get("canon"):
+            raise ValueError("%s consumer canon_version disagrees" % path.name)
+        if expected_canon is not None and versions.get("canon_version") != expected_canon:
+            raise ValueError("%s consumer canon differs from authoritative canon %s"
+                             % (path.name, expected_canon))
+        interface_canon = _read_json(archive, "enforcement/interface-canon.json", path.name)
+        if versions.get("interface_canon_version") != interface_canon.get("version"):
+            raise ValueError("%s consumer interface_canon_version disagrees" % path.name)
+        recovery = consumer.get("recovery") or {}
+        recovery_path = recovery.get("path")
+        if not isinstance(recovery_path, str):
+            raise ValueError("%s consumer recovery path is missing" % path.name)
+        recovery_pure = PurePosixPath(recovery_path)
+        if (recovery_pure.is_absolute() or ".." in recovery_pure.parts or "\\" in recovery_path
+                or not recovery_pure.parts or ":" in recovery_pure.parts[0]):
+            raise ValueError("%s consumer recovery path is unsafe" % path.name)
+        try:
+            recovery_bytes = archive.read(recovery_path)
+        except KeyError as error:
+            raise ValueError("%s consumer recovery distribution is missing" % path.name) from error
+        if hashlib.sha256(recovery_bytes).hexdigest() != recovery.get("sha256"):
+            raise ValueError("%s consumer recovery checksum mismatch" % path.name)
+        if PurePosixPath(recovery_path).name != recovery.get("distribution"):
+            raise ValueError("%s consumer recovery filename disagrees" % path.name)
+        sources = recovery.get("sources") or []
+        if not sources or sources[0].get("kind") != "delivered-bundle" or sources[0].get("network_required") is not False:
+            raise ValueError("%s consumer recovery does not prefer delivered bytes" % path.name)
+        if "latest" in json.dumps(recovery).lower():
+            raise ValueError("%s consumer recovery recommends an unspecified latest version" % path.name)
+        with zipfile.ZipFile(io.BytesIO(recovery_bytes)) as skill_archive:
+            skill_names = skill_archive.namelist()
+            require_entries(path, skill_names, {"SKILL.md", "AGENTS.md", "references/interface-canon.json"})
+            if len(skill_names) != len(set(skill_names)):
+                raise ValueError("%s recovery distribution repeats paths" % path.name)
+            for name in skill_names:
+                pure = PurePosixPath(name)
+                if (pure.is_absolute() or ".." in pure.parts or "\\" in name
+                        or not pure.parts or ":" in pure.parts[0]):
+                    raise ValueError("%s recovery distribution contains unsafe path %s" % (path.name, name))
+            skill_text = skill_archive.read("SKILL.md").decode("utf-8")
+            for metadata_key, version_key in (("version", "compiler_version"),
+                                              ("canon", "canon_version"),
+                                              ("interface-canon", "interface_canon_version")):
+                match = re.search(r"^\s+%s:\s*([^\s#]+)\s*$" % metadata_key,
+                                  skill_text, re.MULTILINE)
+                if match is None or match.group(1).strip("\"'") != versions.get(version_key):
+                    raise ValueError("%s recovery %s disagrees" % (path.name, version_key))
+            bundled_interface = json.loads(skill_archive.read("references/interface-canon.json").decode("utf-8"))
+            if bundled_interface.get("version") != versions.get("interface_canon_version"):
+                raise ValueError("%s recovery Interface Canon version disagrees" % path.name)
+        agents = archive.read("enforcement/AGENTS.md").decode("utf-8")
+        begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
+        end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
+        if agents.count(begin) != 1 or agents.count(end) != 1 or agents.index(begin) > agents.index(end):
+            raise ValueError("%s governed consumer instruction markers are invalid" % path.name)
+        gap = _read_json(archive, "enforcement/capability-gap.example.json", path.name)
+        if gap.get("submission_authorized") is not False:
+            raise ValueError("%s capability gap grants submission authority" % path.name)
+        consumer_recorded = set()
+        for item in consumer.get("provenance", []):
+            if not isinstance(item, dict) or set(item) != {"path", "bytes", "sha256"}:
+                raise ValueError("%s has malformed consumer provenance" % path.name)
+            name = item["path"]
+            if name in consumer_recorded:
+                raise ValueError("%s consumer provenance repeats %s" % (path.name, name))
+            consumer_recorded.add(name)
+            try:
+                value = archive.read(name)
+            except KeyError as error:
+                raise ValueError("%s consumer provenance path is missing: %s" % (path.name, name)) from error
+            if len(value) != item["bytes"] or hashlib.sha256(value).hexdigest() != item["sha256"]:
+                raise ValueError("%s consumer provenance mismatch: %s" % (path.name, name))
+        required_provenance = {
+            "brand.json", "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
+            "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
+            "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json",
+            recovery_path,
+        }
+        if not required_provenance.issubset(consumer_recorded):
+            raise ValueError("%s consumer provenance omits required authority" % path.name)
         if not archive.read("brand-guide.pdf").startswith(b"%PDF-"):
             raise ValueError("%s brand-guide.pdf lacks a PDF signature" % path.name)
 
