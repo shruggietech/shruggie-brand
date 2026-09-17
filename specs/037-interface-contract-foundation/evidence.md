@@ -72,4 +72,6 @@ The final pass reconciled issue scope, specification requirements and success cr
 
 ## CI and review rounds
 
-Pending pull request publication. CI, review comments, reactions, thread resolution, and the single authorized second Codex review request will be appended during publication autopilot.
+Official pull request: [#224](https://github.com/shruggietech/shruggie-brand/pull/224), published from commit `52eed68` and configured to close slice issue #223 plus implementation issues #210, #211, and #212.
+
+CI, review comments, reactions, thread resolution, and the single authorized second Codex review request remain in publication autopilot.

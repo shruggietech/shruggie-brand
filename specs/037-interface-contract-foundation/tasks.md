@@ -121,7 +121,7 @@
 
 **Purpose**: Push the verified branch, publish the official pull request, and close every automated review thread before owner merge review.
 
-- [ ] T039 Push `codex/037-interface-contract-foundation` to origin and open the official S037 pull request closing #210, #211, and #212 with complete verification evidence
+- [x] T039 Push `codex/037-interface-contract-foundation` to origin and open the official S037 pull request closing #210, #211, and #212 with complete verification evidence
 - [ ] T040 Wait for first-round CI, Codex, security, and other automated review results; inspect reviews, inline comments, issue comments, and pull-request reactions
 - [ ] T041 Address every actionable first-round comment with tests and source changes, reply to each comment, resolve satisfied threads, rerun affected and full gates, commit, and push
 - [ ] T042 Trigger exactly one second Codex review round with `@Codex review`, then wait for CI and all second-round review results
