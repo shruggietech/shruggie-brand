@@ -47,7 +47,7 @@ The initial Core-only icon regression also exposed an eager `coloraide` import i
 - `python -m compileall -q skill scripts`: passed.
 - `python skill/templates/test_glyphkit.py`: 34 checks, 0 failures.
 - `python scripts/test_publication_workflow.py`: 17 tests passed.
-- `python scripts/test_prepare_site.py`: 31 tests passed.
+- `python scripts/test_prepare_site.py`: 32 tests passed, including full coverage between public reference Markdown and the explicit documentation description/navigation maps.
 - `python scripts/test_identity_continuity_audit.py`: 4 tests passed.
 - `python skill/templates/test_brand_contract.py`: 53 tests passed.
 - `python skill/templates/test_identity_continuity.py`: 22 tests passed.

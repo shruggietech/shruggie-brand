@@ -41,6 +41,11 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
 
 
 class PrepareSiteTests(unittest.TestCase):
+    def test_every_public_reference_has_description_and_navigation(self):
+        stems = {path.stem for path in prepare_site.REFERENCES.glob("*.md")}
+        self.assertTrue(stems.issubset(prepare_site.DOC_DESCRIPTIONS))
+        self.assertEqual(stems, set(prepare_site.DOC_NAVIGATION))
+
     def test_cueson_source_exposes_only_the_approved_public_surface_set(self):
         path = prepare_site.ROOT / "brands" / "cueson" / "brand.json"
         brand = json.loads(path.read_text(encoding="utf-8"))

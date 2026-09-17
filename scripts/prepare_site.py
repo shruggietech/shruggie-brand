@@ -43,6 +43,7 @@ DOC_DESCRIPTIONS = {
     "08-glyph-construction": "Geometry and validation rules for constructing brand marks.",
     "09-portability": "Requirements that keep brand assets useful across platforms and teams.",
     "identity-continuity": "How direction selection, production-source approval, promotion, and derivative review stay mechanically continuous.",
+    "operating-modes": "How BrandBuilder selects Author, Implementation, or Audit work while preserving authorization boundaries.",
 }
 DOC_NAVIGATION = {
     "00-variance-contract": ("Foundation", 1, "Contract", 0),
@@ -55,6 +56,7 @@ DOC_NAVIGATION = {
     "04-toolchain": ("Implementation", 4, "Toolchain", 0),
     "05-shadcn-binding": ("Implementation", 4, "shadcn", 1),
     "09-portability": ("Implementation", 4, "Portability", 2),
+    "operating-modes": ("Implementation", 4, "Modes", 3),
 }
 BRAND_TOPIC_CONTRACT = [
     ("overview", "Overview", "Overview", 0),
