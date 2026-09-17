@@ -181,6 +181,70 @@ const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] });
   const page = await context.newPage();
+  const adapterSpecimen = resolve(root, '..', '..', 'dist', 'shruggietech', 'web', 'specimen.html');
+  check(existsSync(adapterSpecimen), 'generated Web/React adapter specimen is missing');
+  if (existsSync(adapterSpecimen)) {
+    await page.setContent(readFileSync(adapterSpecimen, 'utf8'), { waitUntil: 'load' });
+    const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+    check(axe.violations.length === 0, `generated adapter specimen has axe violations: ${axe.violations.map((violation) => `${violation.id} (${violation.nodes.map((node) => `${node.target.join(' ')}: ${node.failureSummary ?? 'no detail'}`).join('; ')})`).join(', ')}`);
+    check(await page.locator('[data-bb-app-frame]').count() === 1, 'generated adapter specimen lacks exactly one AppFrame');
+    check(await page.locator('[data-bb-overlay-root]').count() === 1, 'generated adapter specimen lacks exactly one AppFrame overlay root');
+    const scrollOwnership = await page.locator('[data-bb-app-frame]').evaluate((frame) => {
+      const scroll = frame.querySelector('.bb-app-frame__scroll');
+      const spacer = document.createElement('div');
+      spacer.style.blockSize = '200dvh';
+      scroll.append(spacer);
+      const result = {
+        documentOverflow: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+        frameHeight: frame.getBoundingClientRect().height,
+        viewportHeight: window.innerHeight,
+        frameCanScroll: scroll.scrollHeight > scroll.clientHeight,
+      };
+      spacer.remove();
+      return result;
+    });
+    check(scrollOwnership.documentOverflow <= 1, `generated AppFrame leaks scrolling to the document (${scrollOwnership.documentOverflow}px)`);
+    check(Math.abs(scrollOwnership.frameHeight - scrollOwnership.viewportHeight) <= 1, `generated AppFrame does not fit the viewport (${scrollOwnership.frameHeight}px versus ${scrollOwnership.viewportHeight}px)`);
+    check(scrollOwnership.frameCanScroll, 'generated AppFrame scroll row does not own overflowing content');
+    const undersized = await page.locator('.bb-control').evaluateAll((controls) => controls.filter((control) => control.getClientRects().length > 0).map((control) => { const box = control.getBoundingClientRect(); return { label: control.textContent?.trim() || control.getAttribute('aria-label'), width: box.width, height: box.height }; }).filter(({ width, height }) => width < 44 || height < 44));
+    check(undersized.length === 0, `generated adapter specimen has undersized controls: ${JSON.stringify(undersized)}`);
+    await page.locator('#tab-one').focus();
+    await page.keyboard.press('ArrowRight');
+    check(await page.locator('#tab-two').getAttribute('aria-selected') === 'true', 'generated tabs do not move selection with ArrowRight');
+    check(await page.locator('#panel-two').isVisible(), 'generated tabs do not expose the selected panel');
+    await page.locator('#menu-trigger').click();
+    await page.keyboard.press('ArrowDown');
+    check((await page.locator(':focus').textContent())?.trim() === 'Beta', 'generated menu does not move focus with ArrowDown');
+    await page.keyboard.press('Escape');
+    check(await page.locator('#menu-trigger').getAttribute('aria-expanded') === 'false', 'generated menu does not close with Escape');
+    check(await page.locator('#menu-trigger').evaluate((element) => element === document.activeElement), 'generated menu does not return focus to its trigger');
+    await page.locator('#dialog-trigger').click();
+    check(await page.locator('dialog').evaluate((element) => element.open), 'generated dialog does not open modally');
+    await page.locator('[data-close-dialog]').click();
+    check(await page.locator('#dialog-trigger').evaluate((element) => element === document.activeElement), 'generated dialog does not restore trigger focus');
+    await page.locator('[role="separator"]').focus();
+    await page.keyboard.press('End');
+    check(await page.locator('[role="separator"]').getAttribute('aria-valuenow') === '90', 'generated SplitPane does not implement End');
+    await page.evaluate(() => { document.documentElement.style.setProperty('--bb-host-titlebar-block-end', '32px'); document.documentElement.style.setProperty('--bb-ime-block-end', '340px'); document.documentElement.style.fontSize = '200%'; });
+    const frameInsets = await page.locator('[data-bb-app-frame]').evaluate((frame) => { const overlay = frame.querySelector('[data-bb-overlay-root]'); return { top: getComputedStyle(frame).paddingTop, scrollBottom: getComputedStyle(frame.querySelector('.bb-app-frame__scroll')).paddingBottom, overlayTop: getComputedStyle(overlay).top, overlayBottom: getComputedStyle(overlay).bottom }; });
+    check(frameInsets.top === '32px', `generated AppFrame does not consume the declared titlebar inset exactly once (${frameInsets.top})`);
+    check(frameInsets.scrollBottom === '340px', `generated AppFrame does not expose IME obstruction to the scroll owner (${frameInsets.scrollBottom})`);
+    check(frameInsets.overlayTop === '32px', `generated AppFrame portal root overlaps the host titlebar (${frameInsets.overlayTop})`);
+    check(frameInsets.overlayBottom === '340px', `generated AppFrame portal root overlaps the IME obstruction (${frameInsets.overlayBottom})`);
+    const separatorControls = await page.locator('[role="separator"]').evaluate((separator) => { const id = separator.getAttribute('aria-controls'); return Boolean(id && document.getElementById(id)); });
+    check(separatorControls, 'generated SplitPane separator does not reference its controlled primary pane');
+    await page.setViewportSize({ width: 360, height: 800 });
+    const scaledLayout = await page.evaluate(() => { const scroll = document.querySelector('.bb-app-frame__scroll'); return { overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, scrollOverflow: scroll.scrollWidth - scroll.clientWidth, controls: [...document.querySelectorAll('.bb-control')].filter((control) => control.getClientRects().length > 0).map((control) => { const box = control.getBoundingClientRect(); return { width: box.width, height: box.height }; }) }; });
+    check(scaledLayout.overflow <= 1, `generated specimen overflows at 200% text and 360px (${scaledLayout.overflow}px)`);
+    check(scaledLayout.scrollOverflow <= 1, `generated AppFrame scroll owner overflows horizontally at 200% text and 360px (${scaledLayout.scrollOverflow}px)`);
+    check(scaledLayout.controls.every(({ width, height }) => width >= 44 && height >= 44), `generated controls fall below 44px at 200% text (${JSON.stringify(scaledLayout.controls)})`);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' });
+    const forced = await page.locator('.bb-control').first().evaluate((control) => ({ transition: getComputedStyle(control).transitionDuration, border: getComputedStyle(control).borderTopColor }));
+    check(forced.transition === '0s', `generated controls retain motion under reduced-motion (${forced.transition})`);
+    check(Boolean(forced.border), 'generated controls lose their boundary under forced colors');
+    await page.emulateMedia({ reducedMotion: 'no-preference', forcedColors: 'none' });
+  }
   const specimenBrand = brands.find((brand) => brand.slug === 'i-heart-pr-tours');
   check(Boolean(specimenBrand), 'generated brand registry lacks I Heart PR Tours specimen metadata');
   if (specimenBrand) {

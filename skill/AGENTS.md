@@ -145,6 +145,7 @@ It validates the explicit contract first, then probes, runs the glyph gate, and 
     python3 templates/enrich_brand.py   <brand.json>          # measured values written back
     python3 templates/build_specimen.py <brand.json>          # outlined type specimen
     python3 templates/gen_vanilla.py    <brand.json> <kit>    # tokens, styles.css, components
+    python3 templates/gen_web_react.py  <brand.json> <kit>    # semantic web tokens, bounded React adapter, AppFrame
     python3 templates/gen_nextjs.py     <brand.json> <kit>    # globals.css, registry, fonts, provider
     python3 templates/gen_enforcement.py <brand.json> <kit>   # consumer contract, AGENTS.md, ESLint, stylelint
     python3 templates/gen_logo.py       <brand.json> <kit>    # colourways, lockups, native icon suites
@@ -204,6 +205,9 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `references/09-portability.md` | capability tiers and the cross-provider rules |
 | `references/interface-canon.json` | renderer-neutral semantic roles, logical units, runtime capabilities, invariants, and override boundaries |
 | `references/interface-canon.schema.json` | authoring schema for the Interface Canon |
+| `references/component-recipes.json` | closed shared component grammar, accessibility behavior, AppFrame owners, and coverage |
+| `references/component-recipes.schema.json` | structural schema for the component recipe catalog |
+| `references/web-support-matrix.json` | tested Web/React engine profiles, configurations, and honest host limitations |
 | `references/consumer-contract.schema.json` | generated consumer authority and recovery schema |
 | `references/operating-modes.md` | contextual Author, Implementation, and Audit routing policy |
 | `references/routing-fixtures.json` | behavioral routing cases shared across host surfaces |
@@ -211,6 +215,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/probe.py` | what this machine can do, as JSON the pipeline reads |
 | `templates/brand_contract.py` | shared fail-closed affiliation, supplied-input, palette, and typography contract |
 | `templates/interface_contract.py` | Interface Canon validation, runtime profiles, contextual routing, deterministic consumer contracts, and offline recovery |
+| `templates/component_contract.py` | bounded recipe validation, semantic role checks, override boundaries, and AppFrame ownership |
 | `templates/schema_validation.py` | offline JSON Schema validation for delivered consumer and interface contracts |
 | `templates/identity_continuity.py` | canonical source snapshots, continuity records, proof comparison, and generated-report validation |
 | `templates/promote_identity.py` | bounded atomic promotion of exact approved source bytes |
@@ -222,6 +227,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/validate_glyph.py` | the measured geometry gate. No renderer, no vision |
 | `templates/mk_paths.example.py` | copy to `<kit>/build/mk_paths.py` and edit the parameters |
 | `templates/gen_vanilla.py` | tokens, styles.css and components, generated rather than hand-written |
+| `templates/gen_web_react.py` | framework-neutral semantic tokens, typed server/client React adapter, AppFrame, host profiles, and specimen |
 | `templates/gen_nextjs.py` | the whole `nextjs/` layer |
 | `templates/gen_enforcement.py` | governed `AGENTS.md`, consumer implementation guidance, and lint configs |
 | `templates/gen_logo.py` | colourways, outlined wordmark, lockups, rasters, categorized application icons |

@@ -258,14 +258,16 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         "brand.json", "manifest.json", "VERIFY.md", "brand-guide.pdf",
         "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
         "enforcement/consumer-contract.json", "enforcement/interface-canon.json",
-        "enforcement/interface-canon.schema.json", "enforcement/consumer-contract.schema.json",
+        "enforcement/interface-canon.schema.json", "enforcement/component-recipes.json",
+        "enforcement/component-recipes.schema.json", "enforcement/consumer-contract.schema.json",
+        "web/adapter.json", "web/support-matrix.json",
         "enforcement/capability-gap.example.json",
     }
     require_entries(path, entries, required)
     with zipfile.ZipFile(str(path)) as archive:
         if root is not None:
             verify_canonical_files(archive, path, LICENSES, root)
-            for schema_name in ("interface-canon.schema.json", "consumer-contract.schema.json"):
+            for schema_name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json"):
                 if archive.read("enforcement/" + schema_name) != (root / "skill" / "references" / schema_name).read_bytes():
                     raise ValueError("%s contains noncanonical enforcement/%s" % (path.name, schema_name))
         brand = _read_json(archive, "brand.json", path.name)
@@ -294,6 +296,9 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             "brand source": authority.get("brand_source"),
             "instructions": authority.get("instructions"),
             "Interface Canon": authority.get("interface_canon"),
+            "component recipes": authority.get("component_recipes"),
+            "Web adapter": authority.get("web_adapter"),
+            "support matrix": authority.get("support_matrix"),
             "capability-gap template": capability_gap.get("template_path"),
             "recovery distribution": recovery.get("path"),
         }
@@ -329,6 +334,15 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         interface_canon = _read_json(archive, authority["interface_canon"], path.name)
         if versions.get("interface_canon_version") != interface_canon.get("version"):
             raise ValueError("%s consumer interface_canon_version disagrees" % path.name)
+        component_recipes = _read_json(archive, authority["component_recipes"], path.name)
+        if versions.get("component_recipe_version") != component_recipes.get("version"):
+            raise ValueError("%s consumer component_recipe_version disagrees" % path.name)
+        web_adapter = _read_json(archive, authority["web_adapter"], path.name)
+        if versions.get("web_react_adapter_version") != web_adapter.get("adapter_version"):
+            raise ValueError("%s consumer web_react_adapter_version disagrees" % path.name)
+        support_matrix = _read_json(archive, authority["support_matrix"], path.name)
+        if support_matrix.get("adapter_version") != web_adapter.get("adapter_version"):
+            raise ValueError("%s support matrix adapter version disagrees" % path.name)
         recovery_path = recovery.get("path")
         try:
             recovery_bytes = archive.read(recovery_path)
@@ -354,6 +368,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             skill_names = skill_archive.namelist()
             require_entries(path, skill_names, {
                 "SKILL.md", "AGENTS.md", "references/interface-canon.json",
+                "references/component-recipes.json", "references/component-recipes.schema.json",
                 "references/consumer-contract.schema.json", "templates/verify.py",
                 "templates/validate_glyph.py",
             })
@@ -375,6 +390,9 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             bundled_interface = json.loads(skill_archive.read("references/interface-canon.json").decode("utf-8"))
             if bundled_interface.get("version") != versions.get("interface_canon_version"):
                 raise ValueError("%s recovery Interface Canon version disagrees" % path.name)
+            bundled_recipes = json.loads(skill_archive.read("references/component-recipes.json").decode("utf-8"))
+            if bundled_recipes.get("version") != versions.get("component_recipe_version"):
+                raise ValueError("%s recovery component recipe version disagrees" % path.name)
             if skill_archive.read("references/consumer-contract.schema.json") != archive.read("enforcement/consumer-contract.schema.json"):
                 raise ValueError("%s recovery consumer schema disagrees with delivered schema" % path.name)
         agents = archive.read("enforcement/AGENTS.md").decode("utf-8")
@@ -402,6 +420,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         required_provenance = {
             "brand.json", "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
             "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
+            "enforcement/component-recipes.json", "enforcement/component-recipes.schema.json",
             "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json",
         } | set(declared_paths.values())
         if not required_provenance.issubset(consumer_recorded):

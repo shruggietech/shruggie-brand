@@ -21,6 +21,7 @@ from brand_contract import _image_dimensions, affiliation, application_icon_prof
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 from interface_contract import verify_consumer_contract
+from component_contract import COMPONENT_IDS, ComponentContractError, validate_app_frame_profiles, validate_component_catalog
 
 # ------------------------------------------------------------------ utilities
 def R(a, b): return round(Color(a).contrast(b, method="wcag21"), 2)
@@ -1103,6 +1104,54 @@ def c_consumer_contract(kit, rep):
         rep.ok("consumer-contract", "versions, authority, provenance, recovery, and gap authorization verified")
 
 
+def c_component_adapter(kit, rep):
+    root = Path(kit)
+    try:
+        catalog = json.loads((root / "enforcement" / "component-recipes.json").read_text(encoding="utf-8"))
+        interface = json.loads((root / "enforcement" / "interface-canon.json").read_text(encoding="utf-8"))
+        validate_component_catalog(catalog, interface)
+        adapter = json.loads((root / "web" / "adapter.json").read_text(encoding="utf-8"))
+        resolved = json.loads((root / "web" / "component-recipes.json").read_text(encoding="utf-8"))
+        profiles = json.loads((root / "web" / "app-frame-hosts.json").read_text(encoding="utf-8"))
+        support = json.loads((root / "web" / "support-matrix.json").read_text(encoding="utf-8"))
+        validate_app_frame_profiles(profiles)
+        if set(adapter.get("recipes", [])) != set(COMPONENT_IDS):
+            raise ComponentContractError("Web/React adapter recipe exports are incomplete")
+        if set(resolved.get("components", {})) != set(COMPONENT_IDS):
+            raise ComponentContractError("resolved Web recipe catalog is incomplete")
+        if adapter.get("component_recipe_version") != catalog.get("version"):
+            raise ComponentContractError("Web/React adapter recipe version disagrees")
+        if adapter.get("adapter_version") != support.get("adapter_version"):
+            raise ComponentContractError("Web support matrix adapter version disagrees")
+        entries = adapter.get("entries", {})
+        for relative in entries.values():
+            pure = Path(relative)
+            if pure.is_absolute() or ".." in pure.parts or not (root / pure).is_file():
+                raise ComponentContractError("Web/React adapter entry is missing or unsafe: %s" % relative)
+        server = (root / entries["server"]).read_text(encoding="utf-8")
+        client = (root / entries["client"]).read_text(encoding="utf-8")
+        css = (root / entries["styles"]).read_text(encoding="utf-8")
+        tokens = (root / entries["tokens"]).read_text(encoding="utf-8")
+        if '"use client"' in server or re.search(r"\b(?:window|document)\b", server):
+            raise ComponentContractError("server adapter evaluates a browser-only boundary")
+        if not client.startswith('"use client";') or "asChild" in client:
+            raise ComponentContractError("client adapter boundary is missing or unbounded")
+        if re.search(r"#[0-9a-fA-F]{3,8}\b|(?<![-\w])\d+(?:\.\d+)?px\b", css):
+            raise ComponentContractError("component styles contain an ungoverned visual literal")
+        for role in interface["required_roles"]:
+            if "--bb-%s:" % role.replace(".", "-").replace("_", "-") not in tokens:
+                raise ComponentContractError("semantic token is missing for %s" % role)
+        records = support.get("records", [])
+        if {record.get("target") for record in records} != {"Chrome browser", "Windows 11 desktop webview profile", "Android Chrome profile"}:
+            raise ComponentContractError("Web support matrix target coverage is incomplete")
+        if any(not record.get("limitations") or not record.get("checks") for record in records):
+            raise ComponentContractError("Web support matrix omits checks or limitations")
+    except (ComponentContractError, OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError) as error:
+        rep.bad("component-adapter", str(error))
+    else:
+        rep.ok("component-adapter", "15 recipes, semantic tokens, ownership, exports, and support records verified")
+
+
 def c_capability_artifacts(kit, rep):
     try:
         capabilities = load_capabilities(kit)
@@ -2070,6 +2119,7 @@ def main():
     c_svg(kit, rep)
     c_ico(kit, rep)
     c_pdf(kit, rep)
+    c_component_adapter(kit, rep)
     c_consumer_contract(kit, rep)
     c_manifest(kit, rep)
 
