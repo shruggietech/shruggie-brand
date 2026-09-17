@@ -58,6 +58,21 @@ class ComponentCatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(ComponentContractError, "grammar.*application-screen"):
             validate_component_catalog(screen, self.interface)
 
+        raw_responsive = copy.deepcopy(self.catalog)
+        raw_responsive["components"]["Button"]["responsive"]["compact"] = "#fff"
+        with self.assertRaisesRegex(ComponentContractError, "responsive compact.*unknown or raw"):
+            validate_component_catalog(raw_responsive, self.interface)
+
+        open_responsive = copy.deepcopy(self.catalog)
+        open_responsive["components"]["Button"]["responsive"]["renderer"] = "css"
+        with self.assertRaisesRegex(ComponentContractError, "responsive contract is malformed"):
+            validate_component_catalog(open_responsive, self.interface)
+
+        raw_icon = copy.deepcopy(self.catalog)
+        raw_icon["components"]["Button"]["icons"]["color"] = "red"
+        with self.assertRaisesRegex(ComponentContractError, "icons contract is malformed"):
+            validate_component_catalog(raw_icon, self.interface)
+
     def test_states_targets_names_and_invariant_overrides_fail_closed(self):
         states = copy.deepcopy(self.catalog)
         states["components"]["Button"]["states"].remove("focus-visible")
@@ -144,6 +159,21 @@ class ComponentCatalogTests(unittest.TestCase):
         unknown_role["component_overrides"] = {"Button": {"roles.fill": "$role.this.does_not_exist"}}
         with self.assertRaisesRegex(ComponentContractError, "references unknown role"):
             resolve_component_catalog(unknown_role, self.catalog, self.interface)
+
+        wrong_role_type = copy.deepcopy(brand)
+        wrong_role_type["component_overrides"] = {"Button": {"roles.fill": "$role.layout.gutter.compact"}}
+        with self.assertRaisesRegex(ComponentContractError, "assignment-incompatible role"):
+            resolve_component_catalog(wrong_role_type, self.catalog, self.interface)
+
+        wrong_action_pair = copy.deepcopy(brand)
+        wrong_action_pair["component_overrides"] = {"Button": {"roles.fill": "$role.action.destructive"}}
+        with self.assertRaisesRegex(ComponentContractError, "assignment-incompatible role"):
+            resolve_component_catalog(wrong_action_pair, self.catalog, self.interface)
+
+        wrong_surface_pair = copy.deepcopy(brand)
+        wrong_surface_pair["component_overrides"] = {"Menu": {"roles.surface": "$role.surface.background"}}
+        with self.assertRaisesRegex(ComponentContractError, "assignment-incompatible role"):
+            resolve_component_catalog(wrong_surface_pair, self.catalog, self.interface)
 
 
 if __name__ == "__main__":

@@ -85,6 +85,64 @@ REQUIRED_KEYBOARD_TERMS = {
     "Card": {"native controls"},
     "EmptyState": {"native button or link"},
 }
+ICON_POLICIES = {"optional", "prohibited", "required"}
+ICON_NAME_POLICIES = {
+    "close-control-required", "content-owned", "decorative-unless-informative",
+    "inherited-from-control", "item-label", "not-name-source", "per-control",
+    "required-on-control", "row-label", "separator-label-required",
+    "status-text-required", "visible-label", "visible-status-text",
+}
+ACCESSIBILITY_ROLES = {
+    "application-landmarks", "article-or-section", "button", "dialog", "group",
+    "listitem", "menu", "native", "section", "separator", "status-or-alert",
+    "status-text", "tabs", "toolbar",
+}
+ACCESSIBILITY_NAMES = {
+    "field-label-required", "heading-required", "heading-when-needed", "landmarks",
+    "message-required", "required", "required-visible-or-aria", "row-label-required",
+    "tablist-required", "title-required", "trigger-required", "visible-label-required",
+    "visible-text-required",
+}
+ACCESSIBILITY_FOCUS = {
+    "action-only", "contained-roving", "delegated-to-control", "global-boundary",
+    "nested-controls", "none", "roving", "self", "single-action-only",
+    "trapped-and-returned",
+}
+ACCESSIBILITY_RELATIONSHIPS = {
+    "control-describedby-message", "dialog-describedby-description",
+    "dialog-labelledby-title", "field-owned", "header-main-overlay",
+    "label-for-control", "panel-labelledby-tab", "section-labelledby-heading",
+    "separator-controls-primary-pane", "tab-controls-panel", "trigger-controls-menu",
+    "viewport-owned-by-app-frame",
+}
+RESPONSIVE_INPUTS = {
+    "forced_colors", "hover", "ime_obstruction", "pointer_precision",
+    "reduced_motion", "safe_area", "text_scale", "titlebar_regions", "touch",
+    "viewport", "window_class",
+}
+RESPONSIVE_COMPACT = {
+    "edge-contained", "full-width", "horizontal-scroll", "minimum-target",
+    "overflow-scroll", "single-column", "stacked", "stacked-or-clamped",
+    "viewport-contained", "wrap", "wrap-label", "wrap-metadata",
+}
+RESPONSIVE_EXPANDED = {
+    "anchor-contained", "bounded", "bounded-content", "centered", "columns",
+    "configured", "corner-contained", "intrinsic", "minimum-target", "resizable",
+}
+OVERRIDE_ROLE_COMPATIBILITY = {
+    ("AppFrame", "background"): {"surface.background"},
+    ("Button", "fill"): {"action.primary"},
+    ("IconButton", "fill"): {"action.primary"},
+    ("Toolbar", "surface"): {"surface.card"},
+    ("Tabs", "selected"): {"action.primary"},
+    ("Menu", "surface"): {"surface.overlay"},
+    ("Dialog", "surface"): {"surface.overlay"},
+    ("FormControls", "surface"): {"surface.background"},
+    ("ListRow", "surface"): {"surface.card"},
+    ("SplitPane", "divider"): {"border.default", "border.strong"},
+    ("Toast", "surface"): {"surface.overlay"},
+    ("Card", "surface"): {"surface.card"},
+}
 SEMVER = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 
 
@@ -99,6 +157,55 @@ def _require(condition, message):
 
 def _read_json(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _require_closed_object(name, dimension, value, keys):
+    _require(isinstance(value, dict) and set(value) == set(keys),
+             "%s %s contract is malformed" % (name, dimension))
+
+
+def _validate_bounded_dimensions(name, recipe, interface_roles):
+    icons = recipe["icons"]
+    _require_closed_object(name, "icons", icons, {"policy", "accessible_name"})
+    _require(icons["policy"] in ICON_POLICIES and icons["accessible_name"] in ICON_NAME_POLICIES,
+             "%s icons contract contains an unknown or raw value" % name)
+
+    accessibility = recipe["accessibility"]
+    _require_closed_object(
+        name, "accessibility", accessibility, {"role", "name", "focus", "relationships"}
+    )
+    _require(accessibility["role"] in ACCESSIBILITY_ROLES,
+             "%s accessibility role is unknown" % name)
+    _require(accessibility["name"] in ACCESSIBILITY_NAMES,
+             "%s accessibility naming contract is unknown" % name)
+    _require(accessibility["focus"] in ACCESSIBILITY_FOCUS,
+             "%s accessibility focus contract is unknown" % name)
+    relationships = accessibility["relationships"]
+    _require(isinstance(relationships, list) and len(relationships) == len(set(relationships)),
+             "%s accessibility relationships are malformed" % name)
+    _require(set(relationships).issubset(ACCESSIBILITY_RELATIONSHIPS),
+             "%s accessibility relationships contain an unknown value" % name)
+
+    motion = recipe["motion"]
+    _require_closed_object(name, "motion", motion, {"standard", "reduced"})
+    for key, reference in motion.items():
+        _require(isinstance(reference, str) and reference.startswith("$role."),
+                 "%s motion %s must use an Interface Canon role reference" % (name, key))
+        role = reference[len("$role."):]
+        _require(role in interface_roles and role.startswith("motion."),
+                 "%s motion %s references an incompatible role" % (name, key))
+
+    responsive = recipe["responsive"]
+    _require_closed_object(name, "responsive", responsive, {"inputs", "compact", "expanded"})
+    inputs = responsive["inputs"]
+    _require(isinstance(inputs, list) and inputs and len(inputs) == len(set(inputs)),
+             "%s responsive inputs are malformed" % name)
+    _require(set(inputs).issubset(RESPONSIVE_INPUTS),
+             "%s responsive inputs contain an unknown value" % name)
+    _require(responsive["compact"] in RESPONSIVE_COMPACT,
+             "%s responsive compact behavior is unknown or raw" % name)
+    _require(responsive["expanded"] in RESPONSIVE_EXPANDED,
+             "%s responsive expanded behavior is unknown or raw" % name)
 
 
 def load_component_catalog(path=None):
@@ -156,21 +263,19 @@ def _validate_recipe(name, recipe, interface_roles, minimum_target):
         _require(target["minimum"] == 0, "%s non-interactive target must be zero" % name)
     _require(recipe["owner"] in {"server", "client", "app-frame"},
              "%s owner is unsupported" % name)
-    _require(isinstance(recipe["accessibility"], dict) and recipe["accessibility"].get("name"),
-             "%s accessibility naming contract is missing" % name)
     if name == "IconButton":
         _require(recipe["accessibility"]["name"] == "required",
                  "IconButton requires an accessible name")
         _require(recipe["icons"].get("policy") == "required",
                  "IconButton requires an icon")
+    _validate_bounded_dimensions(name, recipe, interface_roles)
     for override in recipe["overrides"]:
         _require(not any(override == root or override.startswith(root + ".") for root in INVARIANT_OVERRIDE_ROOTS),
                  "%s declares invariant override %s" % (name, override))
         _require(override.startswith("roles."), "%s override must target an expressive role" % name)
         _require(override[len("roles."):] in recipe["roles"],
                  "%s override targets an unknown assignment" % name)
-    motion = recipe["motion"]
-    _require(motion.get("reduced") == "$role.motion.reduced",
+    _require(recipe["motion"]["reduced"] == "$role.motion.reduced",
              "%s must preserve the reduced-motion invariant" % name)
 
 
@@ -263,6 +368,11 @@ def resolve_component_catalog(brand, catalog=None, interface_canon=None):
             role = value[len("$role."):]
             _require(role in set(interface_canon.get("role_catalog", [])),
                      "%s override %s references unknown role %s" % (component, key, role))
+            assignment = key[len("roles."):]
+            compatible = OVERRIDE_ROLE_COMPATIBILITY.get((component, assignment), set())
+            _require(role in compatible,
+                     "%s override %s uses assignment-incompatible role %s" %
+                     (component, key, role))
     return {
         "id": catalog["id"],
         "kind": "resolved-component-recipes",

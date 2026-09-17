@@ -62,6 +62,8 @@ class WebReactAdapterTests(unittest.TestCase):
             self.assertIn("window.innerHeight - viewport.height - viewport.offsetTop", client)
             self.assertIn('viewport?.addEventListener("scroll", update)', client)
             self.assertIn("event.preventDefault()", client)
+            self.assertIn("const primaryId = useId()", client)
+            self.assertIn("aria-controls={primaryId}", client)
 
     def test_tokens_are_react_free_and_component_css_uses_semantic_namespace(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -79,6 +81,8 @@ class WebReactAdapterTests(unittest.TestCase):
             self.assertIn("block-size: 100dvh", css)
             self.assertIn("overflow: hidden", css)
             self.assertIn("body:has(.bb-app-frame)", css)
+            self.assertIn("var(--bb-host-titlebar-block-end, 0rem)", css)
+            self.assertIn("var(--bb-ime-block-end, 0rem)", css)
             self.assertIn(".bb-app-frame__content { box-sizing: border-box", css)
             self.assertIn("overflow-wrap: anywhere", css)
             self.assertIn('.bb-field__control:not([type="checkbox"]):not([type="radio"]) { inline-size: 100%; }', css)
@@ -104,6 +108,7 @@ class WebReactAdapterTests(unittest.TestCase):
             for marker in (
                 'data-bb-app-frame', 'role="tablist"', 'role="menu"', '<dialog',
                 'role="separator"', 'aria-live="polite"', 'data-bb-overlay-root',
+                'aria-controls="specimen-primary-pane"',
                 "prefers-reduced-motion", "forced-colors", "visualViewport",
             ):
                 self.assertIn(marker, specimen)

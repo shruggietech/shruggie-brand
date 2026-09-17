@@ -226,9 +226,13 @@ try {
     await page.keyboard.press('End');
     check(await page.locator('[role="separator"]').getAttribute('aria-valuenow') === '90', 'generated SplitPane does not implement End');
     await page.evaluate(() => { document.documentElement.style.setProperty('--bb-host-titlebar-block-end', '32px'); document.documentElement.style.setProperty('--bb-ime-block-end', '340px'); document.documentElement.style.fontSize = '200%'; });
-    const frameInsets = await page.locator('[data-bb-app-frame]').evaluate((frame) => ({ top: getComputedStyle(frame).paddingTop, scrollBottom: getComputedStyle(frame.querySelector('.bb-app-frame__scroll')).paddingBottom }));
+    const frameInsets = await page.locator('[data-bb-app-frame]').evaluate((frame) => { const overlay = frame.querySelector('[data-bb-overlay-root]'); return { top: getComputedStyle(frame).paddingTop, scrollBottom: getComputedStyle(frame.querySelector('.bb-app-frame__scroll')).paddingBottom, overlayTop: getComputedStyle(overlay).top, overlayBottom: getComputedStyle(overlay).bottom }; });
     check(frameInsets.top === '32px', `generated AppFrame does not consume the declared titlebar inset exactly once (${frameInsets.top})`);
     check(frameInsets.scrollBottom === '340px', `generated AppFrame does not expose IME obstruction to the scroll owner (${frameInsets.scrollBottom})`);
+    check(frameInsets.overlayTop === '32px', `generated AppFrame portal root overlaps the host titlebar (${frameInsets.overlayTop})`);
+    check(frameInsets.overlayBottom === '340px', `generated AppFrame portal root overlaps the IME obstruction (${frameInsets.overlayBottom})`);
+    const separatorControls = await page.locator('[role="separator"]').evaluate((separator) => { const id = separator.getAttribute('aria-controls'); return Boolean(id && document.getElementById(id)); });
+    check(separatorControls, 'generated SplitPane separator does not reference its controlled primary pane');
     await page.setViewportSize({ width: 360, height: 800 });
     const scaledLayout = await page.evaluate(() => { const scroll = document.querySelector('.bb-app-frame__scroll'); return { overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, scrollOverflow: scroll.scrollWidth - scroll.clientWidth, controls: [...document.querySelectorAll('.bb-control')].filter((control) => control.getClientRects().length > 0).map((control) => { const box = control.getBoundingClientRect(); return { width: box.width, height: box.height }; }) }; });
     check(scaledLayout.overflow <= 1, `generated specimen overflows at 200% text and 360px (${scaledLayout.overflow}px)`);
