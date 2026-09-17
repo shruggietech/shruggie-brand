@@ -23,6 +23,7 @@ ROLE = re.compile(r"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$")
 REFERENCE = re.compile(r"^\$(primitive|alias|brand|brand_canon|resolved)\.([A-Za-z0-9_.-]+)$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 ZIP_TIME = (2026, 9, 17, 0, 0, 0)
+GENERATED_DIRECTORIES = {"__pycache__", "node_modules", ".venv", "venv"}
 BACKWARD_BRAND_DEFAULTS = {
     "surfaces.base": "#000000",
     "surfaces.card": "#111111",
@@ -420,7 +421,7 @@ def write_deterministic_skill_bundle(destination, skill_root=None):
     with zipfile.ZipFile(str(destination), "w") as archive:
         for path in sorted(item for item in skill_root.rglob("*") if item.is_file()):
             relative = path.relative_to(skill_root).as_posix()
-            if "__pycache__" in path.parts or path.suffix == ".pyc":
+            if GENERATED_DIRECTORIES.intersection(path.relative_to(skill_root).parts) or path.suffix == ".pyc":
                 continue
             _zip_add(archive, relative, path.read_bytes())
     return hashlib.sha256(destination.read_bytes()).hexdigest()

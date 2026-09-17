@@ -9,6 +9,7 @@ import json
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 
@@ -28,6 +29,7 @@ from interface_contract import (
     validate_interface_canon,
     validate_runtime_profile,
     verify_consumer_contract,
+    write_deterministic_skill_bundle,
 )
 
 
@@ -143,6 +145,25 @@ class RoutingTests(unittest.TestCase):
 
 
 class ConsumerContractTests(unittest.TestCase):
+    def test_recovery_bundle_excludes_host_generated_dependency_and_cache_trees(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            skill = root / "skill"
+            (skill / "references").mkdir(parents=True)
+            (skill / "node_modules" / "package").mkdir(parents=True)
+            (skill / "templates" / "__pycache__").mkdir(parents=True)
+            (skill / "SKILL.md").write_text("source\n", encoding="utf-8")
+            (skill / "references" / "canon.json").write_text("{}\n", encoding="utf-8")
+            (skill / "node_modules" / "package" / "host.js").write_text("host state\n", encoding="utf-8")
+            (skill / "templates" / "__pycache__" / "host.pyc").write_bytes(b"host state")
+            destination = root / "recovery.skill"
+            first = write_deterministic_skill_bundle(destination, skill_root=skill)
+            (skill / "node_modules" / "package" / "host.js").write_text("changed host state\n", encoding="utf-8")
+            second = write_deterministic_skill_bundle(destination, skill_root=skill)
+            self.assertEqual(first, second)
+            with zipfile.ZipFile(destination) as archive:
+                self.assertEqual({"SKILL.md", "references/canon.json"}, set(archive.namelist()))
+
     def test_governed_block_merge_preserves_human_content_and_rejects_malformed_markers(self):
         block = "%s\nnew governed content\n%s" % (BEGIN_MARKER, END_MARKER)
         existing = "# Human instructions\n\nkeep before\n\n%s\nold\n%s\n\nkeep after\n\n" % (BEGIN_MARKER, END_MARKER)

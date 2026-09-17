@@ -17,6 +17,21 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackageReleaseTests(unittest.TestCase):
+    def test_tree_packaging_excludes_host_generated_dependency_and_cache_trees(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            (source / "node_modules" / "package").mkdir(parents=True)
+            (source / "templates" / "__pycache__").mkdir(parents=True)
+            (source / "SKILL.md").write_text("source\n", encoding="utf-8")
+            (source / "node_modules" / "package" / "host.js").write_text("host state\n", encoding="utf-8")
+            (source / "templates" / "__pycache__" / "host.pyc").write_bytes(b"host state")
+            archive_path = root / "skill.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                package_release.add_tree(archive, source)
+            with zipfile.ZipFile(archive_path) as archive:
+                self.assertEqual(["SKILL.md"], archive.namelist())
+
     def make_brand_source(self, root: Path) -> Path:
         for name in package_release.LICENSES:
             (root / name).write_text(name + "\n", encoding="utf-8")

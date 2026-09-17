@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "skill"
 OUTPUT = ROOT / "release"
 ZIP_TIME = (2026, 9, 3, 0, 0, 0)
+GENERATED_DIRECTORIES = {"__pycache__", "node_modules", ".venv", "venv"}
 
 
 def add_bytes(archive: zipfile.ZipFile, name: str, data: bytes) -> None:
@@ -36,7 +37,8 @@ def add_tree(archive: zipfile.ZipFile, root: Path, *, omit: set[str] | None = No
     omit = omit or set()
     for path in sorted(item for item in root.rglob("*") if item.is_file()):
         relative = path.relative_to(root).as_posix()
-        if relative in omit or "__pycache__" in path.parts:
+        if (relative in omit or GENERATED_DIRECTORIES.intersection(path.relative_to(root).parts)
+                or path.suffix == ".pyc"):
             continue
         add_bytes(archive, relative, path.read_bytes())
 
