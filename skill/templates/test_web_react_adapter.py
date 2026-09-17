@@ -55,6 +55,7 @@ class WebReactAdapterTests(unittest.TestCase):
             self.assertNotIn("asChild", client)
             self.assertIn("setPointerCapture", client)
             self.assertIn("releasePointerCapture", client)
+            self.assertIn('orientation === "horizontal" ? "vertical" : "horizontal"', client)
 
     def test_tokens_are_react_free_and_component_css_uses_semantic_namespace(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -69,6 +70,14 @@ class WebReactAdapterTests(unittest.TestCase):
             self.assertIn("var(--bb-interaction-target-minimum)", css)
             self.assertIn("@media (forced-colors: active)", css)
             self.assertIn("@media (prefers-reduced-motion: reduce)", css)
+            self.assertIn("block-size: 100dvh", css)
+            self.assertIn("overflow: hidden", css)
+            self.assertIn("body:has(.bb-app-frame)", css)
+            self.assertIn(".bb-button--destructive { background: var(--bb-action-destructive); color: var(--bb-text-on-destructive); }", css)
+            self.assertIn(".bb-menu { background: var(--bb-surface-overlay); color: var(--bb-text-primary); }", css)
+            self.assertIn(".bb-dialog { background: var(--bb-surface-overlay); color: var(--bb-text-primary); }", css)
+            self.assertIn(".bb-toast { background: var(--bb-surface-overlay); color: var(--bb-text-primary); }", css)
+            self.assertIn(".bb-field__control { background: var(--bb-surface-background); color: var(--bb-text-primary); }", css)
 
     def test_app_frame_profiles_are_emitted_with_one_owner(self):
         with tempfile.TemporaryDirectory() as temporary:

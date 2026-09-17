@@ -89,6 +89,16 @@ class ComponentCatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(ComponentContractError, "Button.*invariant override"):
             validate_component_catalog(override, self.interface)
 
+        empty_keyboard = copy.deepcopy(self.catalog)
+        empty_keyboard["components"]["Button"]["keyboard"] = []
+        with self.assertRaisesRegex(ComponentContractError, "keyboard"):
+            validate_component_catalog(empty_keyboard, self.interface)
+
+        incomplete_keyboard = copy.deepcopy(self.catalog)
+        incomplete_keyboard["components"]["Button"]["keyboard"] = ["Space activates"]
+        with self.assertRaisesRegex(ComponentContractError, "Button keyboard contract is missing enter"):
+            validate_component_catalog(incomplete_keyboard, self.interface)
+
     def test_app_frame_profiles_have_exactly_one_owner(self):
         validate_app_frame_profiles(self.catalog["app_frame_profiles"])
         for profile in self.catalog["app_frame_profiles"]:
@@ -110,6 +120,11 @@ class ComponentCatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(ComponentContractError, "host handoff"):
             validate_app_frame_profiles(handoff)
 
+        repeated_profile = copy.deepcopy(self.catalog["app_frame_profiles"])
+        repeated_profile.append(copy.deepcopy(repeated_profile[0]))
+        with self.assertRaisesRegex(ComponentContractError, "must contain browser, tauri, and wails"):
+            validate_app_frame_profiles(repeated_profile)
+
     def test_resolved_catalog_is_deterministic_and_brand_safe(self):
         brand_path = ROOT / "brands" / "shruggietech" / "brand.json"
         brand = json.loads(brand_path.read_text(encoding="utf-8"))
@@ -124,6 +139,11 @@ class ComponentCatalogTests(unittest.TestCase):
         unsafe["component_overrides"] = {"Button": {"keyboard": ["none"]}}
         with self.assertRaisesRegex(ComponentContractError, "invariant override"):
             resolve_component_catalog(unsafe, self.catalog, self.interface)
+
+        unknown_role = copy.deepcopy(brand)
+        unknown_role["component_overrides"] = {"Button": {"roles.fill": "$role.this.does_not_exist"}}
+        with self.assertRaisesRegex(ComponentContractError, "references unknown role"):
+            resolve_component_catalog(unknown_role, self.catalog, self.interface)
 
 
 if __name__ == "__main__":

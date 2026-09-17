@@ -68,6 +68,23 @@ EXPECTED_VARIANTS = {
     "Card": {"plain", "outlined", "elevated"},
     "EmptyState": {"informational", "actionable"},
 }
+REQUIRED_KEYBOARD_TERMS = {
+    "AppFrame": {"tab", "skip link"},
+    "Button": {"enter", "space"},
+    "IconButton": {"enter", "space"},
+    "Toolbar": {"arrow", "home", "end"},
+    "Tabs": {"arrow", "home", "end", "enter", "space"},
+    "Menu": {"arrow", "home", "end", "typeahead", "escape"},
+    "Dialog": {"tab", "escape", "focus"},
+    "Field": {"label", "focus"},
+    "FormControls": {"native", "space"},
+    "ListRow": {"native", "selection", "activation"},
+    "SplitPane": {"arrow", "home", "end"},
+    "Toast": {"tab", "escape", "focus"},
+    "StatusBadge": {"no special keyboard interaction"},
+    "Card": {"native controls"},
+    "EmptyState": {"native button or link"},
+}
 SEMVER = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 
 
@@ -101,6 +118,15 @@ def _validate_recipe(name, recipe, interface_roles, minimum_target):
     for field in ("variants", "densities", "states", "keyboard", "overrides", "verification"):
         _require(isinstance(recipe[field], list), "%s %s must be an array" % (name, field))
         _require(len(recipe[field]) == len(set(recipe[field])), "%s %s repeats values" % (name, field))
+    keyboard_contract = " ".join(recipe["keyboard"]).lower()
+    _require(recipe["keyboard"], "%s keyboard contract must not be empty" % name)
+    missing_keyboard = REQUIRED_KEYBOARD_TERMS[name] - {
+        term for term in REQUIRED_KEYBOARD_TERMS[name] if term in keyboard_contract
+    }
+    if missing_keyboard:
+        raise ComponentContractError(
+            "%s keyboard contract is missing %s behavior" % (name, sorted(missing_keyboard)[0])
+        )
     states = set(recipe["states"])
     missing_states = MINIMUM_STATES[name] - states
     unknown_states = states - MINIMUM_STATES[name]
@@ -149,7 +175,8 @@ def _validate_recipe(name, recipe, interface_roles, minimum_target):
 
 
 def validate_app_frame_profiles(profiles):
-    _require(isinstance(profiles, list) and {p.get("profile") for p in profiles} == {"browser", "tauri", "wails"},
+    names = [p.get("profile") for p in profiles] if isinstance(profiles, list) else []
+    _require(len(names) == 3 and len(names) == len(set(names)) and set(names) == {"browser", "tauri", "wails"},
              "AppFrame profiles must contain browser, tauri, and wails")
     for profile in profiles:
         name = profile.get("profile", "unknown")
@@ -233,6 +260,9 @@ def resolve_component_catalog(brand, catalog=None, interface_canon=None):
             _require(key in allowed, "%s declares invariant override %s" % (component, key))
             _require(isinstance(value, str) and value.startswith("$role."),
                      "%s override %s must use a semantic role" % (component, key))
+            role = value[len("$role."):]
+            _require(role in set(interface_canon.get("role_catalog", [])),
+                     "%s override %s references unknown role %s" % (component, key, role))
     return {
         "id": catalog["id"],
         "kind": "resolved-component-recipes",

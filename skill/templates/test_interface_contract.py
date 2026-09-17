@@ -87,6 +87,7 @@ class InterfaceCanonTests(unittest.TestCase):
         tour_roles = resolve_interface_contract(tour, canon=self.canon)["roles_by_theme"]["light"]
         self.assertEqual(tour["accent"]["accessible"], tour_roles["text.muted"])
         self.assertNotEqual(tour["accent"]["dim"], tour_roles["text.muted"])
+        self.assertEqual("#000000", tour_roles["text.on_destructive"])
 
         glitchpad = read_json(ROOT / "brands" / "glitchpad" / "brand.json")
         glitchpad_roles = resolve_interface_contract(glitchpad, canon=self.canon)["roles_by_theme"]["dark"]

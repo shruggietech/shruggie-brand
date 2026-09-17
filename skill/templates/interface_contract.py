@@ -311,6 +311,7 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
             "action": semantic["action"],
             "emphasis": semantic["emphasis"],
             "action_foreground": _legal_foreground(semantic["action"]),
+            "destructive_foreground": _legal_foreground(brand_canon["color"]["immutable"]["fault"]["hex"]),
             "accent": accent,
             "accent_foreground": _legal_foreground(accent),
             "muted": _legal_muted(brand, background, theme, canon["invariants"]["minimum_text_contrast"]),

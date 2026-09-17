@@ -29,7 +29,7 @@
     "density.default", "density.compact",
     "typography.display.family", "typography.body.family", "typography.mono.family", "typography.label.weight",
     "surface.background", "surface.card", "surface.overlay",
-    "text.primary", "text.muted", "text.on_action", "text.on_accent",
+    "text.primary", "text.muted", "text.on_action", "text.on_accent", "text.on_destructive",
     "action.primary", "action.emphasis", "action.destructive",
     "border.default", "border.strong",
     "focus.ring", "focus.width", "focus.offset",
@@ -43,7 +43,7 @@
     "density.default", "density.compact",
     "typography.display.family", "typography.body.family", "typography.mono.family", "typography.label.weight",
     "surface.background", "surface.card", "surface.overlay",
-    "text.primary", "text.muted", "text.on_action", "text.on_accent",
+    "text.primary", "text.muted", "text.on_action", "text.on_accent", "text.on_destructive",
     "action.primary", "action.emphasis", "action.destructive",
     "border.default", "border.strong",
     "focus.ring", "focus.width", "focus.offset",
@@ -67,6 +67,7 @@
     "text.muted": "$brand.accent.dim",
     "text.on_action": "$resolved.action_foreground",
     "text.on_accent": "$resolved.accent_foreground",
+    "text.on_destructive": "$resolved.destructive_foreground",
     "action.primary": "$resolved.action",
     "action.emphasis": "$resolved.emphasis",
     "action.destructive": "$brand_canon.color.immutable.fault.hex",
@@ -139,6 +140,7 @@
     {"id": "primary-text", "foreground": "text.primary", "background": "surface.background", "minimum_contrast": 4.5},
     {"id": "muted-text", "foreground": "text.muted", "background": "surface.background", "minimum_contrast": 4.5},
     {"id": "action-fill", "foreground": "text.on_action", "background": "action.primary", "minimum_contrast": 4.5},
+    {"id": "destructive-fill", "foreground": "text.on_destructive", "background": "action.destructive", "minimum_contrast": 4.5},
     {"id": "accent-fill", "foreground": "text.on_accent", "background": "focus.ring", "minimum_contrast": 4.5},
     {"id": "focus-indicator", "foreground": "focus.ring", "background": "surface.background", "minimum_contrast": 3.0}
   ]

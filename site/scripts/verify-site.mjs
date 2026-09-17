@@ -189,6 +189,23 @@ try {
     check(axe.violations.length === 0, `generated adapter specimen has axe violations: ${axe.violations.map((violation) => `${violation.id} (${violation.nodes.map((node) => `${node.target.join(' ')}: ${node.failureSummary ?? 'no detail'}`).join('; ')})`).join(', ')}`);
     check(await page.locator('[data-bb-app-frame]').count() === 1, 'generated adapter specimen lacks exactly one AppFrame');
     check(await page.locator('[data-bb-overlay-root]').count() === 1, 'generated adapter specimen lacks exactly one AppFrame overlay root');
+    const scrollOwnership = await page.locator('[data-bb-app-frame]').evaluate((frame) => {
+      const scroll = frame.querySelector('.bb-app-frame__scroll');
+      const spacer = document.createElement('div');
+      spacer.style.blockSize = '200dvh';
+      scroll.append(spacer);
+      const result = {
+        documentOverflow: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+        frameHeight: frame.getBoundingClientRect().height,
+        viewportHeight: window.innerHeight,
+        frameCanScroll: scroll.scrollHeight > scroll.clientHeight,
+      };
+      spacer.remove();
+      return result;
+    });
+    check(scrollOwnership.documentOverflow <= 1, `generated AppFrame leaks scrolling to the document (${scrollOwnership.documentOverflow}px)`);
+    check(Math.abs(scrollOwnership.frameHeight - scrollOwnership.viewportHeight) <= 1, `generated AppFrame does not fit the viewport (${scrollOwnership.frameHeight}px versus ${scrollOwnership.viewportHeight}px)`);
+    check(scrollOwnership.frameCanScroll, 'generated AppFrame scroll row does not own overflowing content');
     const undersized = await page.locator('.bb-control').evaluateAll((controls) => controls.filter((control) => control.getClientRects().length > 0).map((control) => { const box = control.getBoundingClientRect(); return { label: control.textContent?.trim() || control.getAttribute('aria-label'), width: box.width, height: box.height }; }).filter(({ width, height }) => width < 44 || height < 44));
     check(undersized.length === 0, `generated adapter specimen has undersized controls: ${JSON.stringify(undersized)}`);
     await page.locator('#tab-one').focus();
