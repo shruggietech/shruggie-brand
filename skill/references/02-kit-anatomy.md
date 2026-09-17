@@ -63,8 +63,17 @@ because that is what the agent's hands already know.
                                     Input Textarea Select, plus domain components
 
   enforcement/                 R N  ---- THE TEETH ----
-    AGENTS.md                       the agent contract. Read before any UI work.
-    adherence.oxlintrc.json         generated per brand: raw hex banned, raw px
+    AGENTS.md                       concise governed block, merged without
+                                    replacing unrelated human instructions
+    IMPLEMENTATION.md               complete brand-specific implementation contract
+    consumer-contract.json          exact brand, canon, interface, compiler,
+                                    renderer, host, provenance, and recovery
+    interface-canon.json            exact renderer-neutral canon used by the kit
+    interface-canon.schema.json     authoring schema for the delivered canon
+    consumer-contract.schema.json   machine schema for the consumer manifest
+    capability-gap.example.json     local reusable-gap record, submission false
+    distributions/                  checksummed exact offline BrandBuilder bundle
+    eslint.brand.mjs                generated per brand: raw hex banned, raw px
                                     banned, per-component prop allowlists
     stylelint.config.json           the CSS-side equivalent
 
@@ -145,9 +154,7 @@ bought nothing.
 
 ### `enforcement/AGENTS.md`
 
-Short, blunt, and read before any UI work. It states the token vocabulary, the
-component vocabulary, and the stop condition: if you need a value that is not
-here, stop and ask rather than inventing one.
+Short, blunt, and read before any UI work. One marker-bounded governed block names the exact contract, deeper guidance, verification commands, authority precedence, and offline recovery bundle. Regeneration replaces exactly that block and preserves unrelated human instructions. The full token and component vocabulary lives in `IMPLEMENTATION.md`.
 
 ### `fonts/`
 

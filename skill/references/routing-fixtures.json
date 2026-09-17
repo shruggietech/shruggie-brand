@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {
+      "id": "author-canon-change",
+      "request": "Add a semantic role to the shared Interface Canon.",
+      "signals": {"governed_source_change": true, "consumer_change": false, "assessment": false, "mutation_authorized": true, "remediation_authorized": false, "identity_redesign": false, "upstream_submission": false, "pinned_contract_present": true, "skill_present": true},
+      "expected_mode": "author",
+      "requires_clarification": false
+    },
+    {
+      "id": "implementation-existing-brand",
+      "request": "Style this existing product using the pinned Covarity brand kit.",
+      "signals": {"governed_source_change": false, "consumer_change": true, "assessment": false, "mutation_authorized": true, "remediation_authorized": false, "identity_redesign": false, "upstream_submission": false, "pinned_contract_present": true, "skill_present": true},
+      "expected_mode": "implementation",
+      "requires_clarification": false
+    },
+    {
+      "id": "implementation-missing-skill",
+      "request": "Apply the delivered kit, but BrandBuilder is not installed on this host.",
+      "signals": {"governed_source_change": false, "consumer_change": true, "assessment": false, "mutation_authorized": true, "remediation_authorized": false, "identity_redesign": false, "upstream_submission": false, "pinned_contract_present": true, "skill_present": false},
+      "expected_mode": "implementation",
+      "requires_clarification": false
+    },
+    {
+      "id": "implementation-missing-contract",
+      "request": "Apply branding to this consumer, but no pinned consumer contract was provided.",
+      "signals": {"governed_source_change": false, "consumer_change": true, "assessment": false, "mutation_authorized": true, "remediation_authorized": false, "identity_redesign": false, "upstream_submission": false, "pinned_contract_present": false, "skill_present": true},
+      "expected_mode": null,
+      "requires_clarification": true
+    },
+    {
+      "id": "audit-conformance",
+      "request": "Audit this consumer for conformance and report findings only.",
+      "signals": {"governed_source_change": false, "consumer_change": false, "assessment": true, "mutation_authorized": false, "remediation_authorized": false, "identity_redesign": false, "upstream_submission": false, "pinned_contract_present": true, "skill_present": true},
+      "expected_mode": "audit",
+      "requires_clarification": false
+    },
+    {
+      "id": "conflict-audit-remediation",
+      "request": "Audit the consumer and fix anything you find, but do not change files.",
+      "signals": {"governed_source_change": false, "consumer_change": true, "assessment": true, "mutation_authorized": false, "remediation_authorized": false, "identity_redesign": false, "upstream_submission": false, "pinned_contract_present": true, "skill_present": true},
+      "expected_mode": null,
+      "requires_clarification": true
+    },
+    {
+      "id": "conflict-implementation-redesign",
+      "request": "Apply the pinned system and redesign the logo while you are there.",
+      "signals": {"governed_source_change": false, "consumer_change": true, "assessment": false, "mutation_authorized": true, "remediation_authorized": false, "identity_redesign": true, "upstream_submission": false, "pinned_contract_present": true, "skill_present": true},
+      "expected_mode": null,
+      "requires_clarification": true
+    },
+    {
+      "id": "conflict-upstream-submission",
+      "request": "File an upstream capability issue from this local implementation task.",
+      "signals": {"governed_source_change": false, "consumer_change": true, "assessment": false, "mutation_authorized": false, "remediation_authorized": false, "identity_redesign": false, "upstream_submission": true, "pinned_contract_present": true, "skill_present": true},
+      "expected_mode": null,
+      "requires_clarification": true
+    }
+  ]
+}

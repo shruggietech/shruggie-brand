@@ -18,7 +18,7 @@ def main():
     except (ContractError, OSError, ValueError) as error:
         print("contract failure: %s" % error, file=sys.stderr)
         return 1
-    print("validated %s affiliation, typography, and %d palette evidence record(s)" % (brand["slug"], len(evidence)))
+    print("validated %s affiliation, interface, typography, and %d palette evidence record(s)" % (brand["slug"], len(evidence)))
     return 0
 
 

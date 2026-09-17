@@ -98,6 +98,8 @@ skip reads as "not applicable" rather than "your favicon is broken".
 
 Assume there is none. Nothing in routine generation, verification, documentation, site preparation, or release packaging may require a network call. Controlled font ingestion is a separate operator-invoked preparation action and never runs implicitly.
 
+Every generated kit also carries the exact pinned BrandBuilder distribution under `enforcement/distributions/`. `enforcement/consumer-contract.json` records its filename, compiler version, contained path, and SHA-256. A fresh consumer verifies and uses these delivered bytes before considering an authorized exact-version network recovery. It never installs an unspecified latest release.
+
 ## Frontmatter and entry points
 
 Different hosts read different things, so the skill ships both:
@@ -109,6 +111,8 @@ Different hosts read different things, so the skill ships both:
   same thing in the same order. This is what a Codex or an agent working from a
   bare checkout reads. It must stay in step with `SKILL.md`: when the routing
   table changes, both change.
+
+The same contextual Author, Implementation, and Audit policy appears in both entry points because `AGENTS.md` is regenerated from `SKILL.md`. Consumer kits carry a separate concise governed block that points to their exact generated `IMPLEMENTATION.md` and consumer contract.
 
 Write instructions as file paths and shell commands, not as tool names. "Read
 `references/08-glyph-construction.md`" works everywhere. "Use the Read tool on"

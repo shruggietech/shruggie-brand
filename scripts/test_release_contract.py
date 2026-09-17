@@ -2,6 +2,7 @@
 """Regression tests for release metadata and archive certification."""
 
 import hashlib
+import io
 import json
 import tempfile
 import unittest
@@ -24,16 +25,78 @@ def write_zip(path, entries):
 
 def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
                           extra_entries=None, recorded_entries=None):
-    brand = {"slug": slug, "version": version, "canon": canon}
+    brand = {"slug": slug, "title": slug.title(), "version": version, "canon": canon}
+    consumer_schema = (ROOT / "skill" / "references" / "consumer-contract.schema.json").read_bytes()
+    bundle_buffer = io.BytesIO()
+    with zipfile.ZipFile(bundle_buffer, "w") as bundle:
+        bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 1.2.1\n  canon: %s\n  interface-canon: 1.0.0\n---\n" % canon)
+        bundle.writestr("AGENTS.md", "instructions\n")
+        bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
+        bundle.writestr("references/consumer-contract.schema.json", consumer_schema)
+        bundle.writestr("templates/verify.py", "# verifier\n")
+        bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")
+    bundle = bundle_buffer.getvalue()
+    begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
+    end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
+    distribution = "enforcement/distributions/shruggie-brandbuilder-1.2.1.skill"
     values = {
         "brand.json": json.dumps(brand).encode("utf-8"),
         "VERIFY.md": b"verification",
         "brand-guide.pdf": b"%PDF-1.4\n",
+        "enforcement/AGENTS.md": (begin + "\ncontract\n" + end + "\n").encode("utf-8"),
+        "enforcement/IMPLEMENTATION.md": b"# Implementation\n",
+        "enforcement/interface-canon.json": json.dumps({"version": "1.0.0"}).encode("utf-8"),
+        "enforcement/interface-canon.schema.json": b"{}\n",
+        "enforcement/consumer-contract.schema.json": consumer_schema,
+        "enforcement/capability-gap.example.json": json.dumps({"submission_authorized": False}).encode("utf-8"),
+        distribution: bundle,
     }
     values.update({name: name.encode("utf-8") for name in LICENSES})
     values.update(extra_entries or {})
+    provenance_names = [
+        "brand.json", "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
+        "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
+        "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
+    ]
+    consumer = {
+        "schema_version": 1,
+        "brand": {"slug": slug, "title": slug.title(), "affiliation": None, "brand_version": version},
+        "versions": {"brand_version": version, "canon_version": canon, "interface_canon_version": "1.0.0", "compiler_version": "1.2.1"},
+        "version_semantics": {
+            "brand_version": "Brand version.", "canon_version": "Brand Canon version.",
+            "interface_canon_version": "Interface Canon version.", "compiler_version": "Compiler version.",
+        },
+        "environment": {
+            "renderer": "renderer-neutral", "host": "none", "supported_targets": ["web"],
+            "viewport_profiles": ["compact"], "adapter_versions": {"vanilla": "1.2.1"},
+        },
+        "authority": {
+            "brand_source": "brand.json", "interface_canon": "enforcement/interface-canon.json",
+            "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"],
+            "permitted_exceptions": [],
+        },
+        "verification": {
+            "entry_points": ["python3 enforcement/brandbuilder/templates/verify.py .", "python3 enforcement/brandbuilder/templates/validate_glyph.py brand.json"],
+            "success": "zero failures",
+        },
+        "recovery": {
+            "distribution": "shruggie-brandbuilder-1.2.1.skill",
+            "path": distribution,
+            "sha256": hashlib.sha256(bundle).hexdigest(),
+            "extract_to": "enforcement/brandbuilder",
+            "sources": [{"kind": "delivered-bundle", "path": distribution, "network_required": False}],
+            "instruction": "Use exact delivered bytes.",
+        },
+        "provenance": [
+            {"path": name, "bytes": len(values[name]), "sha256": hashlib.sha256(values[name]).hexdigest()}
+            for name in provenance_names
+        ],
+        "capability_gap": {"template_path": "enforcement/capability-gap.example.json", "submission_requires_authorization": True},
+    }
+    values["enforcement/consumer-contract.json"] = json.dumps(consumer).encode("utf-8")
+    always_recorded = set(provenance_names) | {"enforcement/consumer-contract.json"}
     files = []
-    for name in recorded_entries or ():
+    for name in sorted(always_recorded | set(recorded_entries or ())):
         value = values[name]
         files.append({"path": name, "bytes": len(value),
                       "sha256": hashlib.sha256(value).hexdigest()})
@@ -44,6 +107,17 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "files": files,
     }).encode("utf-8")
     return values
+
+
+def replace_consumer(entries, consumer):
+    consumer_bytes = json.dumps(consumer).encode("utf-8")
+    entries["enforcement/consumer-contract.json"] = consumer_bytes
+    manifest = json.loads(entries["manifest.json"].decode("utf-8"))
+    for item in manifest["files"]:
+        if item["path"] == "enforcement/consumer-contract.json":
+            item["bytes"] = len(consumer_bytes)
+            item["sha256"] = hashlib.sha256(consumer_bytes).hexdigest()
+    entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
 
 
 class ReleaseContractTests(unittest.TestCase):
@@ -185,23 +259,12 @@ class ReleaseContractTests(unittest.TestCase):
     def test_production_archive_rejects_manifest_checksum_drift(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "fragcap-brand-1.1.0.zip"
-            brand = {"slug": "fragcap", "version": "1.1.0", "canon": "1.1.2"}
             recorded = b"correct"
-            manifest = {
-                "name": "fragcap-brand-kit",
-                "version": "1.1.0",
-                "canon": "1.1.2",
-                "files": [{"path": "tokens.css", "bytes": len(recorded),
-                           "sha256": hashlib.sha256(recorded).hexdigest()}],
-            }
-            entries = {name: name.encode("utf-8") for name in LICENSES}
-            entries.update({
-                "brand.json": json.dumps(brand).encode("utf-8"),
-                "manifest.json": json.dumps(manifest).encode("utf-8"),
-                "VERIFY.md": b"verification",
-                "brand-guide.pdf": b"%PDF-1.4\n",
-                "tokens.css": b"corrupt",
-            })
+            entries = brand_archive_entries(
+                extra_entries={"tokens.css": recorded},
+                recorded_entries=("brand.json", "VERIFY.md", "brand-guide.pdf", "tokens.css"),
+            )
+            entries["tokens.css"] = b"corrupt"
             write_zip(path, entries)
 
             with self.assertRaisesRegex(ValueError, "checksum mismatch"):
@@ -219,6 +282,85 @@ class ReleaseContractTests(unittest.TestCase):
                 release_contract.verify_brand_archive(
                     path, "fragcap", "1.1.0", expected_canon="1.1.2"
                 )
+
+    def test_production_archive_rejects_coordinated_recovery_version_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            bundle_buffer = io.BytesIO()
+            with zipfile.ZipFile(bundle_buffer, "w") as bundle:
+                bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 9.9.9\n  canon: 1.1.2\n  interface-canon: 1.0.0\n---\n")
+                bundle.writestr("AGENTS.md", "instructions\n")
+                bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
+                bundle.writestr("references/consumer-contract.schema.json", (ROOT / "skill" / "references" / "consumer-contract.schema.json").read_bytes())
+                bundle.writestr("templates/verify.py", "# verifier\n")
+                bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")
+            distribution = "enforcement/distributions/shruggie-brandbuilder-1.2.1.skill"
+            entries = brand_archive_entries(extra_entries={distribution: bundle_buffer.getvalue()})
+            consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+            recovery_bytes = entries[distribution]
+            consumer["recovery"]["sha256"] = hashlib.sha256(recovery_bytes).hexdigest()
+            for item in consumer["provenance"]:
+                if item["path"] == distribution:
+                    item["bytes"] = len(recovery_bytes)
+                    item["sha256"] = hashlib.sha256(recovery_bytes).hexdigest()
+            consumer_bytes = json.dumps(consumer).encode("utf-8")
+            entries["enforcement/consumer-contract.json"] = consumer_bytes
+            manifest = json.loads(entries["manifest.json"].decode("utf-8"))
+            for item in manifest["files"]:
+                if item["path"] == "enforcement/consumer-contract.json":
+                    item["bytes"] = len(consumer_bytes)
+                    item["sha256"] = hashlib.sha256(consumer_bytes).hexdigest()
+            entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
+            write_zip(path, entries)
+
+            with self.assertRaisesRegex(ValueError, "recovery compiler_version disagrees"):
+                release_contract.verify_brand_archive(
+                    path, "fragcap", "1.1.0", expected_canon="1.1.2"
+                )
+
+    def test_production_archive_rejects_consumer_contract_schema_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            entries = brand_archive_entries()
+            consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+            consumer["version_semantics"] = {}
+            entries["enforcement/consumer-contract.json"] = json.dumps(consumer).encode("utf-8")
+            write_zip(path, entries)
+
+            with self.assertRaisesRegex(ValueError, "consumer contract schema violation"):
+                release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
+
+    def test_production_archive_binds_complete_consumer_brand_metadata(self):
+        for field, value in (("title", "Impostor"), ("affiliation", {"parent": "false-owner"})):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+                entries = brand_archive_entries()
+                consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+                consumer["brand"][field] = value
+                replace_consumer(entries, consumer)
+                write_zip(path, entries)
+
+                with self.assertRaisesRegex(ValueError, "consumer brand metadata disagrees"):
+                    release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
+
+    def test_production_archive_requires_every_contract_declared_authority_path(self):
+        cases = (
+            ("authority", "brand_source"),
+            ("authority", "instructions"),
+            ("authority", "interface_canon"),
+            ("capability_gap", "template_path"),
+        )
+        for section, field in cases:
+            with self.subTest(section=section, field=field), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+                entries = brand_archive_entries()
+                consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+                consumer[section][field] = "enforcement/missing-%s.json" % field
+                replace_consumer(entries, consumer)
+                write_zip(path, entries)
+
+                with self.assertRaisesRegex(ValueError, "consumer declared .* path is missing"):
+                    release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
 
     def test_production_archive_requires_verification_and_qc_manifest_coverage(self):
         with tempfile.TemporaryDirectory() as tmp:
