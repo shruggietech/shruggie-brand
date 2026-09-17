@@ -10,7 +10,7 @@
 
 ## Chronological verification record
 
-1. The Spec Kit requirements and native/version review checklists completed with every item satisfied. Primary egui 0.36.1, `egui_kittest` 0.36.1, Rust 1.88, and SemVer evidence was recorded before implementation.
+1. The Spec Kit requirements and native/version review checklists completed with every item satisfied. Primary egui 0.36.1, `egui_kittest` 0.36.1, and SemVer evidence was recorded before implementation.
 2. Test-first contracts were added for deterministic native generation, complete recipe coverage, rendered egui state, independent version policy, compatibility failure, recovery integrity, archive authority, and release provenance. The new tests initially failed because the native crate, policy, schema v3 fields, and archive requirements did not exist.
 3. The generator, consumer contract, verification, recovery, release certification, CI, and documentation changes were implemented. Focused suites then passed: 13 interface-contract tests, 5 component-contract tests, 4 Web adapter tests, 3 native adapter tests including generated Cargo execution, 7 package-release tests, and 19 release-contract tests.
 4. Convergence review found that compact density reduced the declared interaction-target floor and that icon-button glyphs retained the wrong accessible name. The generator was corrected so density changes spacing only, every target preserves the governed minimum, and icon buttons publish their explicit accessible label.
@@ -20,6 +20,9 @@
 8. The pinned full pipeline completed 68 tests with zero failures. Expected negative-fixture messages and legacy `ResourceWarning` output remained contained inside passing tests.
 9. All eight production brands rebuilt with Node 24.11.0 for approved proof rendering. Every kit reported `BUILD CLEAN`, zero `verify.py` problems, zero glyph failures, and a generated native egui adapter. No brand source or approved identity geometry changed.
 10. Site lint, static export, Node contract tests, Playwright route checks, and axe WCAG 2.1 AA checks completed against the rebuilt kits. The publication audit found exactly eight governed kit markers and eight governed site markers in a production-only ignored staging tree.
+11. First-round pull-request review identified three fail-closed gaps: release certification still coupled compiler and Brand Canon versions, generated crates required `--locked` without supplying `Cargo.lock`, and an adapter manifest could claim a different compatible compiler version. The release boundary now validates compiler and canon identities independently, generated crates carry and verify a deterministic lockfile, and adapter plus consumer verification bind the compiler identity exactly.
+12. Resolving the dependency graph exposed that the published `egui` 0.36.1 package declares Rust 1.95. The prior 1.88 claim was corrected across generator metadata, Cargo manifests, research, and tests before the review fix was accepted.
+13. The review fixes passed all focused contract suites, the 68-test full pipeline on Node 24.11.0, clean rebuilds of all eight production kits with zero verifier problems, and certification of all nine release assets.
 
 ## Requirement coverage
 

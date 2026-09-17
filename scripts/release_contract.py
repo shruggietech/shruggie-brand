@@ -121,8 +121,9 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
 
     if skill["version"] != version:
         raise ValueError("skill version %s does not match release %s" % (skill["version"], version))
-    if skill["canon"] != version or canon.get("version") != version:
-        raise ValueError("canon version does not match release %s" % version)
+    if skill["canon"] != canon.get("version"):
+        raise ValueError("skill canon %s does not match authoritative canon %s"
+                         % (skill["canon"], canon.get("version")))
     if site.get("version") != version:
         raise ValueError("site package version %s does not match release %s"
                          % (site.get("version"), version))
@@ -174,8 +175,9 @@ def current_version(root: Path) -> str:
     skill = skill_metadata(root / "skill" / "SKILL.md")
     canon = json.loads(read_text(root / "skill" / "references" / "01-canon.json"))
     version = skill["version"]
-    if skill["canon"] != version or canon.get("version") != version:
-        raise ValueError("skill and canon current versions disagree")
+    if skill["canon"] != canon.get("version"):
+        raise ValueError("skill canon %s does not match authoritative canon %s"
+                         % (skill["canon"], canon.get("version")))
     load_metadata(root, version)
     return version
 
@@ -289,7 +291,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         "enforcement/interface-canon.schema.json", "enforcement/component-recipes.json",
         "enforcement/component-recipes.schema.json", "enforcement/version-policy.json", "enforcement/consumer-contract.schema.json",
         "web/adapter.json", "web/support-matrix.json",
-        "native/egui/adapter.json", "native/egui/support-matrix.json",
+        "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
         "enforcement/capability-gap.example.json",
     }
     require_entries(path, entries, required)

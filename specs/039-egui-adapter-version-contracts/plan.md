@@ -10,7 +10,7 @@ Compile the existing Brand Canon, Interface Canon, and bounded component recipes
 
 ## Technical Context
 
-**Language/Version**: Python 3.8-compatible compiler and validation code; JSON Schema draft 2020-12; generated Rust edition 2024 with MSRV 1.88
+**Language/Version**: Python 3.8-compatible compiler and validation code; JSON Schema draft 2020-12; generated Rust edition 2024 with MSRV 1.95
 
 **Primary Dependencies**: Python standard library and existing `coloraide`; generated `egui` 0.36.1 runtime dependency; generated `egui_kittest` 0.36.1 development dependency
 
@@ -91,8 +91,8 @@ Generated and never committed:
 
 ```text
 dist/<brand>/native/egui/
-├── Cargo.toml
 ├── Cargo.lock
+├── Cargo.toml
 ├── README.md
 ├── adapter.json
 ├── support-matrix.json

@@ -46,6 +46,8 @@ class EguiAdapterTests(unittest.TestCase):
             self.assertEqual("1.0.0", manifest["adapter_version"])
             self.assertEqual("=0.36.1", manifest["crate"]["dependencies"]["egui"])
             self.assertEqual("=0.36.1", manifest["crate"]["dev_dependencies"]["egui_kittest"])
+            self.assertEqual("1.95", manifest["crate"]["rust_version"])
+            self.assertTrue((native / "Cargo.lock").is_file())
             self.assertEqual(set(COMPONENT_IDS), {item["component"] for item in support["components"]})
             self.assertEqual({"supported", "adapted", "unsupported"}, set(support["status_vocabulary"]))
             self.assertEqual({"passed", "pending"}, set(support["proof_vocabulary"]))
@@ -78,18 +80,23 @@ class EguiAdapterTests(unittest.TestCase):
             support_path.write_text(json.dumps(support), encoding="utf-8")
             self.assertTrue(any("recipe coverage" in problem for problem in verify_egui_adapter(kit)))
 
+            generate_egui(kit / "brand.json", kit)
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["compiler_version"] = "1.9.9"
+            manifest["compatibility"]["validated_versions"]["compiler"] = "1.9.9"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            self.assertTrue(any("compiler version" in problem for problem in verify_egui_adapter(kit)))
+
+            generate_egui(kit / "brand.json", kit)
+            lockfile = native / "Cargo.lock"
+            lockfile.write_text(lockfile.read_text(encoding="utf-8") + "# drift\n", encoding="utf-8")
+            self.assertTrue(any("Cargo.lock" in problem for problem in verify_egui_adapter(kit)))
+
     @unittest.skipUnless(shutil.which("cargo"), "cargo is not installed")
     def test_generated_crate_compiles_and_runs_rendered_state_evidence(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = self.generate(temporary)
             manifest = kit / "native" / "egui" / "Cargo.toml"
-            subprocess.run(
-                ["cargo", "generate-lockfile", "--manifest-path", str(manifest)],
-                check=True,
-                capture_output=True,
-                text=True,
-                **hidden_process_kwargs()
-            )
             result = subprocess.run(
                 ["cargo", "test", "--manifest-path", str(manifest), "--locked"],
                 check=False,

@@ -22,7 +22,8 @@ HERE = Path(__file__).resolve().parent
 REFERENCES = HERE.parent / "references"
 ADAPTER_VERSION = "1.0.0"
 EGUI_VERSION = "0.36.1"
-RUST_VERSION = "1.88"
+RUST_VERSION = "1.95"
+LOCKFILE_TEMPLATE = HERE / "egui-Cargo.lock"
 RUNTIME_CAPABILITIES = (
     "viewport", "safe_area", "window_class", "pointer_precision", "hover",
     "hardware_keyboard", "touch", "text_scale", "reduced_motion", "forced_colors",
@@ -594,6 +595,10 @@ egui = "=%(egui)s"
 egui_kittest = "=%(egui)s"
 ''' % {"name": crate_name, "version": ADAPTER_VERSION, "rust": RUST_VERSION, "egui": EGUI_VERSION}
     _write_text(root / "Cargo.toml", cargo)
+    lockfile = LOCKFILE_TEMPLATE.read_text(encoding="utf-8").replace(
+        "{{crate_name}}", crate_name
+    )
+    _write_text(root / "Cargo.lock", lockfile)
     _write_text(root / "src" / "lib.rs", LIB_RS)
     _write_text(root / "src" / "tokens.rs", _tokens_source(resolved))
     _write_text(root / "src" / "components.rs", COMPONENTS_RS)
@@ -611,7 +616,7 @@ def verify_egui_adapter(kit_path):
     root = kit / "native" / "egui"
     try:
         required = {
-            "Cargo.toml", "README.md", "adapter.json", "support-matrix.json", "version-policy.json",
+            "Cargo.toml", "Cargo.lock", "README.md", "adapter.json", "support-matrix.json", "version-policy.json",
             "src/lib.rs", "src/tokens.rs", "src/components.rs", "tests/adapter.rs",
         }
         actual = {path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file()}
@@ -624,6 +629,7 @@ def verify_egui_adapter(kit_path):
         catalog = load_component_catalog()
         metadata = skill_metadata()
         _require(manifest.get("adapter_version") == metadata["egui_adapter"], "egui adapter version disagrees with compiler metadata")
+        _require(manifest.get("compiler_version") == metadata["version"], "egui adapter compiler version disagrees with compiler metadata")
         _require(manifest.get("brand_version") == brand.get("version", "1.0.0"), "egui adapter brand version disagrees")
         _require(manifest.get("component_recipe_version") == catalog.get("version"), "egui adapter component recipe version disagrees")
         _require(manifest.get("interface_canon_version") == load_interface_canon().get("version"), "egui adapter Interface Canon version disagrees")
@@ -658,6 +664,13 @@ def verify_egui_adapter(kit_path):
         cargo = (root / "Cargo.toml").read_text(encoding="utf-8")
         _require('egui = "=%s"' % EGUI_VERSION in cargo and 'egui_kittest = "=%s"' % EGUI_VERSION in cargo,
                  "egui Cargo dependencies are not pinned exactly")
+        _require('rust-version = "%s"' % RUST_VERSION in cargo,
+                 "egui Cargo MSRV disagrees with the adapter contract")
+        expected_lock = LOCKFILE_TEMPLATE.read_text(encoding="utf-8").replace(
+            "{{crate_name}}", manifest["crate"]["name"]
+        )
+        _require((root / "Cargo.lock").read_text(encoding="utf-8") == expected_lock,
+                 "egui Cargo.lock disagrees with the deterministic adapter lockfile")
         source = (root / "src" / "lib.rs").read_text(encoding="utf-8") + (root / "src" / "components.rs").read_text(encoding="utf-8")
         _require("React" not in source and "className" not in source, "egui source emulates a web adapter")
     except (EguiAdapterError, OSError, UnicodeError, KeyError, TypeError, ValueError) as error:

@@ -291,6 +291,14 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertTrue(any("file is missing" in problem for problem in problems), problems)
             contract_path.write_bytes(before["enforcement/consumer-contract.json"])
 
+            egui_path = kit / "native" / "egui" / "adapter.json"
+            egui = read_json(egui_path)
+            egui["compiler_version"] = "1.9.9"
+            egui_path.write_text(json.dumps(egui), encoding="utf-8")
+            problems = verify_consumer_contract(kit)
+            self.assertTrue(any("egui adapter compiler version" in problem for problem in problems), problems)
+            egui_path.write_bytes(before["native/egui/adapter.json"])
+
             contract = read_json(contract_path)
             contract["provenance"] = contract["provenance"][:-1]
             contract_path.write_text(json.dumps(contract), encoding="utf-8")

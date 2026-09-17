@@ -735,6 +735,7 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         enforcement / "consumer-contract.schema.json",
         web_adapter,
         support_matrix,
+        egui_adapter.parent / "Cargo.lock",
         egui_adapter,
         egui_support,
         gap_path,
@@ -872,6 +873,7 @@ def verify_consumer_contract(kit):
         egui_adapter = _read_json(_contained_kit_file(kit, authority["egui_adapter"]))
         _require(contract["versions"]["egui_adapter_version"] == egui_adapter.get("adapter_version"), "consumer contract egui_adapter_version disagrees")
         _require(egui_adapter.get("component_recipe_version") == copied_recipes.get("version"), "egui adapter recipe version disagrees")
+        _require(egui_adapter.get("compiler_version") == contract["versions"]["compiler_version"], "egui adapter compiler version disagrees with consumer contract")
         egui_support = _read_json(_contained_kit_file(kit, authority["egui_support_matrix"]))
         _require(egui_support.get("adapter_version") == egui_adapter.get("adapter_version"), "egui support matrix adapter version disagrees")
         domain_versions = {

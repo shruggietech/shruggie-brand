@@ -10,11 +10,11 @@
 
 ## R2. egui and test harness versions
 
-**Decision**: Pin `egui = 0.36.1` and `egui_kittest = 0.36.1`, with generated Rust MSRV 1.88 and edition 2024.
+**Decision**: Pin `egui = 0.36.1` and `egui_kittest = 0.36.1`, with generated Rust MSRV 1.95, edition 2024, and a deterministic generated `Cargo.lock`.
 
-**Rationale**: The official egui repository describes `egui_kittest` as its AccessKit-based test harness. The published 0.36.1 harness supports `Harness::new_ui_state`, accessibility-tree queries, pointer and keyboard actions, `set_pixels_per_point`, and rendering. The 0.36 line requires Rust 1.88. Exact matching versions avoid duplicate egui types and make recovery reproducible.
+**Rationale**: The official egui repository describes `egui_kittest` as its AccessKit-based test harness. The published 0.36.1 harness supports `Harness::new_ui_state`, accessibility-tree queries, pointer and keyboard actions, `set_pixels_per_point`, and rendering. Crates.io metadata for `egui` 0.36.1 declares Rust 1.95. Exact matching direct versions plus a checked-in generated lockfile avoid duplicate egui types, prevent an unlocked first resolution, and make recovery reproducible.
 
-**Primary sources**: [egui architecture](https://github.com/emilk/egui/blob/main/ARCHITECTURE.md), [egui_kittest 0.36.1 documentation](https://docs.rs/egui_kittest/0.36.1/egui_kittest/), [egui_kittest changelog](https://github.com/emilk/egui/blob/main/crates/egui_kittest/CHANGELOG.md).
+**Primary sources**: [egui 0.36.1 package metadata](https://crates.io/crates/egui/0.36.1), [egui architecture](https://github.com/emilk/egui/blob/main/ARCHITECTURE.md), [egui_kittest 0.36.1 documentation](https://docs.rs/egui_kittest/0.36.1/egui_kittest/), [egui_kittest changelog](https://github.com/emilk/egui/blob/main/crates/egui_kittest/CHANGELOG.md).
 
 **Alternatives considered**: Snapshot-only testing adds GPU and platform image variance. Source inspection does not prove the generated widgets appear in the accessibility tree or preserve interaction state.
 

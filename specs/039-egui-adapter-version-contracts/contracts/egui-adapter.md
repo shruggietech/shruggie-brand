@@ -3,6 +3,7 @@
 ## Generated crate
 
 - `native/egui/Cargo.toml` pins `egui` exactly and pins `egui_kittest` exactly for development evidence.
+- `native/egui/Cargo.lock` pins the complete resolved dependency graph so the documented `cargo test --locked` command never performs an unlocked first resolution.
 - `src/tokens.rs` exposes typed semantic colors, measurements, theme selection, logical-unit conversion, and density transforms.
 - `src/components.rs` exposes ordinary egui functions and closure-based helpers. Public results use egui types such as `Response`, `InnerResponse`, `Ui`, and `Context`.
 - `src/lib.rs` exports runtime capability and support types without introducing a renderer-neutral component tree.

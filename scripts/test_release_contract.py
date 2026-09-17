@@ -58,6 +58,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "web/adapter.json": json.dumps({"adapter_version": "1.0.0", "component_recipe_version": "1.0.0"}).encode("utf-8"),
         "web/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode("utf-8"),
         "native/egui/adapter.json": json.dumps({"adapter_version": "1.0.0", "component_recipe_version": "1.0.0"}).encode("utf-8"),
+        "native/egui/Cargo.lock": b"# deterministic lockfile\n",
         "native/egui/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode("utf-8"),
         "enforcement/capability-gap.example.json": json.dumps({"submission_authorized": False}).encode("utf-8"),
         distribution: bundle,
@@ -69,7 +70,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
         "enforcement/component-recipes.json", "enforcement/component-recipes.schema.json",
         "enforcement/version-policy.json", "web/adapter.json", "web/support-matrix.json",
-        "native/egui/adapter.json", "native/egui/support-matrix.json",
+        "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
         "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
     ]
     consumer = {
@@ -259,6 +260,31 @@ class ReleaseContractTests(unittest.TestCase):
                 ValueError, "site package version 1.1.2 does not match release 1.2.1"
             ):
                 release_contract.load_metadata(ROOT, "1.2.1")
+
+    def test_compiler_release_and_brand_canon_versions_can_diverge(self):
+        original_read_text = release_contract.read_text
+
+        def read_with_supported_older_canon(path):
+            value = original_read_text(path)
+            if path == ROOT / "skill" / "SKILL.md":
+                return value.replace("  canon: 1.2.1", "  canon: 1.2.0")
+            if path == ROOT / "skill" / "references" / "01-canon.json":
+                payload = json.loads(value)
+                payload["version"] = "1.2.0"
+                return json.dumps(payload)
+            if path.parent.parent == ROOT / "brands" and path.name == "brand.json":
+                payload = json.loads(value)
+                payload["canon"] = "1.2.0"
+                return json.dumps(payload)
+            return value
+
+        with mock.patch.object(
+            release_contract, "read_text", side_effect=read_with_supported_older_canon
+        ):
+            metadata = release_contract.load_metadata(ROOT, "1.2.1")
+            self.assertEqual("1.2.1", metadata["skill_version"])
+            self.assertEqual("1.2.0", metadata["canon_version"])
+            self.assertEqual("1.2.1", release_contract.current_version(ROOT))
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:

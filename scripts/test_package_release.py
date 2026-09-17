@@ -76,6 +76,7 @@ class PackageReleaseTests(unittest.TestCase):
             "web/adapter.json": json.dumps({"adapter_version": "1.0.0", "component_recipe_version": "1.0.0"}).encode(),
             "web/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode(),
             "native/egui/adapter.json": json.dumps({"adapter_version": "1.0.0", "component_recipe_version": "1.0.0"}).encode(),
+            "native/egui/Cargo.lock": b"# deterministic lockfile\n",
             "native/egui/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode(),
             "enforcement/capability-gap.example.json": json.dumps({"submission_authorized": False}).encode(),
             distribution: bundle,
@@ -85,7 +86,7 @@ class PackageReleaseTests(unittest.TestCase):
             "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
             "enforcement/component-recipes.json", "enforcement/component-recipes.schema.json",
             "enforcement/version-policy.json", "web/adapter.json", "web/support-matrix.json",
-            "native/egui/adapter.json", "native/egui/support-matrix.json",
+            "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
             "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
         ]
         consumer = {
