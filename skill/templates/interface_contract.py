@@ -11,6 +11,8 @@ import re
 import zipfile
 from pathlib import Path, PurePosixPath
 
+from schema_validation import SchemaValidationError, validate_json_schema
+
 HERE = Path(__file__).resolve().parent
 SKILL_ROOT = HERE.parent
 REFERENCES = SKILL_ROOT / "references"
@@ -29,6 +31,10 @@ BACKWARD_BRAND_DEFAULTS = {
     "surfaces.card": "#111111",
     "surfaces.popover": "#0A0A0A",
     "accent.dim": "#9A9A9A",
+    "accent.accessible": "#666666",
+    "light_surfaces.base": "#FFFFFF",
+    "light_surfaces.card": "#F8F8F6",
+    "light_surfaces.popover": "#FFFFFF",
 }
 
 
@@ -108,7 +114,7 @@ def validate_interface_canon(canon):
     required = {
         "$schema", "id", "kind", "version", "brand_canon_compatibility", "summary",
         "units", "primitives", "role_catalog", "required_roles", "aliases", "runtime",
-        "invariants", "permitted_overrides", "state_pairs",
+        "invariants", "permitted_overrides", "state_pairs", "theme_aliases",
     }
     _require(isinstance(canon, dict) and set(canon) == required,
              "Interface Canon must contain exactly %s" % ", ".join(sorted(required)))
@@ -146,6 +152,14 @@ def validate_interface_canon(canon):
     absent = sorted(set(catalog) - set(aliases))
     _require(not absent, "catalog role lacks an alias: %s" % ", ".join(absent))
     _validate_alias_graph(canon)
+    theme_aliases = canon["theme_aliases"]
+    _require(isinstance(theme_aliases, dict) and set(theme_aliases) == {"dark", "light"},
+             "theme_aliases must define dark and light")
+    for theme, themed in theme_aliases.items():
+        _require(isinstance(themed, dict), "theme aliases must be objects: %s" % theme)
+        _require(set(themed).issubset(aliases), "theme %s targets an unknown role" % theme)
+        _require(all(isinstance(value, str) and REFERENCE.fullmatch(value) for value in themed.values()),
+                 "theme %s contains an invalid reference" % theme)
     invariants = canon["invariants"]
     invariant_roles = invariants.get("roles") if isinstance(invariants, dict) else None
     _require(isinstance(invariant_roles, list) and set(invariant_roles).issubset(aliases),
@@ -252,7 +266,6 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
                  "brand interface canon %s does not match %s" % (interface["canon"], canon["version"]))
     overrides = interface.get("overrides") or {}
     _require(isinstance(overrides, dict), "brand interface overrides must be an object")
-    aliases = dict(canon["aliases"])
     inheritance = ((brand.get("affiliation") or {}).get("inheritance"))
     for role, reference in overrides.items():
         _require(role in canon["permitted_overrides"], "unsupported override role: %s" % role)
@@ -261,7 +274,6 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
         ), "unsupported override reference for %s" % role)
         if inheritance == "independent" and reference.startswith("$brand_canon.color.immutable.orange"):
             raise InterfaceContractError("override %s crosses affiliation boundary into house orange" % role)
-        aliases[role] = reference
     if inheritance == "shruggietech-house":
         immutable = brand_canon["color"]["immutable"]
         semantic = {"action": immutable["orange-cta"]["hex"], "emphasis": immutable["orange"]["hex"]}
@@ -270,61 +282,72 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
         _require(set(colors) == {"action", "emphasis"},
                  "independent brand lacks semantic action and emphasis colors")
         semantic = colors
-    accent = _lookup(brand, "accent.bright", "brand")
-    resolved_context = {
-        "action": semantic["action"],
-        "emphasis": semantic["emphasis"],
-        "action_foreground": _legal_foreground(semantic["action"]),
-        "accent_foreground": _legal_foreground(accent),
-    }
-    resolved_roles = {}
-    visiting = []
+    def resolve_theme(theme):
+        aliases = dict(canon["aliases"])
+        aliases.update(canon["theme_aliases"][theme])
+        aliases.update(overrides)
+        accent = _lookup_brand(brand, "accent.accessible" if theme == "light" else "accent.bright")
+        resolved_context = {
+            "action": semantic["action"],
+            "emphasis": semantic["emphasis"],
+            "action_foreground": _legal_foreground(semantic["action"]),
+            "accent": accent,
+            "accent_foreground": _legal_foreground(accent),
+        }
+        resolved_roles = {}
+        visiting = []
 
-    def resolve(role):
-        if role in resolved_roles:
-            return resolved_roles[role]
-        if role in visiting:
-            raise InterfaceContractError("alias cycle while resolving %s" % role)
-        visiting.append(role)
-        reference = aliases[role]
-        match = REFERENCE.fullmatch(reference)
-        _require(match is not None, "alias %s has an invalid reference root" % role)
-        root, dotted = match.groups()
-        if root == "alias":
-            _require(dotted in aliases, "alias %s targets unknown role %s" % (role, dotted))
-            value = resolve(dotted)
-        elif root == "primitive":
-            value = _lookup(canon["primitives"], dotted, "primitive")
-        elif root == "brand":
-            value = _lookup_brand(brand, dotted)
-        elif root == "brand_canon":
-            value = _lookup(brand_canon, dotted, "Brand Canon")
-        else:
-            value = _lookup(resolved_context, dotted, "resolved context")
-        visiting.pop()
-        resolved_roles[role] = value
-        return value
+        def resolve(role):
+            if role in resolved_roles:
+                return resolved_roles[role]
+            if role in visiting:
+                raise InterfaceContractError("alias cycle while resolving %s" % role)
+            visiting.append(role)
+            reference = aliases[role]
+            match = REFERENCE.fullmatch(reference)
+            _require(match is not None, "alias %s has an invalid reference root" % role)
+            root, dotted = match.groups()
+            if root == "alias":
+                _require(dotted in aliases, "alias %s targets unknown role %s" % (role, dotted))
+                value = resolve(dotted)
+            elif root == "primitive":
+                value = _lookup(canon["primitives"], dotted, "primitive")
+            elif root == "brand":
+                value = _lookup_brand(brand, dotted)
+            elif root == "brand_canon":
+                value = _lookup(brand_canon, dotted, "Brand Canon")
+            else:
+                value = _lookup(resolved_context, dotted, "resolved context")
+            visiting.pop()
+            resolved_roles[role] = value
+            return value
 
-    for role in sorted(aliases):
-        resolve(role)
-    for pair in canon["state_pairs"]:
-        from coloraide import Color
+        for role in sorted(aliases):
+            resolve(role)
+        for pair in canon["state_pairs"]:
+            from coloraide import Color
 
-        foreground = resolved_roles[pair["foreground"]]
-        background = resolved_roles[pair["background"]]
-        try:
-            ratio = Color(foreground).contrast(background, method="wcag21")
-        except Exception as error:
-            raise InterfaceContractError("state pair %s does not resolve to colors" % pair["id"]) from error
-        _require(ratio + 1e-9 >= pair["minimum_contrast"],
-                 "state pair %s contrast %.2f is below %.2f" % (pair["id"], ratio, pair["minimum_contrast"]))
+            foreground = resolved_roles[pair["foreground"]]
+            background = resolved_roles[pair["background"]]
+            try:
+                ratio = Color(foreground).contrast(background, method="wcag21")
+            except Exception as error:
+                raise InterfaceContractError("%s state pair %s does not resolve to colors" % (theme, pair["id"])) from error
+            _require(ratio + 1e-9 >= pair["minimum_contrast"],
+                     "%s state pair %s contrast %.2f is below %.2f" %
+                     (theme, pair["id"], ratio, pair["minimum_contrast"]))
+        return resolved_roles
+
+    roles_by_theme = {theme: resolve_theme(theme) for theme in ("dark", "light")}
     return {
         "interface_canon_version": canon["version"],
         "canon_version": brand_canon_version,
         "units": canon["units"],
         "runtime": canon["runtime"],
         "invariants": canon["invariants"],
-        "roles": resolved_roles,
+        "roles": roles_by_theme["dark"],
+        "roles_by_theme": roles_by_theme,
+        "system_theme_resolution": ["light", "dark"],
     }
 
 
@@ -354,6 +377,8 @@ def route_operating_mode(signals):
             mode = "author"
         else:
             clarification = "Is modification of the governed BrandBuilder source authorized?"
+    elif signals["consumer_change"] and not signals["pinned_contract_present"]:
+        clarification = "Which exact pinned consumer contract should govern this implementation?"
     elif signals["consumer_change"]:
         if signals["mutation_authorized"]:
             mode = "implementation"
@@ -471,7 +496,7 @@ Read `consumer-contract.json`, then `IMPLEMENTATION.md`. The pinned contract out
 
 {affiliation}
 
-If BrandBuilder `{compiler}` is absent, verify SHA-256 `{sha}` and recover from `{recovery}`. Never substitute another version. Run `python3 build/verify.py .` and `python3 build/validate_glyph.py brand.json`; both must report zero failures.
+If BrandBuilder `{compiler}` is absent, verify SHA-256 `{sha}` and extract `{recovery}` into the empty directory `enforcement/brandbuilder`. Never substitute another version. Run `python3 enforcement/brandbuilder/templates/verify.py .` and `python3 enforcement/brandbuilder/templates/validate_glyph.py brand.json`; both must report zero failures.
 {end}""".format(
         begin=BEGIN_MARKER, end=END_MARKER, canon=versions["canon_version"],
         interface=versions["interface_canon_version"], compiler=versions["compiler_version"],
@@ -572,18 +597,19 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
             "permitted_exceptions": ["token definition files may contain governed literals", "renderer metadata may contain documented platform-required literals"],
         },
         "verification": {
-            "entry_points": ["python3 build/verify.py .", "python3 build/validate_glyph.py brand.json"],
+            "entry_points": ["python3 enforcement/brandbuilder/templates/verify.py .", "python3 enforcement/brandbuilder/templates/validate_glyph.py brand.json"],
             "success": "zero verifier problems and zero glyph failures",
         },
         "recovery": {
             "distribution": distribution_name,
             "path": recovery_path,
             "sha256": recovery_sha,
+            "extract_to": "enforcement/brandbuilder",
             "sources": [
                 {"kind": "delivered-bundle", "path": recovery_path, "network_required": False},
                 {"kind": "authoritative-release", "version": metadata["version"], "network_requires_authorization": True},
             ],
-            "instruction": "Verify the delivered SHA-256, then use the host's local skill installation workflow. Never substitute another version.",
+            "instruction": "Verify the delivered SHA-256, then extract the exact archive into the empty enforcement/brandbuilder directory. Never substitute another version.",
         },
         "provenance": [_provenance(path, kit) for path in provenance_paths],
         "capability_gap": {"template_path": gap_path.relative_to(kit).as_posix(), "submission_requires_authorization": True},
@@ -615,9 +641,12 @@ def verify_consumer_contract(kit):
         return ["consumer contract is missing: enforcement/consumer-contract.json"]
     try:
         contract = _read_json(contract_path)
-        required = {"schema_version", "brand", "versions", "version_semantics", "environment", "authority", "verification", "recovery", "provenance", "capability_gap"}
-        _require(set(contract) == required and contract["schema_version"] == 1,
-                 "consumer contract top-level fields are invalid")
+        schema_path = kit / "enforcement" / "consumer-contract.schema.json"
+        schema = _read_json(schema_path)
+        try:
+            validate_json_schema(contract, schema)
+        except SchemaValidationError as error:
+            raise InterfaceContractError("consumer contract schema violation: %s" % error) from error
         brand = _read_json(kit / "brand.json")
         _require(contract["brand"]["slug"] == brand.get("slug"), "consumer contract brand slug disagrees")
         _require(contract["versions"]["brand_version"] == brand.get("version", "1.0.0"), "consumer contract brand_version disagrees")
@@ -638,6 +667,12 @@ def verify_consumer_contract(kit):
             _require(hashlib.sha256(payload).hexdigest() == item["sha256"], "consumer provenance checksum mismatch: %s" % item["path"])
             _require(len(payload) == item["bytes"], "consumer provenance byte count mismatch: %s" % item["path"])
         recovery = contract["recovery"]
+        expected_entry_points = [
+            "python3 %s/templates/verify.py ." % recovery["extract_to"],
+            "python3 %s/templates/validate_glyph.py brand.json" % recovery["extract_to"],
+        ]
+        _require(contract["verification"]["entry_points"] == expected_entry_points,
+                 "consumer verification entry points disagree with recovery location")
         required_provenance = {
             contract["authority"]["brand_source"],
             "enforcement/AGENTS.md",
@@ -670,7 +705,9 @@ def verify_consumer_contract(kit):
         with zipfile.ZipFile(str(distribution)) as archive:
             names = archive.namelist()
             _require(len(names) == len(set(names)), "recovery distribution has duplicate paths")
-            _require({"SKILL.md", "AGENTS.md", "references/interface-canon.json"}.issubset(names),
+            _require({"SKILL.md", "AGENTS.md", "references/interface-canon.json",
+                      "references/consumer-contract.schema.json", "templates/verify.py",
+                      "templates/validate_glyph.py"}.issubset(names),
                      "recovery distribution lacks governed entry points")
             for name in names:
                 pure = PurePosixPath(name)
@@ -687,7 +724,9 @@ def verify_consumer_contract(kit):
             bundled_canon = json.loads(archive.read("references/interface-canon.json").decode("utf-8"))
             _require(bundled_canon["version"] == contract["versions"]["interface_canon_version"],
                      "recovery Interface Canon version disagrees")
-    except (InterfaceContractError, OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError, zipfile.BadZipFile) as error:
+            _require(archive.read("references/consumer-contract.schema.json") == schema_path.read_bytes(),
+                     "recovery consumer schema disagrees with delivered schema")
+    except (InterfaceContractError, SchemaValidationError, OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError, zipfile.BadZipFile) as error:
         problems.append(str(error))
     return problems
 

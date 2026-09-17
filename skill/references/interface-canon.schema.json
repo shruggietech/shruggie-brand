@@ -3,7 +3,7 @@
   "$id": "https://brand.shruggie.tech/schemas/interface-canon-1.json",
   "title": "Shruggie Interface Canon",
   "type": "object",
-  "required": ["$schema", "id", "kind", "version", "brand_canon_compatibility", "summary", "units", "primitives", "role_catalog", "required_roles", "aliases", "runtime", "invariants", "permitted_overrides", "state_pairs"],
+  "required": ["$schema", "id", "kind", "version", "brand_canon_compatibility", "summary", "units", "primitives", "role_catalog", "required_roles", "aliases", "theme_aliases", "runtime", "invariants", "permitted_overrides", "state_pairs"],
   "properties": {
     "$schema": {"type": "string"},
     "id": {"const": "shruggie-interface-canon"},
@@ -34,6 +34,15 @@
     "role_catalog": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/role"}},
     "required_roles": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/role"}},
     "aliases": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/reference"}},
+    "theme_aliases": {
+      "type": "object",
+      "required": ["dark", "light"],
+      "properties": {
+        "dark": {"$ref": "#/$defs/theme_alias_map"},
+        "light": {"$ref": "#/$defs/theme_alias_map"}
+      },
+      "additionalProperties": false
+    },
     "runtime": {
       "type": "object",
       "required": ["required_inputs", "window_classes", "pointer_precisions", "themes", "mixed_profile_examples"],
@@ -67,6 +76,7 @@
     "semver": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "role": {"type": "string", "pattern": "^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$"},
     "reference": {"type": "string", "pattern": "^\\$(primitive|alias|brand|brand_canon|resolved)\\.[A-Za-z0-9_.-]+$"},
+    "theme_alias_map": {"type": "object", "additionalProperties": {"$ref": "#/$defs/reference"}},
     "unit_transform": {
       "type": "object",
       "required": ["target_unit", "factor", "text_scaling"],

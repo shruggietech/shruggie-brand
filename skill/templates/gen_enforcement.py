@@ -283,7 +283,8 @@ feature grids standing in for an explanation, no manufactured urgency.
 ```bash
 npx eslint --config enforcement/eslint.brand.mjs .
 npx stylelint --config enforcement/stylelint.config.json "**/*.css"
-python3 build/verify.py
+python3 enforcement/brandbuilder/templates/verify.py .
+python3 enforcement/brandbuilder/templates/validate_glyph.py brand.json
 ```
 
 A build that fails any of these is not finished, whatever it looks like.

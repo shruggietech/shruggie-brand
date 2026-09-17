@@ -35,14 +35,22 @@ class PackageReleaseTests(unittest.TestCase):
     def make_brand_source(self, root: Path) -> Path:
         for name in package_release.LICENSES:
             (root / name).write_text(name + "\n", encoding="utf-8")
+        reference_dir = root / "skill" / "references"
+        reference_dir.mkdir(parents=True)
+        for name in ("interface-canon.schema.json", "consumer-contract.schema.json"):
+            (reference_dir / name).write_bytes((ROOT / "skill" / "references" / name).read_bytes())
         source = root / "alpha"
         source.mkdir()
         brand = {"slug": "alpha", "title": "Alpha", "version": "1.0.0", "canon": "1.2.1", "affiliation": {}}
+        consumer_schema = (ROOT / "skill" / "references" / "consumer-contract.schema.json").read_bytes()
         bundle_buffer = io.BytesIO()
         with zipfile.ZipFile(bundle_buffer, "w") as bundle:
             bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 1.2.1\n  canon: 1.2.1\n  interface-canon: 1.0.0\n---\n")
             bundle.writestr("AGENTS.md", "instructions\n")
             bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
+            bundle.writestr("references/consumer-contract.schema.json", consumer_schema)
+            bundle.writestr("templates/verify.py", "# verifier\n")
+            bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")
         bundle = bundle_buffer.getvalue()
         begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
         end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
@@ -55,8 +63,8 @@ class PackageReleaseTests(unittest.TestCase):
             "enforcement/AGENTS.md": (begin + "\ncontract\n" + end + "\n").encode(),
             "enforcement/IMPLEMENTATION.md": b"# Implementation\n",
             "enforcement/interface-canon.json": json.dumps({"version": "1.0.0"}).encode(),
-            "enforcement/interface-canon.schema.json": b"{}\n",
-            "enforcement/consumer-contract.schema.json": b"{}\n",
+            "enforcement/interface-canon.schema.json": (ROOT / "skill" / "references" / "interface-canon.schema.json").read_bytes(),
+            "enforcement/consumer-contract.schema.json": consumer_schema,
             "enforcement/capability-gap.example.json": json.dumps({"submission_authorized": False}).encode(),
             distribution: bundle,
         }
@@ -66,11 +74,31 @@ class PackageReleaseTests(unittest.TestCase):
             "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
         ]
         consumer = {
+            "schema_version": 1,
+            "brand": {"slug": "alpha", "title": "Alpha", "affiliation": {}, "brand_version": "1.0.0"},
             "versions": {"brand_version": "1.0.0", "canon_version": "1.2.1", "interface_canon_version": "1.0.0", "compiler_version": "1.2.1"},
+            "version_semantics": {
+                "brand_version": "Brand version.", "canon_version": "Brand Canon version.",
+                "interface_canon_version": "Interface Canon version.", "compiler_version": "Compiler version.",
+            },
+            "environment": {
+                "renderer": "renderer-neutral", "host": "none", "supported_targets": ["web"],
+                "viewport_profiles": ["compact"], "adapter_versions": {"vanilla": "1.2.1"},
+            },
+            "authority": {
+                "brand_source": "brand.json", "interface_canon": "enforcement/interface-canon.json",
+                "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"],
+                "permitted_exceptions": [],
+            },
+            "verification": {
+                "entry_points": ["python3 enforcement/brandbuilder/templates/verify.py .", "python3 enforcement/brandbuilder/templates/validate_glyph.py brand.json"],
+                "success": "zero failures",
+            },
             "recovery": {
                 "distribution": "shruggie-brandbuilder-1.2.1.skill",
                 "path": distribution,
                 "sha256": hashlib.sha256(bundle).hexdigest(),
+                "extract_to": "enforcement/brandbuilder",
                 "sources": [{"kind": "delivered-bundle", "path": distribution, "network_required": False}],
                 "instruction": "Use exact delivered bytes.",
             },
@@ -78,6 +106,7 @@ class PackageReleaseTests(unittest.TestCase):
                 {"path": name, "bytes": len(values[name]), "sha256": hashlib.sha256(values[name]).hexdigest()}
                 for name in provenance_names
             ],
+            "capability_gap": {"template_path": "enforcement/capability-gap.example.json", "submission_requires_authorization": True},
         }
         values["enforcement/consumer-contract.json"] = json.dumps(consumer).encode()
         for name, value in values.items():

@@ -72,7 +72,7 @@
     "action.destructive": "$brand_canon.color.immutable.fault.hex",
     "border.default": "$primitive.border.default_width",
     "border.strong": "$primitive.border.strong_width",
-    "focus.ring": "$brand.accent.bright",
+    "focus.ring": "$resolved.accent",
     "focus.width": "$primitive.focus.width",
     "focus.offset": "$primitive.focus.offset",
     "state.disabled.opacity": "$primitive.state.disabled_opacity",
@@ -91,6 +91,15 @@
     "layout.narrow.max": "$primitive.layout.narrow_max",
     "layout.gutter.compact": "$primitive.layout.gutter_compact",
     "layout.gutter.expanded": "$primitive.layout.gutter_expanded"
+  },
+  "theme_aliases": {
+    "dark": {},
+    "light": {
+      "surface.background": "$brand.light_surfaces.base",
+      "surface.card": "$brand.light_surfaces.card",
+      "surface.overlay": "$brand.light_surfaces.popover",
+      "text.primary": "$brand_canon.color.immutable.black.hex"
+    }
   },
   "runtime": {
     "required_inputs": ["viewport", "safe_area", "window_class", "pointer_precision", "hover", "hardware_keyboard", "touch", "text_scale", "reduced_motion", "forced_colors", "theme", "ime_obstruction", "titlebar_regions"],

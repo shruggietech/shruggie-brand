@@ -8,12 +8,16 @@ import hashlib
 import io
 import json
 import re
+import sys
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Dict, Iterable, Mapping, Optional
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "skill" / "templates"))
+
+from schema_validation import SchemaValidationError, validate_json_schema
 PRODUCTION = (
     "shruggietech",
     "fragcap",
@@ -261,6 +265,9 @@ def verify_brand_archive(path: Path, slug: str, version: str,
     with zipfile.ZipFile(str(path)) as archive:
         if root is not None:
             verify_canonical_files(archive, path, LICENSES, root)
+            for schema_name in ("interface-canon.schema.json", "consumer-contract.schema.json"):
+                if archive.read("enforcement/" + schema_name) != (root / "skill" / "references" / schema_name).read_bytes():
+                    raise ValueError("%s contains noncanonical enforcement/%s" % (path.name, schema_name))
         brand = _read_json(archive, "brand.json", path.name)
         manifest = _read_json(archive, "manifest.json", path.name)
         if brand.get("slug") != slug or brand.get("version") != version:
@@ -275,6 +282,11 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         if manifest.get("canon") != brand.get("canon"):
             raise ValueError("%s manifest canon disagrees" % path.name)
         consumer = _read_json(archive, "enforcement/consumer-contract.json", path.name)
+        consumer_schema = _read_json(archive, "enforcement/consumer-contract.schema.json", path.name)
+        try:
+            validate_json_schema(consumer, consumer_schema)
+        except SchemaValidationError as error:
+            raise ValueError("%s consumer contract schema violation: %s" % (path.name, error)) from error
         versions = consumer.get("versions") or {}
         if versions.get("brand_version") != version:
             raise ValueError("%s consumer brand_version disagrees" % path.name)
@@ -302,6 +314,13 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             raise ValueError("%s consumer recovery checksum mismatch" % path.name)
         if PurePosixPath(recovery_path).name != recovery.get("distribution"):
             raise ValueError("%s consumer recovery filename disagrees" % path.name)
+        recovery_target = recovery.get("extract_to")
+        expected_entry_points = [
+            "python3 %s/templates/verify.py ." % recovery_target,
+            "python3 %s/templates/validate_glyph.py brand.json" % recovery_target,
+        ]
+        if recovery_target != "enforcement/brandbuilder" or (consumer.get("verification") or {}).get("entry_points") != expected_entry_points:
+            raise ValueError("%s consumer verification entry points disagree with recovery location" % path.name)
         sources = recovery.get("sources") or []
         if not sources or sources[0].get("kind") != "delivered-bundle" or sources[0].get("network_required") is not False:
             raise ValueError("%s consumer recovery does not prefer delivered bytes" % path.name)
@@ -309,7 +328,11 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             raise ValueError("%s consumer recovery recommends an unspecified latest version" % path.name)
         with zipfile.ZipFile(io.BytesIO(recovery_bytes)) as skill_archive:
             skill_names = skill_archive.namelist()
-            require_entries(path, skill_names, {"SKILL.md", "AGENTS.md", "references/interface-canon.json"})
+            require_entries(path, skill_names, {
+                "SKILL.md", "AGENTS.md", "references/interface-canon.json",
+                "references/consumer-contract.schema.json", "templates/verify.py",
+                "templates/validate_glyph.py",
+            })
             if len(skill_names) != len(set(skill_names)):
                 raise ValueError("%s recovery distribution repeats paths" % path.name)
             for name in skill_names:
@@ -328,6 +351,8 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             bundled_interface = json.loads(skill_archive.read("references/interface-canon.json").decode("utf-8"))
             if bundled_interface.get("version") != versions.get("interface_canon_version"):
                 raise ValueError("%s recovery Interface Canon version disagrees" % path.name)
+            if skill_archive.read("references/consumer-contract.schema.json") != archive.read("enforcement/consumer-contract.schema.json"):
+                raise ValueError("%s recovery consumer schema disagrees with delivered schema" % path.name)
         agents = archive.read("enforcement/AGENTS.md").decode("utf-8")
         begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
         end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"

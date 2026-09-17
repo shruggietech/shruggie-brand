@@ -31,6 +31,7 @@ from interface_contract import (
     verify_consumer_contract,
     write_deterministic_skill_bundle,
 )
+from schema_validation import validate_json_schema
 
 
 def read_json(path):
@@ -44,6 +45,7 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_canon_is_structurally_valid_and_all_roles_resolve(self):
         validate_interface_canon(self.canon)
+        validate_json_schema(self.canon, read_json(ROOT / "skill" / "references" / "interface-canon.schema.json"))
         self.assertEqual(set(self.canon["role_catalog"]), set(self.canon["aliases"]))
         self.assertTrue(set(self.canon["required_roles"]).issubset(self.canon["aliases"]))
 
@@ -68,7 +70,17 @@ class InterfaceCanonTests(unittest.TestCase):
             resolved = resolve_interface_contract(brand, canon=self.canon)
             self.assertEqual(self.canon["version"], resolved["interface_canon_version"])
             self.assertEqual(brand.get("canon", "1.2.1"), resolved["canon_version"])
+            self.assertEqual({"dark", "light"}, set(resolved["roles_by_theme"]))
+            self.assertEqual(resolved["roles"], resolved["roles_by_theme"]["dark"])
             self.assertEqual(before, brand_path.read_bytes())
+
+    def test_theme_indexed_roles_use_legal_light_and_dark_values(self):
+        brand = read_json(ROOT / "brands" / "shruggietech" / "brand.json")
+        resolved = resolve_interface_contract(brand, canon=self.canon)
+        self.assertEqual("#000000", resolved["roles_by_theme"]["dark"]["surface.background"])
+        self.assertEqual("#FFFFFF", resolved["roles_by_theme"]["light"]["surface.background"])
+        self.assertEqual("#037B40", resolved["roles_by_theme"]["light"]["focus.ring"])
+        self.assertEqual(["light", "dark"], resolved["system_theme_resolution"])
 
     def test_unknown_missing_invalid_and_cyclic_roles_fail_closed(self):
         unknown = copy.deepcopy(self.canon)
@@ -195,6 +207,14 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual(before, after)
             self.assertEqual([], verify_consumer_contract(kit))
 
+            schema = read_json(kit / "enforcement" / "consumer-contract.schema.json")
+            validate_json_schema(first, schema)
+            self.assertEqual(
+                ["python3 enforcement/brandbuilder/templates/verify.py .",
+                 "python3 enforcement/brandbuilder/templates/validate_glyph.py brand.json"],
+                first["verification"]["entry_points"],
+            )
+
             recovery = first["recovery"]
             distribution = kit / recovery["path"]
             self.assertTrue(distribution.is_file())
@@ -213,6 +233,19 @@ class ConsumerContractTests(unittest.TestCase):
             problems = verify_consumer_contract(kit)
             self.assertTrue(any("omits required authority" in problem for problem in problems))
             contract_path.write_bytes(before["enforcement/consumer-contract.json"])
+
+            for mutation in (
+                lambda value: value.__setitem__("version_semantics", {}),
+                lambda value: value["environment"].__setitem__("renderer", "browser"),
+                lambda value: value["environment"].__setitem__("supported_targets", []),
+                lambda value: value["authority"].__setitem__("precedence", []),
+            ):
+                contract = read_json(contract_path)
+                mutation(contract)
+                contract_path.write_text(json.dumps(contract), encoding="utf-8")
+                problems = verify_consumer_contract(kit)
+                self.assertTrue(any("schema violation" in problem for problem in problems), problems)
+                contract_path.write_bytes(before["enforcement/consumer-contract.json"])
 
             implementation = kit / "enforcement" / "IMPLEMENTATION.md"
             implementation.write_text(implementation.read_text(encoding="utf-8") + "drift\n", encoding="utf-8")

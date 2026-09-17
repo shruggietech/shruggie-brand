@@ -23,6 +23,13 @@
       "requires_clarification": false
     },
     {
+      "id": "implementation-missing-contract",
+      "request": "Apply branding to this consumer, but no pinned consumer contract was provided.",
+      "signals": {"governed_source_change": false, "consumer_change": true, "assessment": false, "mutation_authorized": true, "remediation_authorized": false, "identity_redesign": false, "upstream_submission": false, "pinned_contract_present": false, "skill_present": true},
+      "expected_mode": null,
+      "requires_clarification": true
+    },
+    {
       "id": "audit-conformance",
       "request": "Audit this consumer for conformance and report findings only.",
       "signals": {"governed_source_change": false, "consumer_change": false, "assessment": true, "mutation_authorized": false, "remediation_authorized": false, "identity_redesign": false, "upstream_submission": false, "pinned_contract_present": true, "skill_present": true},

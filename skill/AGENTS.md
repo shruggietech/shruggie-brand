@@ -211,6 +211,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/probe.py` | what this machine can do, as JSON the pipeline reads |
 | `templates/brand_contract.py` | shared fail-closed affiliation, supplied-input, palette, and typography contract |
 | `templates/interface_contract.py` | Interface Canon validation, runtime profiles, contextual routing, deterministic consumer contracts, and offline recovery |
+| `templates/schema_validation.py` | offline JSON Schema validation for delivered consumer and interface contracts |
 | `templates/identity_continuity.py` | canonical source snapshots, continuity records, proof comparison, and generated-report validation |
 | `templates/promote_identity.py` | bounded atomic promotion of exact approved source bytes |
 | `templates/validate_brand.py` | first-step runtime contract validation |
@@ -222,7 +223,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/mk_paths.example.py` | copy to `<kit>/build/mk_paths.py` and edit the parameters |
 | `templates/gen_vanilla.py` | tokens, styles.css and components, generated rather than hand-written |
 | `templates/gen_nextjs.py` | the whole `nextjs/` layer |
-| `templates/gen_enforcement.py` | `AGENTS.md`, oxlint and stylelint configs |
+| `templates/gen_enforcement.py` | governed `AGENTS.md`, consumer implementation guidance, and lint configs |
 | `templates/gen_logo.py` | colourways, outlined wordmark, lockups, rasters, categorized application icons |
 | `templates/iconkit.py` | platform matrices, composition, native containers, manifests, and compatibility aliases |
 | `templates/gen_guidelines.py` | the deterministic `guidelines/portal.json` contract and portable HTML reference, rendered from shipped tokens, logo provenance, icon manifests, instruction files, semantic asset families, and complete color palettes |
