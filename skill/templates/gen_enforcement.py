@@ -343,6 +343,9 @@ def main():
                 "| `interface-canon.json` | exact renderer-neutral Interface Canon used by this kit |\n"
                 "| `component-recipes.json` | exact bounded component grammar used by this kit |\n"
                 "| `component-recipes.schema.json` | structural component recipe schema |\n"
+                "| `version-policy.json` | independent version meanings, bump rules, compatibility, and recovery policy |\n"
+                "| `../native/egui/adapter.json` | exact typed Rust and egui adapter contract |\n"
+                "| `../native/egui/support-matrix.json` | native support, adaptation, gaps, and proof status |\n"
                 "| `capability-gap.example.json` | local reusable-gap record that does not authorize submission |\n"
                 "| `distributions/*.skill` | exact checksummed offline BrandBuilder recovery bundle |\n"
                 "| `eslint.brand.mjs` | `npx eslint --config enforcement/eslint.brand.mjs .` |\n"
@@ -350,7 +353,8 @@ def main():
                 "Add `tokens/` to `.stylelintignore`. That directory is the one place\n"
                 "raw literals are legal, because it is where the tokens are defined.\n\n"
                 "Use ESLint for these rules. oxlint 1.79 implements none of the\n"
-                "no-restricted-* rules, so an oxlint adherence config never runs.\n" % brand["title"])
+                "no-restricted-* rules, so an oxlint adherence config never runs.\n\n"
+                "Contract compatibility, artifact publication, and consumer adoption are separate states. Pin every version in `consumer-contract.json`; never replace the delivered checksummed recovery bytes with a latest version.\n" % brand["title"])
     emit_consumer_contract(brand, spec, outdir, agents_md(canon, brand))
     print("wrote %s  (%d components guarded)" % (d, len(comps)))
 

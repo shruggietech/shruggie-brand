@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skill" / "templates"))
 
 from schema_validation import SchemaValidationError, validate_json_schema
+from interface_contract import validate_version_combination, validate_version_policy
 PRODUCTION = (
     "shruggietech",
     "fragcap",
@@ -82,7 +83,7 @@ def skill_metadata(path: Path) -> Dict[str, str]:
     if not metadata:
         raise ValueError("skill/SKILL.md lacks metadata")
     values = {}
-    for key in ("version", "canon"):
+    for key in ("version", "canon", "interface-canon", "component-recipes", "web-react-adapter", "egui-adapter"):
         match = re.search(r"^\s+" + key + r":\s*([^\s#]+)\s*$",
                           metadata.group("body"), re.MULTILINE)
         if not match:
@@ -109,6 +110,9 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
     root = root.resolve()
     skill = skill_metadata(root / "skill" / "SKILL.md")
     canon = json.loads(read_text(root / "skill" / "references" / "01-canon.json"))
+    interface = json.loads(read_text(root / "skill" / "references" / "interface-canon.json"))
+    recipes = json.loads(read_text(root / "skill" / "references" / "component-recipes.json"))
+    policy = validate_version_policy(json.loads(read_text(root / "skill" / "references" / "version-policy.json")))
     site = json.loads(read_text(root / "site" / "package.json"))
     root_changelog = read_text(root / "CHANGELOG.md")
     skill_changelog = read_text(root / "skill" / "CHANGELOG.md")
@@ -117,11 +121,24 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
 
     if skill["version"] != version:
         raise ValueError("skill version %s does not match release %s" % (skill["version"], version))
-    if skill["canon"] != version or canon.get("version") != version:
-        raise ValueError("canon version does not match release %s" % version)
+    if skill["canon"] != canon.get("version"):
+        raise ValueError("skill canon %s does not match authoritative canon %s"
+                         % (skill["canon"], canon.get("version")))
     if site.get("version") != version:
         raise ValueError("site package version %s does not match release %s"
                          % (site.get("version"), version))
+    expected_metadata = {
+        "interface-canon": interface["version"],
+        "component-recipes": recipes["version"],
+    }
+    for key, expected in expected_metadata.items():
+        if skill[key] != expected:
+            raise ValueError("skill %s %s does not match authoritative %s" % (key, skill[key], expected))
+    validate_version_combination({
+        "brand_canon": canon["version"], "interface_canon": interface["version"],
+        "component_recipes": recipes["version"], "web_react_adapter": skill["web-react-adapter"],
+        "egui_adapter": skill["egui-adapter"], "compiler": skill["version"], "brand": "1.0.0",
+    }, policy)
 
     brands = {}
     for slug in PRODUCTION:
@@ -142,6 +159,11 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
         "skill_version": skill["version"],
         "canon_version": canon["version"],
         "site_version": site["version"],
+        "interface_canon_version": interface["version"],
+        "component_recipe_version": recipes["version"],
+        "web_react_adapter_version": skill["web-react-adapter"],
+        "egui_adapter_version": skill["egui-adapter"],
+        "version_policy_version": policy["version"],
         "release_date": release["date"],
         "release_changes": release["body"],
         "brands": brands,
@@ -153,8 +175,9 @@ def current_version(root: Path) -> str:
     skill = skill_metadata(root / "skill" / "SKILL.md")
     canon = json.loads(read_text(root / "skill" / "references" / "01-canon.json"))
     version = skill["version"]
-    if skill["canon"] != version or canon.get("version") != version:
-        raise ValueError("skill and canon current versions disagree")
+    if skill["canon"] != canon.get("version"):
+        raise ValueError("skill canon %s does not match authoritative canon %s"
+                         % (skill["canon"], canon.get("version")))
     load_metadata(root, version)
     return version
 
@@ -167,9 +190,16 @@ def render_notes(metadata: Mapping[str, object]) -> str:
         "# shruggie-brandbuilder v%s\n\n"
         "Skill version: `%s`\n\n"
         "Canon version: `%s`\n\n"
+        "Interface Canon version: `%s`\n\n"
+        "Component recipe version: `%s`\n\n"
+        "Web/React adapter version: `%s`\n\n"
+        "egui adapter version: `%s`\n\n"
+        "Version policy: `%s`\n\n"
         "%s\n\n"
         "## Release changes\n\n%s\n"
         % (version, metadata["skill_version"], metadata["canon_version"],
+           metadata["interface_canon_version"], metadata["component_recipe_version"],
+           metadata["web_react_adapter_version"], metadata["egui_adapter_version"], metadata["version_policy_version"],
            MIGRATIONS[version], metadata["release_changes"])
     )
 
@@ -259,8 +289,9 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
         "enforcement/consumer-contract.json", "enforcement/interface-canon.json",
         "enforcement/interface-canon.schema.json", "enforcement/component-recipes.json",
-        "enforcement/component-recipes.schema.json", "enforcement/consumer-contract.schema.json",
+        "enforcement/component-recipes.schema.json", "enforcement/version-policy.json", "enforcement/consumer-contract.schema.json",
         "web/adapter.json", "web/support-matrix.json",
+        "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
         "enforcement/capability-gap.example.json",
     }
     require_entries(path, entries, required)
@@ -270,6 +301,8 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             for schema_name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json"):
                 if archive.read("enforcement/" + schema_name) != (root / "skill" / "references" / schema_name).read_bytes():
                     raise ValueError("%s contains noncanonical enforcement/%s" % (path.name, schema_name))
+            if archive.read("enforcement/version-policy.json") != (root / "skill" / "references" / "version-policy.json").read_bytes():
+                raise ValueError("%s contains noncanonical enforcement/version-policy.json" % path.name)
         brand = _read_json(archive, "brand.json", path.name)
         manifest = _read_json(archive, "manifest.json", path.name)
         if brand.get("slug") != slug or brand.get("version") != version:
@@ -297,8 +330,11 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             "instructions": authority.get("instructions"),
             "Interface Canon": authority.get("interface_canon"),
             "component recipes": authority.get("component_recipes"),
+            "version policy": authority.get("version_policy"),
             "Web adapter": authority.get("web_adapter"),
             "support matrix": authority.get("support_matrix"),
+            "egui adapter": authority.get("egui_adapter"),
+            "egui support matrix": authority.get("egui_support_matrix"),
             "capability-gap template": capability_gap.get("template_path"),
             "recovery distribution": recovery.get("path"),
         }
@@ -343,6 +379,23 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         support_matrix = _read_json(archive, authority["support_matrix"], path.name)
         if support_matrix.get("adapter_version") != web_adapter.get("adapter_version"):
             raise ValueError("%s support matrix adapter version disagrees" % path.name)
+        version_policy = validate_version_policy(_read_json(archive, authority["version_policy"], path.name))
+        egui_adapter = _read_json(archive, authority["egui_adapter"], path.name)
+        if versions.get("egui_adapter_version") != egui_adapter.get("adapter_version"):
+            raise ValueError("%s consumer egui_adapter_version disagrees" % path.name)
+        if egui_adapter.get("component_recipe_version") != component_recipes.get("version"):
+            raise ValueError("%s egui adapter component recipe version disagrees" % path.name)
+        egui_support = _read_json(archive, authority["egui_support_matrix"], path.name)
+        if egui_support.get("adapter_version") != egui_adapter.get("adapter_version"):
+            raise ValueError("%s egui support matrix adapter version disagrees" % path.name)
+        domain_versions = {
+            "brand_canon": versions.get("canon_version"), "interface_canon": versions.get("interface_canon_version"),
+            "component_recipes": versions.get("component_recipe_version"), "web_react_adapter": versions.get("web_react_adapter_version"),
+            "egui_adapter": versions.get("egui_adapter_version"), "compiler": versions.get("compiler_version"),
+            "brand": versions.get("brand_version"),
+        }
+        if consumer.get("compatibility") != validate_version_combination(domain_versions, version_policy):
+            raise ValueError("%s consumer compatibility record disagrees" % path.name)
         recovery_path = recovery.get("path")
         try:
             recovery_bytes = archive.read(recovery_path)
@@ -369,6 +422,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             require_entries(path, skill_names, {
                 "SKILL.md", "AGENTS.md", "references/interface-canon.json",
                 "references/component-recipes.json", "references/component-recipes.schema.json",
+                "references/version-policy.json",
                 "references/consumer-contract.schema.json", "templates/verify.py",
                 "templates/validate_glyph.py",
             })
@@ -382,7 +436,10 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             skill_text = skill_archive.read("SKILL.md").decode("utf-8")
             for metadata_key, version_key in (("version", "compiler_version"),
                                               ("canon", "canon_version"),
-                                              ("interface-canon", "interface_canon_version")):
+                                              ("interface-canon", "interface_canon_version"),
+                                              ("component-recipes", "component_recipe_version"),
+                                              ("web-react-adapter", "web_react_adapter_version"),
+                                              ("egui-adapter", "egui_adapter_version")):
                 match = re.search(r"^\s+%s:\s*([^\s#]+)\s*$" % metadata_key,
                                   skill_text, re.MULTILINE)
                 if match is None or match.group(1).strip("\"'") != versions.get(version_key):

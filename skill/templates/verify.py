@@ -21,6 +21,7 @@ from brand_contract import _image_dimensions, affiliation, application_icon_prof
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 from interface_contract import verify_consumer_contract
+from gen_egui import verify_egui_adapter
 from component_contract import COMPONENT_IDS, ComponentContractError, validate_app_frame_profiles, validate_component_catalog
 
 # ------------------------------------------------------------------ utilities
@@ -1104,6 +1105,14 @@ def c_consumer_contract(kit, rep):
         rep.ok("consumer-contract", "versions, authority, provenance, recovery, and gap authorization verified")
 
 
+def c_egui_adapter(kit, rep):
+    problems = verify_egui_adapter(kit)
+    if problems:
+        rep.bad("egui-adapter", "; ".join(problems[:8]))
+    else:
+        rep.ok("egui-adapter", "native crate, versions, recipe coverage, support states, and pins verified")
+
+
 def c_component_adapter(kit, rep):
     root = Path(kit)
     try:
@@ -2120,6 +2129,7 @@ def main():
     c_ico(kit, rep)
     c_pdf(kit, rep)
     c_component_adapter(kit, rep)
+    c_egui_adapter(kit, rep)
     c_consumer_contract(kit, rep)
     c_manifest(kit, rep)
 

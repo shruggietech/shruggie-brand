@@ -9,6 +9,7 @@ metadata:
   interface-canon: 1.0.0
   component-recipes: 1.0.0
   web-react-adapter: 1.0.0
+  egui-adapter: 1.0.0
   parent: ShruggieTech
 allowed-tools:
   - Read
@@ -64,6 +65,7 @@ logo concept to consider, and any existing material at all.
 | A logo | `08-glyph-construction.md` first, then `06-logo-protocol.md`. Do not draw before reading it |
 | To approve or promote identity source | `identity-continuity.md`, then `06-logo-protocol.md` |
 | Next.js or shadcn wiring | `05-shadcn-binding.md`, then run `templates/gen_nextjs.py` |
+| Rust or egui wiring | `native/egui/adapter.json` and `native/egui/README.md`, then run the generated crate tests |
 | To write copy | `07-voice.md` |
 | To know what may change | `00-variance-contract.md` |
 | To run somewhere unusual | `09-portability.md` |
@@ -109,6 +111,8 @@ matrix and the fallback chain. A missing tool gets named in `VERIFY.md` with the
 tool that was missing; it never gets silently substituted, and a skip must never
 read as "not applicable".
 
+**Version contracts independently.** Brand Canon, Interface Canon, component recipes, Web/React adapter, egui adapter, compiler, and each brand have separate semantic versions. `references/version-policy.json` defines their meanings, bump rules, compatibility edges, and recovery requirements. Compatibility does not imply publication, and publication does not imply consumer adoption. Pin the exact versions and checksums in every consumer contract and never substitute a latest release during recovery.
+
 **Bundle fonts. Never fetch them at build time.** House mode uses the approved local faces. Fixed mode uses only declared local faces whose hash, family, weight, style, format, license, provenance, and usage status pass validation. Network retrieval happens only through the explicitly invoked `templates/ingest_font.py` command and completes atomically before a build begins.
 
 **Preserve authoritative supplied identity files.** A supplied master stays byte-identical. Declare `logo.source_mode` explicitly. Authoritative mode binds Full and Reduced to separate approved PNG or passive SVG input IDs and rejects constructed geometry or `build/mk_paths.py`; JPEG and WebP remain reference-only for this binding. Constructed mode rejects approved mark-role inputs. Declare each source role, path, format, SHA-256, color-profile status, usage basis, and approved transformations. A bound PNG also records its owner-approved `alpha` or `luminance` mask, the current source hash, approver, and approval date. Palette analysis produces evidence only. A human approval must bind a selected candidate to the current source hash before that color can be canonical. Any later binding, hash, source-art, mask, or visible-geometry change requires fresh owner approval.
@@ -147,6 +151,7 @@ It validates the explicit contract first, then probes, runs the glyph gate, and 
     python3 templates/build_specimen.py <brand.json>          # outlined type specimen
     python3 templates/gen_vanilla.py    <brand.json> <kit>    # tokens, styles.css, components
     python3 templates/gen_web_react.py  <brand.json> <kit>    # semantic web tokens, bounded React adapter, AppFrame
+    python3 templates/gen_egui.py       <brand.json> <kit>    # typed Rust tokens, idiomatic egui adapter, rendered tests
     python3 templates/gen_nextjs.py     <brand.json> <kit>    # globals.css, registry, fonts, provider
     python3 templates/gen_enforcement.py <brand.json> <kit>   # consumer contract, AGENTS.md, ESLint, stylelint
     python3 templates/gen_logo.py       <brand.json> <kit>    # colourways, lockups, native icon suites

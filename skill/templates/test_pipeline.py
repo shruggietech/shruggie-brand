@@ -29,6 +29,7 @@ import gen_logo
 import gen_nextjs
 import gen_enforcement
 import gen_web_react
+import gen_egui
 import build_specimen
 import build_kit
 import enrich_brand
@@ -58,6 +59,7 @@ class PipelineTests(unittest.TestCase):
             enforcement.mkdir()
             write_utf8(enforcement / "AGENTS.md", "# Local instructions\n\nKeep this human text.\n")
             gen_web_react.generate_web_react(kit / "brand.json", kit)
+            gen_egui.generate_egui(kit / "brand.json", kit)
             old_argv = sys.argv
             try:
                 sys.argv = ["gen_enforcement.py", str(kit / "brand.json"), str(kit)]

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added a deterministic native Rust and egui adapter with typed semantic tokens, logical-unit and density transforms, observed runtime capabilities, bounded helpers, complete recipe support classification, and compiled `egui_kittest` interaction evidence.
+- Added independent semantic-version meanings and bump rules for Brand Canon, Interface Canon, component recipes, Web/React and egui adapters, compiler, and each brand, with validated compatibility, lifecycle separation, provenance, pinning, and exact offline recovery.
 - Added a renderer-neutral Interface Canon, contextual Author, Implementation, and Audit routing, and deterministic generated consumer contracts with exact versions, provenance, merge-safe instructions, offline recovery bytes, and reusable-gap records.
 - Required every production brand to enter the generated public website inventory after approval, and added governed `light.<role>` showcase-surface resolution for light-first brand cards.
 - Reused the canonical-artifact Gate 2 comparison in every kit-aware approval-ledger consumer, including static-site preparation, while retaining exact manifest hashes and fail-closed decoded-pixel equivalence.

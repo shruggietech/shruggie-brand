@@ -23,15 +23,19 @@ from interface_contract import (
     InterfaceContractError,
     emit_consumer_contract,
     load_interface_canon,
+    load_version_policy,
     merge_governed_block,
     resolve_interface_contract,
     route_operating_mode,
     validate_interface_canon,
+    validate_version_combination,
+    validate_version_policy,
     validate_runtime_profile,
     verify_consumer_contract,
     write_deterministic_skill_bundle,
 )
 from gen_web_react import generate_web_react
+from gen_egui import generate_egui
 from schema_validation import validate_json_schema
 
 
@@ -63,6 +67,29 @@ class InterfaceCanonTests(unittest.TestCase):
                     pending.extend(node.values())
                 elif isinstance(node, list):
                     pending.extend(node)
+
+    def test_version_policy_has_independent_domains_and_fails_incompatible_combinations(self):
+        policy = validate_version_policy(load_version_policy())
+        self.assertEqual(
+            {"brand_canon", "interface_canon", "component_recipes", "web_react_adapter", "egui_adapter", "compiler", "brand"},
+            set(policy["domains"]),
+        )
+        versions = {
+            "brand_canon": "1.2.1", "interface_canon": "1.0.0", "component_recipes": "1.0.0",
+            "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "1.2.1", "brand": "1.0.0",
+        }
+        self.assertEqual("compatible", validate_version_combination(versions, policy)["status"])
+        incompatible = dict(versions, brand_canon="9.0.0")
+        with self.assertRaisesRegex(InterfaceContractError, "incompatible.*supported"):
+            validate_version_combination(incompatible, policy)
+        incompatible_adapter = dict(versions, egui_adapter="2.0.0")
+        with self.assertRaisesRegex(InterfaceContractError, "policy major 1.*migrate"):
+            validate_version_combination(incompatible_adapter, policy)
+
+        incomplete = copy.deepcopy(policy)
+        incomplete["domains"]["egui_adapter"]["major"] = []
+        with self.assertRaisesRegex(InterfaceContractError, "egui_adapter major"):
+            validate_version_policy(incomplete)
 
     def test_every_production_brand_resolves_without_identity_mutation(self):
         for brand_path in sorted((ROOT / "brands").glob("*/brand.json")):
@@ -211,17 +238,21 @@ class ConsumerContractTests(unittest.TestCase):
             kit.mkdir()
             (kit / "brand.json").write_bytes(brand_source.read_bytes())
             generate_web_react(kit / "brand.json", kit)
+            generate_egui(kit / "brand.json", kit)
             first = emit_consumer_contract(brand, kit / "brand.json", kit, "# Implementation\n\nExact guidance.\n")
             tracked = [kit / item["path"] for item in first["provenance"]] + [kit / "enforcement" / "consumer-contract.json"]
             before = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
             second = emit_consumer_contract(brand, kit / "brand.json", kit, "# Implementation\n\nExact guidance.\n")
             after = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
             self.assertEqual(first, second)
-            self.assertEqual(2, first["schema_version"])
+            self.assertEqual(3, first["schema_version"])
             self.assertEqual("1.0.0", first["versions"]["component_recipe_version"])
             self.assertEqual("1.0.0", first["versions"]["web_react_adapter_version"])
+            self.assertEqual("1.0.0", first["versions"]["egui_adapter_version"])
+            self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertEqual("enforcement/component-recipes.json", first["authority"]["component_recipes"])
             self.assertEqual("web/adapter.json", first["authority"]["web_adapter"])
+            self.assertEqual("native/egui/adapter.json", first["authority"]["egui_adapter"])
             self.assertEqual(before, after)
             self.assertEqual([], verify_consumer_contract(kit))
 
@@ -259,6 +290,14 @@ class ConsumerContractTests(unittest.TestCase):
             problems = verify_consumer_contract(kit)
             self.assertTrue(any("file is missing" in problem for problem in problems), problems)
             contract_path.write_bytes(before["enforcement/consumer-contract.json"])
+
+            egui_path = kit / "native" / "egui" / "adapter.json"
+            egui = read_json(egui_path)
+            egui["compiler_version"] = "1.9.9"
+            egui_path.write_text(json.dumps(egui), encoding="utf-8")
+            problems = verify_consumer_contract(kit)
+            self.assertTrue(any("egui adapter compiler version" in problem for problem in problems), problems)
+            egui_path.write_bytes(before["native/egui/adapter.json"])
 
             contract = read_json(contract_path)
             contract["provenance"] = contract["provenance"][:-1]
