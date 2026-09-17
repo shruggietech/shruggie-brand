@@ -30,6 +30,7 @@ SOCIAL_SIZE = (1280, 640)
 ALERT_TYPES = {"NOTE": "info", "WARNING": "warn", "CAUTION": "error"}
 sys.path.insert(0, str(TEMPLATES))
 from brand_contract import affiliation, public_showcase, showcase_surface, vendor_boundary
+from gen_conformance import verify_conformance
 from package_release import write_brand_archive
 DOC_DESCRIPTIONS = {
     "00-variance-contract": "The rules that keep every identity distinct while preserving a shared standard.",
@@ -270,7 +271,7 @@ def structured_data(route: dict[str, Any], routes: list[dict[str, Any]], brands:
     organization = {"@type": "Organization", "@id": ORGANIZATION_URL, "name": "ShruggieTech", "url": ORGANIZATION_URL}
     website_id = f"{SITE_URL}/#website"
     website = {"@type": "WebSite", "@id": website_id, "url": f"{SITE_URL}/", "name": "Brands | ShruggieTech", "publisher": {"@id": ORGANIZATION_URL}}
-    kind_types = {"home": "CollectionPage", "downloads": "CollectionPage", "guidelines": "WebPage", "guidelines-topic": "WebPage", "docs-index": "CollectionPage", "docs-page": "TechArticle"}
+    kind_types = {"home": "CollectionPage", "downloads": "CollectionPage", "guidelines": "WebPage", "guidelines-topic": "WebPage", "docs-index": "CollectionPage", "docs-page": "TechArticle", "conformance-index": "CollectionPage", "conformance": "WebPage"}
     page_id = f"{route['canonical']}#webpage"
     page: dict[str, Any] = {"@type": kind_types[route["kind"]], "@id": page_id, "url": route["canonical"], "name": route["documentTitle"], "description": route["description"], "isPartOf": {"@id": website_id}, "publisher": {"@id": ORGANIZATION_URL}}
     graph: list[dict[str, Any]] = [organization, website, page]
@@ -298,7 +299,9 @@ def structured_data(route: dict[str, Any], routes: list[dict[str, Any]], brands:
 def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Optional[list[dict[str, Any]]] = None) -> list[dict[str, Any]]:
     home = {"name": "Brands", "url": f"{SITE_URL}/"}
     docs_root = {"name": "Documentation", "url": f"{SITE_URL}/docs/"}
+    conformance_root = {"name": "Conformance", "url": f"{SITE_URL}/conformance/"}
     routes = [make_route("home", "home", "/", "Brands", SITE_DESCRIPTION, "Brand portfolio", [])]
+    routes.append(make_route("conformance", "conformance-index", "/conformance/", "Interface conformance", "Inspect generated browser reference specimens and exact cross-host evidence boundaries for every production brand.", "Interface conformance", [home, conformance_root]))
     portal_by_slug = {portal["brand"]["slug"]: portal for portal in (portals or [])}
     for brand in sorted(brands, key=lambda item: item["slug"]):
         slug = brand["slug"]
@@ -313,6 +316,7 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
         routes.extend([
             make_route(f"downloads-{slug}", "downloads", f"/{slug}/downloads/", f"{brand['title']} assets", f"Browse and download the complete {brand['title']} brand asset collection.", "Brand assets", [home, brand_crumb, {"name": "Assets", "url": f"{SITE_URL}/{slug}/downloads/"}], brand_slug=slug, guide_topic="assets", vendor_notice=vendor_notice),
             make_route(f"guidelines-{slug}", "guidelines", guidelines_path, f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice),
+            make_route(f"conformance-{slug}", "conformance", f"/conformance/{slug}/", f"{brand['title']} interface conformance", f"Inspect the generated browser reference and cross-host evidence boundary for {brand['title']}.", "Interface conformance", [home, conformance_root, {"name": brand["title"], "url": f"{SITE_URL}/conformance/{slug}/"}], brand_slug=slug, vendor_notice=vendor_notice),
         ])
         for topic in topics[1:]:
             if topic["key"] == "assets":
@@ -830,6 +834,49 @@ def stage_web_adapters(sources: list[Path], generated: Path = GENERATED) -> None
         write_utf8(destination / "vite-smoke.tsx", 'import { Card } from "./server";\nimport { Dialog } from "./client";\nexport const ViteSmoke = () => <Card heading="Smoke"><Dialog triggerLabel="Open" title="Title" description="Description">Body</Dialog></Card>;\n')
 
 
+def stage_conformance(sources: list[Path], generated: Path = GENERATED, public: Path = PUBLIC) -> list[dict[str, Any]]:
+    """Stage verified generated conformance data without reauthoring brand values."""
+    public_target = public / "conformance-fixtures"
+    for target, boundary in ((public_target, public),):
+        resolved = target.resolve()
+        try:
+            resolved.relative_to(boundary.resolve())
+        except ValueError as error:
+            raise ValueError(f"refusing to replace conformance path outside boundary: {resolved}") from error
+        if target.exists():
+            shutil.rmtree(target)
+    records = []
+    for source in sources:
+        problems = verify_conformance(source)
+        if problems:
+            raise ValueError(f"{source.name}: invalid conformance output: {problems[0]}")
+        manifest = json.loads((source / "conformance" / "manifest.json").read_text(encoding="utf-8"))
+        if manifest.get("brand") != source.name:
+            raise ValueError(f"{source.name}: conformance brand must match its source directory")
+        destination = public_target / source.name
+        destination.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source / "conformance" / "browser" / "specimen.html", destination / "specimen.html")
+        shutil.copy2(source / "conformance" / "manifest.json", destination / "manifest.json")
+        records.append({
+            "slug": source.name,
+            "title": manifest["brand_title"],
+            "brandVersion": manifest["brand_version"],
+            "sourceRevision": manifest["source_revision"],
+            "contractVersion": manifest["conformance_contract_version"],
+            "versions": manifest["versions"],
+            "recipes": manifest["recipes"],
+            "profiles": manifest["profiles"],
+            "hostTracks": manifest["host_tracks"],
+            "diagnosticClasses": manifest["diagnostic_classes"],
+            "evidenceBoundaries": manifest["evidence_boundaries"],
+            "specimenPath": f"/conformance-fixtures/{source.name}/specimen.html",
+            "manifestPath": f"/conformance-fixtures/{source.name}/manifest.json",
+        })
+    generated.mkdir(parents=True, exist_ok=True)
+    write_utf8(generated / "conformance.json", json.dumps(records, ensure_ascii=False, indent=2) + "\n")
+    return records
+
+
 def main() -> int:
     if not DIST.is_dir():
         raise SystemExit("dist/ is missing; run python scripts/build_all.py first")
@@ -848,6 +895,7 @@ def main() -> int:
     public_sources = [(source, brand) for source, brand in loaded if public_showcase(brand, source)]
     for source, brand in public_sources:
         validate_registry(source, brand)
+    stage_conformance([source for source, _ in public_sources])
     remove_stale_public_brands(PUBLIC, {source.name for source, _ in public_sources})
     for source, brand in public_sources:
         brands.append(copy_kit(source, brand))

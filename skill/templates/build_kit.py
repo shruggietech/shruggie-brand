@@ -35,6 +35,7 @@ STEPS = [
     ("native Rust and egui adapter",               ["gen_egui.py", "{brand}", "{kit}"]),
     ("tokens, shadcn registry, fonts, provider", ["gen_nextjs.py", "{brand}", "{kit}"]),
     ("agent contract and lint configs",         ["gen_enforcement.py", "{brand}", "{kit}"]),
+    ("cross-host conformance fixtures",         ["gen_conformance.py", "{brand}", "{kit}"]),
     ("logo colourways, lockups, categorized application icons", ["gen_logo.py", "{brand}", "{kit}"]),
     ("source-preserved platform icon targets", ["apply_supplied_icons.py", "{brand}", "{kit}"]),
     ("guidelines page",                         ["gen_guidelines.py", "{brand}", "{kit}"]),

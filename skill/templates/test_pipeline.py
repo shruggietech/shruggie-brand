@@ -30,6 +30,7 @@ import gen_nextjs
 import gen_enforcement
 import gen_web_react
 import gen_egui
+import gen_conformance
 import build_specimen
 import build_kit
 import enrich_brand
@@ -64,11 +65,13 @@ class PipelineTests(unittest.TestCase):
             try:
                 sys.argv = ["gen_enforcement.py", str(kit / "brand.json"), str(kit)]
                 gen_enforcement.main()
+                gen_conformance.generate_conformance(kit / "brand.json", kit)
                 first = {
                     path.relative_to(enforcement).as_posix(): path.read_bytes()
                     for path in enforcement.rglob("*") if path.is_file()
                 }
                 gen_enforcement.main()
+                gen_conformance.generate_conformance(kit / "brand.json", kit)
                 second = {
                     path.relative_to(enforcement).as_posix(): path.read_bytes()
                     for path in enforcement.rglob("*") if path.is_file()
@@ -83,6 +86,7 @@ class PipelineTests(unittest.TestCase):
             report = verify.Report()
             verify.c_consumer_contract(str(kit), report)
             self.assertFalse(report.problems)
+            self.assertEqual([], gen_conformance.verify_conformance(kit))
 
     def image_specimen_fixture(self, destination):
         """Create an isolated image-backed brand without production discovery."""

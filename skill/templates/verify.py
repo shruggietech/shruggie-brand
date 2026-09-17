@@ -22,6 +22,7 @@ from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 from interface_contract import verify_consumer_contract
 from gen_egui import verify_egui_adapter
+from gen_conformance import verify_conformance
 from component_contract import COMPONENT_IDS, ComponentContractError, validate_app_frame_profiles, validate_component_catalog
 
 # ------------------------------------------------------------------ utilities
@@ -1113,6 +1114,14 @@ def c_egui_adapter(kit, rep):
         rep.ok("egui-adapter", "native crate, versions, recipe coverage, support states, and pins verified")
 
 
+def c_cross_host_conformance(kit, rep):
+    problems = verify_conformance(kit)
+    if problems:
+        rep.bad("cross-host-conformance", "; ".join(problems[:8]))
+    else:
+        rep.ok("cross-host-conformance", "7 profiles, 4 non-substitutable host tracks, safe-area traces, and human-only baseline policy verified")
+
+
 def c_component_adapter(kit, rep):
     root = Path(kit)
     try:
@@ -2130,6 +2139,7 @@ def main():
     c_pdf(kit, rep)
     c_component_adapter(kit, rep)
     c_egui_adapter(kit, rep)
+    c_cross_host_conformance(kit, rep)
     c_consumer_contract(kit, rep)
     c_manifest(kit, rep)
 

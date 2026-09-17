@@ -2,6 +2,7 @@ import brands from '../generated/brands.json' with { type: 'json' };
 import guidelinePortals from '../generated/guidelines.json' with { type: 'json' };
 import documentation from '../generated/documentation.json' with { type: 'json' };
 import routeContract from '../generated/routes.json' with { type: 'json' };
+import conformanceRecords from '../generated/conformance.json' with { type: 'json' };
 import { existsSync, readFileSync } from 'node:fs';
 
 const assetLibrarySource = readFileSync(new URL('../components/guidelines/asset-library-client.tsx', import.meta.url), 'utf8');
@@ -19,6 +20,8 @@ const documentationLayoutSource = readFileSync(new URL('../app/docs/layout.tsx',
 const documentationPageSource = readFileSync(new URL('../app/docs/[[...slug]]/page.tsx', import.meta.url), 'utf8');
 const documentationTreeSource = readFileSync(new URL('../lib/documentation.ts', import.meta.url), 'utf8');
 const noScriptHierarchySource = readFileSync(new URL('../components/hierarchy-no-script.tsx', import.meta.url), 'utf8');
+const conformanceReferenceSource = readFileSync(new URL('../components/conformance-reference.tsx', import.meta.url), 'utf8');
+const conformanceIndexSource = readFileSync(new URL('../app/(site)/conformance/page.tsx', import.meta.url), 'utf8');
 if (!assetLibrarySource.includes('className="asset-preview-media"') || !topicContentSource.includes('className="asset-preview-media"')) throw new Error('both guideline preview surfaces must use the shared media wrapper');
 if (!/\.asset-preview-media img \{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: contain;[^}]*\}/s.test(globalStyles)) throw new Error('shared preview containment styles must bind full media sizing to contain fitting');
 
@@ -76,6 +79,18 @@ if (interactionStyleProblems(globalStyles).length > 0) throw new Error(`interact
 export const routeRecords = routeContract.routes;
 const expectedBrandSlugs = ['covarity', 'cueson', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'i-heart-pr-tours', 'shruggietech'];
 if (JSON.stringify(brands.map((brand) => brand.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated brand inventory does not contain the eight production brands');
+if (JSON.stringify(conformanceRecords.map((record) => record.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated conformance inventory does not contain the eight production brands');
+for (const record of conformanceRecords) {
+  if (record.recipes.length !== 15 || record.profiles.length !== 7 || record.hostTracks.length !== 4) throw new Error(`${record.slug} conformance matrix is incomplete`);
+  for (const track of record.hostTracks) {
+    if (track.status !== 'supported') throw new Error(`${record.slug} ${track.id} reference track is not supported`);
+    for (const field of ['host_version', 'renderer_version', 'target_version', 'tool_version']) if (!track[field]) throw new Error(`${record.slug} ${track.id} lacks ${field}`);
+  }
+  if (record.evidenceBoundaries.browser_emulation_is_host_proof !== false || record.evidenceBoundaries.reference_fixture_is_consumer_adoption !== false) throw new Error(`${record.slug} overclaims browser or fixture evidence`);
+  if (!record.specimenPath.startsWith(`/conformance-fixtures/${record.slug}/`) || !record.manifestPath.startsWith(`/conformance-fixtures/${record.slug}/`)) throw new Error(`${record.slug} conformance paths are unsafe or inconsistent`);
+}
+if (!conformanceReferenceSource.includes('Browser emulation cannot promote either state.') || !conformanceReferenceSource.includes('aria-pressed={item.id === profile}')) throw new Error('conformance reference omits the evidence boundary or accessible profile state');
+if (!conformanceIndexSource.includes('Cross-host conformance') || !conformanceIndexSource.includes('Native host fixtures remain distinct')) throw new Error('conformance index omits its purpose or native evidence boundary');
 const esoWeave = brands.find((brand) => brand.slug === 'eso-weave');
 if (esoWeave?.idea !== 'Unofficial automation for ESO' || esoWeave?.descriptor !== 'Cross-platform desktop companion for The Elder Scrolls Online') throw new Error('ESO Weave public wording differs from the Gate 2 approval');
 if (!esoWeave?.vendorBoundary?.includes('not affiliated with')) throw new Error('ESO Weave public record omits the required vendor boundary');
@@ -144,11 +159,12 @@ export const brandRoutes = routeRecords.filter((route) => ['downloads', 'guideli
 export const docRoutes = routeRecords.filter((route) => ['docs-index', 'docs-page'].includes(route.kind)).map((route) => route.pathname);
 export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolchain', '05-shadcn-binding', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability'].map((slug) => `/docs/${slug}/`);
 export const htmlRoutes = routeRecords.map((route) => route.pathname);
+export const conformanceRoutes = routeRecords.filter((route) => route.kind === 'conformance').map((route) => route.pathname);
 export const guidelineRoutes = routeRecords.filter((route) => ['guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
 export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/`, `/${brand.slug}/downloads/`]), '/glitchpad/guidelines/color/', '/docs/', '/docs/00-variance-contract/'];
 export const visualThemes = ['light', 'dark'];
 export const visualWidths = [360, 1280];
-export const requiredFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/shruggietech-logo-dark.svg', '/shruggietech-logo-light.svg', '/site.webmanifest', '/robots.txt', '/sitemap.xml', '/static.json', ...routeRecords.map((route) => route.social.path)];
+export const requiredFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/shruggietech-logo-dark.svg', '/shruggietech-logo-light.svg', '/site.webmanifest', '/robots.txt', '/sitemap.xml', '/static.json', ...routeRecords.map((route) => route.social.path), ...conformanceRecords.flatMap((record) => [record.specimenPath, record.manifestPath])];
 export const iconFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png'];
 export const iconRoutes = ['/', '/docs/', '/docs/04-toolchain/'];
 export const downloadFiles = brands.flatMap((brand) => { const root = `/${brand.slug}/downloads/files`; return [brand.kitArchive, `${root}/${brand.slug}-brand-guide.pdf`, `${root}/logos/svg/${brand.slug}-mark-color.svg`, `${root}/logos/svg/${brand.slug}-horizontal-color.svg`, `${root}/icons/manifest.json`, `${root}/icons/web/favicon.ico`, `${root}/icons/android/manifest.json`, `${root}/icons/apple/ios/manifest.json`, `${root}/icons/apple/macos/manifest.json`, `${root}/icons/windows/manifest.json`, `${root}/icons/windows/classic/app.ico`, ...(brand.slug === 'cueson' ? [`${root}/consumer-handoff.json`] : []), brand.specimen, `/${brand.slug}/brand/r/theme.json`]; });

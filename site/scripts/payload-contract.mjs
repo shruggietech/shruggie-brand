@@ -1,6 +1,7 @@
 import { extname } from 'node:path';
 
 const contentTypes = {
+  '.html': ['text/html'],
   '.ico': ['image/x-icon', 'image/vnd.microsoft.icon'],
   '.json': ['application/json'],
   '.pdf': ['application/pdf'],
@@ -44,7 +45,10 @@ export function payloadFailures(pathname, rawContentType, rawBody) {
   }
 
   try {
-    if (extension === '.pdf') {
+    if (extension === '.html') {
+      const text = decodeUtf8(body).trim();
+      if (!/^<!doctype html>/i.test(text) || !/<html(?:\s|>)/i.test(text) || !/<\/html>\s*$/i.test(text)) failures.push('is not a complete HTML document');
+    } else if (extension === '.pdf') {
       if (!body.subarray(0, 5).equals(Buffer.from('%PDF-')) || !body.subarray(-1024).includes(Buffer.from('%%EOF'))) failures.push('lacks a valid PDF signature and trailer');
     } else if (extension === '.png') {
       if (body.length <= 8 || !body.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) failures.push('lacks a valid PNG signature');

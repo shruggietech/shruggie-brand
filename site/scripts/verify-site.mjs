@@ -1,14 +1,16 @@
-import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { inflateSync } from 'node:zlib';
-import { downloadFiles, htmlRoutes, iconFiles, iconRoutes, requiredFiles, routeRecords, tableRoutes, visualRoutes, visualThemes, visualWidths } from '../tests/site.test.mjs';
+import { conformanceRoutes, downloadFiles, htmlRoutes, iconFiles, iconRoutes, requiredFiles, routeRecords, tableRoutes, visualRoutes, visualThemes, visualWidths } from '../tests/site.test.mjs';
 import guidelinePortals from '../generated/guidelines.json' with { type: 'json' };
 import brands from '../generated/brands.json' with { type: 'json' };
 import documentationRecords from '../generated/documentation.json' with { type: 'json' };
+import conformanceRecords from '../generated/conformance.json' with { type: 'json' };
 import { payloadFailures } from './payload-contract.mjs';
 import { isCanonicalRedirect, selectVerificationOrigin } from './verification-origin.mjs';
 
@@ -53,6 +55,8 @@ if (selectedOrigin.kind === 'local') {
 }
 const failures = [];
 const check = (condition, message) => { if (!condition) failures.push(message); };
+const stableObject = (value) => Array.isArray(value) ? value.map(stableObject) : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, stableObject(value[key])])) : value;
+const digest = (value) => createHash('sha256').update(value).digest('hex');
 function previewLayoutProblems(sample) {
   const tolerance = 1;
   const problems = [];
@@ -751,6 +755,52 @@ try {
       for (const violation of results.violations) failures.push(`${route} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
     }
   }
+  check(conformanceRoutes.length === conformanceRecords.length, 'public conformance route count differs from the generated brand inventory');
+  for (const record of conformanceRecords) {
+    const route = `/conformance/${record.slug}/`;
+    check(conformanceRoutes.includes(route), `${record.slug} lacks a public conformance route`);
+    for (const profile of record.profiles) {
+      await page.setViewportSize({ width: profile.viewport.width, height: profile.viewport.height });
+      await page.emulateMedia({
+        reducedMotion: profile.motion === 'reduced' ? 'reduce' : 'no-preference',
+        forcedColors: profile.contrast === 'forced-colors' ? 'active' : 'none',
+        colorScheme: 'light',
+      });
+      const response = await page.goto(base + route);
+      check(response?.status() === 200, `${route} ${profile.id} returned ${response?.status()}`);
+      const profileButton = page.getByRole('button', { name: profile.id.replaceAll('-', ' ') });
+      check(await profileButton.count() === 1, `${route} lacks the ${profile.id} profile control`);
+      if (await profileButton.count() === 1) {
+        await profileButton.click();
+        check(await profileButton.getAttribute('aria-pressed') === 'true', `${route} does not expose ${profile.id} as the selected profile`);
+      }
+      const frame = page.frameLocator('.conformance-frame');
+      check(await frame.locator('#bb-conformance').getAttribute('data-brand') === record.slug, `${route} embeds the wrong generated specimen`);
+      check(await frame.locator('#bb-conformance').getAttribute('data-contract-version') === record.contractVersion, `${route} specimen contract version disagrees`);
+      const frameTargets = await frame.locator('.bb-control, #bb-conformance button').evaluateAll((elements) => elements.filter((element) => element.getClientRects().length > 0).map((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height, name: element.getAttribute('aria-label') ?? element.textContent?.trim() })));
+      for (const target of frameTargets) check(target.width >= 44 && target.height >= 44, `${route} ${profile.id} target ${target.name} is smaller than 44 by 44 CSS pixels`);
+      check(await frame.locator('main').evaluate((element) => element.scrollWidth <= element.clientWidth + 2), `${route} ${profile.id} specimen clips its main content horizontally`);
+      const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      for (const violation of accessibility.violations) failures.push(`${route} ${profile.id} accessibility ${violation.id}: ${violation.nodes.map((node) => node.target.join(' ')).join(', ')}`);
+      const candidateDirectory = join(visualRoot, 'conformance', record.slug);
+      mkdirSync(candidateDirectory, { recursive: true });
+      const filename = `${profile.id}.png`;
+      await page.evaluate(() => scrollTo(0, 0));
+      const screenshot = await page.screenshot({ path: join(candidateDirectory, filename), fullPage: true });
+      const fonts = await page.evaluate(() => [...document.fonts].map((font) => ({ family: font.family, source: 'generated-site-font', loaded: font.status === 'loaded' })).sort((left, right) => left.family.localeCompare(right.family)));
+      const metadata = {
+        brand: record.slug, brand_version: record.brandVersion, versions: record.versions,
+        source_revision: record.sourceRevision, host: 'browser-react', profile: profile.id,
+        viewport: profile.viewport, fonts,
+        rendering: { renderer: 'chromium', version: browser.version(), device_scale_factor: 1, color_scheme: 'light', contrast: profile.contrast, motion: profile.motion },
+      };
+      const imageSha = digest(screenshot);
+      const unsigned = { ...metadata, image_sha256: imageSha, review_state: 'pending-human-review' };
+      const candidate = { ...unsigned, candidate_id: digest(`${imageSha}\n${JSON.stringify(stableObject(unsigned))}`) };
+      writeFileSync(join(candidateDirectory, `${profile.id}.json`), `${JSON.stringify(candidate, null, 2)}\n`, 'utf8');
+    }
+  }
+  await page.emulateMedia({ reducedMotion: 'no-preference', forcedColors: 'none', colorScheme: 'light' });
   for (const portal of guidelinePortals) {
     for (const topic of ['assets', 'logos']) {
       const route = topic === 'assets' ? `/${portal.brand.slug}/downloads/` : `/${portal.brand.slug}/guidelines/${topic}/`;
