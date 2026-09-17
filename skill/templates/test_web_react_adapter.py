@@ -50,12 +50,18 @@ class WebReactAdapterTests(unittest.TestCase):
             client = (kit / "web" / "react" / "client.tsx").read_text(encoding="utf-8")
             self.assertNotIn('"use client"', server)
             self.assertNotRegex(server, r"\b(?:window|document)\b")
+            self.assertIn('className="bb-skip-link bb-control" href="#bb-main"', server)
+            self.assertIn('Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-label">', server)
+            self.assertRegex(server, r'\.\.\.props\} aria-label=\{label\}')
             self.assertTrue(client.startswith('"use client";'))
             self.assertIn('from "radix-ui"', client)
             self.assertNotIn("asChild", client)
             self.assertIn("setPointerCapture", client)
             self.assertIn("releasePointerCapture", client)
             self.assertIn('orientation === "horizontal" ? "vertical" : "horizontal"', client)
+            self.assertIn("window.innerHeight - viewport.height - viewport.offsetTop", client)
+            self.assertIn('viewport?.addEventListener("scroll", update)', client)
+            self.assertIn("event.preventDefault()", client)
 
     def test_tokens_are_react_free_and_component_css_uses_semantic_namespace(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -73,6 +79,9 @@ class WebReactAdapterTests(unittest.TestCase):
             self.assertIn("block-size: 100dvh", css)
             self.assertIn("overflow: hidden", css)
             self.assertIn("body:has(.bb-app-frame)", css)
+            self.assertIn(".bb-app-frame__content { box-sizing: border-box", css)
+            self.assertIn("overflow-wrap: anywhere", css)
+            self.assertIn('.bb-field__control:not([type="checkbox"]):not([type="radio"]) { inline-size: 100%; }', css)
             self.assertIn(".bb-button--destructive { background: var(--bb-action-destructive); color: var(--bb-text-on-destructive); }", css)
             self.assertIn(".bb-menu { background: var(--bb-surface-overlay); color: var(--bb-text-primary); }", css)
             self.assertIn(".bb-dialog { background: var(--bb-surface-overlay); color: var(--bb-text-primary); }", css)

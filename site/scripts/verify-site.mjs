@@ -230,8 +230,9 @@ try {
     check(frameInsets.top === '32px', `generated AppFrame does not consume the declared titlebar inset exactly once (${frameInsets.top})`);
     check(frameInsets.scrollBottom === '340px', `generated AppFrame does not expose IME obstruction to the scroll owner (${frameInsets.scrollBottom})`);
     await page.setViewportSize({ width: 360, height: 800 });
-    const scaledLayout = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, controls: [...document.querySelectorAll('.bb-control')].filter((control) => control.getClientRects().length > 0).map((control) => { const box = control.getBoundingClientRect(); return { width: box.width, height: box.height }; }) }));
+    const scaledLayout = await page.evaluate(() => { const scroll = document.querySelector('.bb-app-frame__scroll'); return { overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, scrollOverflow: scroll.scrollWidth - scroll.clientWidth, controls: [...document.querySelectorAll('.bb-control')].filter((control) => control.getClientRects().length > 0).map((control) => { const box = control.getBoundingClientRect(); return { width: box.width, height: box.height }; }) }; });
     check(scaledLayout.overflow <= 1, `generated specimen overflows at 200% text and 360px (${scaledLayout.overflow}px)`);
+    check(scaledLayout.scrollOverflow <= 1, `generated AppFrame scroll owner overflows horizontally at 200% text and 360px (${scaledLayout.scrollOverflow}px)`);
     check(scaledLayout.controls.every(({ width, height }) => width >= 44 && height >= 44), `generated controls fall below 44px at 200% text (${JSON.stringify(scaledLayout.controls)})`);
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' });
