@@ -49,4 +49,5 @@
 - `python scripts/audit_publication_artifacts.py --kits dist --site site/out`: confirmed publication markers for all 8 generated kits and all 8 hosted brand surfaces.
 - `python -m unittest discover -s scripts -p 'test_*.py'`: 97 passed.
 - The documentation, interface, pipeline, and icon-kit suite passed 102 tests under pinned Node 24.11.0 and the SHA-bound approved proof artifact.
+- Reviewed all 48 generated QC sheets across the eight brands, covering PDF contacts, logo reductions, browser specimens, hosted guidelines, web specimens, and brand-specific indexes. No clipping, corruption, unreadable reduction, or identity drift was observed.
 - UTF-8, LF, mojibake, generated-output, task-completion, and repository-status checks are recorded in the final hygiene checkpoint before publication.
