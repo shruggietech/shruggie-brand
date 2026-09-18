@@ -81,6 +81,31 @@ class PrepareSiteTests(unittest.TestCase):
                 prepare_site.stage_web_adapters([source], root / "generated")
             self.assertFalse((root / "escape").exists())
 
+    def test_verified_conformance_is_staged_for_public_reference(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "alpha"
+            conformance = source / "conformance"
+            browser = conformance / "browser"
+            browser.mkdir(parents=True)
+            (browser / "specimen.html").write_text("<!doctype html><title>Alpha</title>\n", encoding="utf-8")
+            manifest = {
+                "brand": "alpha", "brand_title": "Alpha", "brand_version": "1.0.0",
+                "source_revision": "abc123", "conformance_contract_version": "1.0.0",
+                "versions": {"brand_version": "1.0.0"}, "recipes": ["Button"],
+                "profiles": [{"id": "normal-desktop"}], "host_tracks": [{"id": "browser-react"}],
+                "diagnostic_classes": ["visual", "accessibility", "interaction", "host-boundary"],
+                "evidence_boundaries": {"browser_emulation_is_host_proof": False},
+            }
+            (conformance / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            generated = root / "generated"
+            public = root / "public"
+            with mock.patch.object(prepare_site, "verify_conformance", return_value=[]):
+                records = prepare_site.stage_conformance([source], generated, public)
+            self.assertEqual("alpha", records[0]["slug"])
+            self.assertTrue((public / "conformance-fixtures" / "alpha" / "specimen.html").is_file())
+            self.assertEqual(records, json.loads((generated / "conformance.json").read_text(encoding="utf-8")))
+
     def test_every_public_reference_has_description_and_navigation(self):
         stems = {path.stem for path in prepare_site.REFERENCES.glob("*.md")}
         self.assertTrue(stems.issubset(prepare_site.DOC_DESCRIPTIONS))
@@ -434,9 +459,9 @@ class PrepareSiteTests(unittest.TestCase):
         brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
         docs = [{"slug": "04-toolchain", "title": "Toolchain", "description": "Tools and gates."}]
         routes = prepare_site.build_routes(brands, docs)
-        self.assertEqual(5, len(routes))
-        self.assertEqual(5, len({route["key"] for route in routes}))
-        self.assertEqual(5, len({route["canonical"] for route in routes}))
+        self.assertEqual(7, len(routes))
+        self.assertEqual(7, len({route["key"] for route in routes}))
+        self.assertEqual(7, len({route["canonical"] for route in routes}))
         for route in routes:
             self.assertTrue(route["pathname"].startswith("/"))
             self.assertTrue(route["pathname"].endswith("/"))
@@ -449,6 +474,7 @@ class PrepareSiteTests(unittest.TestCase):
         self.assertEqual("Documentation | ShruggieTech", docs_root["documentTitle"])
         self.assertEqual("TechArticle", doc["structuredData"]["@graph"][2]["@type"])
         brand = next(route for route in routes if route["kind"] == "guidelines")
+        self.assertEqual("/conformance/alpha/", next(route for route in routes if route["kind"] == "conformance")["pathname"])
         graph_text = json.dumps(brand["structuredData"])
         self.assertIn('"@type": "Brand"', graph_text)
         self.assertNotIn("owner", graph_text.lower())

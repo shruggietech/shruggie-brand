@@ -19,6 +19,7 @@ const maxCommentZip = Buffer.concat([
 
 test('accepts valid supported payload types and content types', () => {
   const cases = [
+    ['/specimen.html', 'text/html; charset=utf-8', Buffer.from('<!doctype html><html lang="en"><body>Specimen</body></html>')],
     ['/guide.pdf', 'application/pdf', Buffer.from('%PDF-1.4\nbody\n%%EOF\n')],
     ['/preview.png', 'image/png', png],
     ['/favicon.ico', 'image/vnd.microsoft.icon', ico],
@@ -51,6 +52,7 @@ test('rejects malformed structured and binary payloads', () => {
   assert.match(payloadFailures('/site.webmanifest', 'application/manifest+json', Buffer.from('[]')).join('\n'), /JSON object/);
   assert.match(payloadFailures('/sitemap.xml', 'application/xml', Buffer.from('<html></html>')).join('\n'), /XML urlset/);
   assert.match(payloadFailures('/logo.svg', 'image/svg+xml', Buffer.from('<html></html>')).join('\n'), /SVG document/);
+  assert.match(payloadFailures('/specimen.html', 'text/html', Buffer.from('<html>Error</html>')).join('\n'), /HTML document/);
   assert.match(payloadFailures('/preview.png', 'image/png', Buffer.from('not png')).join('\n'), /PNG signature/);
   assert.match(payloadFailures('/favicon.ico', 'image/vnd.microsoft.icon', Buffer.from('not ico')).join('\n'), /ICO signature/);
   for (const type of ['application/zip', 'application/x-zip-compressed']) {
