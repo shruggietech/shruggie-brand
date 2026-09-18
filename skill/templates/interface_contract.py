@@ -12,6 +12,9 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 from schema_validation import SchemaValidationError, validate_json_schema
+from documentation_contract import (build_documentation_facts, load_documentation_contract,
+                                    render_implementation, verify_documentation_facts,
+                                    verify_rendered_implementation)
 
 HERE = Path(__file__).resolve().parent
 SKILL_ROOT = HERE.parent
@@ -660,10 +663,11 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         "component-recipes.schema.json": REFERENCES / "component-recipes.schema.json",
         "version-policy.json": REFERENCES / "version-policy.json",
         "consumer-contract.schema.json": REFERENCES / "consumer-contract.schema.json",
+        "documentation-contract.json": REFERENCES / "documentation-contract.json",
+        "documentation-contract.schema.json": REFERENCES / "documentation-contract.schema.json",
     }
     for name, source in copied.items():
         (enforcement / name).write_bytes(source.read_bytes())
-    _write_text(enforcement / "IMPLEMENTATION.md", implementation_text)
     distribution_name = "shruggie-brandbuilder-%s.skill" % metadata["version"]
     distribution = enforcement / "distributions" / distribution_name
     recovery_sha = write_deterministic_skill_bundle(distribution)
@@ -723,25 +727,7 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
     existing = agents_path.read_text(encoding="utf-8") if agents_path.exists() else ""
     merged = merge_governed_block(existing, block)
     _write_exact_text(agents_path, merged)
-    provenance_paths = [
-        brand_source,
-        agents_path,
-        enforcement / "IMPLEMENTATION.md",
-        enforcement / "interface-canon.json",
-        enforcement / "interface-canon.schema.json",
-        enforcement / "component-recipes.json",
-        enforcement / "component-recipes.schema.json",
-        enforcement / "version-policy.json",
-        enforcement / "consumer-contract.schema.json",
-        web_adapter,
-        support_matrix,
-        egui_adapter.parent / "Cargo.lock",
-        egui_adapter,
-        egui_support,
-        gap_path,
-        distribution,
-    ]
-    payload = {
+    consumer_core = {
         "schema_version": 3,
         "brand": {
             "slug": brand["slug"],
@@ -777,7 +763,9 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
             "egui_adapter": "native/egui/adapter.json",
             "egui_support_matrix": "native/egui/support-matrix.json",
             "instructions": "enforcement/IMPLEMENTATION.md",
-            "precedence": ["brand.json", "enforcement/interface-canon.json", "enforcement/component-recipes.json", "enforcement/version-policy.json", "enforcement/consumer-contract.json", "human instructions that do not conflict"],
+            "documentation_contract": "enforcement/documentation-contract.json",
+            "documentation_facts": "enforcement/documentation-facts.json",
+            "precedence": ["brand.json", "enforcement/interface-canon.json", "enforcement/component-recipes.json", "enforcement/version-policy.json", "enforcement/documentation-contract.json", "enforcement/consumer-contract.json", "human instructions that do not conflict"],
             "permitted_exceptions": ["token definition files may contain governed literals", "renderer metadata may contain documented platform-required literals"],
         },
         "verification": {
@@ -795,9 +783,39 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
             ],
             "instruction": "Verify the delivered SHA-256, then extract the exact archive into the empty enforcement/brandbuilder directory. Never substitute another version.",
         },
-        "provenance": [_provenance(path, kit) for path in provenance_paths],
         "capability_gap": {"template_path": gap_path.relative_to(kit).as_posix(), "submission_requires_authorization": True},
     }
+    documentation_policy = load_documentation_contract(enforcement / "documentation-contract.json",
+                                                        enforcement / "documentation-contract.schema.json",
+                                                        REFERENCES)
+    facts = build_documentation_facts(documentation_policy, consumer_core, kit)
+    _write_json(enforcement / "documentation-facts.json", facts)
+    rendered = render_implementation(facts, implementation_text)
+    verify_rendered_implementation(rendered, facts)
+    _write_text(enforcement / "IMPLEMENTATION.md", rendered)
+    provenance_paths = [
+        brand_source,
+        agents_path,
+        enforcement / "IMPLEMENTATION.md",
+        enforcement / "interface-canon.json",
+        enforcement / "interface-canon.schema.json",
+        enforcement / "component-recipes.json",
+        enforcement / "component-recipes.schema.json",
+        enforcement / "version-policy.json",
+        enforcement / "consumer-contract.schema.json",
+        enforcement / "documentation-contract.json",
+        enforcement / "documentation-contract.schema.json",
+        enforcement / "documentation-facts.json",
+        web_adapter,
+        support_matrix,
+        egui_adapter.parent / "Cargo.lock",
+        egui_adapter,
+        egui_support,
+        gap_path,
+        distribution,
+    ]
+    payload = dict(consumer_core)
+    payload["provenance"] = [_provenance(path, kit) for path in provenance_paths]
     _write_json(enforcement / "consumer-contract.json", payload)
     return payload
 
@@ -844,6 +862,8 @@ def verify_consumer_contract(kit):
             authority["support_matrix"],
             authority["egui_adapter"],
             authority["egui_support_matrix"],
+            authority["documentation_contract"],
+            authority["documentation_facts"],
             contract["capability_gap"]["template_path"],
             recovery["path"],
         }
@@ -887,6 +907,15 @@ def verify_consumer_contract(kit):
         }
         _require(contract["compatibility"] == validate_version_combination(domain_versions, copied_policy),
                  "consumer compatibility record disagrees with version policy")
+        documentation_policy = load_documentation_contract(
+            _contained_kit_file(kit, authority["documentation_contract"]),
+            _contained_kit_file(kit, "enforcement/documentation-contract.schema.json"),
+            REFERENCES,
+        )
+        documentation_facts = _read_json(_contained_kit_file(kit, authority["documentation_facts"]))
+        verify_documentation_facts(documentation_facts, documentation_policy, contract, kit)
+        implementation = _contained_kit_file(kit, authority["instructions"]).read_text(encoding="utf-8")
+        verify_rendered_implementation(implementation, documentation_facts)
         environment = contract["environment"]
         _require("operating_system" not in environment and "os" not in environment,
                  "consumer environment cannot contain an operating-system route")
@@ -912,6 +941,7 @@ def verify_consumer_contract(kit):
             "enforcement/component-recipes.schema.json",
             "enforcement/version-policy.json",
             "enforcement/consumer-contract.schema.json",
+            "enforcement/documentation-contract.schema.json",
         } | declared_authority
         _require(required_provenance.issubset(recorded),
                  "consumer provenance omits required authority: %s" %
@@ -938,7 +968,8 @@ def verify_consumer_contract(kit):
             _require({"SKILL.md", "AGENTS.md", "references/interface-canon.json",
                       "references/component-recipes.json", "references/component-recipes.schema.json",
                       "references/version-policy.json",
-                      "references/consumer-contract.schema.json", "templates/verify.py",
+                      "references/consumer-contract.schema.json", "references/documentation-contract.json",
+                      "references/documentation-contract.schema.json", "templates/documentation_contract.py", "templates/verify.py",
                       "templates/validate_glyph.py"}.issubset(names),
                      "recovery distribution lacks governed entry points")
             for name in names:

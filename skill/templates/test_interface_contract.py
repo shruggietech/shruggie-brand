@@ -56,7 +56,7 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_published_schemas_are_valid_json_and_define_closed_required_fields(self):
         references = ROOT / "skill" / "references"
-        for name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json"):
+        for name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json", "documentation-contract.schema.json"):
             schema = read_json(references / name)
             pending = [schema]
             while pending:
@@ -253,6 +253,10 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual("enforcement/component-recipes.json", first["authority"]["component_recipes"])
             self.assertEqual("web/adapter.json", first["authority"]["web_adapter"])
             self.assertEqual("native/egui/adapter.json", first["authority"]["egui_adapter"])
+            self.assertEqual("enforcement/documentation-contract.json", first["authority"]["documentation_contract"])
+            self.assertEqual("enforcement/documentation-facts.json", first["authority"]["documentation_facts"])
+            self.assertTrue((kit / "enforcement" / "documentation-facts.json").is_file())
+            self.assertIn("Exact versions", (kit / "enforcement" / "IMPLEMENTATION.md").read_text(encoding="utf-8"))
             self.assertEqual(before, after)
             self.assertEqual([], verify_consumer_contract(kit))
 

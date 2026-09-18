@@ -340,6 +340,8 @@ def main():
                 "| `AGENTS.md` | concise governed entry block, merged without replacing human instructions |\n"
                 "| `IMPLEMENTATION.md` | complete brand-specific implementation guidance |\n"
                 "| `consumer-contract.json` | exact versions, authority, environment, provenance, recovery, and checks |\n"
+                "| `documentation-contract.json` | documentation ownership, inventory, navigation, and route policy |\n"
+                "| `documentation-facts.json` | exact facts shared by bundled and hosted implementation guidance |\n"
                 "| `interface-canon.json` | exact renderer-neutral Interface Canon used by this kit |\n"
                 "| `component-recipes.json` | exact bounded component grammar used by this kit |\n"
                 "| `component-recipes.schema.json` | structural component recipe schema |\n"

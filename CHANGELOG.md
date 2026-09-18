@@ -6,6 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added the S041 documentation contract boundary for issue #213, including one governed manual inventory, complete source and route dispositions, generated exact-version facts shared by hosted and bundled guidance, four operational system chapters, and accessible ownership, operating-mode, and capability-loop overviews.
 - Added the S040 cross-host conformance contract for issue #217, including generated browser, Tauri Android, Wails Windows, and egui evidence tracks, seven required capability profiles, known-bad and corrected host traces, non-substitutable evidence classes, explicit diagnostics, human-reviewed screenshot candidates, and deterministic per-brand verification.
 - Added the S039 native egui adapter and independent version contracts for issues #216 and #218, including generated typed Rust tokens, idiomatic immediate-mode helpers, explicit support and gap records, `egui_kittest` rendered-state evidence, machine-validated compatibility, and exact checksummed recovery.
 - Added the S037 Interface Contract foundation for issues #210, #211, and #212, including a renderer-neutral Interface Canon, contextual Author, Implementation, and Audit routing, generated consumer authority manifests, deterministic merge-safe instructions, checksummed exact-version offline recovery, and authorization-preserving capability-gap records.
@@ -23,6 +24,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-17, separated main-manual system authority, current hosted child-brand presentation, and exact pinned bundled implementation authority while preserving every existing documentation, guideline, topic, and download route.
 - On 2026-09-17, made conformance evidence host- and profile-specific, prohibited browser emulation from satisfying actual-host or consumer-adoption claims, and kept screenshot baseline approval as an explicit human decision with source, version, viewport, font, renderer, and image identity.
 - On 2026-09-17, separated Brand Canon identity authority from Interface Canon semantic UI authority, defined precise brand, canon, interface, and compiler version meanings, and made delivered exact bytes the first recovery source for fresh consumer sessions.
 - On 2026-09-15, made exact-byte base64 data URIs the governed transport for image-backed specimen marks, with contained source resolution, explicit media types, byte-identical verified-kit-to-site publication, and preference for an already approved supplied horizontal color lockup when declared.

@@ -37,6 +37,9 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         bundle.writestr("references/component-recipes.schema.json", (ROOT / "skill" / "references" / "component-recipes.schema.json").read_bytes())
         bundle.writestr("references/version-policy.json", json.dumps(policy))
         bundle.writestr("references/consumer-contract.schema.json", consumer_schema)
+        bundle.writestr("references/documentation-contract.json", (ROOT / "skill" / "references" / "documentation-contract.json").read_bytes())
+        bundle.writestr("references/documentation-contract.schema.json", (ROOT / "skill" / "references" / "documentation-contract.schema.json").read_bytes())
+        bundle.writestr("templates/documentation_contract.py", "# documentation contract\n")
         bundle.writestr("templates/verify.py", "# verifier\n")
         bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")
     bundle = bundle_buffer.getvalue()
@@ -55,6 +58,9 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "enforcement/component-recipes.schema.json": (ROOT / "skill" / "references" / "component-recipes.schema.json").read_bytes(),
         "enforcement/version-policy.json": json.dumps(policy).encode("utf-8"),
         "enforcement/consumer-contract.schema.json": consumer_schema,
+        "enforcement/documentation-contract.json": (ROOT / "skill" / "references" / "documentation-contract.json").read_bytes(),
+        "enforcement/documentation-contract.schema.json": (ROOT / "skill" / "references" / "documentation-contract.schema.json").read_bytes(),
+        "enforcement/documentation-facts.json": b"{}",
         "web/adapter.json": json.dumps({"adapter_version": "1.0.0", "component_recipe_version": "1.0.0"}).encode("utf-8"),
         "web/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode("utf-8"),
         "native/egui/adapter.json": json.dumps({"adapter_version": "1.0.0", "component_recipe_version": "1.0.0"}).encode("utf-8"),
@@ -72,6 +78,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "enforcement/version-policy.json", "web/adapter.json", "web/support-matrix.json",
         "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
         "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
+        "enforcement/documentation-contract.json", "enforcement/documentation-contract.schema.json", "enforcement/documentation-facts.json",
     ]
     consumer = {
         "schema_version": 3,
@@ -97,6 +104,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "authority": {
             "brand_source": "brand.json", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json",
             "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"],
+            "documentation_contract": "enforcement/documentation-contract.json", "documentation_facts": "enforcement/documentation-facts.json",
             "permitted_exceptions": [],
         },
         "verification": {
@@ -344,6 +352,9 @@ class ReleaseContractTests(unittest.TestCase):
                 bundle.writestr("references/component-recipes.schema.json", (ROOT / "skill" / "references" / "component-recipes.schema.json").read_bytes())
                 bundle.writestr("references/version-policy.json", (ROOT / "skill" / "references" / "version-policy.json").read_bytes())
                 bundle.writestr("references/consumer-contract.schema.json", (ROOT / "skill" / "references" / "consumer-contract.schema.json").read_bytes())
+                bundle.writestr("references/documentation-contract.json", (ROOT / "skill" / "references" / "documentation-contract.json").read_bytes())
+                bundle.writestr("references/documentation-contract.schema.json", (ROOT / "skill" / "references" / "documentation-contract.schema.json").read_bytes())
+                bundle.writestr("templates/documentation_contract.py", "# documentation contract\n")
                 bundle.writestr("templates/verify.py", "# verifier\n")
                 bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")
             distribution = "enforcement/distributions/shruggie-brandbuilder-1.2.1.skill"

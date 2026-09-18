@@ -50,8 +50,8 @@
     },
     "authority": {
       "type": "object",
-      "required": ["brand_source", "interface_canon", "component_recipes", "version_policy", "web_adapter", "support_matrix", "egui_adapter", "egui_support_matrix", "instructions", "precedence", "permitted_exceptions"],
-      "properties": {"brand_source": {"$ref": "#/$defs/safe_path"}, "interface_canon": {"$ref": "#/$defs/safe_path"}, "component_recipes": {"$ref": "#/$defs/safe_path"}, "version_policy": {"$ref": "#/$defs/safe_path"}, "web_adapter": {"$ref": "#/$defs/safe_path"}, "support_matrix": {"$ref": "#/$defs/safe_path"}, "egui_adapter": {"$ref": "#/$defs/safe_path"}, "egui_support_matrix": {"$ref": "#/$defs/safe_path"}, "instructions": {"$ref": "#/$defs/safe_path"}, "precedence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}, "permitted_exceptions": {"type": "array", "items": {"type": "string", "minLength": 1}}},
+      "required": ["brand_source", "interface_canon", "component_recipes", "version_policy", "web_adapter", "support_matrix", "egui_adapter", "egui_support_matrix", "instructions", "documentation_contract", "documentation_facts", "precedence", "permitted_exceptions"],
+      "properties": {"brand_source": {"$ref": "#/$defs/safe_path"}, "interface_canon": {"$ref": "#/$defs/safe_path"}, "component_recipes": {"$ref": "#/$defs/safe_path"}, "version_policy": {"$ref": "#/$defs/safe_path"}, "web_adapter": {"$ref": "#/$defs/safe_path"}, "support_matrix": {"$ref": "#/$defs/safe_path"}, "egui_adapter": {"$ref": "#/$defs/safe_path"}, "egui_support_matrix": {"$ref": "#/$defs/safe_path"}, "instructions": {"$ref": "#/$defs/safe_path"}, "documentation_contract": {"$ref": "#/$defs/safe_path"}, "documentation_facts": {"$ref": "#/$defs/safe_path"}, "precedence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}, "permitted_exceptions": {"type": "array", "items": {"type": "string", "minLength": 1}}},
       "additionalProperties": false
     },
     "verification": {

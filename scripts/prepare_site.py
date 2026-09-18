@@ -30,35 +30,13 @@ SOCIAL_SIZE = (1280, 640)
 ALERT_TYPES = {"NOTE": "info", "WARNING": "warn", "CAUTION": "error"}
 sys.path.insert(0, str(TEMPLATES))
 from brand_contract import affiliation, public_showcase, showcase_surface, vendor_boundary
+from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from package_release import write_brand_archive
-DOC_DESCRIPTIONS = {
-    "00-variance-contract": "The rules that keep every identity distinct while preserving a shared standard.",
-    "01-canon": "Machine-readable defaults and constraints used by the brand generator.",
-    "02-kit-anatomy": "The files, formats, and structure delivered in every brand kit.",
-    "03-interview": "The discovery questions that turn business context into brand direction.",
-    "04-toolchain": "The tools and validation stages behind a production-ready kit.",
-    "05-shadcn-binding": "How brand tokens become installable shadcn registry resources.",
-    "06-logo-protocol": "Requirements for supplied marks and rules for creating new logo systems.",
-    "07-voice": "How strategy becomes a consistent verbal identity.",
-    "08-glyph-construction": "Geometry and validation rules for constructing brand marks.",
-    "09-portability": "Requirements that keep brand assets useful across platforms and teams.",
-    "identity-continuity": "How direction selection, production-source approval, promotion, and derivative review stay mechanically continuous.",
-    "operating-modes": "How BrandBuilder selects Author, Implementation, or Audit work while preserving authorization boundaries.",
-}
-DOC_NAVIGATION = {
-    "00-variance-contract": ("Foundation", 1, "Contract", 0),
-    "02-kit-anatomy": ("Foundation", 1, "Kit", 1),
-    "03-interview": ("Discovery", 2, "Interview", 0),
-    "06-logo-protocol": ("Identity", 3, "Logo", 0),
-    "08-glyph-construction": ("Identity", 3, "Glyphs", 1),
-    "identity-continuity": ("Identity", 3, "Continuity", 2),
-    "07-voice": ("Identity", 3, "Voice", 3),
-    "04-toolchain": ("Implementation", 4, "Toolchain", 0),
-    "05-shadcn-binding": ("Implementation", 4, "shadcn", 1),
-    "09-portability": ("Implementation", 4, "Portability", 2),
-    "operating-modes": ("Implementation", 4, "Modes", 3),
-}
+DOCUMENTATION_CONTRACT = load_documentation_contract()
+DOCUMENTATION_CATALOG = manual_catalog(DOCUMENTATION_CONTRACT)
+DOC_DESCRIPTIONS = {page["slug"]: page["description"] for page in DOCUMENTATION_CATALOG}
+DOC_NAVIGATION = {page["slug"]: (page["section"], page["section_order"], page["label"], page["order"]) for page in DOCUMENTATION_CATALOG}
 BRAND_TOPIC_CONTRACT = [
     ("overview", "Overview", "Overview", 0),
     ("voice", "Voice", "Voice", 0),
@@ -328,6 +306,7 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
         pathname = f"/docs/{doc['slug']}/"
         routes.append(make_route(f"docs-{doc['slug']}", "docs-page", pathname, doc["title"], doc["description"], "Documentation", [home, docs_root, {"name": doc["title"], "url": f"{SITE_URL}{pathname}"}], docs_slug=doc["slug"]))
     validate_routes(routes)
+    validate_route_dispositions(routes, DOCUMENTATION_CONTRACT)
     for route in routes:
         route["structuredData"] = structured_data(route, routes, brands)
     return routes
@@ -413,6 +392,15 @@ def project_portal(source: Path, payload: dict[str, Any]) -> dict[str, Any]:
         raise ValueError(f"{source.name}: unsupported portal schema")
     if payload.get("brand", {}).get("slug") != source.name:
         raise ValueError(f"{source.name}: portal brand slug must match kit")
+    implementation = payload.get("implementation")
+    if not isinstance(implementation, dict) or implementation.get("schema_version") != 1:
+        raise ValueError(f"{source.name}: portal implementation facts are missing or invalid")
+    facts_path = source / "enforcement" / "documentation-facts.json"
+    if not facts_path.is_file():
+        raise ValueError(f"{source.name}: generated documentation facts are missing")
+    expected_facts = json.loads(facts_path.read_text(encoding="utf-8"))
+    if implementation != expected_facts:
+        raise ValueError(f"{source.name}: hosted documentation facts differ from bundled facts")
     topics = payload.get("topics")
     if not isinstance(topics, list) or not topics or topics[0].get("key") != "overview":
         raise ValueError(f"{source.name}: portal must begin with overview")
@@ -748,7 +736,14 @@ def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DO
     output.mkdir(parents=True)
     records = []
     pages = ["index"]
-    for pagination_order, path in enumerate(sorted(references.glob("*.md")), 1):
+    expected_sources = ([page["source"] for page in DOCUMENTATION_CATALOG]
+                        if descriptions is DOC_DESCRIPTIONS and navigation is DOC_NAVIGATION
+                        else [path.name for path in sorted(references.glob("*.md"))])
+    actual_sources = {path.name for path in references.glob("*.md")}
+    if set(expected_sources) != actual_sources:
+        raise ValueError(f"documentation source inventory differs: missing {sorted(set(expected_sources) - actual_sources)}, unexpected {sorted(actual_sources - set(expected_sources))}")
+    for pagination_order, source_name in enumerate(expected_sources, 1):
+        path = references / source_name
         title, body = derive_public_markdown(path.read_text(encoding="utf-8"))
         description = descriptions.get(path.stem, f"ShruggieTech guidance for {title.lower()}.")
         frontmatter = f"---\ntitle: {json.dumps(title)}\ndescription: {json.dumps(description)}\n---\n\n"
