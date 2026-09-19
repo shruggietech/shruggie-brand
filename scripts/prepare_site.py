@@ -823,7 +823,7 @@ def stage_web_adapters(sources: list[Path], generated: Path = GENERATED) -> None
             raise ValueError(f"{source.name}: Web adapter brand must match its source directory")
         destination = target / slug
         destination.mkdir(parents=True, exist_ok=True)
-        for name in ("server.tsx", "client.tsx", "index.ts"):
+        for name in ("server.tsx", "client.tsx", "environment.tsx", "index.ts"):
             shutil.copy2(source / "web" / "react" / name, destination / name)
         write_utf8(destination / "next-smoke.tsx", 'import { AppFrame, Button } from "./server";\nimport { Tabs } from "./client";\nexport const NextSmoke = () => <AppFrame><Button>OK</Button><Tabs label="Smoke" defaultValue="one" items={[{ value: "one", label: "One", content: "One" }]} /></AppFrame>;\n')
         write_utf8(destination / "vite-smoke.tsx", 'import { Card } from "./server";\nimport { Dialog } from "./client";\nexport const ViteSmoke = () => <Card heading="Smoke"><Dialog triggerLabel="Open" title="Title" description="Description">Body</Dialog></Card>;\n')
