@@ -120,7 +120,7 @@ class WebReactAdapterTests(unittest.TestCase):
             kit = self.generate(temporary)
             specimen = (kit / "web" / "specimen.html").read_text(encoding="utf-8")
             for marker in (
-                'data-bb-app-frame', 'role="tablist"', 'role="menu"', '<dialog',
+                'data-bb-app-frame', 'data-bb-layout="contained"', 'role="tablist"', 'role="menu"', '<dialog',
                 'role="separator"', 'aria-live="polite"', 'data-bb-overlay-root',
                 'aria-controls="specimen-primary-pane"',
                 "prefers-reduced-motion", "forced-colors", "visualViewport",

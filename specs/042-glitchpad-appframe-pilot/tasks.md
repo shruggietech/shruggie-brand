@@ -23,9 +23,9 @@
 - [X] T004 [P] Add failing AppFrame full-bleed recipe and compatibility assertions in `skill/templates/test_component_contract.py`
 - [X] T005 [P] Add failing Web adapter entry, API, CSS, and dependency-boundary assertions in `skill/templates/test_web_react_adapter.py`
 - [X] T006 [P] Add failing consumer-contract and cross-host renderer-version assertions in `skill/templates/test_interface_contract.py` and `skill/templates/test_conformance.py`; retain historical release and site fixtures at their exact published versions
-- [X] T007 Update additive version declarations, compatibility rules, and unreleased change records in `skill/SKILL.md`, `skill/references/component-recipes.json`, `skill/references/version-policy.json`, `skill/CHANGELOG.md`, `CHANGELOG.md`, and synchronized generated agent instructions
+- [X] T007 Update additive version declarations, compatibility rules, release-candidate metadata, migration guidance, and change records in `skill/SKILL.md`, `skill/references/component-recipes.json`, `skill/references/version-policy.json`, `scripts/release_contract.py`, `site/package.json`, `skill/CHANGELOG.md`, `CHANGELOG.md`, and synchronized generated agent instructions
 
-**Checkpoint**: Version policy and failing contract tests agree on recipes `1.1.0`, Web adapter `1.1.0`, and the still-current released compiler `1.2.1`.
+**Checkpoint**: Version policy and failing contract tests agree on recipes `1.1.0`, Web adapter `1.1.0`, and compiler `1.3.0`.
 
 ---
 

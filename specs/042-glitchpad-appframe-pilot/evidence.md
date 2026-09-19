@@ -39,7 +39,7 @@
 
 - Component recipes: `1.1.0`, adding bounded `contained` and `full-bleed` AppFrame variants.
 - Web/React adapter: `1.1.0`, adding `web/react/environment.tsx` without Radix or ReactDOM dependencies while preserving client-entry re-exports.
-- BrandBuilder compiler: still `1.2.1`, the current released distribution. S042 does not perform a release; the candidate commit and manifest checksums identify exact unreleased bytes.
+- BrandBuilder compiler: `1.3.0`, so the exact offline recovery distribution contains the new generator behavior. S042 prepares the release candidate but does not tag or publish it.
 - Full-bleed AppFrame locks the generated root scroller, gives the child application shell the complete content track, and preserves generated safe-area and IME ownership.
 
 ## Ordered Merge Rule

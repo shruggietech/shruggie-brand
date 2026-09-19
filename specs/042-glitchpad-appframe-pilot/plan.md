@@ -124,7 +124,7 @@ A:/Code/glitchpad/
 
 - Component recipes: `1.0.0` to `1.1.0` because `full-bleed` is a backward-compatible AppFrame variant.
 - Web/React adapter: `1.0.0` to `1.1.0` because the adapter adds a prop and a dependency-free environment entry without removing current exports.
-- BrandBuilder compiler: remains `1.2.1` because this field identifies the released skill distribution. S042 is an unreleased feature candidate and does not perform the separate release, site-version, migration, or publication workflow. The candidate commit and manifest checksums identify its exact bytes.
+- BrandBuilder compiler: `1.2.1` to `1.3.0` because the exact offline recovery distribution must include the backward-compatible generator capability. S042 prepares coherent release-candidate metadata and migration guidance but does not tag or publish a release.
 - Interface Canon, egui adapter, Brand Canon, and Glitchpad brand: unchanged because their meanings and approved identity do not change.
 
 ## Complexity Tracking
