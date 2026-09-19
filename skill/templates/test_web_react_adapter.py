@@ -96,6 +96,7 @@ class WebReactAdapterTests(unittest.TestCase):
             self.assertIn("body:has(.bb-app-frame)", css)
             self.assertIn("html[data-bb-app-frame-mounted]", css)
             self.assertIn("block-size: 100vh; block-size: 100dvh", css)
+            self.assertIn(".bb-app-frame__scroll { box-sizing: border-box; grid-row: 2;", css)
             self.assertIn("var(--bb-host-titlebar-block-end, 0rem)", css)
             self.assertIn("var(--bb-ime-block-end, 0rem)", css)
             self.assertIn(".bb-app-frame__content { box-sizing: border-box", css)
