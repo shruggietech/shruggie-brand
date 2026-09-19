@@ -623,6 +623,7 @@ def _governed_block(brand, versions, recovery_path, recovery_sha):
     else:
         affiliation_line = "Affiliation boundary: this identity has no inferred ShruggieTech parent or endorsement."
     return """{begin}
+
 ## Governed BrandBuilder contract
 
 BrandBuilder is mandatory for brand-system authoring, consumer implementation, and conformance audit. This kit pins Brand Canon `{canon}`, Interface Canon `{interface}`, component recipes `{recipes}`, Web/React adapter `{adapter}`, egui adapter `{egui}`, compiler `{compiler}`, and brand `{brand_version}`.
