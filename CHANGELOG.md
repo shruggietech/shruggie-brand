@@ -24,6 +24,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-19, added generated API 24 WebView fallbacks for AppFrame root ownership, dynamic viewport height, and IME measurement while retaining the modern `:has()`, `100dvh`, and VisualViewport paths.
 - On 2026-09-17, separated main-manual system authority, current hosted child-brand presentation, and exact pinned bundled implementation authority while preserving every existing documentation, guideline, topic, and download route.
 - On 2026-09-17, made conformance evidence host- and profile-specific, prohibited browser emulation from satisfying actual-host or consumer-adoption claims, and kept screenshot baseline approval as an explicit human decision with source, version, viewport, font, renderer, and image identity.
 - On 2026-09-17, separated Brand Canon identity authority from Interface Canon semantic UI authority, defined precise brand, canon, interface, and compiler version meanings, and made delivered exact bytes the first recovery source for fresh consumer sessions.
@@ -71,6 +72,16 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - Rejected square-enclosure configurations whose measured source paths exceed the safe content area, and distinguished composed external clear space from protected internal glyph measurements in generated guidance.
 - Preserved the permanent page-and-G knockout in Android adaptive monochrome and iOS tinted exports by routing platform recoloring through the generated one-color master instead of the full-color alpha silhouette.
 - Centered non-square portfolio marks inside a constrained square image box and replaced Glitchpad's diluted yellow landing-card and portfolio-hero surfaces with its governed charcoal card surface, including accessible light-theme text and no decorative yellow glow.
+
+## [1.3.0] - 2026-09-19
+
+### Added
+
+- Added the upstream S042 Glitchpad AppFrame contract for issue #219, including a bounded full-bleed application-shell layout, a dependency-free environment bridge entry, and exact cross-repository artifact pinning for the downstream host-evidence pilot.
+
+### Changed
+
+- Advanced component recipes and the Web/React adapter to `1.1.0`, and advanced the BrandBuilder compiler to `1.3.0` so exact offline recovery includes the new generator behavior.
 
 ## [1.2.1] - 2026-09-06
 
@@ -178,7 +189,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 - Relicensed the brandbuilder code, templates, and reference documentation from proprietary terms to Apache-2.0 while reserving names and marks.
 
-[Unreleased]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.1...v1.1.2

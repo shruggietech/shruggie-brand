@@ -41,6 +41,7 @@ class ComponentCatalogTests(unittest.TestCase):
             self.assertEqual(
                 set(self.catalog["required_dimensions"]), set(recipe), name
             )
+        self.assertEqual(["contained", "full-bleed"], self.catalog["components"]["AppFrame"]["variants"])
 
     def test_unknown_roles_raw_values_and_unbounded_composition_fail(self):
         unknown = copy.deepcopy(self.catalog)
@@ -146,7 +147,7 @@ class ComponentCatalogTests(unittest.TestCase):
         first = resolve_component_catalog(brand, self.catalog, self.interface)
         second = resolve_component_catalog(brand, self.catalog, self.interface)
         self.assertEqual(first, second)
-        self.assertEqual("1.0.0", first["version"])
+        self.assertEqual("1.1.0", first["version"])
         self.assertEqual("1.0.0", first["interface_canon_version"])
         self.assertEqual(brand["slug"], first["brand"])
 

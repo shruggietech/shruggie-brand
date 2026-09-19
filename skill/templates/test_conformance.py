@@ -41,7 +41,7 @@ def minimal_kit(root):
     })
     versions = {
         "canon_version": "1.2.1", "interface_canon_version": "1.0.0",
-        "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0",
+        "component_recipe_version": "1.1.0", "web_react_adapter_version": "1.1.0",
         "egui_adapter_version": "1.0.0", "compiler_version": "1.2.1",
         "brand_version": "2.0.0",
     }
@@ -55,13 +55,13 @@ def minimal_kit(root):
         "EmptyState",
     ]
     write_json(kit / "web" / "adapter.json", {
-        "adapter_version": "1.0.0", "component_recipe_version": "1.0.0",
+        "adapter_version": "1.1.0", "component_recipe_version": "1.1.0",
         "interface_canon_version": "1.0.0", "brand": "example", "recipes": recipes,
     })
     write_json(kit / "native" / "egui" / "adapter.json", {
         "adapter": "egui", "adapter_version": "1.0.0", "brand": "example",
         "brand_version": "2.0.0", "brand_canon_version": "1.2.1",
-        "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0",
+        "interface_canon_version": "1.0.0", "component_recipe_version": "1.1.0",
         "compiler_version": "1.2.1", "recipes": recipes,
         "crate": {"dependencies": {"egui": "=0.36.1"}},
     })

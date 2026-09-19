@@ -67,7 +67,7 @@ class PrepareSiteTests(unittest.TestCase):
                 react = source / "web" / "react"
                 react.mkdir(parents=True)
                 (source / "web" / "adapter.json").write_text(json.dumps({"brand": slug}), encoding="utf-8")
-                for name, content in (("server.tsx", "export const AppFrame = 1; export const Button = 1; export const Card = 1;\n"), ("client.tsx", "export const Tabs = 1; export const Dialog = 1;\n"), ("index.ts", 'export * from "./server";\n')):
+                for name, content in (("server.tsx", "export const AppFrame = 1; export const Button = 1; export const Card = 1;\n"), ("client.tsx", 'export { AppFrameEnvironmentBridge } from "./environment"; export const Tabs = 1; export const Dialog = 1;\n'), ("environment.tsx", "export const AppFrameEnvironmentBridge = 1;\n"), ("index.ts", 'export * from "./server";\n')):
                     (react / name).write_text(content, encoding="utf-8")
                 sources.append(source)
             stale = generated / "adapters" / "stale"
@@ -80,6 +80,7 @@ class PrepareSiteTests(unittest.TestCase):
             for slug in ("alpha", "beta"):
                 target = generated / "adapters" / slug
                 self.assertTrue((target / "server.tsx").is_file())
+                self.assertTrue((target / "environment.tsx").is_file())
                 self.assertIn("./server", (target / "next-smoke.tsx").read_text(encoding="utf-8"))
                 self.assertIn("./client", (target / "vite-smoke.tsx").read_text(encoding="utf-8"))
 
@@ -90,7 +91,7 @@ class PrepareSiteTests(unittest.TestCase):
             react = source / "web" / "react"
             react.mkdir(parents=True)
             (source / "web" / "adapter.json").write_text(json.dumps({"brand": "../../escape"}), encoding="utf-8")
-            for name in ("server.tsx", "client.tsx", "index.ts"):
+            for name in ("server.tsx", "client.tsx", "environment.tsx", "index.ts"):
                 (react / name).write_text("export {}\n", encoding="utf-8")
 
             with self.assertRaisesRegex(ValueError, "must match its source directory"):
