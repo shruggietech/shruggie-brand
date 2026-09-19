@@ -502,6 +502,9 @@ class PipelineTests(unittest.TestCase):
                 {"path": "icons/web/README.md", "platform": "web", "role": "instructions", "appearance": "default", "source_variant": "reduced", "format": "markdown", "destination": "Web integration guide"},
             ]
             (kit / "icons" / "manifest.json").write_text(json.dumps({"artifacts": artifacts, "suites": [], "aliases": {}}), encoding="utf-8")
+            facts = {"schema_version": 1, "documentation_contract_version": "1.0.0", "brand": {"slug": "alpha", "title": "Alpha", "affiliation": None, "brand_version": "1.2.3"}, "versions": {}, "bindings": {}, "authority": {"precedence": [], "permitted_exceptions": []}, "verification": {"entry_points": [], "success": "zero failures"}, "recovery": {}, "capability_gap": {}, "hosted": {"manual_path": "/docs/", "scope": "Current generated kit only."}, "bundled": {"facts_path": "enforcement/documentation-facts.json", "authority": "Pinned bytes.", "latest_substitution_allowed": False}}
+            (kit / "enforcement").mkdir()
+            (kit / "enforcement" / "documentation-facts.json").write_text(json.dumps(facts), encoding="utf-8")
             brand = {"slug": "alpha", "title": "Alpha", "version": "1.2.3", "descriptor": "Alpha tools.", "brand_idea": "Work clearly.", "guide": {}, "voice": {}, "typography": {"families": {}}, "domain_components": {}, "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
             palettes = ({"primary": "#2BCC73", "background": "#080B0D"}, {"primary": "#167A45", "background": "#FFFFFF"})
             with mock.patch.object(gen_guidelines, "tokens", return_value=palettes):
@@ -512,6 +515,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(3, len(set(paths)))
             self.assertEqual("# Web icons", payload["instructions"][0]["markdown"].splitlines()[0])
             self.assertEqual("1.0", payload["schema_version"])
+            self.assertEqual(facts, payload["implementation"])
             self.assertEqual("1.2.3", payload["brand"]["version"])
             self.assertEqual(
                 [

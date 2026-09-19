@@ -290,6 +290,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         "enforcement/consumer-contract.json", "enforcement/interface-canon.json",
         "enforcement/interface-canon.schema.json", "enforcement/component-recipes.json",
         "enforcement/component-recipes.schema.json", "enforcement/version-policy.json", "enforcement/consumer-contract.schema.json",
+        "enforcement/documentation-contract.json", "enforcement/documentation-contract.schema.json", "enforcement/documentation-facts.json",
         "web/adapter.json", "web/support-matrix.json",
         "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
         "enforcement/capability-gap.example.json",
@@ -298,11 +299,13 @@ def verify_brand_archive(path: Path, slug: str, version: str,
     with zipfile.ZipFile(str(path)) as archive:
         if root is not None:
             verify_canonical_files(archive, path, LICENSES, root)
-            for schema_name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json"):
+            for schema_name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json", "documentation-contract.schema.json"):
                 if archive.read("enforcement/" + schema_name) != (root / "skill" / "references" / schema_name).read_bytes():
                     raise ValueError("%s contains noncanonical enforcement/%s" % (path.name, schema_name))
             if archive.read("enforcement/version-policy.json") != (root / "skill" / "references" / "version-policy.json").read_bytes():
                 raise ValueError("%s contains noncanonical enforcement/version-policy.json" % path.name)
+            if archive.read("enforcement/documentation-contract.json") != (root / "skill" / "references" / "documentation-contract.json").read_bytes():
+                raise ValueError("%s contains noncanonical enforcement/documentation-contract.json" % path.name)
         brand = _read_json(archive, "brand.json", path.name)
         manifest = _read_json(archive, "manifest.json", path.name)
         if brand.get("slug") != slug or brand.get("version") != version:
@@ -423,7 +426,8 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                 "SKILL.md", "AGENTS.md", "references/interface-canon.json",
                 "references/component-recipes.json", "references/component-recipes.schema.json",
                 "references/version-policy.json",
-                "references/consumer-contract.schema.json", "templates/verify.py",
+                "references/consumer-contract.schema.json", "references/documentation-contract.json",
+                "references/documentation-contract.schema.json", "templates/documentation_contract.py", "templates/verify.py",
                 "templates/validate_glyph.py",
             })
             if len(skill_names) != len(set(skill_names)):
@@ -452,6 +456,10 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                 raise ValueError("%s recovery component recipe version disagrees" % path.name)
             if skill_archive.read("references/consumer-contract.schema.json") != archive.read("enforcement/consumer-contract.schema.json"):
                 raise ValueError("%s recovery consumer schema disagrees with delivered schema" % path.name)
+            if skill_archive.read("references/documentation-contract.json") != archive.read("enforcement/documentation-contract.json"):
+                raise ValueError("%s recovery documentation contract disagrees with delivered contract" % path.name)
+            if skill_archive.read("references/documentation-contract.schema.json") != archive.read("enforcement/documentation-contract.schema.json"):
+                raise ValueError("%s recovery documentation schema disagrees with delivered schema" % path.name)
         agents = archive.read("enforcement/AGENTS.md").decode("utf-8")
         begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
         end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
@@ -479,6 +487,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
             "enforcement/component-recipes.json", "enforcement/component-recipes.schema.json",
             "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json",
+            "enforcement/documentation-contract.json", "enforcement/documentation-contract.schema.json", "enforcement/documentation-facts.json",
         } | set(declared_paths.values())
         if not required_provenance.issubset(consumer_recorded):
             raise ValueError("%s consumer provenance omits required authority" % path.name)

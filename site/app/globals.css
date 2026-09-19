@@ -261,3 +261,14 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 @media (max-width: 760px) { .section-heading, .site-footer { align-items: flex-start; flex-direction: column; } .shell { width: min(100% - 1.5rem, 1180px); } .brand-grid-desktop { display: none; } .brand-accordion-list { display: block; } .color-summary { grid-template-columns: 2.75rem minmax(0, 1fr) auto; } .color-hex { grid-column: 2; } .guide-copy { grid-column: 3; grid-row: 1 / span 2; } .asset-search { grid-column: 1 / -1; } .resource-list li { grid-template-columns: 3.5rem minmax(0, 1fr); } .resource-list a { grid-column: 2; } }
 @media (max-width: 420px) { .shell h1 { font-size: clamp(2.6rem, 13vw, 3.3rem); } .docs-page h1 { font-size: 2rem; } }
 @media (prefers-reduced-motion: reduce) { .brand-actions a { transition: none; transform: none; } html { scroll-behavior: auto; } .brand-card, .brand-card-description, .brand-card .brand-actions, .button, .text-action, .site-footer nav a, #nd-nav a:not(:has(img)), #nd-nav a:not(:has(img))::after, .docs-page :where(p, li, td, blockquote) > a, .docs-pagination > a { transition: none; transform: none; } }
+
+.documentation-overviews { margin-block-start: 3rem; }
+.documentation-overview-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); margin-block-start: 1.5rem; }
+.documentation-overview { border: 1px solid var(--color-fd-border); border-radius: .75rem; min-width: 0; padding: 1.25rem; }
+.documentation-overview h3 { margin-block-start: 0; }
+.documentation-overview ol { display: grid; gap: .75rem; list-style-position: inside; margin: 1rem 0 0; padding: 0; }
+.documentation-overview li { border-block-start: 1px solid var(--color-fd-border); padding-block-start: .75rem; }
+.documentation-overview li span { display: block; margin-block-start: .25rem; overflow-wrap: anywhere; }
+.contract-summary code { overflow-wrap: anywhere; }
+@media (forced-colors: active) { .documentation-overview { border-color: CanvasText; } }
+@media (prefers-reduced-motion: reduce) { .documentation-overview, .documentation-overview * { scroll-behavior: auto; transition: none; } }

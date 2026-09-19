@@ -18,6 +18,20 @@ export type GuidelineTopic = { key: string; title: string; label: string; sectio
 export type GuidelineSection = { label: string; destination?: GuidelineTopic; children?: GuidelineTopic[] };
 export type GuidelinePortal = {
   schema_version: string;
+  implementation: {
+    schema_version: number;
+    documentation_contract_version: string;
+    brand: { slug: string; title: string; affiliation: unknown; brand_version: string };
+    versions: Record<string, string>;
+    bindings: Record<string, string>;
+    rules: { inheritance: string; overrides: Record<string, string> };
+    authority: { precedence: string[]; permitted_exceptions: string[] };
+    verification: { entry_points: string[]; success: string };
+    recovery: { distribution: string; path: string; sha256: string; extract_to: string; instruction: string };
+    capability_gap: { template_path: string; submission_requires_authorization: boolean };
+    hosted: { manual_path: string; scope: string };
+    bundled: { facts_path: string; authority: string; latest_substitution_allowed: boolean };
+  };
   brand: { slug: string; title: string; version: string; descriptor: string; idea: string; affiliation: string; vendorBoundary: string };
   topics: GuidelineTopic[];
   content: {

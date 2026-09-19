@@ -18,6 +18,7 @@ const guidelinePageSource = readFileSync(new URL('../app/(guidelines)/[slug]/gui
 const downloadsSource = readFileSync(new URL('../components/guidelines/downloads-content.tsx', import.meta.url), 'utf8');
 const documentationLayoutSource = readFileSync(new URL('../app/docs/layout.tsx', import.meta.url), 'utf8');
 const documentationPageSource = readFileSync(new URL('../app/docs/[[...slug]]/page.tsx', import.meta.url), 'utf8');
+const documentationOverviewsSource = readFileSync(new URL('../components/documentation-overviews.tsx', import.meta.url), 'utf8');
 const documentationTreeSource = readFileSync(new URL('../lib/documentation.ts', import.meta.url), 'utf8');
 const noScriptHierarchySource = readFileSync(new URL('../components/hierarchy-no-script.tsx', import.meta.url), 'utf8');
 const conformanceReferenceSource = readFileSync(new URL('../components/conformance-reference.tsx', import.meta.url), 'utf8');
@@ -114,6 +115,8 @@ for (const portal of guidelinePortals) {
   const actual = portal.topics.map(({ key, label, section, order }) => [key, label, section, order]);
   if (JSON.stringify(actual) !== JSON.stringify(expectedBrandNavigation)) throw new Error(`${portal.brand.slug} guideline hierarchy differs from the approved contract`);
   if (portal.brand.version !== brands.find((brand) => brand.slug === portal.brand.slug)?.version) throw new Error(`${portal.brand.slug} portal omits the brand version needed by the consolidated Overview`);
+  if (portal.implementation?.schema_version !== 1 || portal.implementation.brand.slug !== portal.brand.slug || portal.implementation.versions.brand_version !== portal.brand.version) throw new Error(`${portal.brand.slug} hosted implementation facts are missing or inconsistent`);
+  if (portal.implementation.hosted.manual_path !== '/docs/' || portal.implementation.bundled.latest_substitution_allowed !== false) throw new Error(`${portal.brand.slug} documentation authority boundaries are invalid`);
   const assets = portal.topics.find((topic) => topic.key === 'assets');
   if (assets?.path !== `/${portal.brand.slug}/downloads/`) throw new Error(`${portal.brand.slug} Assets does not use the stable downloads route`);
 }
@@ -122,15 +125,21 @@ const expectedDocumentationNavigation = [
   ['Discovery', 'Interview', '/docs/03-interview/'], ['Identity', 'Logo', '/docs/06-logo-protocol/'], ['Identity', 'Glyphs', '/docs/08-glyph-construction/'],
   ['Identity', 'Continuity', '/docs/identity-continuity/'], ['Identity', 'Voice', '/docs/07-voice/'], ['Implementation', 'Toolchain', '/docs/04-toolchain/'], ['Implementation', 'shadcn', '/docs/05-shadcn-binding/'],
   ['Implementation', 'Portability', '/docs/09-portability/'], ['Implementation', 'Modes', '/docs/operating-modes/'],
+  ['System', 'Architecture', '/docs/10-system-architecture/'], ['System', 'Interfaces', '/docs/11-interface-implementation/'],
+  ['System', 'Verification', '/docs/12-verification-versioning/'], ['System', 'Agents', '/docs/13-agent-integration/'],
 ];
 if (JSON.stringify(documentation.map((record) => [record.navigation.section, record.navigation.label, record.navigation.path])) !== JSON.stringify(expectedDocumentationNavigation)) throw new Error('documentation hierarchy differs from the approved contract');
-if (JSON.stringify([...documentation].sort((left, right) => left.navigation.paginationOrder - right.navigation.paginationOrder).map((record) => record.slug)) !== JSON.stringify(['index', '00-variance-contract', '02-kit-anatomy', '03-interview', '04-toolchain', '05-shadcn-binding', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability', 'identity-continuity', 'operating-modes'])) throw new Error('documentation pagination no longer preserves the established sequence');
+if (JSON.stringify([...documentation].sort((left, right) => left.navigation.paginationOrder - right.navigation.paginationOrder).map((record) => record.slug)) !== JSON.stringify(['index', '00-variance-contract', '02-kit-anatomy', '03-interview', '06-logo-protocol', '08-glyph-construction', 'identity-continuity', '07-voice', '04-toolchain', '05-shadcn-binding', '09-portability', 'operating-modes', '10-system-architecture', '11-interface-implementation', '12-verification-versioning', '13-agent-integration'])) throw new Error('documentation pagination no longer preserves the governed sequence');
 if (!guidelineLayoutSource.includes('tree={guidelineTree(portal)}') || !guidelinePageSource.includes('<GuidelineNoScriptNav')) throw new Error('brand routes do not share the generated hierarchy and no-script fallback');
 if (!documentationLayoutSource.includes('tree={documentationTree()}') || !noScriptHierarchySource.includes('DocumentationNoScriptNav')) throw new Error('documentation routes do not share the generated hierarchy and no-script fallback');
 if (!documentationTreeSource.includes("type: 'folder' as const") || !documentationTreeSource.includes('paginationOrder') || !noScriptHierarchySource.includes('<ul>') || !noScriptHierarchySource.includes('aria-current=') || !globalStyles.includes(".hierarchy-noscript-nav a[aria-current='page']")) throw new Error('grouped navigation lacks semantic nested structure, stable pagination, or a visibly styled no-script current state');
 if (!guidelinePageSource.includes("topic.key !== 'assets'") || !guidelinePageSource.includes('dynamicParams = false')) throw new Error('obsolete guidelines Assets route is still statically generated');
 if (!downloadsSource.includes('<AssetLibrary portal={portal} />') || !downloadsSource.includes('Direct downloads')) throw new Error('Assets does not combine direct downloads and the generated asset library');
 if (!topicContentSource.includes('id="brand-overview"') || !topicContentSource.includes('portal.brand.idea') || !topicContentSource.includes('id="built-to-ship"') || !topicContentSource.includes('/brand/r/registry.json')) throw new Error('consolidated Overview does not preserve the retired brand-page content and registry entry point');
+if (!topicContentSource.includes('id="generated-contract"') || !topicContentSource.includes('contract.versions') || !topicContentSource.includes('contract.bindings') || !topicContentSource.includes('contract.hosted.manual_path')) throw new Error('hosted Overview omits exact generated versions, bindings, or the system-manual destination');
+if (!documentationPageSource.includes('<DocumentationOverviews') || !documentationPageSource.includes("route.pathname === '/docs/'")) throw new Error('documentation index does not include the semantic relationship overviews');
+for (const phrase of ['Documentation ownership', 'Operating modes', 'Capability improvement loop', '<ol>', '<strong>', '<span>']) if (!documentationOverviewsSource.includes(phrase)) throw new Error(`documentation overview lacks semantic visible text: ${phrase}`);
+if (!globalStyles.includes('@media (forced-colors: active)') || !globalStyles.includes('@media (prefers-reduced-motion: reduce)') || !globalStyles.includes('.documentation-overview-grid')) throw new Error('documentation overviews lack responsive and accessible display contracts');
 if (existsSync(new URL('../app/(site)/[slug]/page.tsx', import.meta.url))) throw new Error('retired brand-root page source still exists');
 if (!brandPortfolioSource.includes('className="brand-card"') || !brandPortfolioSource.includes('className="brand-accordion"') || !brandPortfolioSource.includes('<summary>')) throw new Error('portfolio component lacks the required desktop article and native mobile disclosure structures');
 if (!brandPortfolioSource.includes("event.key === 'Escape'") || !brandPortfolioSource.includes("data-actions-dismissed={dismissed ? 'true' : undefined}") || !brandPortfolioSource.includes('<noscript><style>')) throw new Error('desktop action reveal lacks Escape dismissal or its no-script visible-action fallback');

@@ -20,8 +20,24 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
     guideline = source / "guidelines"
     guideline.mkdir(parents=True, exist_ok=True)
     (guideline / "index.html").write_text("<!doctype html><title>Portable guide</title>\n", encoding="utf-8")
+    facts = {
+        "schema_version": 1,
+        "documentation_contract_version": "1.0.0",
+        "brand": {"slug": slug, "title": title, "affiliation": None, "brand_version": "1.0.0"},
+        "versions": {"canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "1.2.1", "brand_version": "1.0.0"},
+        "bindings": {}, "authority": {"precedence": [], "permitted_exceptions": []},
+        "verification": {"entry_points": [], "success": "zero failures"},
+        "recovery": {"distribution": "recovery.skill", "path": "enforcement/recovery.skill", "sha256": "a" * 64, "extract_to": "enforcement/brandbuilder", "sources": [], "instruction": "verify"},
+        "capability_gap": {"template_path": "enforcement/gap.json", "submission_requires_authorization": True},
+        "hosted": {"manual_path": "/docs/", "scope": "Current generated kit only."},
+        "bundled": {"facts_path": "enforcement/documentation-facts.json", "authority": "Pinned bytes.", "latest_substitution_allowed": False},
+    }
+    facts_path = source / "enforcement" / "documentation-facts.json"
+    facts_path.parent.mkdir(parents=True, exist_ok=True)
+    facts_path.write_text(json.dumps(facts) + "\n", encoding="utf-8")
     (guideline / "portal.json").write_text(json.dumps({
         "schema_version": "1.0",
+        "implementation": facts,
         "brand": {"slug": slug, "title": title, "descriptor": "Alpha.", "idea": "Alpha.", "affiliation": ""},
         "topics": [
             {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "path": f"/{slug}/guidelines/", "description": "Start here."},

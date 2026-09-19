@@ -845,9 +845,14 @@ try {
   check(await noScriptPage.locator('.asset-tile').count() > 0 && await noScriptPage.locator('.resource-list a[data-kit-asset]').count() > 0, 'no-script asset route does not retain complete server-rendered browsing and downloads');
   check((await noScriptPage.locator('body').innerText()).includes('Search and filters require JavaScript'), 'no-script asset route does not explain its progressive enhancement boundary');
   await noScriptPage.goto(base + '/docs/06-logo-protocol/');
-  check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 12, 'no-script documentation fallback does not expose the complete navigation hierarchy');
+  check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 16, 'no-script documentation fallback does not expose the complete navigation hierarchy');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script documentation fallback does not identify the current page');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').evaluate((element) => { const style = getComputedStyle(element); return Number.parseInt(style.fontWeight, 10) >= 700 && style.boxShadow !== 'none'; }), 'no-script documentation fallback does not visibly distinguish the current page');
+  await noScriptPage.goto(base + '/docs/');
+  check(await noScriptPage.locator('.documentation-overview').count() === 3, 'no-script documentation index omits a relationship overview');
+  check(await noScriptPage.locator('.documentation-overview ol li').count() === 10, 'documentation relationship overviews lack complete visible text equivalents');
+  const overviewText = await noScriptPage.locator('.documentation-overviews').innerText();
+  for (const phrase of ['Main manual', 'Hosted brand reference', 'Bundled implementation contract', 'Author', 'Implementation', 'Audit', 'Consumer need', 'Versioned adoption']) check(overviewText.includes(phrase), `documentation relationship overview omits ${phrase}`);
   for (const brand of brands) {
     const removedRoot = await noScriptPage.goto(`${base}/${brand.slug}/`);
     check(removedRoot?.status() === 404, `/${brand.slug}/ remains reachable after removing brand landing pages`);
@@ -959,7 +964,7 @@ try {
   }
   const editorial = page.locator('.docs-page :where(p, li, td, blockquote) > a').first();
   check(await editorial.count() === 1 && await editorial.evaluate((element) => getComputedStyle(element).textDecorationLine.includes('underline')), 'editorial links lack a persistent resting underline');
-  for (const paginationCase of [{ route: '/docs/', hrefs: ['/docs/00-variance-contract/'] }, { route: '/docs/02-kit-anatomy/', hrefs: ['/docs/00-variance-contract/', '/docs/03-interview/'] }, { route: '/docs/04-toolchain/', hrefs: ['/docs/03-interview/', '/docs/05-shadcn-binding/'] }, { route: '/docs/09-portability/', hrefs: ['/docs/08-glyph-construction/', '/docs/identity-continuity/'] }, { route: '/docs/identity-continuity/', hrefs: ['/docs/09-portability/', '/docs/operating-modes/'] }, { route: '/docs/operating-modes/', hrefs: ['/docs/identity-continuity/'] }]) {
+  for (const paginationCase of [{ route: '/docs/', hrefs: ['/docs/00-variance-contract/'] }, { route: '/docs/02-kit-anatomy/', hrefs: ['/docs/00-variance-contract/', '/docs/03-interview/'] }, { route: '/docs/04-toolchain/', hrefs: ['/docs/07-voice/', '/docs/05-shadcn-binding/'] }, { route: '/docs/09-portability/', hrefs: ['/docs/05-shadcn-binding/', '/docs/operating-modes/'] }, { route: '/docs/identity-continuity/', hrefs: ['/docs/08-glyph-construction/', '/docs/07-voice/'] }, { route: '/docs/operating-modes/', hrefs: ['/docs/09-portability/', '/docs/10-system-architecture/'] }, { route: '/docs/10-system-architecture/', hrefs: ['/docs/operating-modes/', '/docs/11-interface-implementation/'] }, { route: '/docs/13-agent-integration/', hrefs: ['/docs/12-verification-versioning/'] }]) {
     await page.goto(base + paginationCase.route);
     const links = page.locator('.docs-pagination > a');
     const hrefs = await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')));

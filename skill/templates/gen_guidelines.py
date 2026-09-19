@@ -134,6 +134,10 @@ def portal_assets(deliveries, kit=None):
     return [families[key] for key in order if key in families], sorted(resources, key=lambda item: item["path"])
 
 def portal_payload(B, kit):
+    facts_path = Path(kit, "enforcement", "documentation-facts.json")
+    if not facts_path.is_file():
+        raise ValueError("guideline portal requires enforcement/documentation-facts.json")
+    implementation = json.loads(facts_path.read_text(encoding="utf-8"))
     dark, light = tokens(kit)
     deliveries, suites, aliases = asset_deliveries(kit)
     families, resources = portal_assets(deliveries, kit)
@@ -159,6 +163,7 @@ def portal_payload(B, kit):
     ]
     return {
         "schema_version": "1.0",
+        "implementation": implementation,
         "brand": {"slug": B["slug"], "title": B["title"], "version": B["version"], "descriptor": B.get("descriptor", ""), "idea": B.get("brand_idea", ""), "affiliation": affiliation_text(B), "vendorBoundary": (vendor_boundary(B) or {}).get("notice", "")},
         "topics": topics,
         "content": {
