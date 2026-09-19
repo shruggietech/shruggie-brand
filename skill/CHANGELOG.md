@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added a bounded contained/full-bleed AppFrame layout contract and a dependency-free React environment entry that synchronizes visual viewport and IME variables while preserving client-entry re-exports.
+- Advanced component recipes and the Web/React adapter to `1.1.0`; the released compiler remains `1.2.1` until the separate release workflow publishes a new distribution.
 - Added a deterministic native Rust and egui adapter with typed semantic tokens, logical-unit and density transforms, observed runtime capabilities, bounded helpers, complete recipe support classification, and compiled `egui_kittest` interaction evidence.
 - Added independent semantic-version meanings and bump rules for Brand Canon, Interface Canon, component recipes, Web/React and egui adapters, compiler, and each brand, with validated compatibility, lifecycle separation, provenance, pinning, and exact offline recovery.
 - Added a renderer-neutral Interface Canon, contextual Author, Implementation, and Audit routing, and deterministic generated consumer contracts with exact versions, provenance, merge-safe instructions, offline recovery bytes, and reusable-gap records.

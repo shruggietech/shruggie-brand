@@ -1148,12 +1148,22 @@ def c_component_adapter(kit, rep):
                 raise ComponentContractError("Web/React adapter entry is missing or unsafe: %s" % relative)
         server = (root / entries["server"]).read_text(encoding="utf-8")
         client = (root / entries["client"]).read_text(encoding="utf-8")
+        environment = (root / entries["environment"]).read_text(encoding="utf-8")
         css = (root / entries["styles"]).read_text(encoding="utf-8")
         tokens = (root / entries["tokens"]).read_text(encoding="utf-8")
         if '"use client"' in server or re.search(r"\b(?:window|document)\b", server):
             raise ComponentContractError("server adapter evaluates a browser-only boundary")
         if not client.startswith('"use client";') or "asChild" in client:
             raise ComponentContractError("client adapter boundary is missing or unbounded")
+        if (not environment.startswith('"use client";') or "radix-ui" in environment
+                or "react-dom" in environment):
+            raise ComponentContractError("environment adapter boundary is missing or coupled to interactive dependencies")
+        if adapter.get("environment_exports") != ["AppFrameEnvironmentBridge", "measureImeBlockEnd"]:
+            raise ComponentContractError("environment adapter exports are incomplete or unordered")
+        if 'layout?: "contained" | "full-bleed"' not in server or "data-bb-layout={layout}" not in server:
+            raise ComponentContractError("AppFrame bounded layout contract is missing")
+        if 'data-bb-layout="full-bleed"' not in css:
+            raise ComponentContractError("AppFrame full-bleed styles are missing")
         if re.search(r"#[0-9a-fA-F]{3,8}\b|(?<![-\w])\d+(?:\.\d+)?px\b", css):
             raise ComponentContractError("component styles contain an ungoverned visual literal")
         for role in interface["required_roles"]:

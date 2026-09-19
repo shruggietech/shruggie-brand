@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "adapter_version": "1.0.0",
+  "adapter_version": "1.1.0",
   "test_harness": {"name": "Playwright Chromium", "package": "@playwright/test", "version": "1.62.1", "accessibility": "axe-core 4.13.0"},
   "records": [
     {

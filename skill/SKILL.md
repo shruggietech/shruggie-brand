@@ -7,8 +7,8 @@ metadata:
   version: 1.2.1
   canon: 1.2.1
   interface-canon: 1.0.0
-  component-recipes: 1.0.0
-  web-react-adapter: 1.0.0
+  component-recipes: 1.1.0
+  web-react-adapter: 1.1.0
   egui-adapter: 1.0.0
   parent: ShruggieTech
 allowed-tools:

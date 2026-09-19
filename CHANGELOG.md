@@ -6,6 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Added
 
+- Added the S042 Glitchpad AppFrame pilot for issue #219, including a bounded full-bleed application-shell layout, a dependency-free environment bridge entry, exact cross-repository artifact pinning, and actual Android WebView plus Windows Tauri adoption evidence.
 - Added the S041 documentation contract boundary for issue #213, including one governed manual inventory, complete source and route dispositions, generated exact-version facts shared by hosted and bundled guidance, four operational system chapters, and accessible ownership, operating-mode, and capability-loop overviews.
 - Added the S040 cross-host conformance contract for issue #217, including generated browser, Tauri Android, Wails Windows, and egui evidence tracks, seven required capability profiles, known-bad and corrected host traces, non-substitutable evidence classes, explicit diagnostics, human-reviewed screenshot candidates, and deterministic per-brand verification.
 - Added the S039 native egui adapter and independent version contracts for issues #216 and #218, including generated typed Rust tokens, idiomatic immediate-mode helpers, explicit support and gap records, `egui_kittest` rendered-state evidence, machine-validated compatibility, and exact checksummed recovery.
@@ -24,6 +25,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-19, advanced component recipes and the Web/React adapter to `1.1.0` while retaining the released BrandBuilder compiler at `1.2.1`; exact candidate commits and checksums identify unreleased pilot bytes until a separate release workflow publishes a new distribution.
 - On 2026-09-17, separated main-manual system authority, current hosted child-brand presentation, and exact pinned bundled implementation authority while preserving every existing documentation, guideline, topic, and download route.
 - On 2026-09-17, made conformance evidence host- and profile-specific, prohibited browser emulation from satisfying actual-host or consumer-adoption claims, and kept screenshot baseline approval as an explicit human decision with source, version, viewport, font, renderer, and image identity.
 - On 2026-09-17, separated Brand Canon identity authority from Interface Canon semantic UI authority, defined precise brand, canon, interface, and compiler version meanings, and made delivered exact bytes the first recovery source for fresh consumer sessions.

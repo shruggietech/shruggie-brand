@@ -246,8 +246,8 @@ class ConsumerContractTests(unittest.TestCase):
             after = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
             self.assertEqual(first, second)
             self.assertEqual(3, first["schema_version"])
-            self.assertEqual("1.0.0", first["versions"]["component_recipe_version"])
-            self.assertEqual("1.0.0", first["versions"]["web_react_adapter_version"])
+            self.assertEqual("1.1.0", first["versions"]["component_recipe_version"])
+            self.assertEqual("1.1.0", first["versions"]["web_react_adapter_version"])
             self.assertEqual("1.0.0", first["versions"]["egui_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertEqual("enforcement/component-recipes.json", first["authority"]["component_recipes"])
@@ -302,6 +302,14 @@ class ConsumerContractTests(unittest.TestCase):
             problems = verify_consumer_contract(kit)
             self.assertTrue(any("egui adapter compiler version" in problem for problem in problems), problems)
             egui_path.write_bytes(before["native/egui/adapter.json"])
+
+            web_path = kit / "web" / "adapter.json"
+            web = read_json(web_path)
+            del web["entries"]["environment"]
+            web_path.write_text(json.dumps(web), encoding="utf-8")
+            problems = verify_consumer_contract(kit)
+            self.assertTrue(any("environment entry disagrees" in problem for problem in problems), problems)
+            web_path.write_bytes(before["web/adapter.json"])
 
             contract = read_json(contract_path)
             contract["provenance"] = contract["provenance"][:-1]
