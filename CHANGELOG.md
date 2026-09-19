@@ -24,6 +24,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- On 2026-09-19, added generated API 24 WebView fallbacks for AppFrame root ownership, dynamic viewport height, and IME measurement while retaining the modern `:has()`, `100dvh`, and VisualViewport paths.
 - On 2026-09-17, separated main-manual system authority, current hosted child-brand presentation, and exact pinned bundled implementation authority while preserving every existing documentation, guideline, topic, and download route.
 - On 2026-09-17, made conformance evidence host- and profile-specific, prohibited browser emulation from satisfying actual-host or consumer-adoption claims, and kept screenshot baseline approval as an explicit human decision with source, version, viewport, font, renderer, and image identity.
 - On 2026-09-17, separated Brand Canon identity authority from Interface Canon semantic UI authority, defined precise brand, canon, interface, and compiler version meanings, and made delivered exact bytes the first recovery source for fresh consumer sessions.

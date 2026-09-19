@@ -32,6 +32,7 @@
 | Baseline generation | `.venv\\Scripts\\python.exe scripts/build_all.py glitchpad` | Passed at the upstream baseline with zero verification problems and zero glyph failures. |
 | Contract red phase | `.venv\\Scripts\\python.exe -m unittest skill.templates.test_component_contract skill.templates.test_web_react_adapter` | Failed on the absent full-bleed recipe, adapter version, environment entry, and generated CSS before implementation. |
 | Contract green phase | Focused component, Web/React, consumer-contract, and conformance suites | 33 tests passed after implementation; the broader repository contract batch also passed. |
+| API 24 compatibility correction | `python -m unittest skill.templates.test_web_react_adapter` | Four focused adapter tests passed after adding generated fallbacks for selectors, viewport units, and IME measurement. The superseded CI run `35453038633` was cancelled before artifact publication so downstream cannot consume pre-correction bytes. |
 | Candidate Glitchpad kit | `.venv\\Scripts\\python.exe scripts/build_all.py glitchpad` | Clean with zero verification problems and zero glyph failures; all five generated QC sheets were inspected with no new clipping or identity drift observed. |
 | All production kits | `.venv\\Scripts\\python.exe scripts/build_all.py` | Covarity, Cueson, ESO Weave, Fragcap, Glitchpad, Go Schedule, and ShruggieTech were clean. I Heart PR Tours stopped before derivatives because local Node `v26.5.0` differs from its approved proof renderer `v24.11.0`; the authoritative CI Windows proof export and pinned Node workflow remain the required completion evidence. |
 
@@ -41,6 +42,7 @@
 - Web/React adapter: `1.1.0`, adding `web/react/environment.tsx` without Radix or ReactDOM dependencies while preserving client-entry re-exports.
 - BrandBuilder compiler: `1.3.0`, so the exact offline recovery distribution contains the new generator behavior. S042 prepares the release candidate but does not tag or publish it.
 - Full-bleed AppFrame locks the generated root scroller, gives the child application shell the complete content track, and preserves generated safe-area and IME ownership.
+- Modern engines use `:has()`, `100dvh`, and VisualViewport. The generated environment bridge also marks the mounted root, falls back to `100vh`, and derives legacy IME obstruction from per-orientation window-height baselines for the governed API 24 WebView.
 
 ## Ordered Merge Rule
 

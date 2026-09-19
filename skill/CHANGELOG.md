@@ -35,6 +35,7 @@
 ## 1.3.0 - 2026-09-19
 
 - Added a bounded contained/full-bleed AppFrame layout contract and a dependency-free React environment entry that synchronizes visual viewport and IME variables while preserving client-entry re-exports.
+- Added generated attribute, `100vh`, and window-resize fallbacks so the same AppFrame contract remains usable in the governed Android API 24 WebView when `:has()`, dynamic viewport units, or VisualViewport are absent.
 - Advanced component recipes and the Web/React adapter to `1.1.0`, and advanced the compiler to `1.3.0` so the exact offline recovery distribution carries the new generator behavior.
 
 ## 1.2.1 - 2026-09-06
