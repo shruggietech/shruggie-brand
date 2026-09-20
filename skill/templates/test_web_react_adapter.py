@@ -115,6 +115,24 @@ class WebReactAdapterTests(unittest.TestCase):
             self.assertIn(".bb-toast { background: var(--bb-surface-overlay); color: var(--bb-text-primary); }", css)
             self.assertIn(".bb-field__control { background: var(--bb-surface-background); color: var(--bb-text-primary); }", css)
 
+    def test_environment_bridge_limits_layout_resize_ime_fallback_by_capability(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = self.generate(temporary)
+            environment = (kit / "web" / "react" / "environment.tsx").read_text(encoding="utf-8")
+            self.assertIn("function defaultLayoutResizeCanBeIme()", environment)
+            self.assertIn('window.matchMedia?.("(hover: none) and (pointer: coarse)").matches ?? false', environment)
+            self.assertIn("layoutResizeCanBeIme?: boolean", environment)
+            self.assertIn("layoutResizeCanBeIme = defaultLayoutResizeCanBeIme()", environment)
+            self.assertIn(
+                "layoutResizeCanBeIme ? (editable ? previous : Math.max(previous, window.innerHeight)) : window.innerHeight",
+                environment,
+            )
+            self.assertNotIn("navigator.userAgent", environment)
+            self.assertNotIn(
+                "const baseline = editable ? previous : Math.max(previous, window.innerHeight)",
+                environment,
+            )
+
     def test_app_frame_profiles_are_emitted_with_one_owner(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = self.generate(temporary)
