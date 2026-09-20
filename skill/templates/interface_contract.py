@@ -623,6 +623,7 @@ def _governed_block(brand, versions, recovery_path, recovery_sha):
     else:
         affiliation_line = "Affiliation boundary: this identity has no inferred ShruggieTech parent or endorsement."
     return """{begin}
+
 ## Governed BrandBuilder contract
 
 BrandBuilder is mandatory for brand-system authoring, consumer implementation, and conformance audit. This kit pins Brand Canon `{canon}`, Interface Canon `{interface}`, component recipes `{recipes}`, Web/React adapter `{adapter}`, egui adapter `{egui}`, compiler `{compiler}`, and brand `{brand_version}`.
@@ -888,6 +889,13 @@ def verify_consumer_contract(kit):
         web_adapter = _read_json(_contained_kit_file(kit, authority["web_adapter"]))
         _require(contract["versions"]["web_react_adapter_version"] == web_adapter.get("adapter_version"), "consumer contract web_react_adapter_version disagrees")
         _require(web_adapter.get("component_recipe_version") == copied_recipes.get("version"), "Web/React adapter recipe version disagrees")
+        web_entries = web_adapter.get("entries", {})
+        _require(web_entries.get("environment") == "web/react/environment.tsx",
+                 "Web/React adapter environment entry disagrees")
+        for relative in web_entries.values():
+            _contained_kit_file(kit, relative)
+        _require(web_adapter.get("environment_exports") == ["AppFrameEnvironmentBridge", "measureImeBlockEnd"],
+                 "Web/React adapter environment exports disagree")
         support = _read_json(_contained_kit_file(kit, authority["support_matrix"]))
         _require(support.get("adapter_version") == web_adapter.get("adapter_version"), "Web support matrix adapter version disagrees")
         egui_adapter = _read_json(_contained_kit_file(kit, authority["egui_adapter"]))

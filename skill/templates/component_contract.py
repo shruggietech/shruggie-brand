@@ -52,7 +52,7 @@ MINIMUM_STATES = {
     "EmptyState": {"default", "focus-visible", "loading"},
 }
 EXPECTED_VARIANTS = {
-    "AppFrame": {"default"},
+    "AppFrame": {"contained", "full-bleed"},
     "Button": {"primary", "secondary", "ghost", "destructive"},
     "IconButton": {"primary", "secondary", "ghost", "destructive"},
     "Toolbar": {"horizontal", "vertical"},

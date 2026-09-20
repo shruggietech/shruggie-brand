@@ -15,6 +15,7 @@ REFERENCES = HERE.parent / "references"
 POLICY_PATH = REFERENCES / "documentation-contract.json"
 SCHEMA_PATH = REFERENCES / "documentation-contract.schema.json"
 SEMVER = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
+HOSTED_MANUAL_ORIGIN = "https://brand.shruggie.tech"
 REQUIRED_SURFACES = {"main", "hosted", "bundled"}
 REQUIRED_ROUTES = {"docs-index", "docs-page", "guidelines", "guidelines-topic", "downloads"}
 REQUIRED_GRAPHICS = {"ownership", "operating-modes", "improvement-loop"}
@@ -205,7 +206,7 @@ Verify `{sha}` for `{distribution}`, then extract it to `{extract}`. Use the del
 
 Capability gaps stay local at `{gap}` until a human explicitly authorizes upstream submission.
 
-For shared architecture and extension guidance, read [{manual}]({manual}). The hosted reference describes only the current generated kit. This bundled contract continues to govern these pinned delivered bytes.
+For shared architecture and extension guidance, read [{manual}]({manual_url}). The hosted reference describes only the current generated kit. This bundled contract continues to govern these pinned delivered bytes.
 
 ## Brand-specific governed rules
 
@@ -214,7 +215,8 @@ For shared architecture and extension guidance, read [{manual}]({manual}). The h
            bindings=bindings, interface_rules=rules, precedence=" -> ".join("`%s`" % item for item in facts["authority"]["precedence"]),
            checks=checks, success=facts["verification"]["success"], sha=facts["recovery"]["sha256"],
            distribution=facts["recovery"]["path"], extract=facts["recovery"]["extract_to"],
-           gap=facts["capability_gap"]["template_path"], manual=facts["hosted"]["manual_path"], rules=governed_rules.strip())
+           gap=facts["capability_gap"]["template_path"], manual=facts["hosted"]["manual_path"],
+           manual_url=HOSTED_MANUAL_ORIGIN + facts["hosted"]["manual_path"], rules=governed_rules.strip())
 
 
 def verify_rendered_implementation(text, facts):
@@ -225,4 +227,7 @@ def verify_rendered_implementation(text, facts):
     for path in facts["bindings"].values():
         _require("`%s`" % path in text, "implementation guidance omits binding %s" % path)
     _require(facts["recovery"]["sha256"] in text and "latest" in text.lower(), "implementation recovery guidance is incomplete")
+    manual_url = HOSTED_MANUAL_ORIGIN + facts["hosted"]["manual_path"]
+    _require("[%s](%s)" % (facts["hosted"]["manual_path"], manual_url) in text,
+             "implementation guidance does not use the portable hosted-manual URL")
     return text

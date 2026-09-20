@@ -78,6 +78,8 @@ class DocumentationContractTests(unittest.TestCase):
             facts = build_documentation_facts(contract, consumer, kit)
             rendered = render_implementation(facts, "Use the governed palette.")
             self.assertEqual(rendered, render_implementation(facts, "Use the governed palette."))
+            self.assertIn("[/docs/](https://brand.shruggie.tech/docs/)", rendered)
+            self.assertNotIn("[/docs/](/docs/)", rendered)
             verify_rendered_implementation(rendered, facts)
             drifted = copy.deepcopy(facts); drifted["versions"]["compiler_version"] = "9.9.9"
             with self.assertRaisesRegex(DocumentationContractError, "versions"):

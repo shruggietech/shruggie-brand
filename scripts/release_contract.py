@@ -35,6 +35,7 @@ REQUIRED_HISTORY = {
     "1.1.2": ("geometry_provenance", "ShruggieTech", "Python 3.8", "Windows", "stale"),
     "1.2.0": ("third-party", "application-icon", "Fumadocs", "route descriptor"),
     "1.2.1": ("black-background", "Brotli"),
+    "1.3.0": ("AppFrame", "environment", "component recipes", "Web/React adapter"),
 }
 MIGRATIONS = {
     "1.2.0": (
@@ -48,6 +49,12 @@ MIGRATIONS = {
         "site with v1.2.1 to receive the approved black-background browser icon suite and current "
         "presentation. Other production kits do not require an asset migration unless consumers "
         "need their embedded canon metadata to match v1.2.1."
+    ),
+    "1.3.0": (
+        "Existing kits need migration: **yes for Web/React AppFrame consumers**. Rebuild and repin "
+        "consumer kits with v1.3.0 to receive component recipes and the Web/React adapter at "
+        "v1.1.0, including the bounded full-bleed AppFrame layout and dependency-free environment "
+        "entry. Consumers that do not use those generated surfaces may retain their existing kit."
     ),
 }
 
