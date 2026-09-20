@@ -115,6 +115,23 @@ class WebReactAdapterTests(unittest.TestCase):
             self.assertIn(".bb-toast { background: var(--bb-surface-overlay); color: var(--bb-text-primary); }", css)
             self.assertIn(".bb-field__control { background: var(--bb-surface-background); color: var(--bb-text-primary); }", css)
 
+    def test_environment_bridge_limits_layout_resize_ime_fallback_to_mobile(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = self.generate(temporary)
+            environment = (kit / "web" / "react" / "environment.tsx").read_text(encoding="utf-8")
+            self.assertIn("function mobileLayoutResizeCanBeIme()", environment)
+            self.assertIn("userAgentData?.mobile", environment)
+            self.assertIn("/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)", environment)
+            self.assertIn('navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1', environment)
+            self.assertIn(
+                "mobileLayoutResize ? (editable ? previous : Math.max(previous, window.innerHeight)) : window.innerHeight",
+                environment,
+            )
+            self.assertNotIn(
+                "const baseline = editable ? previous : Math.max(previous, window.innerHeight)",
+                environment,
+            )
+
     def test_app_frame_profiles_are_emitted_with_one_owner(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = self.generate(temporary)
