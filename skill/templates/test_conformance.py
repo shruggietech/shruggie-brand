@@ -47,7 +47,7 @@ def minimal_kit(root):
     }
     write_json(kit / "enforcement" / "consumer-contract.json", {
         "schema_version": 4, "brand": {"slug": "example", "brand_version": "2.0.0"},
-        "versions": versions, "source_revision": "abc123",
+        "versions": versions, "bundle": {"source_revision": "a" * 40},
     })
     recipes = [
         "AppFrame", "Button", "IconButton", "Toolbar", "Tabs", "Menu", "Dialog",
@@ -189,6 +189,17 @@ class GeneratedFixtureTests(unittest.TestCase):
             self.assertEqual(4, len(manifest["host_tracks"]))
             self.assertTrue(all(track["status"] == "supported" for track in manifest["host_tracks"]))
             self.assertRegex(manifest["source_revision"], r"^[0-9a-f]{40,64}$")
+            self.assertEqual("a" * 40, manifest["source_revision"])
+
+    def test_generation_requires_bundle_bound_source_revision(self):
+        with tempfile.TemporaryDirectory(prefix="conformance-") as temporary:
+            kit = minimal_kit(Path(temporary))
+            consumer_path = kit / "enforcement" / "consumer-contract.json"
+            consumer = json.loads(consumer_path.read_text(encoding="utf-8"))
+            consumer.pop("bundle")
+            write_json(consumer_path, consumer)
+            with self.assertRaisesRegex(ValueError, "bundle source revision is unavailable"):
+                generate_conformance(kit / "brand.json", kit)
 
     def test_tampering_and_missing_files_fail_verification(self):
         with tempfile.TemporaryDirectory(prefix="conformance-") as temporary:
