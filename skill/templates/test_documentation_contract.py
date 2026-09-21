@@ -70,7 +70,7 @@ class DocumentationContractTests(unittest.TestCase):
             for relative in paths:
                 path = kit / relative; path.parent.mkdir(parents=True, exist_ok=True); path.write_text("{}\n", encoding="utf-8")
             versions = {"canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0", "brand_version": "1.0.0"}
-            bundle = {"schema_version": 1, "package": {"id": "test-brand-1.0.0-bb2.0.0", "filename": "test-brand-1.0.0-bb2.0.0.zip", "brand_slug": "test", "brand_version": "1.0.0", "brandbuilder_version": "2.0.0"}, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": "SHA256SUMS"}}
+            bundle = {"schema_version": 1, "package": {"id": "test-brand-1.0.0-bb2.0.0", "filename": "test-brand-1.0.0-bb2.0.0.zip", "brand_slug": "test", "brand_version": "1.0.0", "brandbuilder_version": "2.0.0"}, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": None}}
             impact = read_json(ROOT / "skill" / "references" / "release-impact.json")
             (kit / "enforcement" / "release-impact.json").write_text(json.dumps(impact), encoding="utf-8")
             consumer = {"brand": {"slug": "test", "title": "Test", "affiliation": None, "brand_version": "1.0.0"}, "bundle": bundle, "versions": versions,

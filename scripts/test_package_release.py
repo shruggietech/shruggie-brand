@@ -74,7 +74,7 @@ class PackageReleaseTests(unittest.TestCase):
         distribution = "enforcement/distributions/shruggie-brandbuilder-2.0.0.skill"
         versions = {"brand_version": "1.0.0", "canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0"}
         package = {"id": "alpha-brand-1.0.0-bb2.0.0", "filename": "alpha-brand-1.0.0-bb2.0.0.zip", "brand_slug": "alpha", "brand_version": "1.0.0", "brandbuilder_version": "2.0.0"}
-        kit_bundle = {"schema_version": 1, "package": package, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": "SHA256SUMS"}}
+        kit_bundle = {"schema_version": 1, "package": package, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": None}}
         values = {
             "brand.json": json.dumps(brand).encode(),
             "VERIFY.md": b"verified\n",
