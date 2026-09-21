@@ -98,7 +98,7 @@ skip reads as "not applicable" rather than "your favicon is broken".
 
 Assume there is none. Nothing in routine generation, verification, documentation, site preparation, or release packaging may require a network call. Controlled font ingestion is a separate operator-invoked preparation action and never runs implicitly.
 
-Every generated kit also carries the exact pinned BrandBuilder distribution under `enforcement/distributions/`. `enforcement/consumer-contract.json` records its filename, compiler version, contained path, and SHA-256. A fresh consumer verifies and uses these delivered bytes before considering an authorized exact-version network recovery. It never installs an unspecified latest release.
+Every generated kit also carries the exact pinned BrandBuilder distribution under `enforcement/distributions/`. Each distributed skill contains `SOURCE_REVISION`, which binds generated provenance to the BrandBuilder commit that produced the release without consulting the consumer repository. `enforcement/consumer-contract.json` records the distribution filename, compiler version, contained path, and SHA-256. A fresh consumer verifies and uses these delivered bytes before considering an authorized exact-version network recovery. It never installs an unspecified latest release.
 
 ## Frontmatter and entry points
 

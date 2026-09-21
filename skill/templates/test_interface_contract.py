@@ -31,6 +31,7 @@ from interface_contract import (
     publication_status,
     resolve_interface_contract,
     route_operating_mode,
+    source_revision,
     validate_interface_canon,
     validate_version_combination,
     validate_version_policy,
@@ -251,6 +252,7 @@ class ConsumerContractTests(unittest.TestCase):
             (skill / "node_modules" / "package").mkdir(parents=True)
             (skill / "templates" / "__pycache__").mkdir(parents=True)
             (skill / "SKILL.md").write_text("source\n", encoding="utf-8")
+            (skill / "SOURCE_REVISION").write_text("a" * 40 + "\n", encoding="utf-8")
             (skill / "references" / "canon.json").write_text("{}\n", encoding="utf-8")
             (skill / "node_modules" / "package" / "host.js").write_text("host state\n", encoding="utf-8")
             (skill / "templates" / "__pycache__" / "host.pyc").write_bytes(b"host state")
@@ -260,7 +262,28 @@ class ConsumerContractTests(unittest.TestCase):
             second = write_deterministic_skill_bundle(destination, skill_root=skill)
             self.assertEqual(first, second)
             with zipfile.ZipFile(destination) as archive:
-                self.assertEqual({"SKILL.md", "references/canon.json"}, set(archive.namelist()))
+                self.assertEqual({"SKILL.md", "SOURCE_REVISION", "references/canon.json"}, set(archive.namelist()))
+                self.assertEqual("a" * 40, archive.read("SOURCE_REVISION").decode("utf-8").strip())
+
+    def test_source_revision_uses_embedded_distribution_value_without_consumer_git(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            skill = Path(temporary) / "consumer" / ".agents" / "skills" / "shruggie-brandbuilder"
+            skill.mkdir(parents=True)
+            (skill / "SOURCE_REVISION").write_text("b" * 40 + "\n", encoding="utf-8")
+            with mock.patch.dict("os.environ", {}, clear=True), mock.patch("interface_contract.subprocess.run") as run:
+                self.assertEqual("b" * 40, source_revision(skill))
+            run.assert_not_called()
+
+    def test_source_revision_does_not_adopt_consumer_repository_head(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / ".git").mkdir()
+            skill = root / ".agents" / "skills" / "shruggie-brandbuilder"
+            skill.mkdir(parents=True)
+            with mock.patch.dict("os.environ", {}, clear=True), mock.patch("interface_contract.subprocess.run") as run:
+                with self.assertRaisesRegex(InterfaceContractError, "source revision is unavailable"):
+                    source_revision(skill)
+            run.assert_not_called()
 
     def test_governed_block_merge_preserves_human_content_and_rejects_malformed_markers(self):
         block = "%s\nnew governed content\n%s" % (BEGIN_MARKER, END_MARKER)
@@ -336,6 +359,11 @@ class ConsumerContractTests(unittest.TestCase):
             distribution = kit / recovery["path"]
             self.assertTrue(distribution.is_file())
             self.assertEqual(recovery["sha256"], hashlib.sha256(distribution.read_bytes()).hexdigest())
+            with zipfile.ZipFile(distribution) as archive:
+                self.assertEqual(
+                    first["bundle"]["source_revision"],
+                    archive.read("SOURCE_REVISION").decode("utf-8").strip(),
+                )
             self.assertEqual("delivered-bundle", recovery["sources"][0]["kind"])
             self.assertNotIn("latest", json.dumps(recovery).lower())
 

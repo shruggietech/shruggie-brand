@@ -193,8 +193,21 @@ def source_revision(root=None):
         revision = explicit.strip().lower()
         _require(SOURCE_REVISION.fullmatch(revision), "BrandBuilder source revision must be an exact Git object id")
         return revision
+    skill_root = Path(root or SKILL_ROOT).resolve()
+    embedded = skill_root / "SOURCE_REVISION"
+    if embedded.is_file():
+        revision = embedded.read_text(encoding="utf-8").strip().lower()
+        _require(SOURCE_REVISION.fullmatch(revision), "embedded BrandBuilder source revision is invalid")
+        return revision
+    checkout_root = skill_root.parent
+    authoritative_checkout = (
+        skill_root == checkout_root / "skill"
+        and (checkout_root / ".git").exists()
+        and (checkout_root / "scripts" / "release_contract.py").is_file()
+    )
+    _require(authoritative_checkout, "BrandBuilder source revision is unavailable")
     completed = subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=str(root or SKILL_ROOT.parent),
+        ["git", "rev-parse", "HEAD"], cwd=str(checkout_root),
         capture_output=True, text=True, **hidden_process_kwargs()
     )
     revision = completed.stdout.strip().lower()
@@ -661,12 +674,16 @@ def write_deterministic_skill_bundle(destination, skill_root=None):
     skill_root = Path(skill_root or SKILL_ROOT).resolve()
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
+    revision = source_revision(skill_root)
     with zipfile.ZipFile(str(destination), "w") as archive:
         for path in sorted(item for item in skill_root.rglob("*") if item.is_file()):
             relative = path.relative_to(skill_root).as_posix()
-            if GENERATED_DIRECTORIES.intersection(path.relative_to(skill_root).parts) or path.suffix == ".pyc":
+            if (relative == "SOURCE_REVISION"
+                    or GENERATED_DIRECTORIES.intersection(path.relative_to(skill_root).parts)
+                    or path.suffix == ".pyc"):
                 continue
             _zip_add(archive, relative, path.read_bytes())
+        _zip_add(archive, "SOURCE_REVISION", (revision + "\n").encode("utf-8"))
     return hashlib.sha256(destination.read_bytes()).hexdigest()
 
 
@@ -1101,7 +1118,7 @@ def verify_consumer_contract(kit):
         with zipfile.ZipFile(str(distribution)) as archive:
             names = archive.namelist()
             _require(len(names) == len(set(names)), "recovery distribution has duplicate paths")
-            _require({"SKILL.md", "AGENTS.md", "references/interface-canon.json",
+            _require({"SKILL.md", "AGENTS.md", "SOURCE_REVISION", "references/interface-canon.json",
                       "references/component-recipes.json", "references/component-recipes.schema.json",
                       "references/version-policy.json",
                       "references/consumer-contract.schema.json", "references/documentation-contract.json",
@@ -1114,6 +1131,10 @@ def verify_consumer_contract(kit):
                          and "\\" not in name and ":" not in pure.parts[0],
                          "recovery distribution contains an unsafe path: %s" % name)
             metadata = skill_metadata_from_text(archive.read("SKILL.md").decode("utf-8"))
+            recovery_revision = archive.read("SOURCE_REVISION").decode("utf-8").strip().lower()
+            _require(SOURCE_REVISION.fullmatch(recovery_revision)
+                     and recovery_revision == contract["bundle"]["source_revision"],
+                     "recovery source revision disagrees")
             _require(metadata["version"] == contract["versions"]["compiler_version"],
                      "recovery compiler version disagrees")
             _require(metadata["canon"] == contract["versions"]["canon_version"],

@@ -17,7 +17,7 @@ from release_contract import (
     verify_brand_archive,
     verify_release_directory,
 )
-from interface_contract import package_identity
+from interface_contract import package_identity, source_revision
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -124,6 +124,7 @@ def main() -> int:
     args = parser.parse_args()
     version = resolve_version(ROOT, args.version)
     metadata = load_metadata(ROOT, version)
+    revision = source_revision(SKILL)
     resolved_output = OUTPUT.resolve()
     if resolved_output.parent != ROOT.resolve():
         raise ValueError("refusing to clean release output outside repository root")
@@ -133,11 +134,13 @@ def main() -> int:
 
     skill_bundle = OUTPUT / f"shruggie-brandbuilder-{version}.skill"
     with zipfile.ZipFile(skill_bundle, "w") as archive:
-        add_tree(archive, SKILL)
+        add_tree(archive, SKILL, omit={"SOURCE_REVISION"})
+        add_bytes(archive, "SOURCE_REVISION", (revision + "\n").encode("utf-8"))
 
     portable = OUTPUT / f"shruggie-brandbuilder-{version}-portable.zip"
     with zipfile.ZipFile(portable, "w") as archive:
-        add_tree(archive, SKILL, omit={"SKILL.md"})
+        add_tree(archive, SKILL, omit={"SKILL.md", "SOURCE_REVISION"})
+        add_bytes(archive, "SOURCE_REVISION", (revision + "\n").encode("utf-8"))
         add_bytes(
             archive,
             "README.md",

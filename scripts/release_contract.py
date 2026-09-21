@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skill" / "templates"))
 
 from schema_validation import SchemaValidationError, validate_json_schema
-from interface_contract import (RELEASE_AUTHORIZED_BRANDS, load_release_impact, package_identity,
+from interface_contract import (RELEASE_AUTHORIZED_BRANDS, SOURCE_REVISION, load_release_impact, package_identity,
                                 validate_version_combination, validate_version_policy)
 PRODUCTION = RELEASE_AUTHORIZED_BRANDS
 LICENSES = ("LICENSE", "NOTICE", "LICENSE-BRAND.md")
@@ -264,15 +264,21 @@ def verify_canonical_files(archive: zipfile.ZipFile, path: Path, names: Iterable
             raise ValueError("%s contains noncanonical %s" % (path.name, name))
 
 
-def verify_skill_archive(path: Path, portable: bool, root: Optional[Path] = None) -> None:
+def verify_skill_archive(path: Path, portable: bool, root: Optional[Path] = None,
+                         expected_revision: Optional[str] = None) -> None:
     entries = archive_entries(path)
-    required = set(LICENSES) | {"AGENTS.md", "CHANGELOG.md"}
+    required = set(LICENSES) | {"AGENTS.md", "CHANGELOG.md", "SOURCE_REVISION"}
     required.add("README.md" if portable else "SKILL.md")
     require_entries(path, entries, required)
     if portable and "SKILL.md" in entries:
         raise ValueError("%s must omit SKILL.md" % path.name)
-    if root is not None:
-        with zipfile.ZipFile(str(path)) as archive:
+    with zipfile.ZipFile(str(path)) as archive:
+        revision = archive.read("SOURCE_REVISION").decode("utf-8").strip().lower()
+        if SOURCE_REVISION.fullmatch(revision) is None:
+            raise ValueError("%s contains an invalid SOURCE_REVISION" % path.name)
+        if expected_revision is not None and revision != expected_revision:
+            raise ValueError("%s source revision disagrees" % path.name)
+        if root is not None:
             verify_canonical_files(archive, path, LICENSES, root / "skill")
             verify_canonical_files(archive, path, ("AGENTS.md", "CHANGELOG.md"),
                                    root / "skill")
@@ -486,11 +492,14 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                 "references/version-policy.json",
                 "references/consumer-contract.schema.json", "references/documentation-contract.json",
                 "references/documentation-contract.schema.json", "references/release-impact.json",
-                "references/release-impact.schema.json", "templates/documentation_contract.py", "templates/verify.py",
+                "references/release-impact.schema.json", "SOURCE_REVISION", "templates/documentation_contract.py", "templates/verify.py",
                 "templates/validate_glyph.py",
             })
             if len(skill_names) != len(set(skill_names)):
                 raise ValueError("%s recovery distribution repeats paths" % path.name)
+            recovery_revision = skill_archive.read("SOURCE_REVISION").decode("utf-8").strip().lower()
+            if recovery_revision != bundle.get("source_revision"):
+                raise ValueError("%s recovery source revision disagrees" % path.name)
             for name in skill_names:
                 pure = PurePosixPath(name)
                 if (pure.is_absolute() or ".." in pure.parts or "\\" in name
@@ -614,9 +623,9 @@ def verify_release_directory(release_dir: Path, metadata: Mapping[str, object],
         kind = contract["kind"]
         root = metadata.get("root")
         if kind == "skill":
-            verify_skill_archive(path, portable=False, root=root)
+            verify_skill_archive(path, portable=False, root=root, expected_revision=expected_revision)
         elif kind == "portable":
-            verify_skill_archive(path, portable=True, root=root)
+            verify_skill_archive(path, portable=True, root=root, expected_revision=expected_revision)
         else:
             verify_brand_archive(
                 path,

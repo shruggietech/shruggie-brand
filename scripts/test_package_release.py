@@ -54,6 +54,7 @@ class PackageReleaseTests(unittest.TestCase):
         policy = json.loads(policy_bytes.decode("utf-8"))
         bundle_buffer = io.BytesIO()
         with zipfile.ZipFile(bundle_buffer, "w") as bundle:
+            bundle.writestr("SOURCE_REVISION", "a" * 40 + "\n")
             bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 2.0.0\n  canon: 1.2.1\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n")
             bundle.writestr("AGENTS.md", "instructions\n")
             bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))

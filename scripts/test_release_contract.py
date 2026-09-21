@@ -30,6 +30,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
     policy = json.loads((ROOT / "skill" / "references" / "version-policy.json").read_text(encoding="utf-8"))
     bundle_buffer = io.BytesIO()
     with zipfile.ZipFile(bundle_buffer, "w") as bundle:
+        bundle.writestr("SOURCE_REVISION", "a" * 40 + "\n")
         bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 2.0.0\n  canon: %s\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n" % canon)
         bundle.writestr("AGENTS.md", "instructions\n")
         bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
@@ -396,7 +397,7 @@ class ReleaseContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "shruggie-brandbuilder-1.2.1-portable.zip"
             entries = {name: name.encode("utf-8") for name in LICENSES}
-            entries.update({"AGENTS.md": b"agents", "CHANGELOG.md": b"history",
+            entries.update({"AGENTS.md": b"agents", "CHANGELOG.md": b"history", "SOURCE_REVISION": b"a" * 40 + b"\n",
                             "README.md": b"portable", "SKILL.md": b"forbidden"})
             write_zip(path, entries)
 
@@ -559,6 +560,7 @@ class ReleaseContractTests(unittest.TestCase):
             path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
             bundle_buffer = io.BytesIO()
             with zipfile.ZipFile(bundle_buffer, "w") as bundle:
+                bundle.writestr("SOURCE_REVISION", "a" * 40 + "\n")
                 bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 9.9.9\n  canon: 1.1.2\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n")
                 bundle.writestr("AGENTS.md", "instructions\n")
                 bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
