@@ -299,6 +299,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                          expected_filename: Optional[str] = None,
                          expected_canon: Optional[str] = None,
                          expected_revision: Optional[str] = None,
+                         expected_release_version: Optional[str] = None,
                          require_release: bool = False,
                          root: Optional[Path] = None) -> None:
     entries = archive_entries(path)
@@ -409,8 +410,15 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             raise ValueError("%s bundle release checksum authority disagrees with publication status" % path.name)
         if expected_revision is not None and bundle.get("source_revision") != expected_revision:
             raise ValueError("%s bundle source revision disagrees" % path.name)
-        if require_release and publication.get("status") != "release":
-            raise ValueError("%s bundle is not an exact release publication" % path.name)
+        if require_release:
+            if publication.get("status") != "release":
+                raise ValueError("%s bundle is not an exact release publication" % path.name)
+            if expected_release_version is None:
+                raise ValueError("%s expected release version is required" % path.name)
+            if publication.get("version") != expected_release_version:
+                raise ValueError("%s bundle release publication version disagrees" % path.name)
+            if publication.get("tag") != "v%s" % expected_release_version:
+                raise ValueError("%s bundle release publication tag disagrees" % path.name)
         interface_canon = _read_json(archive, authority["interface_canon"], path.name)
         if versions.get("interface_canon_version") != interface_canon.get("version"):
             raise ValueError("%s consumer interface_canon_version disagrees" % path.name)
@@ -606,6 +614,7 @@ def verify_release_directory(release_dir: Path, metadata: Mapping[str, object],
                 expected_filename=filename,
                 expected_canon=str(metadata["canon_version"]),
                 expected_revision=expected_revision,
+                expected_release_version=str(metadata["version"]),
                 require_release=require_release,
                 root=root,
             )

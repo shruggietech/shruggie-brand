@@ -162,6 +162,20 @@ def replace_consumer(entries, consumer):
     entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
 
 
+def replace_bundle(entries, bundle):
+    bundle_bytes = json.dumps(bundle).encode("utf-8")
+    entries["enforcement/bundle.json"] = bundle_bytes
+    consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+    consumer["bundle"] = bundle
+    replace_consumer(entries, consumer)
+    manifest = json.loads(entries["manifest.json"].decode("utf-8"))
+    for item in manifest["files"]:
+        if item["path"] == "enforcement/bundle.json":
+            item["bytes"] = len(bundle_bytes)
+            item["sha256"] = hashlib.sha256(bundle_bytes).hexdigest()
+    entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
+
+
 class ReleaseContractTests(unittest.TestCase):
     def test_publication_record_distinguishes_candidates_and_exact_releases(self):
         revision = "a" * 40
@@ -441,6 +455,31 @@ class ReleaseContractTests(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, "release checksum authority disagrees"):
                 release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
+
+    def test_release_archive_binds_publication_version_and_tag(self):
+        cases = (
+            ("version", "9.9.9", "publication version disagrees"),
+            ("tag", "v9.9.9", "publication tag disagrees"),
+        )
+        for field, value, message in cases:
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+                entries = brand_archive_entries()
+                bundle = json.loads(entries["enforcement/bundle.json"].decode("utf-8"))
+                bundle["publication"]["status"] = "release"
+                bundle["publication"][field] = value
+                bundle["checksum_authority"]["release_checksums"] = "SHA256SUMS"
+                replace_bundle(entries, bundle)
+                write_zip(path, entries)
+
+                with self.assertRaisesRegex(ValueError, message):
+                    release_contract.verify_brand_archive(
+                        path,
+                        "fragcap",
+                        "1.1.0",
+                        expected_release_version="2.0.0",
+                        require_release=True,
+                    )
 
     def test_production_archive_rejects_coordinated_recovery_version_drift(self):
         with tempfile.TemporaryDirectory() as tmp:
