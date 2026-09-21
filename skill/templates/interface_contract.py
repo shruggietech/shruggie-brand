@@ -36,6 +36,15 @@ SHA256 = re.compile(r"^[0-9a-f]{64}$")
 SOURCE_REVISION = re.compile(r"^[0-9a-f]{40,64}$")
 ZIP_TIME = (2026, 9, 17, 0, 0, 0)
 GENERATED_DIRECTORIES = {"__pycache__", "node_modules", ".venv", "venv"}
+RELEASE_AUTHORIZED_BRANDS = (
+    "shruggietech",
+    "fragcap",
+    "go-schedule",
+    "glitchpad",
+    "covarity",
+    "eso-weave",
+    "cueson",
+)
 BACKWARD_BRAND_DEFAULTS = {
     "surfaces.base": "#000000",
     "surfaces.card": "#111111",
@@ -166,8 +175,10 @@ def bundle_publication(version, brand):
     ownership = affiliation.get("ownership")
     _require(ownership in {"shruggietech-owned", "third-party"},
              "bundle publication requires explicit supported ownership")
+    slug = brand.get("slug")
+    _require(isinstance(slug, str) and slug, "bundle publication requires a brand slug")
     status = publication_status(version)
-    if ownership == "third-party":
+    if slug not in RELEASE_AUTHORIZED_BRANDS:
         status = "candidate"
     return (
         {"status": status, "version": version, "tag": "v%s" % version},

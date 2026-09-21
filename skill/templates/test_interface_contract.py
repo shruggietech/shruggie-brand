@@ -123,14 +123,18 @@ class InterfaceCanonTests(unittest.TestCase):
         with mock.patch.dict("os.environ", {"GITHUB_REF_TYPE": "tag", "GITHUB_REF_NAME": "v2.0.0"}, clear=True):
             self.assertEqual("release", publication_status("2.0.0"))
 
-    def test_third_party_bundle_never_claims_formal_release_checksums(self):
-        owned = {"affiliation": {"ownership": "shruggietech-owned"}}
-        third_party = {"affiliation": {"ownership": "third-party"}}
+    def test_only_release_authorized_bundles_claim_formal_release_checksums(self):
+        owned = {"slug": "shruggietech", "affiliation": {"ownership": "shruggietech-owned"}}
+        authorized_third_party = {"slug": "eso-weave", "affiliation": {"ownership": "third-party"}}
+        showcase_only = {"slug": "i-heart-pr-tours", "affiliation": {"ownership": "third-party"}}
         with mock.patch.dict("os.environ", {"GITHUB_REF": "refs/tags/v2.0.0"}, clear=True):
             publication, checksums = bundle_publication("2.0.0", owned)
             self.assertEqual("release", publication["status"])
             self.assertEqual("SHA256SUMS", checksums["release_checksums"])
-            publication, checksums = bundle_publication("2.0.0", third_party)
+            publication, checksums = bundle_publication("2.0.0", authorized_third_party)
+            self.assertEqual("release", publication["status"])
+            self.assertEqual("SHA256SUMS", checksums["release_checksums"])
+            publication, checksums = bundle_publication("2.0.0", showcase_only)
             self.assertEqual("candidate", publication["status"])
             self.assertIsNone(checksums["release_checksums"])
 

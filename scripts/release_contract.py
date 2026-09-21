@@ -18,16 +18,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skill" / "templates"))
 
 from schema_validation import SchemaValidationError, validate_json_schema
-from interface_contract import load_release_impact, package_identity, validate_version_combination, validate_version_policy
-PRODUCTION = (
-    "shruggietech",
-    "fragcap",
-    "go-schedule",
-    "glitchpad",
-    "covarity",
-    "eso-weave",
-    "cueson",
-)
+from interface_contract import (RELEASE_AUTHORIZED_BRANDS, load_release_impact, package_identity,
+                                validate_version_combination, validate_version_policy)
+PRODUCTION = RELEASE_AUTHORIZED_BRANDS
 LICENSES = ("LICENSE", "NOTICE", "LICENSE-BRAND.md")
 REQUIRED_HISTORY = {
     "1.1.0": ("glyph construction", "portability tiers", "chart", "generators", "Apache-2.0"),

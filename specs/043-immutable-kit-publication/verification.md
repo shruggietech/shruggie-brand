@@ -61,7 +61,7 @@
 - Immutable kit identity: #235.
 - All five issues are in the `shruggie-brand Delivery` project under the Phase 16 milestone. The program and slice issues are `In progress`; #222, #233, #234, and #235 carry `Slice: S043`.
 - Pull request #238 references all five issues. The first bounded Codex review reported that `SHA256SUMS` was declared but not uploaded and that the publication package inventory was not checked against the release-authorized set. Both findings now have fail-closed regression coverage and implementation fixes.
-- The second bounded review found that a public third-party showcase could still claim formal release checksum coverage and that publication URL validation accepted non-authoritative lookalike hosts. Bundle generation now keeps third-party packages in candidate state with no external release-checksum claim, and preflight requires exact canonical GitHub release and skill URLs.
+- The second bounded review found that a public showcase outside the formal release set could still claim release checksum coverage and that publication URL validation accepted non-authoritative lookalike hosts. Bundle generation now derives release status from the shared release-authorized brand set, leaving other showcases in candidate state with no external release-checksum claim, and preflight requires exact canonical GitHub release and skill URLs.
 
 ## Pending hosted completion
 
