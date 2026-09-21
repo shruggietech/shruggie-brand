@@ -203,14 +203,17 @@ class PublicationWorkflowContractTests(unittest.TestCase):
             self.assertIn("needs.%s.result" % dependency, block)
         self.assertIn("exit 1", block)
 
-    def test_main_concurrency_and_pages_publisher_are_fail_closed(self):
+    def test_main_concurrency_and_tag_only_pages_publisher_are_fail_closed(self):
         text = workflow_text()
         self.assertIn("github.ref == 'refs/heads/main'", text)
         self.assertIn("cancel-in-progress: ${{ github.ref == 'refs/heads/main' }}", text)
         block = job_block(text, "deploy-pages")
-        self.assertIn("needs: [build, verified-build]", block)
+        self.assertIn("needs: [build, verified-build, publish-release]", block)
+        self.assertIn("needs.publish-release.result == 'success'", block)
         self.assertIn("github.event_name == 'push'", block)
-        self.assertIn("github.event_name == 'workflow_dispatch'", block)
+        self.assertIn("startsWith(github.ref, 'refs/tags/v')", block)
+        self.assertNotIn("github.event_name == 'workflow_dispatch'", block)
+        self.assertNotIn("github.ref == 'refs/heads/main'", block)
         self.assertIn("pages: write", block)
         self.assertIn("id-token: write", block)
         self.assertNotIn("actions/checkout", block)

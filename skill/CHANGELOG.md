@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 2.0.0 - 2026-09-20
+
+- Added immutable kit package identities, exact release-backed publication metadata, generated bundle records, and consistent migration summaries.
+- Removed downstream adoption state from generated compatibility and conformance records; BrandBuilder now reports only publisher-owned publication, compatibility, and migration facts.
+- Added a bounded contained/full-bleed AppFrame layout contract and a dependency-free React environment entry that synchronizes visual viewport and IME variables while preserving client-entry re-exports.
+- Added generated attribute, `100vh`, and window-resize fallbacks so the same AppFrame contract remains usable in the governed Android API 24 WebView when `:has()`, dynamic viewport units, or VisualViewport are absent.
+- Advanced component recipes and the Web/React adapter to `1.1.0`, and advanced the compiler to `2.0.0` for the incompatible package identity and consumer-contract layout.
 - Added a deterministic native Rust and egui adapter with typed semantic tokens, logical-unit and density transforms, observed runtime capabilities, bounded helpers, complete recipe support classification, and compiled `egui_kittest` interaction evidence.
 - Added independent semantic-version meanings and bump rules for Brand Canon, Interface Canon, component recipes, Web/React and egui adapters, compiler, and each brand, with validated compatibility, lifecycle separation, provenance, pinning, and exact offline recovery.
 - Added a renderer-neutral Interface Canon, contextual Author, Implementation, and Audit routing, and deterministic generated consumer contracts with exact versions, provenance, merge-safe instructions, offline recovery bytes, and reusable-gap records.
@@ -31,12 +38,6 @@
 - Added a reusable visible-ink square-containment primitive with explicit validation and retained role-specific web, Android, Apple, macOS, and Windows occupancy behavior.
 - Corrected standalone square raster masters to preserve declared clear space for portrait, landscape, and asymmetric transparent source canvases without changing canonical SVG geometry.
 - Added an optional validated showcase-surface role reference for generated consumers.
-
-## 1.3.0 - 2026-09-19
-
-- Added a bounded contained/full-bleed AppFrame layout contract and a dependency-free React environment entry that synchronizes visual viewport and IME variables while preserving client-entry re-exports.
-- Added generated attribute, `100vh`, and window-resize fallbacks so the same AppFrame contract remains usable in the governed Android API 24 WebView when `:has()`, dynamic viewport units, or VisualViewport are absent.
-- Advanced component recipes and the Web/React adapter to `1.1.0`, and advanced the compiler to `1.3.0` so the exact offline recovery distribution carries the new generator behavior.
 
 ## 1.2.1 - 2026-09-06
 

@@ -42,11 +42,11 @@ def minimal_kit(root):
     versions = {
         "canon_version": "1.2.1", "interface_canon_version": "1.0.0",
         "component_recipe_version": "1.1.0", "web_react_adapter_version": "1.1.0",
-        "egui_adapter_version": "1.0.0", "compiler_version": "1.2.1",
+        "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0",
         "brand_version": "2.0.0",
     }
     write_json(kit / "enforcement" / "consumer-contract.json", {
-        "schema_version": 3, "brand": {"slug": "example", "brand_version": "2.0.0"},
+        "schema_version": 4, "brand": {"slug": "example", "brand_version": "2.0.0"},
         "versions": versions, "source_revision": "abc123",
     })
     recipes = [
@@ -62,7 +62,7 @@ def minimal_kit(root):
         "adapter": "egui", "adapter_version": "1.0.0", "brand": "example",
         "brand_version": "2.0.0", "brand_canon_version": "1.2.1",
         "interface_canon_version": "1.0.0", "component_recipe_version": "1.1.0",
-        "compiler_version": "1.2.1", "recipes": recipes,
+        "compiler_version": "2.0.0", "recipes": recipes,
         "crate": {"dependencies": {"egui": "=0.36.1"}},
     })
     specimen = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Example specimen</title></head><body><main><h1>Example</h1></main></body></html>\n"

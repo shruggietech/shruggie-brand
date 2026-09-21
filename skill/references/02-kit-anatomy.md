@@ -66,11 +66,17 @@ because that is what the agent's hands already know.
     AGENTS.md                       concise governed block, merged without
                                     replacing unrelated human instructions
     IMPLEMENTATION.md               complete brand-specific implementation contract
+    MIGRATION.md                    identity and implementation impact summary
+    bundle.json                     immutable package identity, source revision,
+                                    exact release target, and checksum authority
+    release-impact.json             governed required, optional, and unaffected
+                                    implementation surfaces
     consumer-contract.json          exact brand, canon, interface, compiler,
                                     renderer, host, provenance, and recovery
     interface-canon.json            exact renderer-neutral canon used by the kit
     interface-canon.schema.json     authoring schema for the delivered canon
     consumer-contract.schema.json   machine schema for the consumer manifest
+    release-impact.schema.json      machine schema for migration impact
     capability-gap.example.json     local reusable-gap record, submission false
     distributions/                  checksummed exact offline BrandBuilder bundle
     eslint.brand.mjs                generated per brand: raw hex banned, raw px

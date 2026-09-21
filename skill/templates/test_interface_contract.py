@@ -11,6 +11,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest import mock
 
 
 HERE = Path(__file__).resolve().parent
@@ -23,8 +24,10 @@ from interface_contract import (
     InterfaceContractError,
     emit_consumer_contract,
     load_interface_canon,
+    load_release_impact,
     load_version_policy,
     merge_governed_block,
+    publication_status,
     resolve_interface_contract,
     route_operating_mode,
     validate_interface_canon,
@@ -56,7 +59,7 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_published_schemas_are_valid_json_and_define_closed_required_fields(self):
         references = ROOT / "skill" / "references"
-        for name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json", "documentation-contract.schema.json"):
+        for name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json", "documentation-contract.schema.json", "release-impact.schema.json"):
             schema = read_json(references / name)
             pending = [schema]
             while pending:
@@ -76,7 +79,7 @@ class InterfaceCanonTests(unittest.TestCase):
         )
         versions = {
             "brand_canon": "1.2.1", "interface_canon": "1.0.0", "component_recipes": "1.0.0",
-            "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "1.2.1", "brand": "1.0.0",
+            "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "2.0.0", "brand": "1.0.0",
         }
         self.assertEqual("compatible", validate_version_combination(versions, policy)["status"])
         incompatible = dict(versions, brand_canon="9.0.0")
@@ -90,6 +93,34 @@ class InterfaceCanonTests(unittest.TestCase):
         incomplete["domains"]["egui_adapter"]["major"] = []
         with self.assertRaisesRegex(InterfaceContractError, "egui_adapter major"):
             validate_version_policy(incomplete)
+
+    def test_release_impact_is_closed_and_rejects_downstream_evidence_fields(self):
+        impact = load_release_impact()
+        self.assertEqual("2.0.0", impact["brandbuilder_version"])
+        self.assertFalse(impact["identity_redesign"])
+        self.assertEqual(
+            {"identity", "palette", "typography", "platform_assets", "web_react", "egui", "documentation", "recovery"},
+            set(impact["surfaces"]),
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "release-impact.json"
+            invalid = copy.deepcopy(impact)
+            invalid["adoption"] = {"status": "unknown"}
+            path.write_text(json.dumps(invalid), encoding="utf-8")
+            with self.assertRaisesRegex(InterfaceContractError, "release impact schema violation|prohibited downstream"):
+                load_release_impact(path)
+
+    def test_publication_status_requires_the_exact_version_tag(self):
+        with mock.patch.dict("os.environ", {}, clear=True):
+            self.assertEqual("candidate", publication_status("2.0.0"))
+        with mock.patch.dict("os.environ", {"GITHUB_REF": "refs/heads/main"}, clear=True):
+            self.assertEqual("candidate", publication_status("2.0.0"))
+        with mock.patch.dict("os.environ", {"GITHUB_REF": "refs/tags/v2.0.1"}, clear=True):
+            self.assertEqual("candidate", publication_status("2.0.0"))
+        with mock.patch.dict("os.environ", {"GITHUB_REF": "refs/tags/v2.0.0"}, clear=True):
+            self.assertEqual("release", publication_status("2.0.0"))
+        with mock.patch.dict("os.environ", {"GITHUB_REF_TYPE": "tag", "GITHUB_REF_NAME": "v2.0.0"}, clear=True):
+            self.assertEqual("release", publication_status("2.0.0"))
 
     def test_every_production_brand_resolves_without_identity_mutation(self):
         for brand_path in sorted((ROOT / "brands").glob("*/brand.json")):
@@ -245,18 +276,35 @@ class ConsumerContractTests(unittest.TestCase):
             second = emit_consumer_contract(brand, kit / "brand.json", kit, "# Implementation\n\nExact guidance.\n")
             after = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
             self.assertEqual(first, second)
-            self.assertEqual(3, first["schema_version"])
+            self.assertEqual(4, first["schema_version"])
             self.assertEqual("1.1.0", first["versions"]["component_recipe_version"])
             self.assertEqual("1.1.0", first["versions"]["web_react_adapter_version"])
             self.assertEqual("1.0.0", first["versions"]["egui_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
+            self.assertNotIn("adoption_status", first["compatibility"])
+            expected_package = "shruggietech-brand-%s-bb2.0.0" % brand["version"]
+            self.assertEqual(expected_package, first["bundle"]["package"]["id"])
+            self.assertEqual(expected_package + ".zip", first["bundle"]["package"]["filename"])
+            self.assertEqual(brand["version"], first["bundle"]["package"]["brand_version"])
+            self.assertRegex(first["bundle"]["source_revision"], r"^[0-9a-f]{40,64}$")
             self.assertEqual("enforcement/component-recipes.json", first["authority"]["component_recipes"])
             self.assertEqual("web/adapter.json", first["authority"]["web_adapter"])
             self.assertEqual("native/egui/adapter.json", first["authority"]["egui_adapter"])
             self.assertEqual("enforcement/documentation-contract.json", first["authority"]["documentation_contract"])
             self.assertEqual("enforcement/documentation-facts.json", first["authority"]["documentation_facts"])
             self.assertTrue((kit / "enforcement" / "documentation-facts.json").is_file())
+            self.assertTrue((kit / "enforcement" / "bundle.json").is_file())
+            self.assertTrue((kit / "enforcement" / "MIGRATION.md").is_file())
+            self.assertEqual(
+                (ROOT / "skill" / "references" / "release-impact.json").read_bytes(),
+                (kit / "enforcement" / "release-impact.json").read_bytes(),
+            )
+            self.assertEqual(
+                (ROOT / "skill" / "references" / "release-impact.schema.json").read_bytes(),
+                (kit / "enforcement" / "release-impact.schema.json").read_bytes(),
+            )
             self.assertIn("Exact versions", (kit / "enforcement" / "IMPLEMENTATION.md").read_text(encoding="utf-8"))
+            self.assertIn("No approved identity redesign", (kit / "enforcement" / "MIGRATION.md").read_text(encoding="utf-8"))
             self.assertEqual(before, after)
             self.assertEqual([], verify_consumer_contract(kit))
 
@@ -294,6 +342,14 @@ class ConsumerContractTests(unittest.TestCase):
             problems = verify_consumer_contract(kit)
             self.assertTrue(any("file is missing" in problem for problem in problems), problems)
             contract_path.write_bytes(before["enforcement/consumer-contract.json"])
+
+            bundle_path = kit / "enforcement" / "bundle.json"
+            bundle = read_json(bundle_path)
+            bundle["package"]["filename"] = "mutable.zip"
+            bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+            problems = verify_consumer_contract(kit)
+            self.assertTrue(any("bundle authority disagrees" in problem for problem in problems), problems)
+            bundle_path.write_bytes(before["enforcement/bundle.json"])
 
             egui_path = kit / "native" / "egui" / "adapter.json"
             egui = read_json(egui_path)

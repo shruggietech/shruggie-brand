@@ -226,9 +226,7 @@ def generate_conformance(brand_json, kit_dir):
         "host_tracks": policy["host_tracks"],
         "evidence_boundaries": {
             "browser_emulation_is_host_proof": False,
-            "reference_fixture_is_consumer_adoption": False,
             "actual_host_status": "pending-proof",
-            "consumer_adoption_status": "pending-proof",
         },
         "entries": {
             "browser": "conformance/browser/specimen.html",
@@ -267,7 +265,7 @@ def generate_conformance(brand_json, kit_dir):
         - `../native/egui/` remains the native rendered-state fixture.
         - `baseline-decisions.json` contains human decisions only. Candidate screenshots remain ignored artifacts.
 
-        These fixtures do not claim actual host certification or downstream consumer adoption.
+        These fixtures do not claim actual host certification or downstream product outcomes.
         """).format(title=brand.get("title", brand["slug"]))
     _write_text(conformance / "README.md", readme)
     artifact_paths = [

@@ -16,7 +16,7 @@ sys.path.insert(0, str(HERE))
 
 from documentation_contract import (DocumentationContractError, build_documentation_facts,
                                     load_documentation_contract, manual_catalog,
-                                    render_implementation, validate_documentation_contract,
+                                    render_implementation, render_migration_summary, validate_documentation_contract,
                                     validate_route_dispositions, verify_documentation_facts,
                                     verify_rendered_implementation)
 from schema_validation import validate_json_schema
@@ -69,9 +69,12 @@ class DocumentationContractTests(unittest.TestCase):
             paths = ["brand.json", "enforcement/interface-canon.json", "enforcement/component-recipes.json", "web/adapter.json", "web/support-matrix.json", "native/egui/adapter.json", "native/egui/support-matrix.json", "enforcement/gap.json", "enforcement/distributions/recovery.skill"]
             for relative in paths:
                 path = kit / relative; path.parent.mkdir(parents=True, exist_ok=True); path.write_text("{}\n", encoding="utf-8")
-            versions = {"canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "1.2.1", "brand_version": "1.0.0"}
-            consumer = {"brand": {"slug": "test", "title": "Test", "affiliation": None, "brand_version": "1.0.0"}, "versions": versions,
-                        "authority": {"brand_source": "brand.json", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json", "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"], "permitted_exceptions": ["governed literals"]},
+            versions = {"canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0", "brand_version": "1.0.0"}
+            bundle = {"schema_version": 1, "package": {"id": "test-brand-1.0.0-bb2.0.0", "filename": "test-brand-1.0.0-bb2.0.0.zip", "brand_slug": "test", "brand_version": "1.0.0", "brandbuilder_version": "2.0.0"}, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": "SHA256SUMS"}}
+            impact = read_json(ROOT / "skill" / "references" / "release-impact.json")
+            (kit / "enforcement" / "release-impact.json").write_text(json.dumps(impact), encoding="utf-8")
+            consumer = {"brand": {"slug": "test", "title": "Test", "affiliation": None, "brand_version": "1.0.0"}, "bundle": bundle, "versions": versions,
+                        "authority": {"brand_source": "brand.json", "release_impact": "enforcement/release-impact.json", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json", "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"], "permitted_exceptions": ["governed literals"]},
                         "verification": {"entry_points": ["python verify.py", "python validate_glyph.py"], "success": "zero failures"},
                         "recovery": {"distribution": "recovery.skill", "path": "enforcement/distributions/recovery.skill", "sha256": "a" * 64, "extract_to": "enforcement/brandbuilder", "sources": [{"kind": "delivered-bundle"}], "instruction": "verify"},
                         "capability_gap": {"template_path": "enforcement/gap.json", "submission_requires_authorization": True}}
@@ -80,6 +83,9 @@ class DocumentationContractTests(unittest.TestCase):
             self.assertEqual(rendered, render_implementation(facts, "Use the governed palette."))
             self.assertIn("[/docs/](https://brand.shruggie.tech/docs/)", rendered)
             self.assertNotIn("[/docs/](/docs/)", rendered)
+            self.assertEqual(render_migration_summary(facts), render_migration_summary(facts))
+            self.assertIn("No approved identity redesign", rendered)
+            self.assertNotIn("adoption status", rendered.lower())
             verify_rendered_implementation(rendered, facts)
             drifted = copy.deepcopy(facts); drifted["versions"]["compiler_version"] = "9.9.9"
             with self.assertRaisesRegex(DocumentationContractError, "versions"):

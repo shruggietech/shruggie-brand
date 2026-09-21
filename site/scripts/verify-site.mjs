@@ -11,6 +11,7 @@ import guidelinePortals from '../generated/guidelines.json' with { type: 'json' 
 import brands from '../generated/brands.json' with { type: 'json' };
 import documentationRecords from '../generated/documentation.json' with { type: 'json' };
 import conformanceRecords from '../generated/conformance.json' with { type: 'json' };
+import publication from '../generated/publication.json' with { type: 'json' };
 import { payloadFailures } from './payload-contract.mjs';
 import { isCanonicalRedirect, selectVerificationOrigin } from './verification-origin.mjs';
 
@@ -314,7 +315,7 @@ try {
     const links = await page.locator('.site-footer nav a').evaluateAll((elements) => elements.map((element) => ({ label: element.textContent?.trim(), href: element.getAttribute('href'), target: element.getAttribute('target'), rel: element.getAttribute('rel') })));
     const expected = [
       { label: 'Documentation', href: '/docs/', target: null, rel: null },
-      { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', target: '_blank', rel: 'noopener noreferrer' },
+      { label: 'Download Skill', href: publication.skillUrl, target: '_blank', rel: 'noopener noreferrer' },
       { label: 'Company', href: 'https://shruggie.tech/', target: null, rel: null },
       { label: 'Source', href: 'https://github.com/ShruggieTech/shruggie-brand', target: '_blank', rel: 'noopener noreferrer' },
       { label: 'License', href: 'https://github.com/ShruggieTech/shruggie-brand/blob/main/LICENSE', target: '_blank', rel: 'noopener noreferrer' },
@@ -348,7 +349,7 @@ try {
     const expected = [
       ...(includeDocumentation ? [{ label: 'Documentation', href: '/docs/' }] : []),
       { label: 'Company', href: 'https://shruggie.tech/' },
-      { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest' },
+      { label: 'Download Skill', href: publication.skillUrl },
     ];
     for (const record of expected) {
       const link = page.locator(isDocs ? '#nd-sidebar a:visible' : '#nd-nav a:visible').filter({ hasText: new RegExp(`^${record.label}$`) });
@@ -469,7 +470,7 @@ try {
   const heroActions = await page.locator('.hero a').evaluateAll((elements) => elements.map((element) => ({ label: element.textContent?.trim(), href: element.getAttribute('href'), target: element.getAttribute('target'), rel: element.getAttribute('rel') })));
   check(JSON.stringify(heroActions) === JSON.stringify([
     { label: 'Documentation', href: '/docs/', target: null, rel: null },
-    { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', target: '_blank', rel: 'noopener noreferrer' },
+    { label: 'Download Skill', href: publication.skillUrl, target: '_blank', rel: 'noopener noreferrer' },
     { label: 'Explore Our Portfolio↓', href: '#portfolio', target: null, rel: null },
   ]), `homepage hero action order or policy differs from the approved contract (${JSON.stringify(heroActions)})`);
   check(await page.locator('#portfolio-heading').textContent() === 'Our Portfolio', 'homepage portfolio heading is not exact');
@@ -611,7 +612,7 @@ try {
   for (const rejected of ['a shruggietech project', 'skill 1.', 'canon', 'example brand', 'read the system']) check(!homeText.includes(rejected), `homepage contains retired wording: ${rejected}`);
   const visibleHeaderLinks = async () => page.locator('#nd-nav a').evaluateAll((links) => links.filter((link) => { const rect = link.getBoundingClientRect(); return ['Documentation', 'Company', 'Download Skill', 'View on GitHub'].includes(link.textContent?.trim()) && rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth; }).map((link) => ({ text: link.textContent?.trim(), href: link.getAttribute('href') })));
   const desktopLinks = await visibleHeaderLinks();
-  check(JSON.stringify(desktopLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Company', href: 'https://shruggie.tech/' }, { text: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest' }]), `desktop landing navigation differs from the approved order (${JSON.stringify(desktopLinks)})`);
+  check(JSON.stringify(desktopLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Company', href: 'https://shruggie.tech/' }, { text: 'Download Skill', href: publication.skillUrl }]), `desktop landing navigation differs from the approved order (${JSON.stringify(desktopLinks)})`);
   await page.setViewportSize({ width: 360, height: 900 });
   check(await page.locator('.brand-grid-desktop').evaluate((element) => getComputedStyle(element).display) === 'none', 'desktop card grid remains exposed at the mobile breakpoint');
   check(await page.locator('.brand-accordion-list').evaluate((element) => getComputedStyle(element).display) === 'block', 'mobile disclosures are not exposed at the mobile breakpoint');
@@ -641,7 +642,7 @@ try {
   await page.evaluate(() => { document.documentElement.style.zoom = ''; });
   await page.getByRole('button', { name: 'Toggle Menu' }).click();
   const mobileLinks = await visibleHeaderLinks();
-  check(JSON.stringify(mobileLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Company', href: 'https://shruggie.tech/' }, { text: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest' }, { text: 'View on GitHub', href: 'https://github.com/ShruggieTech/shruggie-brand' }]), `mobile landing menu differs from the approved order (${JSON.stringify(mobileLinks)})`);
+  check(JSON.stringify(mobileLinks) === JSON.stringify([{ text: 'Documentation', href: '/docs/' }, { text: 'Company', href: 'https://shruggie.tech/' }, { text: 'Download Skill', href: publication.skillUrl }, { text: 'View on GitHub', href: 'https://github.com/ShruggieTech/shruggie-brand' }]), `mobile landing menu differs from the approved order (${JSON.stringify(mobileLinks)})`);
   for (const link of await page.getByRole('link').filter({ hasText: /^(Documentation|Company|Download Skill|View on GitHub)$/ }).all()) { const box = await link.boundingBox(); if (box && box.y < 900) check(box.width >= 44 && box.height >= 44, `${await link.textContent()} mobile navigation target is smaller than 44 by 44 CSS pixels`); }
   await page.locator('a').filter({ hasText: /^Documentation$/ }).evaluateAll((links) => links.find((link) => { const rect = link.getBoundingClientRect(); return rect.bottom > 0 && rect.top < window.innerHeight; })?.focus());
   await page.keyboard.press('Escape');
@@ -950,7 +951,7 @@ try {
   const firstSection = page.locator('.docs-page h2').first();
   if (await firstSection.count() === 1) { await firstSection.scrollIntoViewIfNeeded(); await page.waitForTimeout(100); check(await page.locator('#nd-toc a[data-active="true"]').count() >= 1, 'documentation table of contents lacks an active state after section navigation'); }
   await page.goto(base + '/docs/');
-  const startLink = page.locator('.docs-page a[href*="releases/latest"]').first();
+  const startLink = page.locator(`.docs-page a[href="${publication.skillUrl}"]`).first();
   const startBox = await startLink.boundingBox();
   check(Boolean(startBox && startBox.y < 900), 'documentation landing page does not surface its next action in the first viewport');
   const paginationCard = page.locator('.docs-pagination > a').first();

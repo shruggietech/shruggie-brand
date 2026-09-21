@@ -1,11 +1,11 @@
 # Shruggie Brand
 
-This repository is the source of the ShruggieTech brand system. It contains the `shruggie-brandbuilder` skill, source-only definitions for six production brand kits, a synthetic fixture, the regression pipeline that rebuilds every kit, and the static site published at [brand.shruggie.tech](https://brand.shruggie.tech).
+This repository is the source of the ShruggieTech brand system. It contains the `shruggie-brandbuilder` skill, source-only definitions for eight production brand kits, the regression pipeline that rebuilds every kit, and the release-backed static site published at [brand.shruggie.tech](https://brand.shruggie.tech).
 
 | You are | Take |
 | --- | --- |
-| Working in Claude, uploading to the Customize pipeline | `shruggie-brandbuilder-1.1.2.skill` |
-| Working in Codex, or vendoring into a repository | `shruggie-brandbuilder-1.1.2-portable.zip`, entry point `AGENTS.md` |
+| Working in Claude, uploading to the Customize pipeline | `shruggie-brandbuilder-2.0.0.skill` |
+| Working in Codex, or vendoring into a repository | `shruggie-brandbuilder-2.0.0-portable.zip`, entry point `AGENTS.md` |
 
 ## Brand kits
 
@@ -15,12 +15,14 @@ This repository is the source of the ShruggieTech brand system. It contains the 
 - [Glitchpad](https://brand.shruggie.tech/glitchpad/)
 - [Covarity](https://brand.shruggie.tech/covarity/)
 - [ESO Weave](https://brand.shruggie.tech/eso-weave/)
+- [Cueson](https://brand.shruggie.tech/cueson/)
+- [I Heart PR Tours](https://brand.shruggie.tech/i-heart-pr-tours/)
 
 Each brand page links to a generated multi-page guideline portal with focused voice, logo, color, typography, component, asset, and platform-integration topics. The downloads page also carries a standalone HTML guideline for offline use.
 
 ## Build
 
-Install Python 3.8 or newer and the dependencies documented in [CONTRIBUTING.md](CONTRIBUTING.md), then build every production kit and the fixture:
+Install Python 3.8 or newer and the dependencies documented in [CONTRIBUTING.md](CONTRIBUTING.md), then build every production kit:
 
 ```powershell
 python scripts/build_all.py
@@ -33,6 +35,8 @@ python scripts/build_all.py covarity
 ```
 
 Generated output is written to `dist/` and is intentionally ignored by Git.
+
+Every canonical archive is named `<brand-slug>-brand-<brand-version>-bb<brandbuilder-version>.zip`. Production Pages advances only with an exact formal release; verified `main` output remains a reviewable CI candidate.
 
 ## Add a brand
 

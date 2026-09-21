@@ -17,6 +17,7 @@ from release_contract import (
     verify_brand_archive,
     verify_release_directory,
 )
+from interface_contract import package_identity
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,7 +75,15 @@ def write_brand_archive(
     version = brand.get("version")
     if slug != source.name or not isinstance(version, str) or not version:
         raise ValueError(f"built kit identity does not match source directory: {source.name}")
-    expected_name = f"{slug}-brand-{version}.zip"
+    bundle_path = source / "enforcement" / "bundle.json"
+    if not bundle_path.is_file():
+        raise ValueError(f"missing immutable bundle record: {source.name}")
+    bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+    compiler_version = (bundle.get("versions") or {}).get("compiler_version")
+    expected_package = package_identity(slug, version, compiler_version)
+    if bundle.get("package") != expected_package:
+        raise ValueError(f"bundle package identity disagrees for {source.name}")
+    expected_name = expected_package["filename"]
     if archive_path.name != expected_name:
         raise ValueError(f"brand archive filename must be {expected_name}")
     try:
@@ -98,6 +107,7 @@ def write_brand_archive(
             staged,
             slug,
             version,
+            expected_filename=expected_name,
             expected_canon=expected_canon,
             root=root,
         )
@@ -138,7 +148,7 @@ def main() -> int:
     for slug in PRODUCTION:
         source = ROOT / "dist" / slug
         brand = json.loads((source / "brand.json").read_text(encoding="utf-8"))
-        archive_path = OUTPUT / f"{slug}-brand-{brand['version']}.zip"
+        archive_path = OUTPUT / package_identity(slug, brand["version"], version)["filename"]
         write_brand_archive(
             source,
             archive_path,
