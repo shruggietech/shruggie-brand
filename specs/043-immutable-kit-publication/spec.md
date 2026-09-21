@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-20
 
-**Status**: Implemented locally, push authorization pending
+**Status**: Pull request review in progress
 
 **Input**: User description: "Use Spec Kit autopilot to correct the release/site version skew, give generated brand kits an immutable package identity, reconcile release notes, and explain identity versus implementation changes without tracking downstream utility."
 

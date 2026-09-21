@@ -4,14 +4,14 @@
 
 **Local verification date**: 2026-09-21
 
-**Hosted status**: Pending the mandatory autopilot push authorization checkpoint. No branch, pull request, tag, or release has been published by this slice yet.
+**Hosted status**: Pull request [#238](https://github.com/shruggietech/shruggie-brand/pull/238) is open. The first Codex review completed on `412acf9` with two actionable release-integrity findings. Both are resolved locally and await verification on the corrective head. No tag or release has been created.
 
 ## Contract and regression evidence
 
 - `python skill/templates/test_interface_contract.py`: 15 passed.
 - `python skill/templates/test_documentation_contract.py`: 4 passed.
 - `python skill/templates/test_conformance.py`: 11 passed.
-- `python scripts/test_release_contract.py`: 21 passed.
+- `python scripts/test_release_contract.py`: 22 passed.
 - `python scripts/test_package_release.py`: 8 passed.
 - `python scripts/test_prepare_site.py`: 36 passed.
 - `python scripts/test_publication_workflow.py`: 17 passed.
@@ -25,6 +25,8 @@
 - `python scripts/package_release.py --version 2.0.0` produced the canonical BrandBuilder and production-brand assets. A byte-parity defect between delivered and recovery impact records was caught, fixed in the generator, regression-tested, and then repackaged successfully.
 - `python scripts/release_contract.py notes --version 2.0.0 --output release/release-notes.md` produced validated notes.
 - `python scripts/release_contract.py verify --version 2.0.0 --release-dir release --notes release/release-notes.md` verified nine v2.0.0 candidate release assets and their generated notes.
+- Post-review regression verification proves that `SHA256SUMS` covers only the `.skill` and `.zip` assets uploaded to the formal release, and the workflow uploads the checksum manifest itself.
+- The publication record now requires an exact, ordered match to the seven release-authorized package identities verified by release metadata and archives. The independent third-party I Heart PR Tours showcase remains on the public site but is not misrepresented as a ShruggieTech release asset.
 - A synthetic exact-tag rebuild bound every bundle to the exact committed source revision with publication status `release`, without creating a Git tag or changing remote state.
 - `python scripts/release_contract.py publication --version 2.0.0 --record site/generated/publication.json --revision <committed-source-revision> --require-release` verified the exact release publication record.
 - `python scripts/release_contract.py verify --version 2.0.0 --release-dir release --notes release/release-notes.md --revision <committed-source-revision> --require-release` verified all nine release assets, notes, bundle states, and source revisions.
@@ -35,6 +37,7 @@
 - `npx --yes pnpm@10.28.2 --dir site build`: passed, producing 95 static routes.
 - `npx --yes pnpm@10.28.2 --dir site test`: 12 Node contract tests passed, followed by production-browser verification of 90 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations.
 - The generated publication record is a candidate, names exact v2.0.0 release destinations, contains the source revision, and contains no moving `releases/latest` destination.
+- After review remediation, the seven release-authorized kits built successfully in the aggregate run, I Heart PR Tours built successfully with the approved portable proof artifact and exact Node.js 24.11.0 renderer, the 95-page export passed again, and all 90 HTML routes passed desktop/mobile verification with zero WCAG 2.1 AA violations.
 
 ## Visual and identity evidence
 
@@ -57,11 +60,12 @@
 - Identity versus implementation guidance: #234.
 - Immutable kit identity: #235.
 - All five issues are in the `shruggie-brand Delivery` project under the Phase 16 milestone. The program and slice issues are `In progress`; #222, #233, #234, and #235 carry `Slice: S043`.
+- Pull request #238 references all five issues. The first bounded Codex review reported that `SHA256SUMS` was declared but not uploaded and that the publication package inventory was not checked against the release-authorized set. Both findings now have fail-closed regression coverage and implementation fixes.
 
-## Pending after owner authorization
+## Pending hosted completion
 
-- Push the feature branch and open the prepared pull request.
-- Move the slice items to `PR review`.
-- Wait for every required hosted check to pass.
-- Perform bounded pull-request review, resolve every actionable finding, and record the final hosted evidence here.
+- Push the corrective review commit.
+- Wait for every required hosted check to pass on the corrective head.
+- Re-run bounded Codex review and resolve any further actionable finding.
+- Record the final green run and completed review in this file.
 - Do not create a tag or release as part of the pull request.

@@ -18,7 +18,7 @@
 ## Verification
 
 - all eight production kits build with zero verifier problems and zero glyph failures
-- 15 interface-contract, 4 documentation-contract, 11 conformance, 21 release-contract, 8 packaging, 36 site-preparation, 17 publication-workflow, and 68 full-pipeline tests pass
+- 15 interface-contract, 4 documentation-contract, 11 conformance, 22 release-contract, 8 packaging, 36 site-preparation, 17 publication-workflow, and 68 full-pipeline tests pass
 - the static site builds 95 routes and verifies 90 routes at desktop and mobile widths with zero WCAG 2.1 AA violations
 - nine candidate release assets and generated notes verify as v2.0.0
 - all 48 generated brand QC sheets were reviewed

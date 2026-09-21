@@ -75,6 +75,10 @@ class PrepareSiteTests(unittest.TestCase):
             self.assertEqual("candidate", record["status"])
             self.assertEqual("v2.0.0", record["tag"])
             self.assertNotIn("latest", json.dumps(record).lower())
+            release_record = prepare_site.publication_record(sources, {"beta"})
+            self.assertEqual(["beta-brand-1.0.0-bb2.0.0"], [item["id"] for item in release_record["packages"]])
+            with self.assertRaisesRegex(ValueError, "lacks release kits"):
+                prepare_site.publication_record(sources, {"missing"})
             mixed = json.loads((sources[1] / "enforcement" / "bundle.json").read_text(encoding="utf-8"))
             mixed["source_revision"] = "b" * 40
             (sources[1] / "enforcement" / "bundle.json").write_text(json.dumps(mixed), encoding="utf-8")

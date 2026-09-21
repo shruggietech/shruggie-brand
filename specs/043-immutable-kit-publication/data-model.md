@@ -8,7 +8,7 @@
 | `tag` | string | Exactly `v<version>` |
 | `source_revision` | full Git SHA | Equals the tagged revision and all bundle records |
 | `skill_archive` | filename | Versioned release asset built from the tagged revision |
-| `kit_packages` | list of KitPackageIdentity | Exactly the production brand set |
+| `kit_packages` | list of KitPackageIdentity | Exactly the release-authorized brand set; public third-party showcases are excluded unless separately authorized for release |
 | `notes_boundary` | version | Equals `version` and contains all changes since the prior tag |
 
 Validation fails when any field disagrees with source metadata or generated assets.

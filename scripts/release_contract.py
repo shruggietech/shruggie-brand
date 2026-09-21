@@ -625,9 +625,19 @@ def write_notes(path: Path, value: str) -> None:
         handle.write(value)
 
 
-def verify_publication_record(path: Path, version: str, revision: str,
+def expected_publication_packages(metadata: Mapping[str, object]) -> list[Dict[str, str]]:
+    brands = metadata.get("brands", {})
+    return [
+        package_identity(slug, str(brands[slug]["version"]), str(metadata["version"]))
+        for slug in sorted(PRODUCTION)
+        if slug in brands
+    ]
+
+
+def verify_publication_record(path: Path, metadata: Mapping[str, object], revision: str,
                               require_release: bool = False) -> Mapping[str, object]:
     record = json.loads(read_text(path))
+    version = str(metadata["version"])
     expected_tag = "v%s" % version
     expected_skill = "shruggie-brandbuilder-%s.skill" % version
     required = {"schemaVersion", "status", "version", "tag", "sourceRevision", "releaseUrl", "skillFilename", "skillUrl", "packages"}
@@ -641,6 +651,8 @@ def verify_publication_record(path: Path, version: str, revision: str,
         raise ValueError("publication record skill destination disagrees")
     if record["releaseUrl"].endswith("/latest") or "/releases/tag/%s" % expected_tag not in record["releaseUrl"]:
         raise ValueError("publication record release destination is not exact")
+    if record["packages"] != expected_publication_packages(metadata):
+        raise ValueError("publication record package inventory disagrees")
     if require_release and record["status"] != "release":
         raise ValueError("production publication requires exact release status")
     if record["status"] not in {"candidate", "release"}:
@@ -681,7 +693,7 @@ def main() -> int:
         print("verified %d v%s release assets and generated notes"
               % (len(expected_assets(metadata)), args.version))
     else:
-        verify_publication_record(args.record, args.version, args.revision, args.require_release)
+        verify_publication_record(args.record, metadata, args.revision, args.require_release)
         print("verified %s publication record for v%s" % ("release" if args.require_release else "candidate", args.version))
     return 0
 

@@ -117,7 +117,7 @@
 - [x] T037 Update `specs/043-immutable-kit-publication/spec.md`, `plan.md`, and `tasks.md` to reflect implementation status and final evidence
 - [x] T038 Prepare commit and pull-request traceability for #233, #234, #235, #222, and #209 without claiming the formal release has been published
 - [x] T039 Stop after the local commit and request owner authorization before any push, pull request, tag, or release action as required by `.agents/skills/shruggie-speckit/assets/autopilot-protocol.md`
-- [ ] T040 After authorization, push the feature branch and open a traceable pull request using the prepared body in `specs/043-immutable-kit-publication/pull-request.md`
+- [x] T040 After authorization, push the feature branch and open a traceable pull request using the prepared body in `specs/043-immutable-kit-publication/pull-request.md`
 - [ ] T041 After authorization, verify hosted CI is green and complete bounded pull-request review, recording resolved findings in `specs/043-immutable-kit-publication/verification.md`
 
 ---

@@ -165,8 +165,45 @@ def replace_consumer(entries, consumer):
 class ReleaseContractTests(unittest.TestCase):
     def test_publication_record_distinguishes_candidates_and_exact_releases(self):
         revision = "a" * 40
+        metadata = {
+            "version": "2.0.0",
+            "brands": {
+                "fragcap": {"version": "1.1.0"},
+                "eso-weave": {"version": "1.0.0"},
+            },
+        }
         base = {
             "schemaVersion": 1, "status": "candidate", "version": "2.0.0", "tag": "v2.0.0",
+            "sourceRevision": revision,
+            "releaseUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/tag/v2.0.0",
+            "skillFilename": "shruggie-brandbuilder-2.0.0.skill",
+            "skillUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/download/v2.0.0/shruggie-brandbuilder-2.0.0.skill",
+            "packages": [
+                release_contract.package_identity("eso-weave", "1.0.0", "2.0.0"),
+                release_contract.package_identity("fragcap", "1.1.0", "2.0.0"),
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "publication.json"
+            path.write_text(json.dumps(base), encoding="utf-8")
+            self.assertEqual("candidate", release_contract.verify_publication_record(path, metadata, revision)["status"])
+            with self.assertRaisesRegex(ValueError, "requires exact release status"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+            released = dict(base, status="release")
+            path.write_text(json.dumps(released), encoding="utf-8")
+            self.assertEqual("release", release_contract.verify_publication_record(path, metadata, revision, require_release=True)["status"])
+            path.write_text(json.dumps(dict(released, releaseUrl="https://github.com/ShruggieTech/shruggie-brand/releases/latest")), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "not exact"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+
+    def test_publication_record_requires_exact_canonical_package_inventory(self):
+        revision = "a" * 40
+        metadata = {
+            "version": "2.0.0",
+            "brands": {"fragcap": {"version": "1.1.0"}},
+        }
+        record = {
+            "schemaVersion": 1, "status": "release", "version": "2.0.0", "tag": "v2.0.0",
             "sourceRevision": revision,
             "releaseUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/tag/v2.0.0",
             "skillFilename": "shruggie-brandbuilder-2.0.0.skill",
@@ -175,16 +212,14 @@ class ReleaseContractTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "publication.json"
-            path.write_text(json.dumps(base), encoding="utf-8")
-            self.assertEqual("candidate", release_contract.verify_publication_record(path, "2.0.0", revision)["status"])
-            with self.assertRaisesRegex(ValueError, "requires exact release status"):
-                release_contract.verify_publication_record(path, "2.0.0", revision, require_release=True)
-            released = dict(base, status="release")
-            path.write_text(json.dumps(released), encoding="utf-8")
-            self.assertEqual("release", release_contract.verify_publication_record(path, "2.0.0", revision, require_release=True)["status"])
-            path.write_text(json.dumps(dict(released, releaseUrl="https://github.com/ShruggieTech/shruggie-brand/releases/latest")), encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "not exact"):
-                release_contract.verify_publication_record(path, "2.0.0", revision, require_release=True)
+            path.write_text(json.dumps(record), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "package inventory disagrees"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+
+            record["packages"] = [release_contract.package_identity("fragcap", "1.0.0", "2.0.0")]
+            path.write_text(json.dumps(record), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "package inventory disagrees"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
 
     def test_production_logo_source_modes_and_identity_fingerprints_are_pinned(self):
         expected = {

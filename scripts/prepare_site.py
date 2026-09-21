@@ -33,6 +33,7 @@ from brand_contract import affiliation, public_showcase, showcase_surface, vendo
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from package_release import write_brand_archive
+from release_contract import PRODUCTION
 from interface_contract import package_identity
 DOCUMENTATION_CONTRACT = load_documentation_contract()
 DOCUMENTATION_CATALOG = manual_catalog(DOCUMENTATION_CONTRACT)
@@ -568,7 +569,13 @@ def authoritative_canon(root: Path = ROOT) -> str:
     return version
 
 
-def publication_record(sources: list[Path]) -> dict[str, Any]:
+def publication_record(sources: list[Path], release_slugs: Optional[Set[str]] = None) -> dict[str, Any]:
+    if release_slugs is not None:
+        by_slug = {source.name: source for source in sources}
+        missing = sorted(release_slugs - set(by_slug))
+        if missing:
+            raise ValueError(f"publication record lacks release kits: {missing}")
+        sources = [by_slug[slug] for slug in sorted(release_slugs)]
     bundles = [json.loads((source / "enforcement" / "bundle.json").read_text(encoding="utf-8")) for source in sources]
     if not bundles:
         raise ValueError("publication record requires at least one production kit")
@@ -941,7 +948,7 @@ def main() -> int:
         shutil.rmtree(generated_fonts)
     shutil.copytree(ROOT / "assets" / "fonts" / "woff2", generated_fonts)
     write_utf8(GENERATED / "brands.json", json.dumps(brands, indent=2) + "\n")
-    write_utf8(GENERATED / "publication.json", json.dumps(publication_record([source for source, _ in public_sources]), indent=2) + "\n")
+    write_utf8(GENERATED / "publication.json", json.dumps(publication_record([source for source, _ in public_sources], set(PRODUCTION)), indent=2) + "\n")
     write_utf8(GENERATED / "guidelines.json", json.dumps(portals, ensure_ascii=False, indent=2) + "\n")
     docs = write_docs(REFERENCES, GENERATED / "docs")
     routes = build_routes(brands, docs, portals)

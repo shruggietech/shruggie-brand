@@ -168,7 +168,7 @@ jobs:
           cp release/*.skill release/*.zip release/release-notes.md "$CANDIDATE/files/"
           cp site/generated/publication.json "$CANDIDATE/PUBLICATION.json"
           printf '%s\n' "$GITHUB_SHA" > "$CANDIDATE/SOURCE_COMMIT"
-          (cd "$CANDIDATE/files" && sha256sum -- ./* | sort -k2) > "$CANDIDATE/SHA256SUMS"
+          (cd "$CANDIDATE/files" && sha256sum -- ./*.skill ./*.zip | sort -k2) > "$CANDIDATE/SHA256SUMS"
           (cd "$CANDIDATE/files" && sha256sum --check ../SHA256SUMS)
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
@@ -295,7 +295,7 @@ jobs:
           CANDIDATE="$RUNNER_TEMP/release-candidate"
           test "$(cat "$CANDIDATE/SOURCE_COMMIT")" = "$GITHUB_SHA"
           (cd "$CANDIDATE/files" && sha256sum --check ../SHA256SUMS)
-          gh release create "$GITHUB_REF_NAME" "$CANDIDATE"/files/*.skill "$CANDIDATE"/files/*.zip \
+          gh release create "$GITHUB_REF_NAME" "$CANDIDATE"/files/*.skill "$CANDIDATE"/files/*.zip "$CANDIDATE/SHA256SUMS" \
             --verify-tag \
             --title "shruggie-brandbuilder ${GITHUB_REF_NAME#v}" \
             --notes-file "$CANDIDATE/files/release-notes.md"
