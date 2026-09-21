@@ -109,7 +109,7 @@ matrix and the fallback chain. A missing tool gets named in `VERIFY.md` with the
 tool that was missing; it never gets silently substituted, and a skip must never
 read as "not applicable".
 
-**Version contracts independently.** Brand Canon, Interface Canon, component recipes, Web/React adapter, egui adapter, compiler, and each brand have separate semantic versions. `references/version-policy.json` defines their meanings, bump rules, compatibility edges, and recovery requirements. Compatibility does not imply publication, and publication does not imply consumer adoption. Pin the exact versions and checksums in every consumer contract and never substitute a latest release during recovery.
+**Version contracts independently.** Brand Canon, Interface Canon, component recipes, Web/React adapter, egui adapter, compiler, and each brand have separate semantic versions. `references/version-policy.json` defines their meanings, bump rules, compatibility edges, and recovery requirements. Compatibility does not imply publication. Pin the exact versions and checksums in every consumer contract and never substitute a latest release during recovery. BrandBuilder publishes migration impact but does not collect downstream adoption or utility evidence.
 
 **Bundle fonts. Never fetch them at build time.** House mode uses the approved local faces. Fixed mode uses only declared local faces whose hash, family, weight, style, format, license, provenance, and usage status pass validation. Network retrieval happens only through the explicitly invoked `templates/ingest_font.py` command and completes atomically before a build begins.
 

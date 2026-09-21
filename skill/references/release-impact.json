@@ -1,0 +1,16 @@
+{
+  "$schema": "release-impact.schema.json",
+  "schema_version": 1,
+  "brandbuilder_version": "2.0.0",
+  "identity_redesign": false,
+  "surfaces": {
+    "identity": {"classification": "unaffected", "summary": "Approved logo geometry, source bytes, ownership, affiliation, and brand versions are unchanged."},
+    "palette": {"classification": "required", "summary": "Consumers using generated semantic color roles must repin the rebuilt kit and retain its measured surface-specific values."},
+    "typography": {"classification": "required", "summary": "Consumers using generated typography bindings must repin the rebuilt kit and its local font declarations."},
+    "platform_assets": {"classification": "optional", "summary": "Consumers may adopt the generated web, Android, Apple, macOS, and Windows asset suites when those targets apply."},
+    "web_react": {"classification": "optional", "summary": "Web and React consumers may adopt the AppFrame and environment contracts when they use those generated surfaces."},
+    "egui": {"classification": "optional", "summary": "Native Rust consumers may adopt the generated egui adapter when that renderer applies."},
+    "documentation": {"classification": "required", "summary": "Current implementation work must use the generated exact-version guidance and bundle record instead of inferred or moving guidance."},
+    "recovery": {"classification": "required", "summary": "Consumers retaining a kit must preserve the delivered checksummed BrandBuilder recovery bytes and canonical immutable package identity."}
+  }
+}

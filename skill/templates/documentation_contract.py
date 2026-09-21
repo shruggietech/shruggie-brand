@@ -112,6 +112,8 @@ def build_documentation_facts(contract, consumer, kit):
         "schema_version": 1,
         "documentation_contract_version": contract["contract_version"],
         "brand": copy.deepcopy(consumer["brand"]),
+        "bundle": copy.deepcopy(consumer["bundle"]),
+        "release_impact": _read_json(_safe_kit_file(kit, authority["release_impact"])),
         "versions": copy.deepcopy(consumer["versions"]),
         "bindings": {
             "interface_canon": authority["interface_canon"],
@@ -141,7 +143,7 @@ def verify_documentation_facts(facts, contract, consumer, kit):
     _require(set(facts) == expected_fields, "documentation fact fields differ from the contract")
     _require(facts["schema_version"] == 1, "documentation fact schema version is unsupported")
     _require(facts["documentation_contract_version"] == contract["contract_version"], "documentation contract version disagrees")
-    for field in ("brand", "versions", "verification", "recovery", "capability_gap"):
+    for field in ("brand", "bundle", "versions", "verification", "recovery", "capability_gap"):
         _require(facts[field] == consumer[field], "documentation facts disagree with consumer contract: %s" % field)
     authority = consumer["authority"]
     expected_bindings = {
@@ -156,6 +158,8 @@ def verify_documentation_facts(facts, contract, consumer, kit):
     _require(facts["rules"] == expected_rules, "documentation inherited or overridden rules disagree")
     _require(facts["authority"] == {"precedence": authority["precedence"], "permitted_exceptions": authority["permitted_exceptions"]},
              "documentation authority facts disagree")
+    _require(facts["release_impact"] == _read_json(_safe_kit_file(kit, authority["release_impact"])),
+             "documentation release impact facts disagree")
     for relative in list(facts["bindings"].values()) + [facts["recovery"]["path"], facts["capability_gap"]["template_path"]]:
         _safe_kit_file(kit, relative)
     _require(facts["hosted"]["manual_path"] == "/docs/", "documentation manual destination is invalid")
@@ -174,6 +178,7 @@ def render_implementation(facts, governed_rules):
     rules = ("Inheritance mode: `%s`.\n\nDeclared interface overrides:\n%s" %
              (facts["rules"]["inheritance"], "\n".join("- `%s`: `%s`" % item for item in sorted(overrides.items())) if overrides else "- None."))
     checks = "\n".join("- `%s`" % command for command in facts["verification"]["entry_points"])
+    migration = render_migration_summary(facts)
     return """# Implementation Contract: {title}
 
 Generated from `enforcement/documentation-facts.json` under documentation contract `{documentation}`. This file describes the exact delivered kit and remains authoritative offline.
@@ -183,6 +188,8 @@ Generated from `enforcement/documentation-facts.json` under documentation contra
 | Domain | Version |
 | --- | --- |
 {rows}
+
+Package identity: `{package}` (`{filename}`)
 
 ## Bindings
 
@@ -206,6 +213,8 @@ Verify `{sha}` for `{distribution}`, then extract it to `{extract}`. Use the del
 
 Capability gaps stay local at `{gap}` until a human explicitly authorizes upstream submission.
 
+{migration}
+
 For shared architecture and extension guidance, read [{manual}]({manual_url}). The hosted reference describes only the current generated kit. This bundled contract continues to govern these pinned delivered bytes.
 
 ## Brand-specific governed rules
@@ -215,7 +224,8 @@ For shared architecture and extension guidance, read [{manual}]({manual_url}). T
            bindings=bindings, interface_rules=rules, precedence=" -> ".join("`%s`" % item for item in facts["authority"]["precedence"]),
            checks=checks, success=facts["verification"]["success"], sha=facts["recovery"]["sha256"],
            distribution=facts["recovery"]["path"], extract=facts["recovery"]["extract_to"],
-           gap=facts["capability_gap"]["template_path"], manual=facts["hosted"]["manual_path"],
+           gap=facts["capability_gap"]["template_path"], migration=migration.strip(),
+           package=facts["bundle"]["package"]["id"], filename=facts["bundle"]["package"]["filename"], manual=facts["hosted"]["manual_path"],
            manual_url=HOSTED_MANUAL_ORIGIN + facts["hosted"]["manual_path"], rules=governed_rules.strip())
 
 
@@ -226,8 +236,46 @@ def verify_rendered_implementation(text, facts):
         _require("`%s`" % version in text, "implementation guidance omits version %s" % version)
     for path in facts["bindings"].values():
         _require("`%s`" % path in text, "implementation guidance omits binding %s" % path)
+    _require("`%s`" % facts["bundle"]["package"]["id"] in text,
+             "implementation guidance omits package identity")
+    verify_migration_summary(text, facts)
     _require(facts["recovery"]["sha256"] in text and "latest" in text.lower(), "implementation recovery guidance is incomplete")
     manual_url = HOSTED_MANUAL_ORIGIN + facts["hosted"]["manual_path"]
     _require("[%s](%s)" % (facts["hosted"]["manual_path"], manual_url) in text,
              "implementation guidance does not use the portable hosted-manual URL")
+    return text
+
+
+def render_migration_summary(facts):
+    impact = facts["release_impact"]
+    package = facts["bundle"]["package"]
+    rows = "\n".join(
+        "| %s | %s | %s |" % (name.replace("_", " ").title(), item["classification"], item["summary"])
+        for name, item in impact["surfaces"].items()
+    )
+    identity = "No approved identity redesign is included." if not impact["identity_redesign"] else "This release includes an approved identity redesign."
+    return """## Migration impact
+
+{identity} Brand version `{brand}` remains distinct from package `{package}`.
+
+| Surface | Classification | Guidance |
+| --- | --- | --- |
+{rows}
+
+`required` applies to existing use of that surface, `optional` is an available capability, and `unaffected` requires no migration.
+""".format(identity=identity, brand=package["brand_version"], package=package["id"], rows=rows)
+
+
+def verify_migration_summary(text, facts):
+    impact = facts["release_impact"]
+    package = facts["bundle"]["package"]
+    _require(package["id"] in text and package["brand_version"] in text,
+             "migration guidance omits package or brand identity")
+    for name, item in impact["surfaces"].items():
+        _require(name.replace("_", " ").title() in text and item["classification"] in text and item["summary"] in text,
+                 "migration guidance omits %s impact" % name)
+    prohibited = ("adoption status", "productivity", "correction rounds", "elapsed time", "escaped defects", "utility score", "handover evidence")
+    lowered = text.lower()
+    _require(not any(value in lowered for value in prohibited),
+             "migration guidance contains prohibited downstream evidence")
     return text

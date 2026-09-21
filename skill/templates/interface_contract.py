@@ -8,12 +8,15 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import zipfile
 from pathlib import Path, PurePosixPath
 
 from schema_validation import SchemaValidationError, validate_json_schema
+from process_utils import hidden_process_kwargs
 from documentation_contract import (build_documentation_facts, load_documentation_contract,
-                                    render_implementation, verify_documentation_facts,
+                                    render_implementation, render_migration_summary,
+                                    verify_documentation_facts, verify_migration_summary,
                                     verify_rendered_implementation)
 
 HERE = Path(__file__).resolve().parent
@@ -22,14 +25,26 @@ REFERENCES = SKILL_ROOT / "references"
 INTERFACE_CANON = REFERENCES / "interface-canon.json"
 BRAND_CANON = REFERENCES / "01-canon.json"
 VERSION_POLICY = REFERENCES / "version-policy.json"
+RELEASE_IMPACT = REFERENCES / "release-impact.json"
+RELEASE_IMPACT_SCHEMA = REFERENCES / "release-impact.schema.json"
 BEGIN_MARKER = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
 END_MARKER = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
 SEMVER = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 ROLE = re.compile(r"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$")
 REFERENCE = re.compile(r"^\$(primitive|alias|brand|brand_canon|resolved)\.([A-Za-z0-9_.-]+)$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+SOURCE_REVISION = re.compile(r"^[0-9a-f]{40,64}$")
 ZIP_TIME = (2026, 9, 17, 0, 0, 0)
 GENERATED_DIRECTORIES = {"__pycache__", "node_modules", ".venv", "venv"}
+RELEASE_AUTHORIZED_BRANDS = (
+    "shruggietech",
+    "fragcap",
+    "go-schedule",
+    "glitchpad",
+    "covarity",
+    "eso-weave",
+    "cueson",
+)
 BACKWARD_BRAND_DEFAULTS = {
     "surfaces.base": "#000000",
     "surfaces.card": "#111111",
@@ -131,8 +146,8 @@ def validate_version_policy(policy):
     _require(recorded == expected_edges, "version compatibility rules do not cover every declared edge")
     states = policy["lifecycle_states"]
     _require(isinstance(states, list) and {item.get("id") for item in states if isinstance(item, dict)}
-             == {"compatible", "candidate", "published", "unadopted", "adopted"},
-             "version lifecycle states must distinguish candidate, published, unadopted, and adopted contracts")
+             == {"compatible", "candidate", "published"},
+             "version lifecycle states must distinguish compatibility, candidate, and published contracts")
     for item in states:
         _require(set(item) == {"id", "meaning"} and isinstance(item["meaning"], str) and item["meaning"].strip(),
                  "version lifecycle state is invalid")
@@ -144,6 +159,96 @@ def validate_version_policy(policy):
         "allow_latest_substitution": False,
     }, "version recovery policy must require exact checksummed offline recovery")
     return policy
+
+
+def publication_status(version):
+    repository = os.environ.get("GITHUB_REPOSITORY", "").strip().lower()
+    ref = os.environ.get("GITHUB_REF", "").strip()
+    ref_type = os.environ.get("GITHUB_REF_TYPE", "").strip()
+    ref_name = os.environ.get("GITHUB_REF_NAME", "").strip()
+    exact_tag = "v%s" % version
+    exact_tag_ref = ref == "refs/tags/%s" % exact_tag or (ref_type == "tag" and ref_name == exact_tag)
+    return "release" if repository == "shruggietech/shruggie-brand" and exact_tag_ref else "candidate"
+
+
+def bundle_publication(version, brand):
+    affiliation = brand.get("affiliation")
+    _require(isinstance(affiliation, dict), "bundle publication requires brand affiliation")
+    ownership = affiliation.get("ownership")
+    _require(ownership in {"shruggietech-owned", "third-party"},
+             "bundle publication requires explicit supported ownership")
+    slug = brand.get("slug")
+    _require(isinstance(slug, str) and slug, "bundle publication requires a brand slug")
+    status = publication_status(version)
+    if slug not in RELEASE_AUTHORIZED_BRANDS:
+        status = "candidate"
+    return (
+        {"status": status, "version": version, "tag": "v%s" % version},
+        {"algorithm": "sha256", "manifest": "manifest.json",
+         "release_checksums": "SHA256SUMS" if status == "release" else None},
+    )
+
+
+def source_revision(root=None):
+    explicit = os.environ.get("BRANDBUILDER_SOURCE_REVISION")
+    if explicit:
+        revision = explicit.strip().lower()
+        _require(SOURCE_REVISION.fullmatch(revision), "BrandBuilder source revision must be an exact Git object id")
+        return revision
+    skill_root = Path(root or SKILL_ROOT).resolve()
+    embedded = skill_root / "SOURCE_REVISION"
+    if embedded.is_file():
+        revision = embedded.read_text(encoding="utf-8").strip().lower()
+        _require(SOURCE_REVISION.fullmatch(revision), "embedded BrandBuilder source revision is invalid")
+        return revision
+    checkout_root = skill_root.parent
+    authoritative_checkout = (
+        skill_root == checkout_root / "skill"
+        and (checkout_root / ".git").exists()
+        and (checkout_root / "scripts" / "release_contract.py").is_file()
+    )
+    _require(authoritative_checkout, "BrandBuilder source revision is unavailable")
+    github_revision = os.environ.get("GITHUB_SHA")
+    if github_revision:
+        revision = github_revision.strip().lower()
+        _require(SOURCE_REVISION.fullmatch(revision), "GitHub source revision must be an exact Git object id")
+        return revision
+    completed = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=str(checkout_root),
+        capture_output=True, text=True, **hidden_process_kwargs()
+    )
+    revision = completed.stdout.strip().lower()
+    _require(completed.returncode == 0 and SOURCE_REVISION.fullmatch(revision),
+             "BrandBuilder source revision is unavailable")
+    return revision
+
+
+def package_identity(slug, brand_version, brandbuilder_version):
+    package_id = "%s-brand-%s-bb%s" % (slug, brand_version, brandbuilder_version)
+    return {"id": package_id, "filename": "%s.zip" % package_id,
+            "brand_slug": slug, "brand_version": brand_version,
+            "brandbuilder_version": brandbuilder_version}
+
+
+def load_release_impact(path=None, schema_path=None):
+    impact = _read_json(path or RELEASE_IMPACT)
+    schema = _read_json(schema_path or RELEASE_IMPACT_SCHEMA)
+    try:
+        validate_json_schema(impact, schema)
+    except SchemaValidationError as error:
+        raise InterfaceContractError("release impact schema violation: %s" % error) from error
+    prohibited = {"consumer", "adoption", "adopted", "productivity", "utility", "elapsed_time",
+                  "correction_rounds", "escaped_defects", "handover_evidence"}
+    pending = [impact]
+    while pending:
+        value = pending.pop()
+        if isinstance(value, dict):
+            _require(not prohibited.intersection(value),
+                     "release impact contains prohibited downstream evidence fields")
+            pending.extend(value.values())
+        elif isinstance(value, list):
+            pending.extend(value)
+    return impact
 
 
 def validate_version_combination(versions, policy=None):
@@ -168,8 +273,6 @@ def validate_version_combination(versions, policy=None):
         "status": "compatible",
         "validated_versions": dict(sorted(versions.items())),
         "rules_checked": len(policy["compatibility_rules"]),
-        "publication_status": "candidate",
-        "adoption_status": "unadopted",
     }
 
 
@@ -578,12 +681,16 @@ def write_deterministic_skill_bundle(destination, skill_root=None):
     skill_root = Path(skill_root or SKILL_ROOT).resolve()
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
+    revision = source_revision(skill_root)
     with zipfile.ZipFile(str(destination), "w") as archive:
         for path in sorted(item for item in skill_root.rglob("*") if item.is_file()):
             relative = path.relative_to(skill_root).as_posix()
-            if GENERATED_DIRECTORIES.intersection(path.relative_to(skill_root).parts) or path.suffix == ".pyc":
+            if (relative == "SOURCE_REVISION"
+                    or GENERATED_DIRECTORIES.intersection(path.relative_to(skill_root).parts)
+                    or path.suffix == ".pyc"):
                 continue
             _zip_add(archive, relative, path.read_bytes())
+        _zip_add(archive, "SOURCE_REVISION", (revision + "\n").encode("utf-8"))
     return hashlib.sha256(destination.read_bytes()).hexdigest()
 
 
@@ -666,6 +773,8 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         "consumer-contract.schema.json": REFERENCES / "consumer-contract.schema.json",
         "documentation-contract.json": REFERENCES / "documentation-contract.json",
         "documentation-contract.schema.json": REFERENCES / "documentation-contract.schema.json",
+        "release-impact.json": RELEASE_IMPACT,
+        "release-impact.schema.json": RELEASE_IMPACT_SCHEMA,
     }
     for name, source in copied.items():
         (enforcement / name).write_bytes(source.read_bytes())
@@ -717,7 +826,6 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         "evidence": [],
         "classification": "reusable-capability",
         "upstream_resolution": None,
-        "adopted_version": None,
         "submission_authorized": False,
     }
     gap_path = enforcement / "capability-gap.example.json"
@@ -728,14 +836,29 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
     existing = agents_path.read_text(encoding="utf-8") if agents_path.exists() else ""
     merged = merge_governed_block(existing, block)
     _write_exact_text(agents_path, merged)
+    impact = load_release_impact()
+    _require(impact["brandbuilder_version"] == metadata["version"],
+             "release impact BrandBuilder version disagrees with skill metadata")
+    package = package_identity(brand["slug"], versions["brand_version"], metadata["version"])
+    publication, checksum_authority = bundle_publication(metadata["version"], brand)
+    bundle = {
+        "schema_version": 1,
+        "package": package,
+        "versions": versions,
+        "source_revision": source_revision(),
+        "publication": publication,
+        "checksum_authority": checksum_authority,
+    }
+    _write_json(enforcement / "bundle.json", bundle)
     consumer_core = {
-        "schema_version": 3,
+        "schema_version": 4,
         "brand": {
             "slug": brand["slug"],
             "title": brand["title"],
             "affiliation": brand.get("affiliation"),
             "brand_version": versions["brand_version"],
         },
+        "bundle": bundle,
         "versions": versions,
         "version_semantics": {
             "canon_version": "Brand Canon governing identity and inherited brand values.",
@@ -756,6 +879,9 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         },
         "authority": {
             "brand_source": "brand.json",
+            "bundle": "enforcement/bundle.json",
+            "release_impact": "enforcement/release-impact.json",
+            "migration_summary": "enforcement/MIGRATION.md",
             "interface_canon": "enforcement/interface-canon.json",
             "component_recipes": "enforcement/component-recipes.json",
             "version_policy": "enforcement/version-policy.json",
@@ -766,7 +892,7 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
             "instructions": "enforcement/IMPLEMENTATION.md",
             "documentation_contract": "enforcement/documentation-contract.json",
             "documentation_facts": "enforcement/documentation-facts.json",
-            "precedence": ["brand.json", "enforcement/interface-canon.json", "enforcement/component-recipes.json", "enforcement/version-policy.json", "enforcement/documentation-contract.json", "enforcement/consumer-contract.json", "human instructions that do not conflict"],
+            "precedence": ["brand.json", "enforcement/bundle.json", "enforcement/release-impact.json", "enforcement/interface-canon.json", "enforcement/component-recipes.json", "enforcement/version-policy.json", "enforcement/documentation-contract.json", "enforcement/consumer-contract.json", "human instructions that do not conflict"],
             "permitted_exceptions": ["token definition files may contain governed literals", "renderer metadata may contain documented platform-required literals"],
         },
         "verification": {
@@ -794,10 +920,16 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
     rendered = render_implementation(facts, implementation_text)
     verify_rendered_implementation(rendered, facts)
     _write_text(enforcement / "IMPLEMENTATION.md", rendered)
+    migration = render_migration_summary(facts)
+    _write_text(enforcement / "MIGRATION.md", migration)
     provenance_paths = [
         brand_source,
         agents_path,
         enforcement / "IMPLEMENTATION.md",
+        enforcement / "MIGRATION.md",
+        enforcement / "bundle.json",
+        enforcement / "release-impact.json",
+        enforcement / "release-impact.schema.json",
         enforcement / "interface-canon.json",
         enforcement / "interface-canon.schema.json",
         enforcement / "component-recipes.json",
@@ -855,6 +987,9 @@ def verify_consumer_contract(kit):
         recovery = contract["recovery"]
         declared_authority = {
             authority["brand_source"],
+            authority["bundle"],
+            authority["release_impact"],
+            authority["migration_summary"],
             authority["instructions"],
             authority["interface_canon"],
             authority["component_recipes"],
@@ -879,6 +1014,20 @@ def verify_consumer_contract(kit):
             "brand_version": brand.get("version", "1.0.0"),
         }
         _require(contract["brand"] == expected_brand, "consumer contract brand metadata disagrees")
+        expected_package = package_identity(brand["slug"], brand.get("version", "1.0.0"), contract["versions"]["compiler_version"])
+        _require(contract["bundle"]["package"] == expected_package, "consumer bundle package identity disagrees")
+        _require(_read_json(_contained_kit_file(kit, authority["bundle"])) == contract["bundle"],
+                 "consumer bundle authority disagrees")
+        _require(contract["bundle"]["versions"] == contract["versions"], "consumer bundle versions disagree")
+        expected_release_checksums = (
+            "SHA256SUMS" if contract["bundle"]["publication"]["status"] == "release" else None
+        )
+        _require(contract["bundle"]["checksum_authority"]["release_checksums"] == expected_release_checksums,
+                 "consumer bundle release checksum authority disagrees with publication status")
+        impact = load_release_impact(_contained_kit_file(kit, authority["release_impact"]),
+                                     _contained_kit_file(kit, "enforcement/release-impact.schema.json"))
+        _require(impact["brandbuilder_version"] == contract["versions"]["compiler_version"],
+                 "consumer release impact version disagrees")
         _require(contract["versions"]["brand_version"] == brand.get("version", "1.0.0"), "consumer contract brand_version disagrees")
         _require(contract["versions"]["canon_version"] == brand.get("canon", "1.2.1"), "consumer contract canon_version disagrees")
         copied_canon = _read_json(_contained_kit_file(kit, authority["interface_canon"]))
@@ -924,6 +1073,8 @@ def verify_consumer_contract(kit):
         verify_documentation_facts(documentation_facts, documentation_policy, contract, kit)
         implementation = _contained_kit_file(kit, authority["instructions"]).read_text(encoding="utf-8")
         verify_rendered_implementation(implementation, documentation_facts)
+        migration = _contained_kit_file(kit, authority["migration_summary"]).read_text(encoding="utf-8")
+        verify_migration_summary(migration, documentation_facts)
         environment = contract["environment"]
         _require("operating_system" not in environment and "os" not in environment,
                  "consumer environment cannot contain an operating-system route")
@@ -950,6 +1101,7 @@ def verify_consumer_contract(kit):
             "enforcement/version-policy.json",
             "enforcement/consumer-contract.schema.json",
             "enforcement/documentation-contract.schema.json",
+            "enforcement/release-impact.schema.json",
         } | declared_authority
         _require(required_provenance.issubset(recorded),
                  "consumer provenance omits required authority: %s" %
@@ -973,7 +1125,7 @@ def verify_consumer_contract(kit):
         with zipfile.ZipFile(str(distribution)) as archive:
             names = archive.namelist()
             _require(len(names) == len(set(names)), "recovery distribution has duplicate paths")
-            _require({"SKILL.md", "AGENTS.md", "references/interface-canon.json",
+            _require({"SKILL.md", "AGENTS.md", "SOURCE_REVISION", "references/interface-canon.json",
                       "references/component-recipes.json", "references/component-recipes.schema.json",
                       "references/version-policy.json",
                       "references/consumer-contract.schema.json", "references/documentation-contract.json",
@@ -986,6 +1138,10 @@ def verify_consumer_contract(kit):
                          and "\\" not in name and ":" not in pure.parts[0],
                          "recovery distribution contains an unsafe path: %s" % name)
             metadata = skill_metadata_from_text(archive.read("SKILL.md").decode("utf-8"))
+            recovery_revision = archive.read("SOURCE_REVISION").decode("utf-8").strip().lower()
+            _require(SOURCE_REVISION.fullmatch(recovery_revision)
+                     and recovery_revision == contract["bundle"]["source_revision"],
+                     "recovery source revision disagrees")
             _require(metadata["version"] == contract["versions"]["compiler_version"],
                      "recovery compiler version disagrees")
             _require(metadata["canon"] == contract["versions"]["canon_version"],

@@ -340,6 +340,8 @@ def main():
                 "| `AGENTS.md` | concise governed entry block, merged without replacing human instructions |\n"
                 "| `IMPLEMENTATION.md` | complete brand-specific implementation guidance |\n"
                 "| `consumer-contract.json` | exact versions, authority, environment, provenance, recovery, and checks |\n"
+                "| `bundle.json` | immutable kit package identity, exact release target, source revision, and checksum authority |\n"
+                "| `MIGRATION.md` | generated identity and implementation impact summary |\n"
                 "| `documentation-contract.json` | documentation ownership, inventory, navigation, and route policy |\n"
                 "| `documentation-facts.json` | exact facts shared by bundled and hosted implementation guidance |\n"
                 "| `interface-canon.json` | exact renderer-neutral Interface Canon used by this kit |\n"
@@ -356,7 +358,7 @@ def main():
                 "raw literals are legal, because it is where the tokens are defined.\n\n"
                 "Use ESLint for these rules. oxlint 1.79 implements none of the\n"
                 "no-restricted-* rules, so an oxlint adherence config never runs.\n\n"
-                "Contract compatibility, artifact publication, and consumer adoption are separate states. Pin every version in `consumer-contract.json`; never replace the delivered checksummed recovery bytes with a latest version.\n" % brand["title"])
+                "Contract compatibility and artifact publication are separate states. Pin every version in `consumer-contract.json`; never replace the delivered checksummed recovery bytes with a latest version.\n" % brand["title"])
     emit_consumer_contract(brand, spec, outdir, agents_md(canon, brand))
     print("wrote %s  (%d components guarded)" % (d, len(comps)))
 

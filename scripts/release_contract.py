@@ -18,16 +18,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skill" / "templates"))
 
 from schema_validation import SchemaValidationError, validate_json_schema
-from interface_contract import validate_version_combination, validate_version_policy
-PRODUCTION = (
-    "shruggietech",
-    "fragcap",
-    "go-schedule",
-    "glitchpad",
-    "covarity",
-    "eso-weave",
-    "cueson",
-)
+from interface_contract import (RELEASE_AUTHORIZED_BRANDS, SOURCE_REVISION, load_release_impact, package_identity,
+                                validate_version_combination, validate_version_policy)
+PRODUCTION = RELEASE_AUTHORIZED_BRANDS
 LICENSES = ("LICENSE", "NOTICE", "LICENSE-BRAND.md")
 REQUIRED_HISTORY = {
     "1.1.0": ("glyph construction", "portability tiers", "chart", "generators", "Apache-2.0"),
@@ -35,7 +28,7 @@ REQUIRED_HISTORY = {
     "1.1.2": ("geometry_provenance", "ShruggieTech", "Python 3.8", "Windows", "stale"),
     "1.2.0": ("third-party", "application-icon", "Fumadocs", "route descriptor"),
     "1.2.1": ("black-background", "Brotli"),
-    "1.3.0": ("AppFrame", "environment", "component recipes", "Web/React adapter"),
+    "2.0.0": ("AppFrame", "environment", "immutable kit package", "release-backed", "Web/React adapter"),
 }
 MIGRATIONS = {
     "1.2.0": (
@@ -50,11 +43,11 @@ MIGRATIONS = {
         "presentation. Other production kits do not require an asset migration unless consumers "
         "need their embedded canon metadata to match v1.2.1."
     ),
-    "1.3.0": (
-        "Existing kits need migration: **yes for Web/React AppFrame consumers**. Rebuild and repin "
-        "consumer kits with v1.3.0 to receive component recipes and the Web/React adapter at "
-        "v1.1.0, including the bounded full-bleed AppFrame layout and dependency-free environment "
-        "entry. Consumers that do not use those generated surfaces may retain their existing kit."
+    "2.0.0": (
+        "Existing kits need migration: **yes for immutable package and recovery metadata**. Rebuild "
+        "and repin kits with v2.0.0 to receive canonical brand-plus-BrandBuilder package identities, "
+        "exact release-backed publication facts, and generated migration guidance. Web/React and "
+        "egui capabilities remain optional when those surfaces do not apply. Approved identity is unchanged."
     ),
 }
 
@@ -120,6 +113,8 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
     interface = json.loads(read_text(root / "skill" / "references" / "interface-canon.json"))
     recipes = json.loads(read_text(root / "skill" / "references" / "component-recipes.json"))
     policy = validate_version_policy(json.loads(read_text(root / "skill" / "references" / "version-policy.json")))
+    impact = load_release_impact(root / "skill" / "references" / "release-impact.json",
+                                 root / "skill" / "references" / "release-impact.schema.json")
     site = json.loads(read_text(root / "site" / "package.json"))
     root_changelog = read_text(root / "CHANGELOG.md")
     skill_changelog = read_text(root / "skill" / "CHANGELOG.md")
@@ -134,6 +129,9 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
     if site.get("version") != version:
         raise ValueError("site package version %s does not match release %s"
                          % (site.get("version"), version))
+    if impact.get("brandbuilder_version") != version:
+        raise ValueError("release impact version %s does not match release %s"
+                         % (impact.get("brandbuilder_version"), version))
     expected_metadata = {
         "interface-canon": interface["version"],
         "component-recipes": recipes["version"],
@@ -171,6 +169,7 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
         "web_react_adapter_version": skill["web-react-adapter"],
         "egui_adapter_version": skill["egui-adapter"],
         "version_policy_version": policy["version"],
+        "release_impact": impact,
         "release_date": release["date"],
         "release_changes": release["body"],
         "brands": brands,
@@ -202,13 +201,22 @@ def render_notes(metadata: Mapping[str, object]) -> str:
         "Web/React adapter version: `%s`\n\n"
         "egui adapter version: `%s`\n\n"
         "Version policy: `%s`\n\n"
-        "%s\n\n"
+        "%s\n\n%s\n\n"
         "## Release changes\n\n%s\n"
         % (version, metadata["skill_version"], metadata["canon_version"],
            metadata["interface_canon_version"], metadata["component_recipe_version"],
            metadata["web_react_adapter_version"], metadata["egui_adapter_version"], metadata["version_policy_version"],
-           MIGRATIONS[version], metadata["release_changes"])
+           MIGRATIONS[version], render_release_impact(metadata["release_impact"]), metadata["release_changes"])
     )
+
+
+def render_release_impact(impact: Mapping[str, object]) -> str:
+    identity = ("No approved identity redesign is included."
+                if not impact["identity_redesign"] else "This release includes an approved identity redesign.")
+    rows = ["## Governed release impact", "", identity, "", "| Surface | Classification | Guidance |", "| --- | --- | --- |"]
+    for name, item in impact["surfaces"].items():
+        rows.append("| %s | %s | %s |" % (name.replace("_", " ").title(), item["classification"], item["summary"]))
+    return "\n".join(rows)
 
 
 def expected_assets(metadata: Mapping[str, object]) -> Dict[str, Dict[str, str]]:
@@ -224,7 +232,7 @@ def expected_assets(metadata: Mapping[str, object]) -> Dict[str, Dict[str, str]]
         if slug not in brands:
             continue
         brand_version = str(brands[slug]["version"])
-        assets["%s-brand-%s.zip" % (slug, brand_version)] = {
+        assets[package_identity(slug, brand_version, version)["filename"]] = {
             "kind": "brand", "slug": slug, "version": brand_version,
         }
     return assets
@@ -256,15 +264,21 @@ def verify_canonical_files(archive: zipfile.ZipFile, path: Path, names: Iterable
             raise ValueError("%s contains noncanonical %s" % (path.name, name))
 
 
-def verify_skill_archive(path: Path, portable: bool, root: Optional[Path] = None) -> None:
+def verify_skill_archive(path: Path, portable: bool, root: Optional[Path] = None,
+                         expected_revision: Optional[str] = None) -> None:
     entries = archive_entries(path)
-    required = set(LICENSES) | {"AGENTS.md", "CHANGELOG.md"}
+    required = set(LICENSES) | {"AGENTS.md", "CHANGELOG.md", "SOURCE_REVISION"}
     required.add("README.md" if portable else "SKILL.md")
     require_entries(path, entries, required)
     if portable and "SKILL.md" in entries:
         raise ValueError("%s must omit SKILL.md" % path.name)
-    if root is not None:
-        with zipfile.ZipFile(str(path)) as archive:
+    with zipfile.ZipFile(str(path)) as archive:
+        revision = archive.read("SOURCE_REVISION").decode("utf-8").strip().lower()
+        if SOURCE_REVISION.fullmatch(revision) is None:
+            raise ValueError("%s contains an invalid SOURCE_REVISION" % path.name)
+        if expected_revision is not None and revision != expected_revision:
+            raise ValueError("%s source revision disagrees" % path.name)
+        if root is not None:
             verify_canonical_files(archive, path, LICENSES, root / "skill")
             verify_canonical_files(archive, path, ("AGENTS.md", "CHANGELOG.md"),
                                    root / "skill")
@@ -288,12 +302,18 @@ def _read_json(archive: zipfile.ZipFile, name: str, archive_name: str) -> Mappin
 
 
 def verify_brand_archive(path: Path, slug: str, version: str,
+                         expected_filename: Optional[str] = None,
                          expected_canon: Optional[str] = None,
+                         expected_revision: Optional[str] = None,
+                         expected_release_version: Optional[str] = None,
+                         expected_release_impact: Optional[Mapping[str, object]] = None,
+                         require_release: bool = False,
                          root: Optional[Path] = None) -> None:
     entries = archive_entries(path)
     required = set(LICENSES) | {
         "brand.json", "manifest.json", "VERIFY.md", "brand-guide.pdf",
-        "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
+        "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md", "enforcement/MIGRATION.md",
+        "enforcement/bundle.json", "enforcement/release-impact.json", "enforcement/release-impact.schema.json",
         "enforcement/consumer-contract.json", "enforcement/interface-canon.json",
         "enforcement/interface-canon.schema.json", "enforcement/component-recipes.json",
         "enforcement/component-recipes.schema.json", "enforcement/version-policy.json", "enforcement/consumer-contract.schema.json",
@@ -306,7 +326,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
     with zipfile.ZipFile(str(path)) as archive:
         if root is not None:
             verify_canonical_files(archive, path, LICENSES, root)
-            for schema_name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json", "documentation-contract.schema.json"):
+            for schema_name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json", "documentation-contract.schema.json", "release-impact.schema.json"):
                 if archive.read("enforcement/" + schema_name) != (root / "skill" / "references" / schema_name).read_bytes():
                     raise ValueError("%s contains noncanonical enforcement/%s" % (path.name, schema_name))
             if archive.read("enforcement/version-policy.json") != (root / "skill" / "references" / "version-policy.json").read_bytes():
@@ -337,6 +357,9 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         recovery = consumer.get("recovery") or {}
         declared_paths = {
             "brand source": authority.get("brand_source"),
+            "bundle": authority.get("bundle"),
+            "release impact": authority.get("release_impact"),
+            "migration summary": authority.get("migration_summary"),
             "instructions": authority.get("instructions"),
             "Interface Canon": authority.get("interface_canon"),
             "component recipes": authority.get("component_recipes"),
@@ -361,6 +384,12 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         declared_brand = _read_json(archive, authority["brand_source"], path.name)
         if declared_brand != brand:
             raise ValueError("%s consumer authority brand_source differs from brand.json" % path.name)
+        delivered_release_impact = _read_json(archive, authority["release_impact"], path.name)
+        canonical_release_impact = expected_release_impact
+        if canonical_release_impact is None and root is not None:
+            canonical_release_impact = json.loads(read_text(root / "skill" / "references" / "release-impact.json"))
+        if canonical_release_impact is not None and delivered_release_impact != canonical_release_impact:
+            raise ValueError("%s release impact differs from the canonical release record" % path.name)
         expected_brand = {
             "slug": brand.get("slug"),
             "title": brand.get("title"),
@@ -377,6 +406,39 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         if expected_canon is not None and versions.get("canon_version") != expected_canon:
             raise ValueError("%s consumer canon differs from authoritative canon %s"
                              % (path.name, expected_canon))
+        expected_package = package_identity(slug, version, versions.get("compiler_version"))
+        bundle = _read_json(archive, authority["bundle"], path.name)
+        if consumer.get("bundle") != bundle:
+            raise ValueError("%s consumer and bundle records disagree" % path.name)
+        if bundle.get("package") != expected_package:
+            raise ValueError("%s bundle package identity disagrees" % path.name)
+        if (expected_filename or path.name) != expected_package["filename"]:
+            raise ValueError("%s canonical archive filename must be %s" % (path.name, expected_package["filename"]))
+        if bundle.get("versions") != versions:
+            raise ValueError("%s bundle versions disagree" % path.name)
+        publication = bundle.get("publication") or {}
+        checksum_authority = bundle.get("checksum_authority") or {}
+        compiler_version = versions.get("compiler_version")
+        if publication.get("version") != compiler_version:
+            raise ValueError("%s bundle publication version disagrees" % path.name)
+        if publication.get("tag") != "v%s" % compiler_version:
+            raise ValueError("%s bundle publication tag disagrees" % path.name)
+        expected_release_checksums = "SHA256SUMS" if publication.get("status") == "release" else None
+        if checksum_authority.get("release_checksums") != expected_release_checksums:
+            raise ValueError("%s bundle release checksum authority disagrees with publication status" % path.name)
+        if require_release and expected_revision is None:
+            raise ValueError("%s expected source revision is required" % path.name)
+        if expected_revision is not None and bundle.get("source_revision") != expected_revision:
+            raise ValueError("%s bundle source revision disagrees" % path.name)
+        if require_release:
+            if publication.get("status") != "release":
+                raise ValueError("%s bundle is not an exact release publication" % path.name)
+            if expected_release_version is None:
+                raise ValueError("%s expected release version is required" % path.name)
+            if publication.get("version") != expected_release_version:
+                raise ValueError("%s bundle release publication version disagrees" % path.name)
+            if publication.get("tag") != "v%s" % expected_release_version:
+                raise ValueError("%s bundle release publication tag disagrees" % path.name)
         interface_canon = _read_json(archive, authority["interface_canon"], path.name)
         if versions.get("interface_canon_version") != interface_canon.get("version"):
             raise ValueError("%s consumer interface_canon_version disagrees" % path.name)
@@ -434,11 +496,15 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                 "references/component-recipes.json", "references/component-recipes.schema.json",
                 "references/version-policy.json",
                 "references/consumer-contract.schema.json", "references/documentation-contract.json",
-                "references/documentation-contract.schema.json", "templates/documentation_contract.py", "templates/verify.py",
+                "references/documentation-contract.schema.json", "references/release-impact.json",
+                "references/release-impact.schema.json", "SOURCE_REVISION", "templates/documentation_contract.py", "templates/verify.py",
                 "templates/validate_glyph.py",
             })
             if len(skill_names) != len(set(skill_names)):
                 raise ValueError("%s recovery distribution repeats paths" % path.name)
+            recovery_revision = skill_archive.read("SOURCE_REVISION").decode("utf-8").strip().lower()
+            if recovery_revision != bundle.get("source_revision"):
+                raise ValueError("%s recovery source revision disagrees" % path.name)
             for name in skill_names:
                 pure = PurePosixPath(name)
                 if (pure.is_absolute() or ".." in pure.parts or "\\" in name
@@ -467,6 +533,10 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                 raise ValueError("%s recovery documentation contract disagrees with delivered contract" % path.name)
             if skill_archive.read("references/documentation-contract.schema.json") != archive.read("enforcement/documentation-contract.schema.json"):
                 raise ValueError("%s recovery documentation schema disagrees with delivered schema" % path.name)
+            if skill_archive.read("references/release-impact.json") != archive.read("enforcement/release-impact.json"):
+                raise ValueError("%s recovery release impact disagrees with delivered impact" % path.name)
+            if skill_archive.read("references/release-impact.schema.json") != archive.read("enforcement/release-impact.schema.json"):
+                raise ValueError("%s recovery release impact schema disagrees with delivered schema" % path.name)
         agents = archive.read("enforcement/AGENTS.md").decode("utf-8")
         begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
         end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
@@ -490,7 +560,8 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             if len(value) != item["bytes"] or hashlib.sha256(value).hexdigest() != item["sha256"]:
                 raise ValueError("%s consumer provenance mismatch: %s" % (path.name, name))
         required_provenance = {
-            "brand.json", "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md",
+            "brand.json", "enforcement/AGENTS.md", "enforcement/IMPLEMENTATION.md", "enforcement/MIGRATION.md",
+            "enforcement/bundle.json", "enforcement/release-impact.json", "enforcement/release-impact.schema.json",
             "enforcement/interface-canon.json", "enforcement/interface-canon.schema.json",
             "enforcement/component-recipes.json", "enforcement/component-recipes.schema.json",
             "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json",
@@ -531,7 +602,11 @@ def verify_brand_archive(path: Path, slug: str, version: str,
 
 
 def verify_release_directory(release_dir: Path, metadata: Mapping[str, object],
-                             notes: Optional[Path] = None) -> None:
+                             notes: Optional[Path] = None,
+                             expected_revision: Optional[str] = None,
+                             require_release: bool = False) -> None:
+    if require_release and expected_revision is None:
+        raise ValueError("expected source revision is required for exact-release verification")
     release_dir = release_dir.resolve()
     expected = expected_assets(metadata)
     allowed = set(expected)
@@ -553,15 +628,20 @@ def verify_release_directory(release_dir: Path, metadata: Mapping[str, object],
         kind = contract["kind"]
         root = metadata.get("root")
         if kind == "skill":
-            verify_skill_archive(path, portable=False, root=root)
+            verify_skill_archive(path, portable=False, root=root, expected_revision=expected_revision)
         elif kind == "portable":
-            verify_skill_archive(path, portable=True, root=root)
+            verify_skill_archive(path, portable=True, root=root, expected_revision=expected_revision)
         else:
             verify_brand_archive(
                 path,
                 contract["slug"],
                 contract["version"],
+                expected_filename=filename,
                 expected_canon=str(metadata["canon_version"]),
+                expected_revision=expected_revision,
+                expected_release_version=str(metadata["version"]),
+                expected_release_impact=metadata["release_impact"],
+                require_release=require_release,
                 root=root,
             )
 
@@ -578,6 +658,43 @@ def write_notes(path: Path, value: str) -> None:
         handle.write(value)
 
 
+def expected_publication_packages(metadata: Mapping[str, object]) -> list[Dict[str, str]]:
+    brands = metadata.get("brands", {})
+    return [
+        package_identity(slug, str(brands[slug]["version"]), str(metadata["version"]))
+        for slug in sorted(PRODUCTION)
+        if slug in brands
+    ]
+
+
+def verify_publication_record(path: Path, metadata: Mapping[str, object], revision: str,
+                              require_release: bool = False) -> Mapping[str, object]:
+    record = json.loads(read_text(path))
+    version = str(metadata["version"])
+    expected_tag = "v%s" % version
+    expected_skill = "shruggie-brandbuilder-%s.skill" % version
+    expected_release_url = "https://github.com/ShruggieTech/shruggie-brand/releases/tag/%s" % expected_tag
+    expected_skill_url = "https://github.com/ShruggieTech/shruggie-brand/releases/download/%s/%s" % (expected_tag, expected_skill)
+    required = {"schemaVersion", "status", "version", "tag", "sourceRevision", "releaseUrl", "skillFilename", "skillUrl", "packages"}
+    if set(record) != required:
+        raise ValueError("publication record fields disagree")
+    if record["schemaVersion"] != 1 or record["version"] != version or record["tag"] != expected_tag:
+        raise ValueError("publication record release identity disagrees")
+    if record["sourceRevision"] != revision:
+        raise ValueError("publication record source revision disagrees")
+    if record["skillFilename"] != expected_skill or record["skillUrl"] != expected_skill_url:
+        raise ValueError("publication record skill destination disagrees")
+    if record["releaseUrl"] != expected_release_url:
+        raise ValueError("publication record release destination is not exact")
+    if record["packages"] != expected_publication_packages(metadata):
+        raise ValueError("publication record package inventory disagrees")
+    if require_release and record["status"] != "release":
+        raise ValueError("production publication requires exact release status")
+    if record["status"] not in {"candidate", "release"}:
+        raise ValueError("publication record status is invalid")
+    return record
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -589,6 +706,13 @@ def main() -> int:
     verify_parser.add_argument("--version", required=True)
     verify_parser.add_argument("--release-dir", type=Path, required=True)
     verify_parser.add_argument("--notes", type=Path, required=True)
+    verify_parser.add_argument("--revision")
+    verify_parser.add_argument("--require-release", action="store_true")
+    publication_parser = subparsers.add_parser("publication", help="verify generated site publication metadata")
+    publication_parser.add_argument("--version", required=True)
+    publication_parser.add_argument("--record", type=Path, required=True)
+    publication_parser.add_argument("--revision", required=True)
+    publication_parser.add_argument("--require-release", action="store_true")
     args = parser.parse_args()
 
     if args.command == "current":
@@ -599,10 +723,13 @@ def main() -> int:
     if args.command == "notes":
         write_notes(args.output, render_notes(metadata))
         print("wrote validated v%s notes to %s" % (args.version, args.output))
-    else:
-        verify_release_directory(args.release_dir, metadata, args.notes)
+    elif args.command == "verify":
+        verify_release_directory(args.release_dir, metadata, args.notes, args.revision, args.require_release)
         print("verified %d v%s release assets and generated notes"
               % (len(expected_assets(metadata)), args.version))
+    else:
+        verify_publication_record(args.record, metadata, args.revision, args.require_release)
+        print("verified %s publication record for v%s" % ("release" if args.require_release else "candidate", args.version))
     return 0
 
 

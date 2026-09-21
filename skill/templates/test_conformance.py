@@ -42,12 +42,12 @@ def minimal_kit(root):
     versions = {
         "canon_version": "1.2.1", "interface_canon_version": "1.0.0",
         "component_recipe_version": "1.1.0", "web_react_adapter_version": "1.1.0",
-        "egui_adapter_version": "1.0.0", "compiler_version": "1.2.1",
+        "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0",
         "brand_version": "2.0.0",
     }
     write_json(kit / "enforcement" / "consumer-contract.json", {
-        "schema_version": 3, "brand": {"slug": "example", "brand_version": "2.0.0"},
-        "versions": versions, "source_revision": "abc123",
+        "schema_version": 4, "brand": {"slug": "example", "brand_version": "2.0.0"},
+        "versions": versions, "bundle": {"source_revision": "a" * 40},
     })
     recipes = [
         "AppFrame", "Button", "IconButton", "Toolbar", "Tabs", "Menu", "Dialog",
@@ -62,7 +62,7 @@ def minimal_kit(root):
         "adapter": "egui", "adapter_version": "1.0.0", "brand": "example",
         "brand_version": "2.0.0", "brand_canon_version": "1.2.1",
         "interface_canon_version": "1.0.0", "component_recipe_version": "1.1.0",
-        "compiler_version": "1.2.1", "recipes": recipes,
+        "compiler_version": "2.0.0", "recipes": recipes,
         "crate": {"dependencies": {"egui": "=0.36.1"}},
     })
     specimen = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Example specimen</title></head><body><main><h1>Example</h1></main></body></html>\n"
@@ -189,6 +189,27 @@ class GeneratedFixtureTests(unittest.TestCase):
             self.assertEqual(4, len(manifest["host_tracks"]))
             self.assertTrue(all(track["status"] == "supported" for track in manifest["host_tracks"]))
             self.assertRegex(manifest["source_revision"], r"^[0-9a-f]{40,64}$")
+            self.assertEqual("a" * 40, manifest["source_revision"])
+
+    def test_generation_requires_bundle_bound_source_revision(self):
+        with tempfile.TemporaryDirectory(prefix="conformance-") as temporary:
+            kit = minimal_kit(Path(temporary))
+            consumer_path = kit / "enforcement" / "consumer-contract.json"
+            consumer = json.loads(consumer_path.read_text(encoding="utf-8"))
+            consumer.pop("bundle")
+            write_json(consumer_path, consumer)
+            with self.assertRaisesRegex(ValueError, "bundle source revision is unavailable"):
+                generate_conformance(kit / "brand.json", kit)
+
+    def test_verification_rejects_source_revision_that_disagrees_with_bundle(self):
+        with tempfile.TemporaryDirectory(prefix="conformance-") as temporary:
+            kit = minimal_kit(Path(temporary))
+            generate_conformance(kit / "brand.json", kit)
+            consumer_path = kit / "enforcement" / "consumer-contract.json"
+            consumer = json.loads(consumer_path.read_text(encoding="utf-8"))
+            consumer["bundle"]["source_revision"] = "b" * 40
+            write_json(consumer_path, consumer)
+            self.assertIn("source revision disagrees", " ".join(verify_conformance(kit)))
 
     def test_tampering_and_missing_files_fail_verification(self):
         with tempfile.TemporaryDirectory(prefix="conformance-") as temporary:

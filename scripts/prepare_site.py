@@ -33,6 +33,8 @@ from brand_contract import affiliation, public_showcase, showcase_surface, vendo
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from package_release import write_brand_archive
+from release_contract import PRODUCTION
+from interface_contract import package_identity
 DOCUMENTATION_CONTRACT = load_documentation_contract()
 DOCUMENTATION_CATALOG = manual_catalog(DOCUMENTATION_CONTRACT)
 DOC_DESCRIPTIONS = {page["slug"]: page["description"] for page in DOCUMENTATION_CATALOG}
@@ -567,6 +569,39 @@ def authoritative_canon(root: Path = ROOT) -> str:
     return version
 
 
+def publication_record(sources: list[Path], release_slugs: Optional[Set[str]] = None) -> dict[str, Any]:
+    if release_slugs is not None:
+        by_slug = {source.name: source for source in sources}
+        missing = sorted(release_slugs - set(by_slug))
+        if missing:
+            raise ValueError(f"publication record lacks release kits: {missing}")
+        sources = [by_slug[slug] for slug in sorted(release_slugs)]
+    bundles = [json.loads((source / "enforcement" / "bundle.json").read_text(encoding="utf-8")) for source in sources]
+    if not bundles:
+        raise ValueError("publication record requires at least one production kit")
+    versions = {bundle["publication"]["version"] for bundle in bundles}
+    tags = {bundle["publication"]["tag"] for bundle in bundles}
+    statuses = {bundle["publication"]["status"] for bundle in bundles}
+    revisions = {bundle["source_revision"] for bundle in bundles}
+    if any(len(values) != 1 for values in (versions, tags, statuses, revisions)):
+        raise ValueError("production kit bundle publication facts disagree")
+    version = versions.pop()
+    tag = tags.pop()
+    status = statuses.pop()
+    revision = revisions.pop()
+    return {
+        "schemaVersion": 1,
+        "status": status,
+        "version": version,
+        "tag": tag,
+        "sourceRevision": revision,
+        "releaseUrl": f"https://github.com/ShruggieTech/shruggie-brand/releases/tag/{tag}",
+        "skillFilename": f"shruggie-brandbuilder-{version}.skill",
+        "skillUrl": f"https://github.com/ShruggieTech/shruggie-brand/releases/download/{tag}/shruggie-brandbuilder-{version}.skill",
+        "packages": [bundle["package"] for bundle in bundles],
+    }
+
+
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
     guide = source / "brand-guide.pdf"
@@ -591,7 +626,10 @@ def copy_kit(source: Path, brand: dict) -> dict:
     handoff = source / "consumer-handoff.json"
     if handoff.is_file():
         shutil.copy2(handoff, downloads / handoff.name)
-    archive_filename = f"{slug}-brand-{brand['version']}.zip"
+    bundle = json.loads((source / "enforcement" / "bundle.json").read_text(encoding="utf-8"))
+    archive_filename = package_identity(slug, brand["version"], bundle["versions"]["compiler_version"])["filename"]
+    if bundle.get("package", {}).get("filename") != archive_filename:
+        raise ValueError(f"{slug}: bundle package filename disagrees")
     archive_path = target / "downloads" / archive_filename
     write_brand_archive(
         source,
@@ -618,6 +656,9 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "guidelinesPath": f"/{slug}/guidelines/",
         "kitArchive": f"/{slug}/downloads/{archive_filename}",
         "kitArchiveFilename": archive_filename,
+        "packageId": bundle["package"]["id"],
+        "brandbuilderVersion": bundle["versions"]["compiler_version"],
+        "migration": json.loads((source / "enforcement" / "release-impact.json").read_text(encoding="utf-8")),
         "ownership": aff["ownership"],
         "showcase": aff["showcase"],
         "inheritance": aff["inheritance"],
@@ -753,14 +794,16 @@ def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DO
         section, section_order, label, order = navigation[path.stem]
         records.append({"slug": path.stem, "title": title, "description": description, "navigation": {"section": section, "sectionOrder": section_order, "label": label, "order": order, "path": f"/docs/{path.stem}/", "paginationOrder": pagination_order}})
         pages.append(path.stem)
-    index = """---
+    release_version = json.loads((REFERENCES / "release-impact.json").read_text(encoding="utf-8"))["brandbuilder_version"]
+    skill_url = f"https://github.com/ShruggieTech/shruggie-brand/releases/download/v{release_version}/shruggie-brandbuilder-{release_version}.skill"
+    index = f"""---
 title: "Documentation"
 description: "The repeatable ShruggieTech system for building complete, usable brand identities."
 ---
 
 We turn strategy into a complete identity, then package the standards, assets, and implementation tools that keep it coherent in real work.
 
-[Download the ShruggieTech brand skill](https://github.com/ShruggieTech/shruggie-brand/releases/latest) or explore each part of the system below.
+[Download the ShruggieTech brand skill]({skill_url}) or explore each part of the system below.
 """
     write_utf8(output / "index.mdx", index)
     write_utf8(output / "meta.json", json.dumps({"title": "Documentation", "pages": pages}, indent=2) + "\n")
@@ -905,6 +948,7 @@ def main() -> int:
         shutil.rmtree(generated_fonts)
     shutil.copytree(ROOT / "assets" / "fonts" / "woff2", generated_fonts)
     write_utf8(GENERATED / "brands.json", json.dumps(brands, indent=2) + "\n")
+    write_utf8(GENERATED / "publication.json", json.dumps(publication_record([source for source, _ in public_sources], set(PRODUCTION)), indent=2) + "\n")
     write_utf8(GENERATED / "guidelines.json", json.dumps(portals, ensure_ascii=False, indent=2) + "\n")
     docs = write_docs(REFERENCES, GENERATED / "docs")
     routes = build_routes(brands, docs, portals)

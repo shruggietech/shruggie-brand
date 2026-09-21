@@ -4,7 +4,7 @@ description: Build or audit a complete brand kit for a ShruggieTech-owned or thi
 license: Apache-2.0. The code, templates and reference documentation are licensed under the Apache License 2.0. Apache-2.0 section 6 grants no trademark rights, and the ShruggieTech and sub-brand names, wordmarks and logo geometry are additionally reserved: see LICENSE-BRAND.md. Bundled fonts keep their own SIL Open Font License 1.1.
 compatibility: Python 3.8 or newer. `coloraide` is required for color work, fontTools is required for generated and fixed typography, Pillow is required when raster supplied inputs request palette evidence, and Brotli lets fontTools inspect WOFF2 metadata. Render-only capabilities still degrade to named skips. Run `templates/probe.py` first and route off its report.
 metadata:
-  version: 1.3.0
+  version: 2.0.0
   canon: 1.2.1
   interface-canon: 1.0.0
   component-recipes: 1.1.0
@@ -111,7 +111,7 @@ matrix and the fallback chain. A missing tool gets named in `VERIFY.md` with the
 tool that was missing; it never gets silently substituted, and a skip must never
 read as "not applicable".
 
-**Version contracts independently.** Brand Canon, Interface Canon, component recipes, Web/React adapter, egui adapter, compiler, and each brand have separate semantic versions. `references/version-policy.json` defines their meanings, bump rules, compatibility edges, and recovery requirements. Compatibility does not imply publication, and publication does not imply consumer adoption. Pin the exact versions and checksums in every consumer contract and never substitute a latest release during recovery.
+**Version contracts independently.** Brand Canon, Interface Canon, component recipes, Web/React adapter, egui adapter, compiler, and each brand have separate semantic versions. `references/version-policy.json` defines their meanings, bump rules, compatibility edges, and recovery requirements. Compatibility does not imply publication. Pin the exact versions and checksums in every consumer contract and never substitute a latest release during recovery. BrandBuilder publishes migration impact but does not collect downstream adoption or utility evidence.
 
 **Bundle fonts. Never fetch them at build time.** House mode uses the approved local faces. Fixed mode uses only declared local faces whose hash, family, weight, style, format, license, provenance, and usage status pass validation. Network retrieval happens only through the explicitly invoked `templates/ingest_font.py` command and completes atomically before a build begins.
 

@@ -17,6 +17,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackageReleaseTests(unittest.TestCase):
+    def test_package_identity_changes_with_brandbuilder_not_brand_identity(self):
+        first = package_release.package_identity("eso-weave", "1.0.0", "1.2.1")
+        second = package_release.package_identity("eso-weave", "1.0.0", "2.0.0")
+        self.assertEqual(first["brand_version"], second["brand_version"])
+        self.assertNotEqual(first["id"], second["id"])
+        self.assertEqual("eso-weave-brand-1.0.0-bb2.0.0.zip", second["filename"])
+
     def test_tree_packaging_excludes_host_generated_dependency_and_cache_trees(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -37,7 +44,7 @@ class PackageReleaseTests(unittest.TestCase):
             (root / name).write_text(name + "\n", encoding="utf-8")
         reference_dir = root / "skill" / "references"
         reference_dir.mkdir(parents=True)
-        for name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json", "documentation-contract.json", "documentation-contract.schema.json", "version-policy.json"):
+        for name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json", "documentation-contract.json", "documentation-contract.schema.json", "release-impact.json", "release-impact.schema.json", "version-policy.json"):
             (reference_dir / name).write_bytes((ROOT / "skill" / "references" / name).read_bytes())
         source = root / "alpha"
         source.mkdir()
@@ -47,7 +54,8 @@ class PackageReleaseTests(unittest.TestCase):
         policy = json.loads(policy_bytes.decode("utf-8"))
         bundle_buffer = io.BytesIO()
         with zipfile.ZipFile(bundle_buffer, "w") as bundle:
-            bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 1.2.1\n  canon: 1.2.1\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n")
+            bundle.writestr("SOURCE_REVISION", "a" * 40 + "\n")
+            bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 2.0.0\n  canon: 1.2.1\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n")
             bundle.writestr("AGENTS.md", "instructions\n")
             bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
             bundle.writestr("references/component-recipes.json", json.dumps({"version": "1.0.0"}))
@@ -56,13 +64,18 @@ class PackageReleaseTests(unittest.TestCase):
             bundle.writestr("references/consumer-contract.schema.json", consumer_schema)
             bundle.writestr("references/documentation-contract.json", (ROOT / "skill" / "references" / "documentation-contract.json").read_bytes())
             bundle.writestr("references/documentation-contract.schema.json", (ROOT / "skill" / "references" / "documentation-contract.schema.json").read_bytes())
+            bundle.writestr("references/release-impact.json", (ROOT / "skill" / "references" / "release-impact.json").read_bytes())
+            bundle.writestr("references/release-impact.schema.json", (ROOT / "skill" / "references" / "release-impact.schema.json").read_bytes())
             bundle.writestr("templates/documentation_contract.py", "# documentation contract\n")
             bundle.writestr("templates/verify.py", "# verifier\n")
             bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")
         bundle = bundle_buffer.getvalue()
         begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
         end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
-        distribution = "enforcement/distributions/shruggie-brandbuilder-1.2.1.skill"
+        distribution = "enforcement/distributions/shruggie-brandbuilder-2.0.0.skill"
+        versions = {"brand_version": "1.0.0", "canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0"}
+        package = {"id": "alpha-brand-1.0.0-bb2.0.0", "filename": "alpha-brand-1.0.0-bb2.0.0.zip", "brand_slug": "alpha", "brand_version": "1.0.0", "brandbuilder_version": "2.0.0"}
+        kit_bundle = {"schema_version": 1, "package": package, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": None}}
         values = {
             "brand.json": json.dumps(brand).encode(),
             "VERIFY.md": b"verified\n",
@@ -70,6 +83,10 @@ class PackageReleaseTests(unittest.TestCase):
             "logos/mark.svg": b"<svg/>\n",
             "enforcement/AGENTS.md": (begin + "\ncontract\n" + end + "\n").encode(),
             "enforcement/IMPLEMENTATION.md": b"# Implementation\n",
+            "enforcement/MIGRATION.md": b"# Migration\n",
+            "enforcement/bundle.json": json.dumps(kit_bundle).encode(),
+            "enforcement/release-impact.json": (ROOT / "skill" / "references" / "release-impact.json").read_bytes(),
+            "enforcement/release-impact.schema.json": (ROOT / "skill" / "references" / "release-impact.schema.json").read_bytes(),
             "enforcement/interface-canon.json": json.dumps({"version": "1.0.0"}).encode(),
             "enforcement/interface-canon.schema.json": (ROOT / "skill" / "references" / "interface-canon.schema.json").read_bytes(),
             "enforcement/component-recipes.json": json.dumps({"version": "1.0.0"}).encode(),
@@ -95,26 +112,28 @@ class PackageReleaseTests(unittest.TestCase):
             "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
             "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
             "enforcement/documentation-contract.json", "enforcement/documentation-contract.schema.json", "enforcement/documentation-facts.json",
+            "enforcement/MIGRATION.md", "enforcement/bundle.json", "enforcement/release-impact.json", "enforcement/release-impact.schema.json",
         ]
         consumer = {
-            "schema_version": 3,
+            "schema_version": 4,
             "brand": {"slug": "alpha", "title": "Alpha", "affiliation": {}, "brand_version": "1.0.0"},
-            "versions": {"brand_version": "1.0.0", "canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "1.2.1"},
+            "bundle": kit_bundle,
+            "versions": versions,
             "version_semantics": {
                 "brand_version": "Brand version.", "canon_version": "Brand Canon version.",
                 "interface_canon_version": "Interface Canon version.", "component_recipe_version": "Component recipe version.", "web_react_adapter_version": "Web adapter version.", "egui_adapter_version": "egui adapter version.", "compiler_version": "Compiler version.",
             },
             "compatibility": {
                 "policy_version": policy["version"], "status": "compatible",
-                "validated_versions": {"brand_canon": "1.2.1", "interface_canon": "1.0.0", "component_recipes": "1.0.0", "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "1.2.1", "brand": "1.0.0"},
-                "rules_checked": len(policy["compatibility_rules"]), "publication_status": "candidate", "adoption_status": "unadopted",
+                "validated_versions": {"brand_canon": "1.2.1", "interface_canon": "1.0.0", "component_recipes": "1.0.0", "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "2.0.0", "brand": "1.0.0"},
+                "rules_checked": len(policy["compatibility_rules"]),
             },
             "environment": {
                 "renderer": "renderer-neutral", "host": "none", "supported_targets": ["web"],
-                "viewport_profiles": ["compact"], "adapter_versions": {"vanilla": "1.2.1"},
+                "viewport_profiles": ["compact"], "adapter_versions": {"vanilla": "2.0.0"},
             },
             "authority": {
-                "brand_source": "brand.json", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json",
+                "brand_source": "brand.json", "bundle": "enforcement/bundle.json", "release_impact": "enforcement/release-impact.json", "migration_summary": "enforcement/MIGRATION.md", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json",
                 "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"],
                 "documentation_contract": "enforcement/documentation-contract.json", "documentation_facts": "enforcement/documentation-facts.json",
                 "permitted_exceptions": [],
@@ -124,7 +143,7 @@ class PackageReleaseTests(unittest.TestCase):
                 "success": "zero failures",
             },
             "recovery": {
-                "distribution": "shruggie-brandbuilder-1.2.1.skill",
+                "distribution": "shruggie-brandbuilder-2.0.0.skill",
                 "path": distribution,
                 "sha256": hashlib.sha256(bundle).hexdigest(),
                 "extract_to": "enforcement/brandbuilder",
@@ -168,8 +187,8 @@ class PackageReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source = self.make_brand_source(root)
-            first = root / "one" / "alpha-brand-1.0.0.zip"
-            second = root / "two" / "alpha-brand-1.0.0.zip"
+            first = root / "one" / "alpha-brand-1.0.0-bb2.0.0.zip"
+            second = root / "two" / "alpha-brand-1.0.0-bb2.0.0.zip"
             package_release.write_brand_archive(source, first, root=root, expected_canon="1.2.1")
             package_release.write_brand_archive(source, second, root=root, expected_canon="1.2.1")
             self.assertEqual(first.read_bytes(), second.read_bytes())
@@ -187,9 +206,9 @@ class PackageReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source = self.make_brand_source(root)
-            distribution = source / "enforcement" / "distributions" / "shruggie-brandbuilder-1.2.1.skill"
+            distribution = source / "enforcement" / "distributions" / "shruggie-brandbuilder-2.0.0.skill"
             distribution.write_bytes(distribution.read_bytes() + b"drift")
-            destination = root / "release" / "alpha-brand-1.0.0.zip"
+            destination = root / "release" / "alpha-brand-1.0.0-bb2.0.0.zip"
             with self.assertRaisesRegex(ValueError, "recovery checksum mismatch"):
                 package_release.write_brand_archive(source, destination, root=root, expected_canon="1.2.1")
 
@@ -197,7 +216,7 @@ class PackageReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source = self.make_brand_source(root)
-            destination = root / "published" / "alpha-brand-1.0.0.zip"
+            destination = root / "published" / "alpha-brand-1.0.0-bb2.0.0.zip"
             destination.parent.mkdir()
             destination.write_bytes(b"last known good")
             (source / "logos" / "mark.svg").write_bytes(b"corrupt")
@@ -220,7 +239,7 @@ class PackageReleaseTests(unittest.TestCase):
                 "sha256": hashlib.sha256(handoff).hexdigest(),
             })
             manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-            archive_path = root / "release" / "alpha-brand-1.0.0.zip"
+            archive_path = root / "release" / "alpha-brand-1.0.0-bb2.0.0.zip"
             package_release.write_brand_archive(source, archive_path, root=root, expected_canon="1.2.1")
             with zipfile.ZipFile(archive_path) as archive:
                 self.assertEqual(handoff, archive.read("consumer-handoff.json"))

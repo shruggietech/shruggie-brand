@@ -3,19 +3,15 @@
 
 import hashlib
 import json
-import os
 import re
-import subprocess
 import sys
 import textwrap
 from pathlib import Path
 
 from conformance_contract import evaluate_trace, load_policy, sha256_file
-from process_utils import hidden_process_kwargs
 
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
 DECISIONS = HERE.parent / "references" / "conformance-baseline-decisions.json"
 SAFE_CRATE = re.compile(r"[^a-z0-9_]+")
 SOURCE_REVISION = re.compile(r"^[0-9a-f]{40,64}$")
@@ -33,26 +29,6 @@ def _write_json(path, payload):
 
 def _read_json(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
-
-
-def _source_revision():
-    explicit = os.environ.get("CONFORMANCE_SOURCE_REVISION") or os.environ.get("GITHUB_SHA")
-    if explicit:
-        revision = explicit.strip().lower()
-        if not SOURCE_REVISION.fullmatch(revision):
-            raise ValueError("conformance source revision must be an exact Git object id")
-        return revision
-    try:
-        completed = subprocess.run(
-            ["git", "rev-parse", "HEAD"], cwd=str(ROOT), capture_output=True, text=True,
-            **hidden_process_kwargs()
-        )
-        revision = completed.stdout.strip().lower()
-        if completed.returncode == 0 and SOURCE_REVISION.fullmatch(revision):
-            return revision
-    except OSError:
-        pass
-    raise ValueError("conformance source revision is unavailable")
 
 
 def _rust_fixture(crate_name):
@@ -212,13 +188,16 @@ def generate_conformance(brand_json, kit_dir):
         raise ValueError("web and egui recipe inventories disagree")
     versions = dict(consumer.get("versions") or {})
     versions["conformance_contract_version"] = policy["contract_version"]
+    source_revision = (consumer.get("bundle") or {}).get("source_revision")
+    if not SOURCE_REVISION.fullmatch(str(source_revision or "")):
+        raise ValueError("consumer bundle source revision is unavailable for conformance")
     manifest = {
         "schema_version": 1,
         "conformance_contract_version": policy["contract_version"],
         "brand": brand["slug"],
         "brand_title": brand.get("title", brand["slug"]),
         "brand_version": brand.get("version"),
-        "source_revision": _source_revision(),
+        "source_revision": source_revision,
         "versions": versions,
         "recipes": recipes,
         "diagnostic_classes": policy["diagnostic_classes"],
@@ -226,9 +205,7 @@ def generate_conformance(brand_json, kit_dir):
         "host_tracks": policy["host_tracks"],
         "evidence_boundaries": {
             "browser_emulation_is_host_proof": False,
-            "reference_fixture_is_consumer_adoption": False,
             "actual_host_status": "pending-proof",
-            "consumer_adoption_status": "pending-proof",
         },
         "entries": {
             "browser": "conformance/browser/specimen.html",
@@ -267,7 +244,7 @@ def generate_conformance(brand_json, kit_dir):
         - `../native/egui/` remains the native rendered-state fixture.
         - `baseline-decisions.json` contains human decisions only. Candidate screenshots remain ignored artifacts.
 
-        These fixtures do not claim actual host certification or downstream consumer adoption.
+        These fixtures do not claim actual host certification or downstream product outcomes.
         """).format(title=brand.get("title", brand["slug"]))
     _write_text(conformance / "README.md", readme)
     artifact_paths = [
@@ -292,6 +269,7 @@ def verify_conformance(kit_dir):
         policy = load_policy()
         manifest = _read_json(kit / "conformance" / "manifest.json")
         brand = _read_json(kit / "brand.json")
+        consumer = _read_json(kit / "enforcement" / "consumer-contract.json")
         web = _read_json(kit / "web" / "adapter.json")
         egui = _read_json(kit / "native" / "egui" / "adapter.json")
         if manifest.get("conformance_contract_version") != policy["contract_version"]:
@@ -308,6 +286,8 @@ def verify_conformance(kit_dir):
             problems.append("conformance diagnostic classes disagree")
         if not SOURCE_REVISION.fullmatch(str(manifest.get("source_revision", ""))):
             problems.append("conformance source revision is missing or inexact")
+        if manifest.get("source_revision") != (consumer.get("bundle") or {}).get("source_revision"):
+            problems.append("conformance source revision disagrees with the consumer bundle")
         for track in manifest.get("host_tracks") or []:
             if track.get("status") != "supported":
                 problems.append("%s reference status is not supported" % track.get("id", "unknown"))

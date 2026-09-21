@@ -24,7 +24,7 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
         "schema_version": 1,
         "documentation_contract_version": "1.0.0",
         "brand": {"slug": slug, "title": title, "affiliation": None, "brand_version": "1.0.0"},
-        "versions": {"canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "1.2.1", "brand_version": "1.0.0"},
+        "versions": {"canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0", "brand_version": "1.0.0"},
         "bindings": {}, "authority": {"precedence": [], "permitted_exceptions": []},
         "verification": {"entry_points": [], "success": "zero failures"},
         "recovery": {"distribution": "recovery.skill", "path": "enforcement/recovery.skill", "sha256": "a" * 64, "extract_to": "enforcement/brandbuilder", "sources": [], "instruction": "verify"},
@@ -57,6 +57,34 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
 
 
 class PrepareSiteTests(unittest.TestCase):
+    def test_publication_record_is_exact_and_rejects_mixed_bundle_facts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            sources = []
+            for slug in ("alpha", "beta"):
+                source = root / slug / "enforcement"
+                source.mkdir(parents=True)
+                bundle = {
+                    "package": {"id": f"{slug}-brand-1.0.0-bb2.0.0", "filename": f"{slug}-brand-1.0.0-bb2.0.0.zip"},
+                    "source_revision": "a" * 40,
+                    "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"},
+                }
+                (source / "bundle.json").write_text(json.dumps(bundle), encoding="utf-8")
+                sources.append(source.parent)
+            record = prepare_site.publication_record(sources)
+            self.assertEqual("candidate", record["status"])
+            self.assertEqual("v2.0.0", record["tag"])
+            self.assertNotIn("latest", json.dumps(record).lower())
+            release_record = prepare_site.publication_record(sources, {"beta"})
+            self.assertEqual(["beta-brand-1.0.0-bb2.0.0"], [item["id"] for item in release_record["packages"]])
+            with self.assertRaisesRegex(ValueError, "lacks release kits"):
+                prepare_site.publication_record(sources, {"missing"})
+            mixed = json.loads((sources[1] / "enforcement" / "bundle.json").read_text(encoding="utf-8"))
+            mixed["source_revision"] = "b" * 40
+            (sources[1] / "enforcement" / "bundle.json").write_text(json.dumps(mixed), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "publication facts disagree"):
+                prepare_site.publication_record(sources)
+
     def test_generated_web_adapters_are_staged_for_next_and_vite_type_checks(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -176,6 +204,11 @@ class PrepareSiteTests(unittest.TestCase):
             write_minimal_portal(source)
             (source / "brand-guide.pdf").write_bytes(b"%PDF-test")
             (source / "specimens" / "sample.svg").write_text("<svg/>\n", encoding="utf-8")
+            enforcement = source / "enforcement"
+            enforcement.mkdir(exist_ok=True)
+            bundle = {"package": {"id": "alpha-brand-1.0.0-bb2.0.0", "filename": "alpha-brand-1.0.0-bb2.0.0.zip"}, "versions": {"compiler_version": "2.0.0"}}
+            (enforcement / "bundle.json").write_text(json.dumps(bundle), encoding="utf-8")
+            (enforcement / "release-impact.json").write_bytes((prepare_site.ROOT / "skill" / "references" / "release-impact.json").read_bytes())
             public.mkdir()
             original_public = prepare_site.PUBLIC
             prepare_site.PUBLIC = public
@@ -192,8 +225,10 @@ class PrepareSiteTests(unittest.TestCase):
                 self.assertNotIn("showcaseSurface", record)
                 self.assertNotIn("showcaseForeground", record)
                 self.assertEqual("/alpha/guidelines/", record["guidelinesPath"])
-                self.assertEqual("/alpha/downloads/alpha-brand-1.0.0.zip", record["kitArchive"])
-                self.assertEqual("alpha-brand-1.0.0.zip", record["kitArchiveFilename"])
+                self.assertEqual("/alpha/downloads/alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchive"])
+                self.assertEqual("alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchiveFilename"])
+                self.assertEqual("alpha-brand-1.0.0-bb2.0.0", record["packageId"])
+                self.assertEqual("2.0.0", record["brandbuilderVersion"])
                 self.assertEqual("1.2.1", archive_writer.call_args.kwargs["expected_canon"])
                 brand["showcase_surface"] = "card"
                 record = prepare_site.copy_kit(source, brand)

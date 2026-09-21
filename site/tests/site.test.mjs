@@ -3,6 +3,7 @@ import guidelinePortals from '../generated/guidelines.json' with { type: 'json' 
 import documentation from '../generated/documentation.json' with { type: 'json' };
 import routeContract from '../generated/routes.json' with { type: 'json' };
 import conformanceRecords from '../generated/conformance.json' with { type: 'json' };
+import publication from '../generated/publication.json' with { type: 'json' };
 import { existsSync, readFileSync } from 'node:fs';
 
 const assetLibrarySource = readFileSync(new URL('../components/guidelines/asset-library-client.tsx', import.meta.url), 'utf8');
@@ -26,10 +27,10 @@ const conformanceIndexSource = readFileSync(new URL('../app/(site)/conformance/p
 if (!assetLibrarySource.includes('className="asset-preview-media"') || !topicContentSource.includes('className="asset-preview-media"')) throw new Error('both guideline preview surfaces must use the shared media wrapper');
 if (!/\.asset-preview-media img \{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: contain;[^}]*\}/s.test(globalStyles)) throw new Error('shared preview containment styles must bind full media sizing to contain fitting');
 
-const footerRecords = [...footerSource.matchAll(/\{ label: '([^']+)', href: '([^']+)', kind: '([^']+)' \}/g)].map((match) => ({ label: match[1], href: match[2], kind: match[3] }));
+const footerRecords = [...footerSource.matchAll(/\{ label: '([^']+)', href: (?:'([^']+)'|publication\.skillUrl), kind: '([^']+)' \}/g)].map((match) => ({ label: match[1], href: match[2] ?? publication.skillUrl, kind: match[3] }));
 const expectedFooterRecords = [
   { label: 'Documentation', href: '/docs', kind: 'internal' },
-  { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', kind: 'new-tab' },
+  { label: 'Download Skill', href: publication.skillUrl, kind: 'new-tab' },
   { label: 'Company', href: 'https://shruggie.tech/', kind: 'same-tab' },
   { label: 'Source', href: 'https://github.com/ShruggieTech/shruggie-brand', kind: 'new-tab' },
   { label: 'License', href: 'https://github.com/ShruggieTech/shruggie-brand/blob/main/LICENSE', kind: 'new-tab' },
@@ -50,16 +51,16 @@ if (documentationPageSource.includes("@/components/footer") || documentationPage
 if (!documentationPageSource.includes("footer={{ className: 'docs-pagination'")) throw new Error('documentation page no longer provides contextual pagination');
 if (/\.docs-page \.site-footer\b/.test(globalStyles)) throw new Error('documentation styles retain obsolete shared-footer coupling');
 
-const navigationRecords = [...layoutSource.matchAll(/\{ text: '([^']+)', url: '([^']+)'(?:, external: (true))?(?:, on: 'menu')? \}/g)].map((match) => ({ label: match[1], href: match[2], external: match[3] === 'true' }));
+const navigationRecords = [...layoutSource.matchAll(/\{ text: '([^']+)', url: (?:'([^']+)'|publication\.skillUrl)(?:, external: (true))?(?:, on: 'menu')? \}/g)].map((match) => ({ label: match[1], href: match[2] ?? publication.skillUrl, external: match[3] === 'true' }));
 const expectedNavigationRecords = [
   { label: 'Documentation', href: '/docs', external: false },
   { label: 'Company', href: 'https://shruggie.tech/', external: true },
-  { label: 'Download Skill', href: 'https://github.com/ShruggieTech/shruggie-brand/releases/latest', external: true },
+  { label: 'Download Skill', href: publication.skillUrl, external: true },
   { label: 'View on GitHub', href: 'https://github.com/ShruggieTech/shruggie-brand', external: true },
 ];
 if (JSON.stringify(navigationRecords) !== JSON.stringify(expectedNavigationRecords)) throw new Error(`shared navigation records differ from the approved ordered policy: ${JSON.stringify(navigationRecords)}`);
 if (!homepageSource.includes('<Link className="button primary" href="/docs">Documentation</Link>')) throw new Error('homepage lacks the approved Documentation primary action');
-if (!homepageSource.includes('className="button" href="https://github.com/ShruggieTech/shruggie-brand/releases/latest" target="_blank" rel="noopener noreferrer">Download Skill</a>')) throw new Error('homepage lacks the safely isolated Download Skill secondary action');
+if (!homepageSource.includes('className="button" href={publication.skillUrl} target="_blank" rel="noopener noreferrer">Download Skill</a>')) throw new Error('homepage lacks the exact safely isolated Download Skill secondary action');
 if (!homepageSource.includes('<a className="text-action hero-portfolio-link" href="#portfolio">Explore Our Portfolio<span aria-hidden="true">↓</span></a>')) throw new Error('homepage lacks the approved portfolio supporting action and decorative cue');
 if (!homepageSource.includes('<h2 id="portfolio-heading">Our Portfolio</h2>') || !homepageSource.includes('Explore our identity spectrum: a portfolio of distinct brands, each built with its own system, voice, and purpose.')) throw new Error('homepage portfolio wording differs from the approved contract');
 for (const retired of ['The system underneath', 'Strategy, standards, assets, and implementation.', 'system-callout']) if (homepageSource.includes(retired)) throw new Error(`homepage retains removed callout source: ${retired}`);
@@ -87,11 +88,11 @@ for (const record of conformanceRecords) {
     if (track.status !== 'supported') throw new Error(`${record.slug} ${track.id} reference track is not supported`);
     for (const field of ['host_version', 'renderer_version', 'target_version', 'tool_version']) if (!track[field]) throw new Error(`${record.slug} ${track.id} lacks ${field}`);
   }
-  if (record.evidenceBoundaries.browser_emulation_is_host_proof !== false || record.evidenceBoundaries.reference_fixture_is_consumer_adoption !== false) throw new Error(`${record.slug} overclaims browser or fixture evidence`);
+  if (record.evidenceBoundaries.browser_emulation_is_host_proof !== false || 'consumer_adoption_status' in record.evidenceBoundaries || 'reference_fixture_is_consumer_adoption' in record.evidenceBoundaries) throw new Error(`${record.slug} overclaims browser or tracks downstream adoption`);
   if (!record.specimenPath.startsWith(`/conformance-fixtures/${record.slug}/`) || !record.manifestPath.startsWith(`/conformance-fixtures/${record.slug}/`)) throw new Error(`${record.slug} conformance paths are unsafe or inconsistent`);
 }
 if (!conformanceReferenceSource.includes('Browser emulation cannot promote either state.') || !conformanceReferenceSource.includes('aria-pressed={item.id === profile}')) throw new Error('conformance reference omits the evidence boundary or accessible profile state');
-if (!conformanceIndexSource.includes('Cross-host conformance') || !conformanceIndexSource.includes('Native host fixtures remain distinct')) throw new Error('conformance index omits its purpose or native evidence boundary');
+if (!conformanceIndexSource.includes('Cross-host conformance') || !conformanceIndexSource.includes('Native host fixtures remain distinct from browser evidence and product outcome claims.')) throw new Error('conformance index omits its purpose or native evidence boundary');
 const esoWeave = brands.find((brand) => brand.slug === 'eso-weave');
 if (esoWeave?.idea !== 'Unofficial automation for ESO' || esoWeave?.descriptor !== 'Cross-platform desktop companion for The Elder Scrolls Online') throw new Error('ESO Weave public wording differs from the Gate 2 approval');
 if (!esoWeave?.vendorBoundary?.includes('not affiliated with')) throw new Error('ESO Weave public record omits the required vendor boundary');
@@ -103,8 +104,9 @@ if (ihprt?.idea !== 'Experience Puerto Rico' || ihprt?.descriptor !== 'Thoughtfu
 if (ihprt?.ownership !== 'third-party' || ihprt?.showcase !== 'public' || ihprt?.showcaseSurface !== '#FFFFFF' || ihprt?.showcaseForeground !== '#000000') throw new Error('I Heart PR Tours public affiliation or light showcase differs from the approved contract');
 if (!ihprt?.vendorBoundary?.includes('I Heart PR Tours owns its trademarks')) throw new Error('I Heart PR Tours public record omits the required vendor boundary');
 for (const brand of brands) {
-  const expectedArchive = `/${brand.slug}/downloads/${brand.slug}-brand-${brand.version}.zip`;
+  const expectedArchive = `/${brand.slug}/downloads/${brand.packageId}.zip`;
   if (brand.guidelinesPath !== `/${brand.slug}/guidelines/` || brand.kitArchive !== expectedArchive || brand.kitArchiveFilename !== expectedArchive.split('/').at(-1)) throw new Error(`${brand.slug} generated action destinations are incomplete or inconsistent`);
+  if (brand.brandbuilderVersion !== publication.version || brand.packageId !== `${brand.slug}-brand-${brand.version}-bb${publication.version}`) throw new Error(`${brand.slug} package identity differs from the publication record`);
   if ('vendorBoundarySummary' in brand) throw new Error(`${brand.slug} retains obsolete card-level vendor summary copy`);
 }
 const expectedBrandNavigation = [

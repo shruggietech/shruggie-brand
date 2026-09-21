@@ -30,7 +30,8 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
     policy = json.loads((ROOT / "skill" / "references" / "version-policy.json").read_text(encoding="utf-8"))
     bundle_buffer = io.BytesIO()
     with zipfile.ZipFile(bundle_buffer, "w") as bundle:
-        bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 1.2.1\n  canon: %s\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n" % canon)
+        bundle.writestr("SOURCE_REVISION", "a" * 40 + "\n")
+        bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 2.0.0\n  canon: %s\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n" % canon)
         bundle.writestr("AGENTS.md", "instructions\n")
         bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
         bundle.writestr("references/component-recipes.json", json.dumps({"version": "1.0.0"}))
@@ -39,19 +40,28 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         bundle.writestr("references/consumer-contract.schema.json", consumer_schema)
         bundle.writestr("references/documentation-contract.json", (ROOT / "skill" / "references" / "documentation-contract.json").read_bytes())
         bundle.writestr("references/documentation-contract.schema.json", (ROOT / "skill" / "references" / "documentation-contract.schema.json").read_bytes())
+        bundle.writestr("references/release-impact.json", (ROOT / "skill" / "references" / "release-impact.json").read_bytes())
+        bundle.writestr("references/release-impact.schema.json", (ROOT / "skill" / "references" / "release-impact.schema.json").read_bytes())
         bundle.writestr("templates/documentation_contract.py", "# documentation contract\n")
         bundle.writestr("templates/verify.py", "# verifier\n")
         bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")
     bundle = bundle_buffer.getvalue()
     begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
     end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
-    distribution = "enforcement/distributions/shruggie-brandbuilder-1.2.1.skill"
+    distribution = "enforcement/distributions/shruggie-brandbuilder-2.0.0.skill"
+    versions = {"brand_version": version, "canon_version": canon, "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0"}
+    package = {"id": "%s-brand-%s-bb2.0.0" % (slug, version), "filename": "%s-brand-%s-bb2.0.0.zip" % (slug, version), "brand_slug": slug, "brand_version": version, "brandbuilder_version": "2.0.0"}
+    kit_bundle = {"schema_version": 1, "package": package, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": None}}
     values = {
         "brand.json": json.dumps(brand).encode("utf-8"),
         "VERIFY.md": b"verification",
         "brand-guide.pdf": b"%PDF-1.4\n",
         "enforcement/AGENTS.md": (begin + "\ncontract\n" + end + "\n").encode("utf-8"),
         "enforcement/IMPLEMENTATION.md": b"# Implementation\n",
+        "enforcement/MIGRATION.md": b"# Migration\n",
+        "enforcement/bundle.json": json.dumps(kit_bundle).encode("utf-8"),
+        "enforcement/release-impact.json": (ROOT / "skill" / "references" / "release-impact.json").read_bytes(),
+        "enforcement/release-impact.schema.json": (ROOT / "skill" / "references" / "release-impact.schema.json").read_bytes(),
         "enforcement/interface-canon.json": json.dumps({"version": "1.0.0"}).encode("utf-8"),
         "enforcement/interface-canon.schema.json": b"{}\n",
         "enforcement/component-recipes.json": json.dumps({"version": "1.0.0"}).encode("utf-8"),
@@ -79,11 +89,13 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
         "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
         "enforcement/documentation-contract.json", "enforcement/documentation-contract.schema.json", "enforcement/documentation-facts.json",
+        "enforcement/MIGRATION.md", "enforcement/bundle.json", "enforcement/release-impact.json", "enforcement/release-impact.schema.json",
     ]
     consumer = {
-        "schema_version": 3,
+        "schema_version": 4,
         "brand": {"slug": slug, "title": slug.title(), "affiliation": None, "brand_version": version},
-        "versions": {"brand_version": version, "canon_version": canon, "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "1.2.1"},
+        "bundle": kit_bundle,
+        "versions": versions,
         "version_semantics": {
             "brand_version": "Brand version.", "canon_version": "Brand Canon version.",
             "interface_canon_version": "Interface Canon version.", "component_recipe_version": "Component recipe version.", "web_react_adapter_version": "Web adapter version.", "egui_adapter_version": "egui adapter version.", "compiler_version": "Compiler version.",
@@ -92,17 +104,16 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
             "policy_version": policy["version"], "status": "compatible",
             "validated_versions": {
                 "brand_canon": canon, "interface_canon": "1.0.0", "component_recipes": "1.0.0",
-                "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "1.2.1", "brand": version,
+                "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "2.0.0", "brand": version,
             },
             "rules_checked": len(policy["compatibility_rules"]),
-            "publication_status": "candidate", "adoption_status": "unadopted",
         },
         "environment": {
             "renderer": "renderer-neutral", "host": "none", "supported_targets": ["web"],
-            "viewport_profiles": ["compact"], "adapter_versions": {"vanilla": "1.2.1"},
+            "viewport_profiles": ["compact"], "adapter_versions": {"vanilla": "2.0.0"},
         },
         "authority": {
-            "brand_source": "brand.json", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json",
+            "brand_source": "brand.json", "bundle": "enforcement/bundle.json", "release_impact": "enforcement/release-impact.json", "migration_summary": "enforcement/MIGRATION.md", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json",
             "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"],
             "documentation_contract": "enforcement/documentation-contract.json", "documentation_facts": "enforcement/documentation-facts.json",
             "permitted_exceptions": [],
@@ -112,7 +123,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
             "success": "zero failures",
         },
         "recovery": {
-            "distribution": "shruggie-brandbuilder-1.2.1.skill",
+            "distribution": "shruggie-brandbuilder-2.0.0.skill",
             "path": distribution,
             "sha256": hashlib.sha256(bundle).hexdigest(),
             "extract_to": "enforcement/brandbuilder",
@@ -152,7 +163,85 @@ def replace_consumer(entries, consumer):
     entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
 
 
+def replace_bundle(entries, bundle):
+    bundle_bytes = json.dumps(bundle).encode("utf-8")
+    entries["enforcement/bundle.json"] = bundle_bytes
+    consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+    consumer["bundle"] = bundle
+    replace_consumer(entries, consumer)
+    manifest = json.loads(entries["manifest.json"].decode("utf-8"))
+    for item in manifest["files"]:
+        if item["path"] == "enforcement/bundle.json":
+            item["bytes"] = len(bundle_bytes)
+            item["sha256"] = hashlib.sha256(bundle_bytes).hexdigest()
+    entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
+
+
 class ReleaseContractTests(unittest.TestCase):
+    def test_publication_record_distinguishes_candidates_and_exact_releases(self):
+        revision = "a" * 40
+        metadata = {
+            "version": "2.0.0",
+            "brands": {
+                "fragcap": {"version": "1.1.0"},
+                "eso-weave": {"version": "1.0.0"},
+            },
+        }
+        base = {
+            "schemaVersion": 1, "status": "candidate", "version": "2.0.0", "tag": "v2.0.0",
+            "sourceRevision": revision,
+            "releaseUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/tag/v2.0.0",
+            "skillFilename": "shruggie-brandbuilder-2.0.0.skill",
+            "skillUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/download/v2.0.0/shruggie-brandbuilder-2.0.0.skill",
+            "packages": [
+                release_contract.package_identity("eso-weave", "1.0.0", "2.0.0"),
+                release_contract.package_identity("fragcap", "1.1.0", "2.0.0"),
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "publication.json"
+            path.write_text(json.dumps(base), encoding="utf-8")
+            self.assertEqual("candidate", release_contract.verify_publication_record(path, metadata, revision)["status"])
+            with self.assertRaisesRegex(ValueError, "requires exact release status"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+            released = dict(base, status="release")
+            path.write_text(json.dumps(released), encoding="utf-8")
+            self.assertEqual("release", release_contract.verify_publication_record(path, metadata, revision, require_release=True)["status"])
+            path.write_text(json.dumps(dict(released, releaseUrl="https://github.com/ShruggieTech/shruggie-brand/releases/latest")), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "not exact"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+            path.write_text(json.dumps(dict(released, releaseUrl="https://example.com/releases/tag/v2.0.0")), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "not exact"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+            path.write_text(json.dumps(dict(released, skillUrl="https://example.com/releases/download/v2.0.0/shruggie-brandbuilder-2.0.0.skill")), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "skill destination disagrees"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+
+    def test_publication_record_requires_exact_canonical_package_inventory(self):
+        revision = "a" * 40
+        metadata = {
+            "version": "2.0.0",
+            "brands": {"fragcap": {"version": "1.1.0"}},
+        }
+        record = {
+            "schemaVersion": 1, "status": "release", "version": "2.0.0", "tag": "v2.0.0",
+            "sourceRevision": revision,
+            "releaseUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/tag/v2.0.0",
+            "skillFilename": "shruggie-brandbuilder-2.0.0.skill",
+            "skillUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/download/v2.0.0/shruggie-brandbuilder-2.0.0.skill",
+            "packages": [],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "publication.json"
+            path.write_text(json.dumps(record), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "package inventory disagrees"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+
+            record["packages"] = [release_contract.package_identity("fragcap", "1.0.0", "2.0.0")]
+            path.write_text(json.dumps(record), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "package inventory disagrees"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+
     def test_production_logo_source_modes_and_identity_fingerprints_are_pinned(self):
         expected = {
             "cueson": ("constructed", "e9731717f34f149f78b221a857d127cad60e09ae1e3c8cf2f09d3de0ae0624f9"),
@@ -179,33 +268,36 @@ class ReleaseContractTests(unittest.TestCase):
             self.assertEqual("Repository owner via S016 approval", inputs[input_id]["mask_approved_by"])
             self.assertEqual("2026-09-07", inputs[input_id]["mask_approved_on"])
 
-    def test_repository_metadata_and_notes_agree_for_1_3_0(self):
-        metadata = release_contract.load_metadata(ROOT, "1.3.0")
+    def test_repository_metadata_and_notes_agree_for_2_0_0(self):
+        metadata = release_contract.load_metadata(ROOT, "2.0.0")
         notes = release_contract.render_notes(metadata)
 
-        self.assertEqual(metadata["skill_version"], "1.3.0")
+        self.assertEqual(metadata["skill_version"], "2.0.0")
         self.assertEqual(metadata["canon_version"], "1.2.1")
-        self.assertEqual(metadata["site_version"], "1.3.0")
-        self.assertEqual(release_contract.current_version(ROOT), "1.3.0")
-        self.assertIn("Skill version: `1.3.0`", notes)
+        self.assertEqual(metadata["site_version"], "2.0.0")
+        self.assertEqual(release_contract.current_version(ROOT), "2.0.0")
+        self.assertIn("Skill version: `2.0.0`", notes)
         self.assertIn("Canon version: `1.2.1`", notes)
-        self.assertIn("Existing kits need migration: **yes for Web/React AppFrame consumers**", notes)
-        self.assertIn("dependency-free environment entry", notes)
+        self.assertIn("Existing kits need migration: **yes for immutable package and recovery metadata**", notes)
+        self.assertIn("dependency-free environment bridge entry", notes)
+        self.assertIn("## Governed release impact", notes)
+        self.assertIn("No approved identity redesign is included.", notes)
+        self.assertIn("Consumers may adopt the generated web, Android, Apple, macOS, and Windows asset suites", notes)
         self.assertNotIn("## [Unreleased]", notes)
 
     def test_expected_assets_are_exact_and_use_embedded_brand_versions(self):
-        metadata = release_contract.load_metadata(ROOT, "1.3.0")
+        metadata = release_contract.load_metadata(ROOT, "2.0.0")
 
         self.assertEqual(set(release_contract.expected_assets(metadata)), {
-            "shruggie-brandbuilder-1.3.0.skill",
-            "shruggie-brandbuilder-1.3.0-portable.zip",
-            "shruggietech-brand-1.0.0.zip",
-            "fragcap-brand-1.1.0.zip",
-            "go-schedule-brand-1.0.0.zip",
-            "glitchpad-brand-1.1.0.zip",
-            "covarity-brand-1.0.0.zip",
-            "eso-weave-brand-1.0.0.zip",
-            "cueson-brand-1.0.0.zip",
+            "shruggie-brandbuilder-2.0.0.skill",
+            "shruggie-brandbuilder-2.0.0-portable.zip",
+            "shruggietech-brand-1.0.0-bb2.0.0.zip",
+            "fragcap-brand-1.1.0-bb2.0.0.zip",
+            "go-schedule-brand-1.0.0-bb2.0.0.zip",
+            "glitchpad-brand-1.1.0-bb2.0.0.zip",
+            "covarity-brand-1.0.0-bb2.0.0.zip",
+            "eso-weave-brand-1.0.0-bb2.0.0.zip",
+            "cueson-brand-1.0.0-bb2.0.0.zip",
         })
         self.assertEqual(
             {slug: values["version"] for slug, values in metadata["brands"].items()},
@@ -264,9 +356,9 @@ class ReleaseContractTests(unittest.TestCase):
             release_contract, "read_text", side_effect=read_with_stale_site
         ):
             with self.assertRaisesRegex(
-                ValueError, "site package version 1.1.2 does not match release 1.3.0"
+                ValueError, "site package version 1.1.2 does not match release 2.0.0"
             ):
-                release_contract.load_metadata(ROOT, "1.3.0")
+                release_contract.load_metadata(ROOT, "2.0.0")
 
     def test_compiler_release_and_brand_canon_versions_can_diverge(self):
         original_read_text = release_contract.read_text
@@ -288,10 +380,10 @@ class ReleaseContractTests(unittest.TestCase):
         with mock.patch.object(
             release_contract, "read_text", side_effect=read_with_supported_older_canon
         ):
-            metadata = release_contract.load_metadata(ROOT, "1.3.0")
-            self.assertEqual("1.3.0", metadata["skill_version"])
+            metadata = release_contract.load_metadata(ROOT, "2.0.0")
+            self.assertEqual("2.0.0", metadata["skill_version"])
             self.assertEqual("1.2.0", metadata["canon_version"])
-            self.assertEqual("1.3.0", release_contract.current_version(ROOT))
+            self.assertEqual("2.0.0", release_contract.current_version(ROOT))
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -305,7 +397,7 @@ class ReleaseContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "shruggie-brandbuilder-1.2.1-portable.zip"
             entries = {name: name.encode("utf-8") for name in LICENSES}
-            entries.update({"AGENTS.md": b"agents", "CHANGELOG.md": b"history",
+            entries.update({"AGENTS.md": b"agents", "CHANGELOG.md": b"history", "SOURCE_REVISION": b"a" * 40 + b"\n",
                             "README.md": b"portable", "SKILL.md": b"forbidden"})
             write_zip(path, entries)
 
@@ -314,7 +406,7 @@ class ReleaseContractTests(unittest.TestCase):
 
     def test_production_archive_rejects_manifest_checksum_drift(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
             recorded = b"correct"
             entries = brand_archive_entries(
                 extra_entries={"tokens.css": recorded},
@@ -328,7 +420,7 @@ class ReleaseContractTests(unittest.TestCase):
 
     def test_production_archive_rejects_coordinated_canon_drift(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
             entries = brand_archive_entries(canon="1.0.0", recorded_entries=(
                 "brand.json", "VERIFY.md", "brand-guide.pdf",
             ))
@@ -339,11 +431,153 @@ class ReleaseContractTests(unittest.TestCase):
                     path, "fragcap", "1.1.0", expected_canon="1.1.2"
                 )
 
+    def test_candidate_archive_rejects_release_checksum_claim(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+            entries = brand_archive_entries()
+            bundle = json.loads(entries["enforcement/bundle.json"].decode("utf-8"))
+            bundle["checksum_authority"]["release_checksums"] = "SHA256SUMS"
+            bundle_bytes = json.dumps(bundle).encode("utf-8")
+            entries["enforcement/bundle.json"] = bundle_bytes
+            consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+            consumer["bundle"] = bundle
+            for item in consumer["provenance"]:
+                if item["path"] == "enforcement/bundle.json":
+                    item["bytes"] = len(bundle_bytes)
+                    item["sha256"] = hashlib.sha256(bundle_bytes).hexdigest()
+            replace_consumer(entries, consumer)
+            manifest = json.loads(entries["manifest.json"].decode("utf-8"))
+            for item in manifest["files"]:
+                if item["path"] == "enforcement/bundle.json":
+                    item["bytes"] = len(bundle_bytes)
+                    item["sha256"] = hashlib.sha256(bundle_bytes).hexdigest()
+            entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
+            write_zip(path, entries)
+
+            with self.assertRaisesRegex(ValueError, "release checksum authority disagrees"):
+                release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
+
+    def test_release_archive_binds_publication_version_and_tag(self):
+        cases = (
+            ("version", "9.9.9", "publication version disagrees"),
+            ("tag", "v9.9.9", "publication tag disagrees"),
+        )
+        for field, value, message in cases:
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+                entries = brand_archive_entries()
+                bundle = json.loads(entries["enforcement/bundle.json"].decode("utf-8"))
+                bundle["publication"]["status"] = "release"
+                bundle["publication"][field] = value
+                bundle["checksum_authority"]["release_checksums"] = "SHA256SUMS"
+                replace_bundle(entries, bundle)
+                write_zip(path, entries)
+
+                with self.assertRaisesRegex(ValueError, message):
+                    release_contract.verify_brand_archive(
+                        path,
+                        "fragcap",
+                        "1.1.0",
+                        expected_revision="a" * 40,
+                        expected_release_version="2.0.0",
+                        require_release=True,
+                    )
+
+    def test_candidate_archive_binds_publication_version_and_tag(self):
+        cases = (
+            ("version", "9.9.9", "publication version disagrees"),
+            ("tag", "v9.9.9", "publication tag disagrees"),
+        )
+        for field, value, message in cases:
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+                entries = brand_archive_entries()
+                bundle = json.loads(entries["enforcement/bundle.json"].decode("utf-8"))
+                bundle["publication"][field] = value
+                replace_bundle(entries, bundle)
+                write_zip(path, entries)
+
+                with self.assertRaisesRegex(ValueError, message):
+                    release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
+
+    def test_release_archive_requires_source_revision(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+            entries = brand_archive_entries()
+            bundle = json.loads(entries["enforcement/bundle.json"].decode("utf-8"))
+            bundle["publication"]["status"] = "release"
+            bundle["checksum_authority"]["release_checksums"] = "SHA256SUMS"
+            replace_bundle(entries, bundle)
+            write_zip(path, entries)
+
+            with self.assertRaisesRegex(ValueError, "expected source revision is required"):
+                release_contract.verify_brand_archive(
+                    path,
+                    "fragcap",
+                    "1.1.0",
+                    expected_release_version="2.0.0",
+                    require_release=True,
+                )
+            with self.assertRaisesRegex(ValueError, "expected source revision is required"):
+                release_contract.verify_release_directory(
+                    Path(tmp),
+                    {},
+                    require_release=True,
+                )
+
+    def test_production_archive_rejects_coordinated_release_impact_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+            entries = brand_archive_entries()
+            canonical = json.loads(entries["enforcement/release-impact.json"].decode("utf-8"))
+            tampered = json.loads(json.dumps(canonical))
+            tampered["surfaces"]["palette"]["summary"] = "Unapproved migration guidance."
+            tampered_bytes = json.dumps(tampered).encode("utf-8")
+            entries["enforcement/release-impact.json"] = tampered_bytes
+
+            distribution = "enforcement/distributions/shruggie-brandbuilder-2.0.0.skill"
+            recovery_buffer = io.BytesIO()
+            with zipfile.ZipFile(io.BytesIO(entries[distribution])) as source, zipfile.ZipFile(recovery_buffer, "w") as target:
+                for name in source.namelist():
+                    target.writestr(name, tampered_bytes if name == "references/release-impact.json" else source.read(name))
+            recovery_bytes = recovery_buffer.getvalue()
+            entries[distribution] = recovery_bytes
+
+            consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+            consumer["recovery"]["sha256"] = hashlib.sha256(recovery_bytes).hexdigest()
+            for item in consumer["provenance"]:
+                if item["path"] == "enforcement/release-impact.json":
+                    item["bytes"] = len(tampered_bytes)
+                    item["sha256"] = hashlib.sha256(tampered_bytes).hexdigest()
+                elif item["path"] == distribution:
+                    item["bytes"] = len(recovery_bytes)
+                    item["sha256"] = hashlib.sha256(recovery_bytes).hexdigest()
+            replace_consumer(entries, consumer)
+            manifest = json.loads(entries["manifest.json"].decode("utf-8"))
+            for item in manifest["files"]:
+                if item["path"] == "enforcement/release-impact.json":
+                    item["bytes"] = len(tampered_bytes)
+                    item["sha256"] = hashlib.sha256(tampered_bytes).hexdigest()
+                elif item["path"] == distribution:
+                    item["bytes"] = len(recovery_bytes)
+                    item["sha256"] = hashlib.sha256(recovery_bytes).hexdigest()
+            entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
+            write_zip(path, entries)
+
+            with self.assertRaisesRegex(ValueError, "differs from the canonical release record"):
+                release_contract.verify_brand_archive(
+                    path,
+                    "fragcap",
+                    "1.1.0",
+                    expected_release_impact=canonical,
+                )
+
     def test_production_archive_rejects_coordinated_recovery_version_drift(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
             bundle_buffer = io.BytesIO()
             with zipfile.ZipFile(bundle_buffer, "w") as bundle:
+                bundle.writestr("SOURCE_REVISION", "a" * 40 + "\n")
                 bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 9.9.9\n  canon: 1.1.2\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n")
                 bundle.writestr("AGENTS.md", "instructions\n")
                 bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
@@ -353,10 +587,12 @@ class ReleaseContractTests(unittest.TestCase):
                 bundle.writestr("references/consumer-contract.schema.json", (ROOT / "skill" / "references" / "consumer-contract.schema.json").read_bytes())
                 bundle.writestr("references/documentation-contract.json", (ROOT / "skill" / "references" / "documentation-contract.json").read_bytes())
                 bundle.writestr("references/documentation-contract.schema.json", (ROOT / "skill" / "references" / "documentation-contract.schema.json").read_bytes())
+                bundle.writestr("references/release-impact.json", (ROOT / "skill" / "references" / "release-impact.json").read_bytes())
+                bundle.writestr("references/release-impact.schema.json", (ROOT / "skill" / "references" / "release-impact.schema.json").read_bytes())
                 bundle.writestr("templates/documentation_contract.py", "# documentation contract\n")
                 bundle.writestr("templates/verify.py", "# verifier\n")
                 bundle.writestr("templates/validate_glyph.py", "# glyph gate\n")
-            distribution = "enforcement/distributions/shruggie-brandbuilder-1.2.1.skill"
+            distribution = "enforcement/distributions/shruggie-brandbuilder-2.0.0.skill"
             entries = brand_archive_entries(extra_entries={distribution: bundle_buffer.getvalue()})
             consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
             recovery_bytes = entries[distribution]
@@ -382,7 +618,7 @@ class ReleaseContractTests(unittest.TestCase):
 
     def test_production_archive_rejects_consumer_contract_schema_drift(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
             entries = brand_archive_entries()
             consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
             consumer["version_semantics"] = {}
@@ -395,7 +631,7 @@ class ReleaseContractTests(unittest.TestCase):
     def test_production_archive_binds_complete_consumer_brand_metadata(self):
         for field, value in (("title", "Impostor"), ("affiliation", {"parent": "false-owner"})):
             with self.subTest(field=field), tempfile.TemporaryDirectory() as tmp:
-                path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+                path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
                 entries = brand_archive_entries()
                 consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
                 consumer["brand"][field] = value
@@ -414,7 +650,7 @@ class ReleaseContractTests(unittest.TestCase):
         )
         for section, field in cases:
             with self.subTest(section=section, field=field), tempfile.TemporaryDirectory() as tmp:
-                path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+                path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
                 entries = brand_archive_entries()
                 consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
                 consumer[section][field] = "enforcement/missing-%s.json" % field
@@ -426,7 +662,7 @@ class ReleaseContractTests(unittest.TestCase):
 
     def test_production_archive_requires_verification_and_qc_manifest_coverage(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
             entries = brand_archive_entries(
                 extra_entries={"qc/contact-sheet.png": b"png"},
                 recorded_entries=("brand.json", "brand-guide.pdf"),
@@ -440,7 +676,7 @@ class ReleaseContractTests(unittest.TestCase):
 
     def test_production_archive_rejects_tampered_recorded_qc(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
             entries = brand_archive_entries(
                 extra_entries={"qc/contact-sheet.png": b"original"},
                 recorded_entries=(
@@ -457,7 +693,7 @@ class ReleaseContractTests(unittest.TestCase):
 
     def test_production_archive_rejects_recorded_empty_delivery(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "fragcap-brand-1.1.0.zip"
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
             entries = brand_archive_entries(
                 extra_entries={"logos/empty.svg": b""},
                 recorded_entries=(

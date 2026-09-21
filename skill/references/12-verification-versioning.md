@@ -1,6 +1,8 @@
 # Verification, Versioning, and Release
 
-BrandBuilder treats verification, publication, and consumer adoption as separate states. Passing local checks makes a kit a valid candidate. Publishing makes exact bytes available. Adoption occurs only when a consumer deliberately takes a declared version.
+BrandBuilder treats verification and publication as separate states. Passing local checks makes a kit a valid candidate. Publishing makes exact bytes available. BrandBuilder records compatibility and migration impact for its own output, but it does not track downstream adoption or utility.
+
+Canonical kit archives use `<brand-slug>-brand-<brand-version>-bb<brandbuilder-version>.zip`. The older brand-only form is non-canonical and MUST NOT be updated as a mutable alias. Every governed output-contract change requires a BrandBuilder version advance.
 
 ## Verification layers
 
