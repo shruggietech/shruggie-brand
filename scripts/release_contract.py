@@ -409,9 +409,14 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             raise ValueError("%s canonical archive filename must be %s" % (path.name, expected_package["filename"]))
         if bundle.get("versions") != versions:
             raise ValueError("%s bundle versions disagree" % path.name)
+        publication = bundle.get("publication") or {}
+        checksum_authority = bundle.get("checksum_authority") or {}
+        expected_release_checksums = "SHA256SUMS" if publication.get("status") == "release" else None
+        if checksum_authority.get("release_checksums") != expected_release_checksums:
+            raise ValueError("%s bundle release checksum authority disagrees with publication status" % path.name)
         if expected_revision is not None and bundle.get("source_revision") != expected_revision:
             raise ValueError("%s bundle source revision disagrees" % path.name)
-        if require_release and (bundle.get("publication") or {}).get("status") != "release":
+        if require_release and publication.get("status") != "release":
             raise ValueError("%s bundle is not an exact release publication" % path.name)
         interface_canon = _read_json(archive, authority["interface_canon"], path.name)
         if versions.get("interface_canon_version") != interface_canon.get("version"):
@@ -640,6 +645,8 @@ def verify_publication_record(path: Path, metadata: Mapping[str, object], revisi
     version = str(metadata["version"])
     expected_tag = "v%s" % version
     expected_skill = "shruggie-brandbuilder-%s.skill" % version
+    expected_release_url = "https://github.com/ShruggieTech/shruggie-brand/releases/tag/%s" % expected_tag
+    expected_skill_url = "https://github.com/ShruggieTech/shruggie-brand/releases/download/%s/%s" % (expected_tag, expected_skill)
     required = {"schemaVersion", "status", "version", "tag", "sourceRevision", "releaseUrl", "skillFilename", "skillUrl", "packages"}
     if set(record) != required:
         raise ValueError("publication record fields disagree")
@@ -647,9 +654,9 @@ def verify_publication_record(path: Path, metadata: Mapping[str, object], revisi
         raise ValueError("publication record release identity disagrees")
     if record["sourceRevision"] != revision:
         raise ValueError("publication record source revision disagrees")
-    if record["skillFilename"] != expected_skill or "/releases/download/%s/%s" % (expected_tag, expected_skill) not in record["skillUrl"]:
+    if record["skillFilename"] != expected_skill or record["skillUrl"] != expected_skill_url:
         raise ValueError("publication record skill destination disagrees")
-    if record["releaseUrl"].endswith("/latest") or "/releases/tag/%s" % expected_tag not in record["releaseUrl"]:
+    if record["releaseUrl"] != expected_release_url:
         raise ValueError("publication record release destination is not exact")
     if record["packages"] != expected_publication_packages(metadata):
         raise ValueError("publication record package inventory disagrees")

@@ -20,6 +20,7 @@ sys.path.insert(0, str(HERE))
 
 from interface_contract import (
     BEGIN_MARKER,
+    bundle_publication,
     END_MARKER,
     InterfaceContractError,
     emit_consumer_contract,
@@ -121,6 +122,17 @@ class InterfaceCanonTests(unittest.TestCase):
             self.assertEqual("release", publication_status("2.0.0"))
         with mock.patch.dict("os.environ", {"GITHUB_REF_TYPE": "tag", "GITHUB_REF_NAME": "v2.0.0"}, clear=True):
             self.assertEqual("release", publication_status("2.0.0"))
+
+    def test_third_party_bundle_never_claims_formal_release_checksums(self):
+        owned = {"affiliation": {"ownership": "shruggietech-owned"}}
+        third_party = {"affiliation": {"ownership": "third-party"}}
+        with mock.patch.dict("os.environ", {"GITHUB_REF": "refs/tags/v2.0.0"}, clear=True):
+            publication, checksums = bundle_publication("2.0.0", owned)
+            self.assertEqual("release", publication["status"])
+            self.assertEqual("SHA256SUMS", checksums["release_checksums"])
+            publication, checksums = bundle_publication("2.0.0", third_party)
+            self.assertEqual("candidate", publication["status"])
+            self.assertIsNone(checksums["release_checksums"])
 
     def test_every_production_brand_resolves_without_identity_mutation(self):
         for brand_path in sorted((ROOT / "brands").glob("*/brand.json")):

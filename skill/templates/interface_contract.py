@@ -160,6 +160,22 @@ def publication_status(version):
     return "release" if ref == "refs/tags/%s" % exact_tag or (ref_type == "tag" and ref_name == exact_tag) else "candidate"
 
 
+def bundle_publication(version, brand):
+    affiliation = brand.get("affiliation")
+    _require(isinstance(affiliation, dict), "bundle publication requires brand affiliation")
+    ownership = affiliation.get("ownership")
+    _require(ownership in {"shruggietech-owned", "third-party"},
+             "bundle publication requires explicit supported ownership")
+    status = publication_status(version)
+    if ownership == "third-party":
+        status = "candidate"
+    return (
+        {"status": status, "version": version, "tag": "v%s" % version},
+        {"algorithm": "sha256", "manifest": "manifest.json",
+         "release_checksums": "SHA256SUMS" if status == "release" else None},
+    )
+
+
 def source_revision(root=None):
     explicit = os.environ.get("BRANDBUILDER_SOURCE_REVISION") or os.environ.get("GITHUB_SHA")
     if explicit:
@@ -789,15 +805,14 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
     _require(impact["brandbuilder_version"] == metadata["version"],
              "release impact BrandBuilder version disagrees with skill metadata")
     package = package_identity(brand["slug"], versions["brand_version"], metadata["version"])
+    publication, checksum_authority = bundle_publication(metadata["version"], brand)
     bundle = {
         "schema_version": 1,
         "package": package,
         "versions": versions,
         "source_revision": source_revision(),
-        "publication": {"status": publication_status(metadata["version"]),
-                        "version": metadata["version"], "tag": "v%s" % metadata["version"]},
-        "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json",
-                               "release_checksums": "SHA256SUMS"},
+        "publication": publication,
+        "checksum_authority": checksum_authority,
     }
     _write_json(enforcement / "bundle.json", bundle)
     consumer_core = {
@@ -969,6 +984,11 @@ def verify_consumer_contract(kit):
         _require(_read_json(_contained_kit_file(kit, authority["bundle"])) == contract["bundle"],
                  "consumer bundle authority disagrees")
         _require(contract["bundle"]["versions"] == contract["versions"], "consumer bundle versions disagree")
+        expected_release_checksums = (
+            "SHA256SUMS" if contract["bundle"]["publication"]["status"] == "release" else None
+        )
+        _require(contract["bundle"]["checksum_authority"]["release_checksums"] == expected_release_checksums,
+                 "consumer bundle release checksum authority disagrees with publication status")
         impact = load_release_impact(_contained_kit_file(kit, authority["release_impact"]),
                                      _contained_kit_file(kit, "enforcement/release-impact.schema.json"))
         _require(impact["brandbuilder_version"] == contract["versions"]["compiler_version"],

@@ -8,10 +8,10 @@
 
 ## Contract and regression evidence
 
-- `python skill/templates/test_interface_contract.py`: 15 passed.
+- `python skill/templates/test_interface_contract.py`: 16 passed.
 - `python skill/templates/test_documentation_contract.py`: 4 passed.
 - `python skill/templates/test_conformance.py`: 11 passed.
-- `python scripts/test_release_contract.py`: 22 passed.
+- `python scripts/test_release_contract.py`: 23 passed.
 - `python scripts/test_package_release.py`: 8 passed.
 - `python scripts/test_prepare_site.py`: 36 passed.
 - `python scripts/test_publication_workflow.py`: 17 passed.
@@ -37,7 +37,7 @@
 - `npx --yes pnpm@10.28.2 --dir site build`: passed, producing 95 static routes.
 - `npx --yes pnpm@10.28.2 --dir site test`: 12 Node contract tests passed, followed by production-browser verification of 90 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations.
 - The generated publication record is a candidate, names exact v2.0.0 release destinations, contains the source revision, and contains no moving `releases/latest` destination.
-- After review remediation, the seven release-authorized kits built successfully in the aggregate run, I Heart PR Tours built successfully with the approved portable proof artifact and exact Node.js 24.11.0 renderer, the 95-page export passed again, and all 90 HTML routes passed desktop/mobile verification with zero WCAG 2.1 AA violations.
+- After review remediation, all eight site kits built together with zero reported problems using the approved portable proof artifact and exact Node.js 24.11.0 renderer. The prior corrective head also produced the 95-page export and passed all 90 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations.
 
 ## Visual and identity evidence
 
@@ -61,6 +61,7 @@
 - Immutable kit identity: #235.
 - All five issues are in the `shruggie-brand Delivery` project under the Phase 16 milestone. The program and slice issues are `In progress`; #222, #233, #234, and #235 carry `Slice: S043`.
 - Pull request #238 references all five issues. The first bounded Codex review reported that `SHA256SUMS` was declared but not uploaded and that the publication package inventory was not checked against the release-authorized set. Both findings now have fail-closed regression coverage and implementation fixes.
+- The second bounded review found that a public third-party showcase could still claim formal release checksum coverage and that publication URL validation accepted non-authoritative lookalike hosts. Bundle generation now keeps third-party packages in candidate state with no external release-checksum claim, and preflight requires exact canonical GitHub release and skill URLs.
 
 ## Pending hosted completion
 

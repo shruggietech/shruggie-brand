@@ -50,7 +50,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
     distribution = "enforcement/distributions/shruggie-brandbuilder-2.0.0.skill"
     versions = {"brand_version": version, "canon_version": canon, "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0"}
     package = {"id": "%s-brand-%s-bb2.0.0" % (slug, version), "filename": "%s-brand-%s-bb2.0.0.zip" % (slug, version), "brand_slug": slug, "brand_version": version, "brandbuilder_version": "2.0.0"}
-    kit_bundle = {"schema_version": 1, "package": package, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": "SHA256SUMS"}}
+    kit_bundle = {"schema_version": 1, "package": package, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": None}}
     values = {
         "brand.json": json.dumps(brand).encode("utf-8"),
         "VERIFY.md": b"verification",
@@ -194,6 +194,12 @@ class ReleaseContractTests(unittest.TestCase):
             self.assertEqual("release", release_contract.verify_publication_record(path, metadata, revision, require_release=True)["status"])
             path.write_text(json.dumps(dict(released, releaseUrl="https://github.com/ShruggieTech/shruggie-brand/releases/latest")), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "not exact"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+            path.write_text(json.dumps(dict(released, releaseUrl="https://example.com/releases/tag/v2.0.0")), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "not exact"):
+                release_contract.verify_publication_record(path, metadata, revision, require_release=True)
+            path.write_text(json.dumps(dict(released, skillUrl="https://example.com/releases/download/v2.0.0/shruggie-brandbuilder-2.0.0.skill")), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "skill destination disagrees"):
                 release_contract.verify_publication_record(path, metadata, revision, require_release=True)
 
     def test_publication_record_requires_exact_canonical_package_inventory(self):
@@ -409,6 +415,32 @@ class ReleaseContractTests(unittest.TestCase):
                 release_contract.verify_brand_archive(
                     path, "fragcap", "1.1.0", expected_canon="1.1.2"
                 )
+
+    def test_candidate_archive_rejects_release_checksum_claim(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+            entries = brand_archive_entries()
+            bundle = json.loads(entries["enforcement/bundle.json"].decode("utf-8"))
+            bundle["checksum_authority"]["release_checksums"] = "SHA256SUMS"
+            bundle_bytes = json.dumps(bundle).encode("utf-8")
+            entries["enforcement/bundle.json"] = bundle_bytes
+            consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+            consumer["bundle"] = bundle
+            for item in consumer["provenance"]:
+                if item["path"] == "enforcement/bundle.json":
+                    item["bytes"] = len(bundle_bytes)
+                    item["sha256"] = hashlib.sha256(bundle_bytes).hexdigest()
+            replace_consumer(entries, consumer)
+            manifest = json.loads(entries["manifest.json"].decode("utf-8"))
+            for item in manifest["files"]:
+                if item["path"] == "enforcement/bundle.json":
+                    item["bytes"] = len(bundle_bytes)
+                    item["sha256"] = hashlib.sha256(bundle_bytes).hexdigest()
+            entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
+            write_zip(path, entries)
+
+            with self.assertRaisesRegex(ValueError, "release checksum authority disagrees"):
+                release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
 
     def test_production_archive_rejects_coordinated_recovery_version_drift(self):
         with tempfile.TemporaryDirectory() as tmp:

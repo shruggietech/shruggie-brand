@@ -34,7 +34,7 @@ The identity changes if either brand identity or BrandBuilder changes. It does n
 | `versions` | object | Brand, BrandBuilder, canon, interface canon, recipes, Web/React adapter, and egui adapter versions |
 | `source_revision` | full Git SHA | Exact build revision |
 | `release` | object | Exact formal version and tag |
-| `checksum_authority` | object | Algorithm, checksum manifest path, and verification command |
+| `checksum_authority` | object | Algorithm and internal manifest path; `release_checksums` is `SHA256SUMS` only for a formal release package and null for candidates or non-release showcases |
 
 The record is generated into `enforcement/bundle.json`. The manifest, consumer contract, hosted registry, release archive, and recovery fields reference the same package identity.
 

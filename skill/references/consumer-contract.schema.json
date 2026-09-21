@@ -91,7 +91,7 @@
         "versions": {"$ref": "#/$defs/version_record"},
         "source_revision": {"type": "string", "pattern": "^[0-9a-f]{40,64}$"},
         "publication": {"type": "object", "required": ["status", "version", "tag"], "properties": {"status": {"enum": ["candidate", "release"]}, "version": {"$ref": "#/$defs/semver"}, "tag": {"type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}}, "additionalProperties": false},
-        "checksum_authority": {"type": "object", "required": ["algorithm", "manifest", "release_checksums"], "properties": {"algorithm": {"const": "sha256"}, "manifest": {"const": "manifest.json"}, "release_checksums": {"const": "SHA256SUMS"}}, "additionalProperties": false}
+        "checksum_authority": {"type": "object", "required": ["algorithm", "manifest", "release_checksums"], "properties": {"algorithm": {"const": "sha256"}, "manifest": {"const": "manifest.json"}, "release_checksums": {"type": ["string", "null"], "enum": ["SHA256SUMS", null]}}, "additionalProperties": false}
       },
       "additionalProperties": false
     },
