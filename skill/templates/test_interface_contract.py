@@ -257,7 +257,7 @@ class ConsumerContractTests(unittest.TestCase):
             (skill / "node_modules" / "package" / "host.js").write_text("host state\n", encoding="utf-8")
             (skill / "templates" / "__pycache__" / "host.pyc").write_bytes(b"host state")
             destination = root / "recovery.skill"
-            with mock.patch.dict("os.environ", {}, clear=True):
+            with mock.patch.dict("os.environ", {"GITHUB_SHA": "c" * 40}, clear=True):
                 first = write_deterministic_skill_bundle(destination, skill_root=skill)
                 (skill / "node_modules" / "package" / "host.js").write_text("changed host state\n", encoding="utf-8")
                 second = write_deterministic_skill_bundle(destination, skill_root=skill)
@@ -271,9 +271,15 @@ class ConsumerContractTests(unittest.TestCase):
             skill = Path(temporary) / "consumer" / ".agents" / "skills" / "shruggie-brandbuilder"
             skill.mkdir(parents=True)
             (skill / "SOURCE_REVISION").write_text("b" * 40 + "\n", encoding="utf-8")
-            with mock.patch.dict("os.environ", {}, clear=True), mock.patch("interface_contract.subprocess.run") as run:
+            with mock.patch.dict("os.environ", {"GITHUB_SHA": "c" * 40}, clear=True), mock.patch("interface_contract.subprocess.run") as run:
                 self.assertEqual("b" * 40, source_revision(skill))
             run.assert_not_called()
+            with mock.patch.dict(
+                "os.environ",
+                {"BRANDBUILDER_SOURCE_REVISION": "d" * 40, "GITHUB_SHA": "c" * 40},
+                clear=True,
+            ):
+                self.assertEqual("d" * 40, source_revision(skill))
 
     def test_source_revision_does_not_adopt_consumer_repository_head(self):
         with tempfile.TemporaryDirectory() as temporary:

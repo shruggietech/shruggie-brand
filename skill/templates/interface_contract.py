@@ -188,7 +188,7 @@ def bundle_publication(version, brand):
 
 
 def source_revision(root=None):
-    explicit = os.environ.get("BRANDBUILDER_SOURCE_REVISION") or os.environ.get("GITHUB_SHA")
+    explicit = os.environ.get("BRANDBUILDER_SOURCE_REVISION")
     if explicit:
         revision = explicit.strip().lower()
         _require(SOURCE_REVISION.fullmatch(revision), "BrandBuilder source revision must be an exact Git object id")
@@ -206,6 +206,11 @@ def source_revision(root=None):
         and (checkout_root / "scripts" / "release_contract.py").is_file()
     )
     _require(authoritative_checkout, "BrandBuilder source revision is unavailable")
+    github_revision = os.environ.get("GITHUB_SHA")
+    if github_revision:
+        revision = github_revision.strip().lower()
+        _require(SOURCE_REVISION.fullmatch(revision), "GitHub source revision must be an exact Git object id")
+        return revision
     completed = subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=str(checkout_root),
         capture_output=True, text=True, **hidden_process_kwargs()
