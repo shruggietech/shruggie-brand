@@ -257,9 +257,10 @@ class ConsumerContractTests(unittest.TestCase):
             (skill / "node_modules" / "package" / "host.js").write_text("host state\n", encoding="utf-8")
             (skill / "templates" / "__pycache__" / "host.pyc").write_bytes(b"host state")
             destination = root / "recovery.skill"
-            first = write_deterministic_skill_bundle(destination, skill_root=skill)
-            (skill / "node_modules" / "package" / "host.js").write_text("changed host state\n", encoding="utf-8")
-            second = write_deterministic_skill_bundle(destination, skill_root=skill)
+            with mock.patch.dict("os.environ", {}, clear=True):
+                first = write_deterministic_skill_bundle(destination, skill_root=skill)
+                (skill / "node_modules" / "package" / "host.js").write_text("changed host state\n", encoding="utf-8")
+                second = write_deterministic_skill_bundle(destination, skill_root=skill)
             self.assertEqual(first, second)
             with zipfile.ZipFile(destination) as archive:
                 self.assertEqual({"SKILL.md", "SOURCE_REVISION", "references/canon.json"}, set(archive.namelist()))
