@@ -477,9 +477,82 @@ class ReleaseContractTests(unittest.TestCase):
                         path,
                         "fragcap",
                         "1.1.0",
+                        expected_revision="a" * 40,
                         expected_release_version="2.0.0",
                         require_release=True,
                     )
+
+    def test_release_archive_requires_source_revision(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+            entries = brand_archive_entries()
+            bundle = json.loads(entries["enforcement/bundle.json"].decode("utf-8"))
+            bundle["publication"]["status"] = "release"
+            bundle["checksum_authority"]["release_checksums"] = "SHA256SUMS"
+            replace_bundle(entries, bundle)
+            write_zip(path, entries)
+
+            with self.assertRaisesRegex(ValueError, "expected source revision is required"):
+                release_contract.verify_brand_archive(
+                    path,
+                    "fragcap",
+                    "1.1.0",
+                    expected_release_version="2.0.0",
+                    require_release=True,
+                )
+            with self.assertRaisesRegex(ValueError, "expected source revision is required"):
+                release_contract.verify_release_directory(
+                    Path(tmp),
+                    {},
+                    require_release=True,
+                )
+
+    def test_production_archive_rejects_coordinated_release_impact_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+            entries = brand_archive_entries()
+            canonical = json.loads(entries["enforcement/release-impact.json"].decode("utf-8"))
+            tampered = json.loads(json.dumps(canonical))
+            tampered["surfaces"]["palette"]["summary"] = "Unapproved migration guidance."
+            tampered_bytes = json.dumps(tampered).encode("utf-8")
+            entries["enforcement/release-impact.json"] = tampered_bytes
+
+            distribution = "enforcement/distributions/shruggie-brandbuilder-2.0.0.skill"
+            recovery_buffer = io.BytesIO()
+            with zipfile.ZipFile(io.BytesIO(entries[distribution])) as source, zipfile.ZipFile(recovery_buffer, "w") as target:
+                for name in source.namelist():
+                    target.writestr(name, tampered_bytes if name == "references/release-impact.json" else source.read(name))
+            recovery_bytes = recovery_buffer.getvalue()
+            entries[distribution] = recovery_bytes
+
+            consumer = json.loads(entries["enforcement/consumer-contract.json"].decode("utf-8"))
+            consumer["recovery"]["sha256"] = hashlib.sha256(recovery_bytes).hexdigest()
+            for item in consumer["provenance"]:
+                if item["path"] == "enforcement/release-impact.json":
+                    item["bytes"] = len(tampered_bytes)
+                    item["sha256"] = hashlib.sha256(tampered_bytes).hexdigest()
+                elif item["path"] == distribution:
+                    item["bytes"] = len(recovery_bytes)
+                    item["sha256"] = hashlib.sha256(recovery_bytes).hexdigest()
+            replace_consumer(entries, consumer)
+            manifest = json.loads(entries["manifest.json"].decode("utf-8"))
+            for item in manifest["files"]:
+                if item["path"] == "enforcement/release-impact.json":
+                    item["bytes"] = len(tampered_bytes)
+                    item["sha256"] = hashlib.sha256(tampered_bytes).hexdigest()
+                elif item["path"] == distribution:
+                    item["bytes"] = len(recovery_bytes)
+                    item["sha256"] = hashlib.sha256(recovery_bytes).hexdigest()
+            entries["manifest.json"] = json.dumps(manifest).encode("utf-8")
+            write_zip(path, entries)
+
+            with self.assertRaisesRegex(ValueError, "differs from the canonical release record"):
+                release_contract.verify_brand_archive(
+                    path,
+                    "fragcap",
+                    "1.1.0",
+                    expected_release_impact=canonical,
+                )
 
     def test_production_archive_rejects_coordinated_recovery_version_drift(self):
         with tempfile.TemporaryDirectory() as tmp:

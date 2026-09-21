@@ -300,6 +300,7 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                          expected_canon: Optional[str] = None,
                          expected_revision: Optional[str] = None,
                          expected_release_version: Optional[str] = None,
+                         expected_release_impact: Optional[Mapping[str, object]] = None,
                          require_release: bool = False,
                          root: Optional[Path] = None) -> None:
     entries = archive_entries(path)
@@ -377,6 +378,12 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         declared_brand = _read_json(archive, authority["brand_source"], path.name)
         if declared_brand != brand:
             raise ValueError("%s consumer authority brand_source differs from brand.json" % path.name)
+        delivered_release_impact = _read_json(archive, authority["release_impact"], path.name)
+        canonical_release_impact = expected_release_impact
+        if canonical_release_impact is None and root is not None:
+            canonical_release_impact = json.loads(read_text(root / "skill" / "references" / "release-impact.json"))
+        if canonical_release_impact is not None and delivered_release_impact != canonical_release_impact:
+            raise ValueError("%s release impact differs from the canonical release record" % path.name)
         expected_brand = {
             "slug": brand.get("slug"),
             "title": brand.get("title"),
@@ -408,6 +415,8 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         expected_release_checksums = "SHA256SUMS" if publication.get("status") == "release" else None
         if checksum_authority.get("release_checksums") != expected_release_checksums:
             raise ValueError("%s bundle release checksum authority disagrees with publication status" % path.name)
+        if require_release and expected_revision is None:
+            raise ValueError("%s expected source revision is required" % path.name)
         if expected_revision is not None and bundle.get("source_revision") != expected_revision:
             raise ValueError("%s bundle source revision disagrees" % path.name)
         if require_release:
@@ -582,6 +591,8 @@ def verify_release_directory(release_dir: Path, metadata: Mapping[str, object],
                              notes: Optional[Path] = None,
                              expected_revision: Optional[str] = None,
                              require_release: bool = False) -> None:
+    if require_release and expected_revision is None:
+        raise ValueError("expected source revision is required for exact-release verification")
     release_dir = release_dir.resolve()
     expected = expected_assets(metadata)
     allowed = set(expected)
@@ -615,6 +626,7 @@ def verify_release_directory(release_dir: Path, metadata: Mapping[str, object],
                 expected_canon=str(metadata["canon_version"]),
                 expected_revision=expected_revision,
                 expected_release_version=str(metadata["version"]),
+                expected_release_impact=metadata["release_impact"],
                 require_release=require_release,
                 root=root,
             )
