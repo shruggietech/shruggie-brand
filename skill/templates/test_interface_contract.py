@@ -115,20 +115,22 @@ class InterfaceCanonTests(unittest.TestCase):
     def test_publication_status_requires_the_exact_version_tag(self):
         with mock.patch.dict("os.environ", {}, clear=True):
             self.assertEqual("candidate", publication_status("2.0.0"))
-        with mock.patch.dict("os.environ", {"GITHUB_REF": "refs/heads/main"}, clear=True):
+        with mock.patch.dict("os.environ", {"GITHUB_REPOSITORY": "ShruggieTech/shruggie-brand", "GITHUB_REF": "refs/heads/main"}, clear=True):
             self.assertEqual("candidate", publication_status("2.0.0"))
-        with mock.patch.dict("os.environ", {"GITHUB_REF": "refs/tags/v2.0.1"}, clear=True):
+        with mock.patch.dict("os.environ", {"GITHUB_REPOSITORY": "ShruggieTech/shruggie-brand", "GITHUB_REF": "refs/tags/v2.0.1"}, clear=True):
             self.assertEqual("candidate", publication_status("2.0.0"))
-        with mock.patch.dict("os.environ", {"GITHUB_REF": "refs/tags/v2.0.0"}, clear=True):
+        with mock.patch.dict("os.environ", {"GITHUB_REPOSITORY": "consumer/example", "GITHUB_REF": "refs/tags/v2.0.0"}, clear=True):
+            self.assertEqual("candidate", publication_status("2.0.0"))
+        with mock.patch.dict("os.environ", {"GITHUB_REPOSITORY": "ShruggieTech/shruggie-brand", "GITHUB_REF": "refs/tags/v2.0.0"}, clear=True):
             self.assertEqual("release", publication_status("2.0.0"))
-        with mock.patch.dict("os.environ", {"GITHUB_REF_TYPE": "tag", "GITHUB_REF_NAME": "v2.0.0"}, clear=True):
+        with mock.patch.dict("os.environ", {"GITHUB_REPOSITORY": "ShruggieTech/shruggie-brand", "GITHUB_REF_TYPE": "tag", "GITHUB_REF_NAME": "v2.0.0"}, clear=True):
             self.assertEqual("release", publication_status("2.0.0"))
 
     def test_only_release_authorized_bundles_claim_formal_release_checksums(self):
         owned = {"slug": "shruggietech", "affiliation": {"ownership": "shruggietech-owned"}}
         authorized_third_party = {"slug": "eso-weave", "affiliation": {"ownership": "third-party"}}
         showcase_only = {"slug": "i-heart-pr-tours", "affiliation": {"ownership": "third-party"}}
-        with mock.patch.dict("os.environ", {"GITHUB_REF": "refs/tags/v2.0.0"}, clear=True):
+        with mock.patch.dict("os.environ", {"GITHUB_REPOSITORY": "ShruggieTech/shruggie-brand", "GITHUB_REF": "refs/tags/v2.0.0"}, clear=True):
             publication, checksums = bundle_publication("2.0.0", owned)
             self.assertEqual("release", publication["status"])
             self.assertEqual("SHA256SUMS", checksums["release_checksums"])

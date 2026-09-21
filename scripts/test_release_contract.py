@@ -483,6 +483,23 @@ class ReleaseContractTests(unittest.TestCase):
                         require_release=True,
                     )
 
+    def test_candidate_archive_binds_publication_version_and_tag(self):
+        cases = (
+            ("version", "9.9.9", "publication version disagrees"),
+            ("tag", "v9.9.9", "publication tag disagrees"),
+        )
+        for field, value, message in cases:
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"
+                entries = brand_archive_entries()
+                bundle = json.loads(entries["enforcement/bundle.json"].decode("utf-8"))
+                bundle["publication"][field] = value
+                replace_bundle(entries, bundle)
+                write_zip(path, entries)
+
+                with self.assertRaisesRegex(ValueError, message):
+                    release_contract.verify_brand_archive(path, "fragcap", "1.1.0")
+
     def test_release_archive_requires_source_revision(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "fragcap-brand-1.1.0-bb2.0.0.zip"

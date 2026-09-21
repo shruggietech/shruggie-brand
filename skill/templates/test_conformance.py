@@ -201,6 +201,16 @@ class GeneratedFixtureTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "bundle source revision is unavailable"):
                 generate_conformance(kit / "brand.json", kit)
 
+    def test_verification_rejects_source_revision_that_disagrees_with_bundle(self):
+        with tempfile.TemporaryDirectory(prefix="conformance-") as temporary:
+            kit = minimal_kit(Path(temporary))
+            generate_conformance(kit / "brand.json", kit)
+            consumer_path = kit / "enforcement" / "consumer-contract.json"
+            consumer = json.loads(consumer_path.read_text(encoding="utf-8"))
+            consumer["bundle"]["source_revision"] = "b" * 40
+            write_json(consumer_path, consumer)
+            self.assertIn("source revision disagrees", " ".join(verify_conformance(kit)))
+
     def test_tampering_and_missing_files_fail_verification(self):
         with tempfile.TemporaryDirectory(prefix="conformance-") as temporary:
             kit = minimal_kit(Path(temporary))

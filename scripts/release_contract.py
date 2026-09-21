@@ -418,6 +418,11 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             raise ValueError("%s bundle versions disagree" % path.name)
         publication = bundle.get("publication") or {}
         checksum_authority = bundle.get("checksum_authority") or {}
+        compiler_version = versions.get("compiler_version")
+        if publication.get("version") != compiler_version:
+            raise ValueError("%s bundle publication version disagrees" % path.name)
+        if publication.get("tag") != "v%s" % compiler_version:
+            raise ValueError("%s bundle publication tag disagrees" % path.name)
         expected_release_checksums = "SHA256SUMS" if publication.get("status") == "release" else None
         if checksum_authority.get("release_checksums") != expected_release_checksums:
             raise ValueError("%s bundle release checksum authority disagrees with publication status" % path.name)

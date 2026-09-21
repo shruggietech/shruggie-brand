@@ -269,6 +269,7 @@ def verify_conformance(kit_dir):
         policy = load_policy()
         manifest = _read_json(kit / "conformance" / "manifest.json")
         brand = _read_json(kit / "brand.json")
+        consumer = _read_json(kit / "enforcement" / "consumer-contract.json")
         web = _read_json(kit / "web" / "adapter.json")
         egui = _read_json(kit / "native" / "egui" / "adapter.json")
         if manifest.get("conformance_contract_version") != policy["contract_version"]:
@@ -285,6 +286,8 @@ def verify_conformance(kit_dir):
             problems.append("conformance diagnostic classes disagree")
         if not SOURCE_REVISION.fullmatch(str(manifest.get("source_revision", ""))):
             problems.append("conformance source revision is missing or inexact")
+        if manifest.get("source_revision") != (consumer.get("bundle") or {}).get("source_revision"):
+            problems.append("conformance source revision disagrees with the consumer bundle")
         for track in manifest.get("host_tracks") or []:
             if track.get("status") != "supported":
                 problems.append("%s reference status is not supported" % track.get("id", "unknown"))

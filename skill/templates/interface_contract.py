@@ -162,11 +162,13 @@ def validate_version_policy(policy):
 
 
 def publication_status(version):
+    repository = os.environ.get("GITHUB_REPOSITORY", "").strip().lower()
     ref = os.environ.get("GITHUB_REF", "").strip()
     ref_type = os.environ.get("GITHUB_REF_TYPE", "").strip()
     ref_name = os.environ.get("GITHUB_REF_NAME", "").strip()
     exact_tag = "v%s" % version
-    return "release" if ref == "refs/tags/%s" % exact_tag or (ref_type == "tag" and ref_name == exact_tag) else "candidate"
+    exact_tag_ref = ref == "refs/tags/%s" % exact_tag or (ref_type == "tag" and ref_name == exact_tag)
+    return "release" if repository == "shruggietech/shruggie-brand" and exact_tag_ref else "candidate"
 
 
 def bundle_publication(version, brand):
