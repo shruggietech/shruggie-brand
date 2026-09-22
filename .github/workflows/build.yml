@@ -18,7 +18,7 @@ jobs:
   python-38-compatibility:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
@@ -53,7 +53,7 @@ jobs:
   approved-identity-proofs:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
@@ -83,7 +83,7 @@ jobs:
     needs: approved-identity-proofs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
@@ -250,7 +250,7 @@ jobs:
     needs: [build, verified-build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6.0.2
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
