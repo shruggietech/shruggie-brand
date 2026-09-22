@@ -30,7 +30,7 @@
 
 - [x] T006 [US2] Install both pinned browser revisions without cross-client garbage collection in `.github/workflows/build.yml`.
 - [x] T007 [US2] Run the Python publication-workflow contract and full repository validation, recording results in `specs/045-dependency-release/evidence.md`.
-- [ ] T008 [US2] Align automation labels with the existing taxonomy in `.github/dependabot.yml` and acknowledge existing bot PR comments.
+- [x] T008 [US2] Align automation labels with the existing taxonomy in `.github/dependabot.yml` and acknowledge existing bot PR comments.
 
 ## Phase 5: User Story 3 - Reviewed 2.0.1 release (P2)
 
@@ -39,7 +39,7 @@
 **Independent Test**: PR checks and review threads are satisfied; after owner merge, tag-run release and assets verify.
 
 - [x] T009 [US3] Update the 2.0.1 changelog and dated decision entry in `CHANGELOG.md` and complete release evidence in `specs/045-dependency-release/evidence.md`.
-- [ ] T010 [US3] Commit, push, and open the official S045 pull request with links to #225 and #226.
+- [x] T010 [US3] Commit, push, and open the official S045 pull request with links to #225 and #226.
 - [ ] T011 [US3] Process initial Codex/security review and at most one additional Codex request; resolve every actionable review thread on the S045 PR.
 - [ ] T012 [US3] Confirm all required PR checks green, then ask the owner for final review and merge, recording the pending tag handoff in `specs/045-dependency-release/evidence.md`.
 - [ ] T013 [US3] After owner merge, tag the exact merged main commit `v2.0.1` and verify the official release, assets, checksums, Pages deployment, and disposition of #225/#226.
