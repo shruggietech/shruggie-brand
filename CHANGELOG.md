@@ -4,16 +4,20 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
-## [2.0.1] - 2026-09-21
+## [2.0.1] - 2026-09-22
 
 ### Changed
 
 - On 2026-09-21, separated fine-pointer native control density from conservative coarse, mixed, unknown, and touch interaction targets, retaining the 44-unit target where imprecise input may occur while deriving compact desktop height from governed target and hit-slop values.
+- On 2026-09-22, integrated the pending site runtime and tooling updates from Dependabot PRs #225 and #226, paired Fumadocs Core and UI with the updated MDX package, and kept the verified release candidate on one reproducible dependency lockfile.
+- On 2026-09-22, required CI to install the browser revisions for both the pinned Python and updated Node Playwright clients, preserving full-tier PDF and archive evidence after the site tooling update.
 
 ### Fixed
 
 - Corrected the generated egui density regression for issue #239 and S044: ordinary desktop buttons, selectors, switches, checkboxes, and radio-style controls now use restrained shared padding and 28-point comfortable or 22.96-point compact sizing, text scaling can grow controls without clipping, Live Log-style rows use at most 2 points of compact vertical spacing, and adapter 1.0.1 preserves 44-point conservative targets.
 - Stabilized conformance iframe measurement by waiting for the selected profile document to finish loading before browser geometry assertions run.
+- Corrected the release candidate's incompatible Fumadocs MDX/Core pairing and Playwright browser mismatch discovered while integrating S045 dependencies.
+- Corrected Dependabot's site and generator label names to match the repository's existing labels.
 
 ## [2.0.0] - 2026-09-20
 
