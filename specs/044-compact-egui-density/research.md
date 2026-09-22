@@ -34,8 +34,8 @@
 
 ## R5. Adapter versioning
 
-**Decision**: Publish the correction as egui adapter 1.0.1 and expand compiler-major-2 compatibility to accept 1.0.1.
+**Decision**: Publish the correction as egui adapter 1.0.1, expand compiler-major-2 compatibility to accept 1.0.1, and advance the BrandBuilder compiler and immutable bundle identity to 2.0.1.
 
-**Rationale**: The version policy explicitly classifies generated Rust fixes that preserve public symbols as patch changes. Consumers must be able to distinguish the corrected bytes from 1.0.0.
+**Rationale**: The version policy explicitly classifies generated Rust fixes that preserve public symbols as patch changes. Consumers must be able to distinguish the corrected adapter bytes from 1.0.0, and changed generator bytes require a new immutable `bb2.0.1` bundle identity so two implementations never share one package filename.
 
 **Alternatives considered**: Keeping 1.0.0 would give different immutable adapter bytes the same identity. A minor bump is unnecessary because no public helper or capability is added.

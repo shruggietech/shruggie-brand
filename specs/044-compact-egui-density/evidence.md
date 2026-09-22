@@ -22,11 +22,13 @@
 10. Focused verification passed three egui Python tests and ten generated Rust tests, 18 interface-contract tests, five component tests, 13 conformance tests, and the Markdown audit.
 11. The complete Python workflow suite passed. Its pipeline suite reported 68 passing tests under the repository-pinned Node 24.11.0 renderer after 32 approved identity proofs were exported with the same renderer version.
 12. The ESO Weave production kit and the repository-wide eight-kit build completed cleanly. Every kit reported zero verifier problems, zero image-QC problems, zero PDF-QC problems, zero pagination splits, and zero glyph failures. ESO Weave reported eight glyph checks with four expected warnings.
-13. Release packaging and certification verified nine v2.0.0 assets and generated validated release notes. The capability probe reported the full tier, including a launching Chromium runtime.
+13. Initial release packaging and certification verified nine v2.0.0 assets and generated validated release notes. The capability probe reported the full tier, including a launching Chromium runtime.
 14. Site lint and TypeScript validation passed, the static build emitted 95 pages, and 12 Node contract tests passed. The initial browser run exposed a deterministic navigation race in the verifier because it measured an iframe while the selected conformance profile was reloading it.
 15. The verifier now waits for the selected profile URL and completed same-origin iframe document before measuring controls. The complete browser matrix then verified 90 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations.
 16. Publication audit found all eight kit markers and all eight site markers. Generated `skill/AGENTS.md` remained byte-stable at 22,519 bytes with body SHA `c64da837d302`.
 17. Cross-artifact analysis covered 11 functional requirements, five success criteria, and 20 tasks with no critical finding or constitution conflict.
+18. The single Codex review round completed against commit `511f8e2` and identified one P1 immutable-package issue: changed generator bytes still used the published `bb2.0.0` identity. The finding was accepted and corrected without requesting another review by advancing BrandBuilder, release impact, site publication metadata, release notes, and generated package expectations to 2.0.1 and `bb2.0.1`.
+19. Post-review verification passed 18 interface-contract tests, 27 release-contract tests, eight packaging tests, and 36 site-preparation tests. All eight production kits then rebuilt with zero reported problems under `bb2.0.1`; nine v2.0.1 release assets certified; site lint, TypeScript, the 95-page build, 12 Node contract tests, and the 90-route browser matrix passed with zero WCAG 2.1 AA violations.
 
 ## Verification results
 
@@ -38,6 +40,8 @@
 - Focused generator and native evidence: PASS.
 - Full Python contract and compatibility evidence: PASS.
 - Eight-kit production build and validation: PASS with zero reported problems.
-- Release contract, site lint/build/test, browser WCAG verification, publication audit, capability probe, and generated-agent stability: PASS.
+- Release contract for nine v2.0.1 assets, site lint/build/test, browser WCAG verification, publication audit, capability probe, and generated-agent stability: PASS.
 - Repository encoding, line-ending, generated-artifact exclusion, mojibake, and whitespace hygiene: PASS.
-- Pull request, one Codex review round, and hosted CI: Pending.
+- Pull request #240: Open.
+- Single Codex review round: Complete, with its one P1 finding resolved and no second review requested.
+- Hosted CI on the corrected head: Pending.

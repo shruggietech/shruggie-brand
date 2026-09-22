@@ -81,7 +81,7 @@
 
 **Purpose**: Publish the corrected adapter identity, verify production kits, and prepare the PR.
 
-- [x] T015 Bump the generated egui adapter to 1.0.1 in `skill/templates/gen_egui.py`, `skill/templates/egui-Cargo.lock`, and `skill/SKILL.md`, update compiler-major-2 compatibility in `skill/references/version-policy.json`, and align exact expectations in `skill/templates/test_egui_adapter.py` and `skill/templates/test_interface_contract.py`
+- [x] T015 Bump the generated egui adapter to 1.0.1 and BrandBuilder to 2.0.1 in `skill/templates/gen_egui.py`, `skill/templates/egui-Cargo.lock`, `skill/SKILL.md`, and release metadata, update compiler-major-2 compatibility in `skill/references/version-policy.json`, and align exact expectations in focused and release-contract tests
 - [x] T016 [P] Add the S044 correction and consumer regeneration note to `CHANGELOG.md` and `skill/CHANGELOG.md`
 - [x] T017 Re-run cross-artifact analysis and reconcile `specs/044-compact-egui-density/spec.md`, `plan.md`, `tasks.md`, contract, data model, quickstart, and implementation
 - [x] T018 Run focused generator/native tests, Python 3.8 compatibility tests, the full Python contract suite, Markdown audit, capability probe, all-kit build, release certification, generated-agent diff, site lint/build/test, and publication audit; record exact results in `specs/044-compact-egui-density/evidence.md`
