@@ -29,6 +29,7 @@ REQUIRED_HISTORY = {
     "1.2.0": ("third-party", "application-icon", "Fumadocs", "route descriptor"),
     "1.2.1": ("black-background", "Brotli"),
     "2.0.0": ("AppFrame", "environment", "immutable kit package", "release-backed", "Web/React adapter"),
+    "2.0.1": ("egui", "fine-pointer", "44-point", "iframe"),
 }
 MIGRATIONS = {
     "1.2.0": (
@@ -48,6 +49,12 @@ MIGRATIONS = {
         "and repin kits with v2.0.0 to receive canonical brand-plus-BrandBuilder package identities, "
         "exact release-backed publication facts, and generated migration guidance. Web/React and "
         "egui capabilities remain optional when those surfaces do not apply. Approved identity is unchanged."
+    ),
+    "2.0.1": (
+        "Existing kits need migration: **yes for native egui consumers**. Regenerate and repin kits with "
+        "v2.0.1 to receive the immutable bb2.0.1 package identity and egui adapter 1.0.1. Fine-pointer "
+        "controls use corrected compact density while touch, coarse, mixed, and unknown input profiles "
+        "retain 44-point targets. Approved identity is unchanged."
     ),
 }
 

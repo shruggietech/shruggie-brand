@@ -19,10 +19,10 @@ ROOT = Path(__file__).resolve().parents[1]
 class PackageReleaseTests(unittest.TestCase):
     def test_package_identity_changes_with_brandbuilder_not_brand_identity(self):
         first = package_release.package_identity("eso-weave", "1.0.0", "1.2.1")
-        second = package_release.package_identity("eso-weave", "1.0.0", "2.0.0")
+        second = package_release.package_identity("eso-weave", "1.0.0", "2.0.1")
         self.assertEqual(first["brand_version"], second["brand_version"])
         self.assertNotEqual(first["id"], second["id"])
-        self.assertEqual("eso-weave-brand-1.0.0-bb2.0.0.zip", second["filename"])
+        self.assertEqual("eso-weave-brand-1.0.0-bb2.0.1.zip", second["filename"])
 
     def test_tree_packaging_excludes_host_generated_dependency_and_cache_trees(self):
         with tempfile.TemporaryDirectory() as tmp:

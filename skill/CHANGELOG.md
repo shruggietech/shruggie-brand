@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.0.1 - 2026-09-21
+
+- Fixed native egui adapter density so fine-pointer desktop controls use compact shared sizing and near-contiguous row spacing, scaled text can grow controls, and coarse, mixed, unknown, or touch-capable input retains the governed 44-point target; consumers must regenerate and pin egui adapter 1.0.1.
+
 ## 2.0.0 - 2026-09-20
 
 - Added immutable kit package identities, exact release-backed publication metadata, generated bundle records, and consistent migration summaries.

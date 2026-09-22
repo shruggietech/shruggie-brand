@@ -4,6 +4,17 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-09-21
+
+### Changed
+
+- On 2026-09-21, separated fine-pointer native control density from conservative coarse, mixed, unknown, and touch interaction targets, retaining the 44-unit target where imprecise input may occur while deriving compact desktop height from governed target and hit-slop values.
+
+### Fixed
+
+- Corrected the generated egui density regression for issue #239 and S044: ordinary desktop buttons, selectors, switches, checkboxes, and radio-style controls now use restrained shared padding and 28-point comfortable or 22.96-point compact sizing, text scaling can grow controls without clipping, Live Log-style rows use at most 2 points of compact vertical spacing, and adapter 1.0.1 preserves 44-point conservative targets.
+- Stabilized conformance iframe measurement by waiting for the selected profile document to finish loading before browser geometry assertions run.
+
 ## [2.0.0] - 2026-09-20
 
 ### Added
@@ -185,7 +196,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 - Relicensed the brandbuilder code, templates, and reference documentation from proprietary terms to Apache-2.0 while reserving names and marks.
 
-[Unreleased]: https://github.com/ShruggieTech/shruggie-brand/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/ShruggieTech/shruggie-brand/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/ShruggieTech/shruggie-brand/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.2.1...v2.0.0
 [1.2.1]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/ShruggieTech/shruggie-brand/compare/v1.1.2...v1.2.0
