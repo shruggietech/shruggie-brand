@@ -179,6 +179,14 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("rsvg-convert", text)
         self.assertNotIn("librsvg", text)
 
+    def test_verified_build_installs_both_playwright_browser_revisions(self):
+        block = job_block(workflow_text(), "verified-build")
+        self.assertIn("PLAYWRIGHT_SKIP_BROWSER_GC: \"1\"", block)
+        self.assertIn("python -m playwright install chromium --with-deps", block)
+        self.assertIn("pnpm --dir site exec playwright install chromium --with-deps", block)
+        self.assertLess(block.index("python -m playwright install chromium --with-deps"),
+                        block.index("pnpm --dir site exec playwright install chromium --with-deps"))
+
     def test_artifacts_are_sha_qualified_and_hidden_files_follow_audit(self):
         text = workflow_text()
         for name in (

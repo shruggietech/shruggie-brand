@@ -25,7 +25,7 @@ updates:
           - "*"
     labels:
       - dependencies
-      - site
+      - "area: site"
   - package-ecosystem: pip
     directory: /
     schedule:
@@ -33,5 +33,4 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
-      - skill
-
+      - "area: generator"
