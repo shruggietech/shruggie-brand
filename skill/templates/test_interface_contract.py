@@ -327,7 +327,7 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual(4, first["schema_version"])
             self.assertEqual("1.1.0", first["versions"]["component_recipe_version"])
             self.assertEqual("1.1.0", first["versions"]["web_react_adapter_version"])
-            self.assertEqual("1.0.0", first["versions"]["egui_adapter_version"])
+            self.assertEqual("1.0.1", first["versions"]["egui_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertNotIn("adoption_status", first["compatibility"])
             expected_package = "shruggietech-brand-%s-bb2.0.0" % brand["version"]

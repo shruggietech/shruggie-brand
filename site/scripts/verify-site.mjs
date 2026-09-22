@@ -775,6 +775,15 @@ try {
         await profileButton.click();
         check(await profileButton.getAttribute('aria-pressed') === 'true', `${route} does not expose ${profile.id} as the selected profile`);
       }
+      await page.waitForFunction((profileId) => {
+        const element = document.querySelector('.conformance-frame');
+        if (!(element instanceof HTMLIFrameElement) || element.getAttribute('src')?.endsWith(`?profile=${profileId}`) !== true) return false;
+        try {
+          return element.contentDocument?.readyState === 'complete' && element.contentWindow?.location.search === `?profile=${profileId}`;
+        } catch {
+          return false;
+        }
+      }, profile.id);
       const frame = page.frameLocator('.conformance-frame');
       check(await frame.locator('#bb-conformance').getAttribute('data-brand') === record.slug, `${route} embeds the wrong generated specimen`);
       check(await frame.locator('#bb-conformance').getAttribute('data-contract-version') === record.contractVersion, `${route} specimen contract version disagrees`);

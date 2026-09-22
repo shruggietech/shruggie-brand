@@ -72,7 +72,7 @@
     {"dependent": "compiler", "dependent_major": 2, "dependency": "interface_canon", "supported": ["1.0.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "component_recipes", "supported": ["1.0.0", "1.1.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "web_react_adapter", "supported": ["1.0.0", "1.1.0"]},
-    {"dependent": "compiler", "dependent_major": 2, "dependency": "egui_adapter", "supported": ["1.0.0"]},
+    {"dependent": "compiler", "dependent_major": 2, "dependency": "egui_adapter", "supported": ["1.0.0", "1.0.1"]},
     {"dependent": "brand", "dependent_major": 1, "dependency": "brand_canon", "supported": ["1.1.2", "1.2.0", "1.2.1"]},
     {"dependent": "brand", "dependent_major": 1, "dependency": "interface_canon", "supported": ["1.0.0"]}
   ],

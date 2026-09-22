@@ -9,7 +9,7 @@ metadata:
   interface-canon: 1.0.0
   component-recipes: 1.1.0
   web-react-adapter: 1.1.0
-  egui-adapter: 1.0.0
+  egui-adapter: 1.0.1
   parent: ShruggieTech
 allowed-tools:
   - Read
