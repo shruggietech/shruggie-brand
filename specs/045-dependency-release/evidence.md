@@ -31,7 +31,7 @@
 
 ## Pending publication gates
 
-- Official S045 PR: [#241](https://github.com/shruggietech/shruggie-brand/pull/241). The automatic Codex code review completed without findings and left a thumbs-up reaction on the PR body. One additional `@codex security review` was requested; no further review rounds are authorized or planned.
+- Official S045 PR: [#241](https://github.com/shruggietech/shruggie-brand/pull/241). The automatic Codex code review completed without findings and left a thumbs-up reaction on the PR body. The one requested `@codex security review` also completed with no security issues. Neither review posted actionable threads. Exactly two review rounds were used, and no further round will be requested.
 - Both intake PRs have the existing `area: site` label and a response to Dependabot's missing-label comment linking #241. Their final close-as-superseded disposition waits for #241 to merge.
 - Confirm all required GitHub PR checks and external reviews are satisfied.
 - Owner performs final review and merge. Only then push the exact merged `v2.0.1` tag and observe official release publication, checksums, and Pages.
