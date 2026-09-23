@@ -11,6 +11,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - On 2026-09-21, separated fine-pointer native control density from conservative coarse, mixed, unknown, and touch interaction targets, retaining the 44-unit target where imprecise input may occur while deriving compact desktop height from governed target and hit-slop values.
 - On 2026-09-22, integrated the pending site runtime and tooling updates from Dependabot PRs #225 and #226, paired Fumadocs Core and UI with the updated MDX package, and kept the verified release candidate on one reproducible dependency lockfile.
 - On 2026-09-22, required CI to install the browser revisions for both the pinned Python and updated Node Playwright clients, preserving full-tier PDF and archive evidence after the site tooling update.
+- On 2026-09-22, incorporated the eight post-merge Dependabot updates (#242-#249): five verified workflow-action revisions and current-runtime fontTools, Playwright, and pikepdf pins, while retaining Python 3.8-compatible versions.
+- On 2026-09-22, synchronized the workflow's immutable action revision contract with exact upstream version comments. The existing pinned-source gate remains enforced; publication of 2.0.1 waits for this combined follow-up candidate to merge.
 
 ### Fixed
 
