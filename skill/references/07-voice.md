@@ -27,17 +27,14 @@ Do not build sentences out of `X, not Y`.
 > evidence, not theatre
 > an instrument, not a weapon
 
-It is the most recognisable tell of machine-written copy, it reads as borrowed
-confidence, and it usually substitutes a shape for an argument. Its relatives
-go too: `X over Y`, `rather than merely Z`, and the coda tacked onto a sentence
-that had already finished (`... never decorate`).
+These contrasts substitute a rhetorical shape for a direct claim. Avoid the
+same pattern in `X over Y`, `rather than merely Z`, and a coda such as
+`... never decorate` after a sentence that is already complete.
 
 State the thing you mean. If the contrast genuinely carries information, give
 it its own sentence.
 
-This is a ShruggieTech house rule with real history: fragcap 1.0.0 led with
-"instrument, not weapon" as its governing principle, and 1.1.0 replaced it and
-added a build check.
+Apply this rule to governing principles, cover copy, guidelines, and specimens.
 
 ### Em-dashes
 
@@ -84,8 +81,8 @@ them and reports the count.
 ## The two lines every kit has to get right
 
 **The product principle** is the line on the cover, on the guidelines page and
-in the specimen. Verb plus object, three or four words, literal, and something a
-person could say out loud without wincing.
+in the specimen. Use a literal verb and object in three or four words that a
+reader can repeat without explanation.
 
 > View your files.  ·  See what is known.
 

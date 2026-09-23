@@ -43,7 +43,7 @@ Lead with the caption content, the source format, or the normalized Cue JSON res
 
 ## Approval status
 
-Gate 1 approved `cueframe-r1` and the revised `cue-teal-r1` palette on 2026-09-09. Gate 2 approved retry 2 of the exact wordmarks, lockups, icons, applications, and eight public-surface compositions on 2026-09-09. Consumer import into the Cueson repository still requires its own issue and Spec Kit slice.
+Gate 1 approval binds `cueframe-r1` and the `cue-teal-r1` palette. Gate 2 approval binds the exact wordmarks, lockups, icons, applications, and eight public-surface compositions. A consumer must import only the destinations declared in `consumer-handoff.json`, verify their source and artifact hashes, and retain the required license notices.
 
 ## Verification
 

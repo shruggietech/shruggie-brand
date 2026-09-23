@@ -39,7 +39,7 @@ export const viewport: Viewport = { themeColor: '#080B0D' };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`dark ${geist.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning className={`dark ${geist.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}>
       <body>
         <a className="skip-link" href="#content">Skip to content</a>
         <RootProvider theme={{ defaultTheme: 'dark', enableSystem: false }} search={{ options: { type: 'static', api: '/static.json' } }}>{children}</RootProvider>

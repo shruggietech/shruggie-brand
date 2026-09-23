@@ -4,7 +4,7 @@ BrandBuilder has three operating modes. Infer the mode from the requested outcom
 
 ## Author mode
 
-Use Author mode when the task changes Brand Canon, Interface Canon, identity source, a brand contract, generator, adapter, recipe, schema, or governed instruction. The task must already authorize the proposed mutation. Author mode retains Spec Kit, identity approval, provenance, accessibility, publication, and release safeguards.
+Use Author mode when the task changes Brand Canon, Interface Canon, identity source, a brand contract, generator, adapter, recipe, schema, or governed instruction. The task must already authorize the proposed mutation. Run the repository-installed Spec Kit workflow before changing governed source. Retain identity approval, provenance, accessibility, publication, and release safeguards.
 
 Evidence includes a checkout of the BrandBuilder source repository, changes under `brands/`, `skill/references/`, or `skill/templates/`, or an explicit request to extend a shared capability.
 

@@ -577,6 +577,33 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("Unavailable at this capability tier: windows-store", catalog)
             self.assertIn("aliases are listed with their canonical delivery group", catalog)
 
+    def test_portable_preview_wells_follow_visible_artwork_and_label_nonvisual_resources(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kit = Path(tmp)
+            (kit / "icons").mkdir()
+            Image.new("RGBA", (8, 8), (0, 0, 0, 255)).save(kit / "icons" / "black.png")
+            Image.new("RGBA", (8, 8), (255, 255, 255, 255)).save(kit / "icons" / "white.png")
+            transparent = Image.new("RGBA", (8, 8), (0, 0, 0, 0))
+            for x in range(2, 6):
+                for y in range(2, 6):
+                    transparent.putpixel((x, y), (255, 255, 255, 255))
+            transparent.save(kit / "icons" / "transparent.png")
+            Image.new("RGBA", (8, 8), (43, 204, 115, 255)).save(kit / "icons" / "color.png")
+            (kit / "icons" / "white.svg").write_text('<svg xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M0 0h8v8H0z"/></svg>', encoding="utf-8")
+            (kit / "icons" / "black.svg").write_text('<svg xmlns="http://www.w3.org/2000/svg"><path style="fill:#000000" d="M0 0h8v8H0z"/></svg>', encoding="utf-8")
+            for name in ("black.png", "white.png", "transparent.png", "color.png", "white.svg", "black.svg"):
+                item = {"path": "icons/" + name, "format": name.rsplit(".", 1)[1], "appearance": "light"}
+                expected = "light" if name.startswith("black") else "dark"
+                actual = gen_guidelines._preview_surface(kit, item)
+                self.assertEqual(expected, actual, name)
+                artwork = "#2BCC73" if name.startswith("color") else "#000000" if name.startswith("black") else "#FFFFFF"
+                well = "#F5F5F5" if actual == "light" else "#090909"
+                self.assertGreaterEqual(gen_guidelines.Color(artwork).contrast(gen_guidelines.Color(well), method="wcag21"), 3, name)
+            for format_, label in (("ico", "Icon container"), ("icns", "Icon container"),
+                                   ("json", "JSON metadata"), ("xml", "XML metadata")):
+                item = {"path": "icons/resource." + format_, "format": format_}
+                self.assertIn(label + " (no image preview)", gen_guidelines._preview(kit, item, "Resource"))
+
     def test_guideline_catalog_rejects_manifest_records_for_missing_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp)
@@ -1050,6 +1077,8 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("--font-label-weight:", portable_html)
             self.assertIn(".eyebrow { font-family:var(--font-body); font-weight:var(--font-label-weight);", portable_html)
             self.assertIn(".surface-label { align-self:start; justify-self:start; font:var(--font-label-weight)", portable_html)
+            self.assertIn(".dark-well { background:#090909; color:#F5F5F5; }", portable_html)
+            self.assertIn(".preview img { max-width:100%; max-height:180px; height:auto; object-fit:contain; }", portable_html)
             self.assertIn("table { width:100%; border-collapse:collapse; font-family:var(--font-body);", portable_html)
             self.assertIn("th { text-align:left; color:var(--foreground); font-weight:var(--font-label-weight);", portable_html)
             self.assertNotIn("font-family:var(--font-mono)", portable_html)

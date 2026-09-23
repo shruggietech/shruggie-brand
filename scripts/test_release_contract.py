@@ -268,47 +268,47 @@ class ReleaseContractTests(unittest.TestCase):
             self.assertEqual("Repository owner via S016 approval", inputs[input_id]["mask_approved_by"])
             self.assertEqual("2026-09-07", inputs[input_id]["mask_approved_on"])
 
-    def test_repository_metadata_and_notes_agree_for_2_0_1(self):
-        metadata = release_contract.load_metadata(ROOT, "2.0.1")
+    def test_repository_metadata_and_notes_agree_for_2_0_2(self):
+        metadata = release_contract.load_metadata(ROOT, "2.0.2")
         notes = release_contract.render_notes(metadata)
 
-        self.assertEqual(metadata["skill_version"], "2.0.1")
+        self.assertEqual(metadata["skill_version"], "2.0.2")
         self.assertEqual(metadata["canon_version"], "1.2.1")
-        self.assertEqual(metadata["site_version"], "2.0.1")
-        self.assertEqual(release_contract.current_version(ROOT), "2.0.1")
-        self.assertIn("Skill version: `2.0.1`", notes)
+        self.assertEqual(metadata["site_version"], "2.0.2")
+        self.assertEqual(release_contract.current_version(ROOT), "2.0.2")
+        self.assertIn("Skill version: `2.0.2`", notes)
         self.assertIn("Canon version: `1.2.1`", notes)
-        self.assertIn("Existing kits need migration: **yes for native egui consumers**", notes)
-        self.assertIn("corrected compact density", notes)
+        self.assertIn("Existing kits need migration: **yes to adopt corrected public guidance and previews**", notes)
+        self.assertIn("readable integration previews", notes)
         self.assertIn("## Governed release impact", notes)
         self.assertIn("No approved identity redesign is included.", notes)
         self.assertIn("Consumers may adopt the generated web, Android, Apple, macOS, and Windows asset suites", notes)
         self.assertNotIn("## [Unreleased]", notes)
 
     def test_expected_assets_are_exact_and_use_embedded_brand_versions(self):
-        metadata = release_contract.load_metadata(ROOT, "2.0.1")
+        metadata = release_contract.load_metadata(ROOT, "2.0.2")
 
         self.assertEqual(set(release_contract.expected_assets(metadata)), {
-            "shruggie-brandbuilder-2.0.1.skill",
-            "shruggie-brandbuilder-2.0.1-portable.zip",
-            "shruggietech-brand-1.0.0-bb2.0.1.zip",
-            "fragcap-brand-1.1.0-bb2.0.1.zip",
-            "go-schedule-brand-1.0.0-bb2.0.1.zip",
-            "glitchpad-brand-1.1.0-bb2.0.1.zip",
-            "covarity-brand-1.0.0-bb2.0.1.zip",
-            "eso-weave-brand-1.0.0-bb2.0.1.zip",
-            "cueson-brand-1.0.0-bb2.0.1.zip",
+            "shruggie-brandbuilder-2.0.2.skill",
+            "shruggie-brandbuilder-2.0.2-portable.zip",
+            "shruggietech-brand-1.0.0-bb2.0.2.zip",
+            "fragcap-brand-1.1.1-bb2.0.2.zip",
+            "go-schedule-brand-1.0.0-bb2.0.2.zip",
+            "glitchpad-brand-1.1.0-bb2.0.2.zip",
+            "covarity-brand-1.0.0-bb2.0.2.zip",
+            "eso-weave-brand-1.0.1-bb2.0.2.zip",
+            "cueson-brand-1.0.1-bb2.0.2.zip",
         })
         self.assertEqual(
             {slug: values["version"] for slug, values in metadata["brands"].items()},
             {
                 "shruggietech": "1.0.0",
-                "fragcap": "1.1.0",
+                "fragcap": "1.1.1",
                 "go-schedule": "1.0.0",
                 "glitchpad": "1.1.0",
                 "covarity": "1.0.0",
-                "eso-weave": "1.0.0",
-                "cueson": "1.0.0",
+                "eso-weave": "1.0.1",
+                "cueson": "1.0.1",
             },
         )
 
@@ -356,9 +356,9 @@ class ReleaseContractTests(unittest.TestCase):
             release_contract, "read_text", side_effect=read_with_stale_site
         ):
             with self.assertRaisesRegex(
-                ValueError, "site package version 1.1.2 does not match release 2.0.1"
+                ValueError, "site package version 1.1.2 does not match release 2.0.2"
             ):
-                release_contract.load_metadata(ROOT, "2.0.1")
+                release_contract.load_metadata(ROOT, "2.0.2")
 
     def test_compiler_release_and_brand_canon_versions_can_diverge(self):
         original_read_text = release_contract.read_text
@@ -380,10 +380,10 @@ class ReleaseContractTests(unittest.TestCase):
         with mock.patch.object(
             release_contract, "read_text", side_effect=read_with_supported_older_canon
         ):
-            metadata = release_contract.load_metadata(ROOT, "2.0.1")
-            self.assertEqual("2.0.1", metadata["skill_version"])
+            metadata = release_contract.load_metadata(ROOT, "2.0.2")
+            self.assertEqual("2.0.2", metadata["skill_version"])
             self.assertEqual("1.2.0", metadata["canon_version"])
-            self.assertEqual("2.0.1", release_contract.current_version(ROOT))
+            self.assertEqual("2.0.2", release_contract.current_version(ROOT))
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -9,14 +9,11 @@ says how to actually produce one without the result being wrong.
 
 ## Why this file exists
 
-The construction step is where runs fail, and it fails the same way every time.
-An agent decides on a shape, writes SVG path data straight into `brand.json`,
-and has no way to tell whether the numbers it just wrote describe the shape it
-had in mind. Sometimes it renders a PNG and looks; often it cannot, because the
-provider has no vision, or the sandbox has no rasteriser, or the image comes
-back and the defect is a two percent centring error that no one sees. Either
-way the run either ships broken geometry or loops producing variants with no
-stopping rule.
+Do not write unverified SVG path numbers directly into `brand.json`. Construct
+the mark from named geometry, then inspect measured bounds, centring, and the
+rendered result before approval. If a renderer is unavailable, record that
+capability skip and retain the mandatory geometric checks. Do not publish a
+mark whose visual evidence or stopping rule is missing.
 
 The fix is not better prose telling the agent to be careful. It is removing the
 opportunity: geometry gets composed from primitives that cannot be malformed,
@@ -190,7 +187,7 @@ If the operator supplies a concept, describe back in words what is load-bearing
 about it before redrawing. If they disagree with the description, the redraw
 would have been wrong, and one sentence has saved the whole step.
 
-## The two rules an agent most often breaks
+## Two geometry rules
 
 **Two subpaths wound the same way do not make a hole.** Under fill-rule nonzero
 they fill solid. `glyphkit.ring()` winds its inner circle backwards so the hole

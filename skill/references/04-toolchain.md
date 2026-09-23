@@ -83,25 +83,24 @@ touch-up, and it is not an agent target.
 **ImageMagick for SVG rasterisation.** Covered above. It delegates to librsvg
 and loses fidelity on the way. Call librsvg directly.
 
-**Google Fonts at build time.** Not a tool choice so much as a trap.
-`fonts.gstatic.com` is blocked by the egress proxy in the Claude sandbox while
-`fonts.googleapis.com` resolves, so the fetch appears to work and then dies at
-the binary step. Fonts are bundled. See `01-canon.json` typography.sourcing.
+**Google Fonts at build time.** Ordinary generation uses bundled, locally
+licensed font files and must not fetch fonts over the network. Use the
+controlled ingestion command before a build when an approved fixed face is
+missing. See `01-canon.json` typography.sourcing.
 
-## S007 contract commands
+## Contract commands
 
 Run `templates/validate_brand.py` before any renderer. It rejects incomplete affiliation, inheritance, typography, supplied-input, palette-approval, path, hash, SVG-safety, license, and font metadata. Run `templates/analyze_inputs.py` only after validation, and run `templates/scan_affiliation.py` after generation to reject false ownership claims. `templates/ingest_font.py` is the only network-capable font path and is never called by an ordinary build.
 
-## S008 icon delivery
+## Icon delivery
 
 `templates/gen_logo.py` calls `templates/iconkit.py` only after canonical full and reduced SVG masters exist. A raster-capable build must produce the complete web, Android, iOS and iPadOS, macOS, and Windows suites under `icons/`; a core build produces the self-contained web SVG index and records why binary suites were skipped. `verify.py` decodes the images, parses native metadata, checks platform matrices and safe areas, inspects ICO and ICNS entries, rejects undeclared files, and proves every legacy `favicons/` alias is byte-identical to its authoritative web target.
 
 ## Image generation
 
-**Encouraged, for ideation.** Use the frontier image generation available in
-whatever agent is running the skill to explore logo directions, mood, and
-visual language with the operator. It is genuinely good at opening up a concept
-space quickly, and it beats describing shapes in prose.
+**For ideation only.** Use available image generation to show possible logo
+directions, mood, and visual language for operator discussion. Treat each image
+as a nonbinding concept, not as production artwork or approved identity source.
 
 > [!CAUTION]
 > **Never for shipped artwork.** Every mark that ships is hand-authored vector on

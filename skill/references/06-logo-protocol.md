@@ -49,14 +49,13 @@ Declare, in the README, as numbers:
 
 - **Filled paths, never strokes.** Stroked lettering resolves differently
   across engines, breaks `currentColor` fills, and does not survive
-  expand-to-outlines in print, vinyl, or font tooling. fragcap converted its
-  wordmark from 22px strokes to filled outlines in 1.1.0 for exactly this
-  reason, and verified the silhouette pixel-identical afterwards.
+  expand-to-outlines in print, vinyl, or font tooling. Convert final strokes to
+  filled outlines and verify the resulting silhouette before delivery.
 - **No live text.** A shipped SVG must never depend on an installed font. Run
   `inkscape --export-text-to-path` before anything ships, then assert it.
-- **Geometry inside the viewBox.** fragcap 1.0.0 shipped a wordmark whose `f`
-  crossbar extended to x = -1 in a viewBox starting at 0, so it was clipped by
-  its own canvas with 0px padding on the left against 60px on the right.
+- **Geometry inside the viewBox.** Verify that every visible path fits the
+  declared canvas with intentional and balanced transparent padding. Reject
+  clipped crossbars, strokes, or counters before export.
 - **`currentColor` where the mark is single-ink**, so it inherits whatever
   semantic token its container sets.
 
@@ -100,8 +99,7 @@ The pipeline, in order:
 5. A **genuine multi-resolution `.ico`** carrying 16, 24, 32, 48, 64, 128, 256
 6. `site.webmanifest`
 
-Then assert the ICO entry count. fragcap 1.0.0 shipped an ICO with one entry
-where seven were declared, and nothing caught it until a verify pass existed.
+Then assert that the ICO entry count and dimensions match the declared list.
 
 Keep an opaque brand background in the small icons. It protects fine detail
 across light and dark browser chrome.

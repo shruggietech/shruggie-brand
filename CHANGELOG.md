@@ -4,6 +4,26 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Changed
+
+- On 2026-09-22, prepared S047 as a publication-bound documentation and guideline integrity correction with a new immutable compiler patch candidate.
+
+### Decisions
+
+- On 2026-09-22, retained governed manual and brand source as the authority for public prose and generated preview treatment, and kept internal history outside the reader-facing audit.
+
+## [2.0.2] - 2026-09-22
+
+### Changed
+
+- Rewrote published documentation and delivered kit guidance as present-version instructions while retaining active compatibility, identity, provenance, accessibility, licensing, and recovery rules.
+- Advanced BrandBuilder to 2.0.2 for changed generated documentation and preview bytes with an immutable package identity.
+
+### Fixed
+
+- Corrected integration preview well contrast and nonvisual-resource labels without changing approved asset bytes.
+- Corrected bottom documentation pagination to land at the destination heading with accessible focus while preserving fragments and history.
+
 ## [2.0.1] - 2026-09-22
 
 ### Changed

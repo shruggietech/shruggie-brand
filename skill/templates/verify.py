@@ -1080,7 +1080,7 @@ def c_pdf(kit, rep):
                         bad.append("%s p%d: %s has no descriptor" % (os.path.relpath(p, kit), pno, f.get("/BaseFont")))
                     elif not any(k in d for k in ("/FontFile", "/FontFile2", "/FontFile3")):
                         bad.append("%s p%d: %s not embedded" % (os.path.relpath(p, kit), pno, f.get("/BaseFont")))
-    note = "" if not type3 else "; %d Type3 glyph fonts (inline CharProcs, embedded; usually a renderer fallback)" % type3
+    note = "" if not type3 else "; %d embedded Type3 glyph fonts (inline CharProcs)" % type3
     rep.bad("pdf-fonts-embedded", "; ".join(sorted(set(bad))[:6]) + note) if bad else \
         rep.ok("pdf-fonts-embedded", "%d PDFs, all fonts embedded%s" % (len(pdfs), note))
 
