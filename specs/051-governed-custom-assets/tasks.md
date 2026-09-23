@@ -26,7 +26,7 @@
 
 - [X] T010 Document declaration, publication, source fidelity, preview, attribution and license rules in source-facing docs.
 - [X] T011 Run complete documented Python/kit/glyph/site validation, browser/accessibility checks, source hash and mojibake/LF checks.
-- [ ] T012 Sync spec/plan/tasks/evidence, review source-only diff, commit, push and open official PR.
+- [X] T012 Sync spec/plan/tasks/evidence, review source-only diff, commit, push and open official PR.
 - [ ] T013 Address every received bot review comment, at most one additional Codex review round, and wait for CI green before owner handoff.
 
 ## Dependencies

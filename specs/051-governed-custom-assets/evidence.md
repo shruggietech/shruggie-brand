@@ -25,6 +25,6 @@ The approved S051 scope and issue #194 map to T001-T010 without an unresolved cl
 - `scripts/check_readme_links.py`: zero problems; `scripts/audit_public_documentation.py --sources`: zero problems; `skill/templates/probe.py`: full tier under Node 24.
 - Changed source/spec text checked for UTF-8 without BOM, LF only, and mojibake markers. `git diff --check` passed. No generated `dist/` or site export is tracked.
 
-## Pending external gates
+## Pull request and pending external gates
 
-PR CI and external reviews will be recorded after publication. No release tag or merge is part of S051.
+The source-only S051 change was committed as `c9cfbf6`, pushed on `codex/051-governed-custom-assets`, and opened as [PR #262](https://github.com/shruggietech/shruggie-brand/pull/262). PR CI and external reviews are pending. No release tag or merge is part of S051.
