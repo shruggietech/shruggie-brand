@@ -49,16 +49,16 @@
 
 - [x] T016 [US3] Add failing scrolled-source pagination, focus, fragment, direct-load, and history regression cases in `site/scripts/verify-site.mjs`
 - [x] T017 [US3] Add the Next smooth-scroll route opt-in in `site/app/layout.tsx` and a scoped pagination focus handoff in `site/components/documentation-pagination-focus.tsx` and `site/app/docs/[[...slug]]/page.tsx`
-- [ ] T018 [US3] Run rendered browser cases for pointer, keyboard, reduced motion, and representative previous/next routes; record geometry in `specs/047-published-docs-integrity/evidence.md`
+- [x] T018 [US3] Run rendered browser cases for pointer, keyboard, reduced motion, and representative previous/next routes; record geometry in `specs/047-published-docs-integrity/evidence.md`
 
 ## Phase 6: Integration and delivery
 
 - [x] T019 Integrate source and prepared-output prose audit into `.github/workflows/build.yml` without weakening existing kit, security, accessibility, or publication gates
-- [ ] T020 Run all focused Python tests, generator/native contracts, minimum-version compatibility checks, and Markdown checks listed in `.github/workflows/build.yml`; record results in `specs/047-published-docs-integrity/evidence.md`
-- [ ] T021 Run capability probe, `scripts/build_all.py`, 2.0.2 release-candidate certification, generated-agent consistency, site lint/build/test, and publication-content audit in the foreground; record zero kit/glyph failures in `specs/047-published-docs-integrity/evidence.md`
+- [x] T020 Run all focused Python tests, generator/native contracts, minimum-version compatibility checks, and Markdown checks listed in `.github/workflows/build.yml`; record results in `specs/047-published-docs-integrity/evidence.md`
+- [x] T021 Run capability probe, `scripts/build_all.py`, 2.0.2 release-candidate certification, generated-agent consistency, site lint/build/test, and publication-content audit in the foreground; record zero kit/glyph failures in `specs/047-published-docs-integrity/evidence.md`
 - [x] T022 Audit UTF-8 without BOM, LF, mojibake, generated-artifact exclusion, preserved logo/source hashes, and `git diff --check` in `specs/047-published-docs-integrity/evidence.md`
 - [x] T023 Re-run Spec Kit cross-artifact analysis and reconcile `spec.md`, `plan.md`, `tasks.md`, contracts, and implementation before commit
-- [ ] T024 Commit the candidate with a Conventional Commit subject, push `codex/047-published-docs-integrity`, and open a PR closing #236, #237, and #202 with scope and verification evidence
+- [x] T024 Commit the candidate with a Conventional Commit subject, push `codex/047-published-docs-integrity`, and open a PR closing #236, #237, and #202 with scope and verification evidence
 - [ ] T025 Process every actionable Codex/security review comment, request at most one additional Codex round if needed, and wait for all required CI checks to pass before requesting the owner's final review and merge in `specs/047-published-docs-integrity/evidence.md`
 
 ## Dependencies

@@ -26,6 +26,14 @@ class PublicDocumentationAuditTests(unittest.TestCase):
         text = "A historical-baseline may record the current source. Legacy-constructed geometry remains byte-identical.\n"
         self.assertEqual([], audit.scan_text("current.md", text))
 
+    def test_allows_only_the_exact_reader_required_spec_kit_instruction(self):
+        sentence = audit.ALLOWED_PROCESS_INSTRUCTION
+        self.assertEqual([], audit.scan_text("skill/references/operating-modes.md", sentence))
+        self.assertEqual([], audit.scan_text("site/generated/docs/operating-modes.mdx", sentence))
+        self.assertEqual([], audit.scan_text("site/out/docs/operating-modes/index.html", sentence))
+        self.assertTrue(audit.scan_text("skill/references/03-interview.md", sentence))
+        self.assertTrue(audit.scan_text("skill/references/operating-modes.md", sentence + " A future Spec Kit slice will decide this."))
+
     def test_html_scan_ignores_script_and_style_payloads(self):
         html = "<style>.x{content:'S007'}</style><script>const x='S008'</script><main><h1>Current guide</h1><p>S009 leaked</p></main>"
         self.assertEqual("Current guide S009 leaked", audit.visible_html_text(html))

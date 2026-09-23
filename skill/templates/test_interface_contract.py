@@ -100,6 +100,9 @@ class InterfaceCanonTests(unittest.TestCase):
         impact = load_release_impact()
         self.assertEqual("2.0.2", impact["brandbuilder_version"])
         self.assertFalse(impact["identity_redesign"])
+        self.assertNotIn("brand versions are unchanged", impact["surfaces"]["identity"]["summary"])
+        for version in ("Cueson 1.0.1", "ESO Weave 1.0.1", "Fragcap 1.1.1"):
+            self.assertIn(version, impact["surfaces"]["identity"]["summary"])
         self.assertEqual(
             {"identity", "palette", "typography", "platform_assets", "web_react", "egui", "documentation", "recovery"},
             set(impact["surfaces"]),

@@ -15,6 +15,12 @@ from typing import Iterable, Iterator, Optional, Tuple
 ROOT = Path(__file__).resolve().parents[1]
 SLICE_CODE = re.compile(r"\bS\d{3}\b")
 PROCESS_REFERENCE = re.compile(r"\bSpec[ -]?Kit\b", re.IGNORECASE)
+ALLOWED_PROCESS_INSTRUCTION = "Run the repository-installed Spec Kit workflow before changing governed source."
+ALLOWED_PROCESS_PATHS = {
+    "skill/references/operating-modes.md",
+    "site/generated/docs/operating-modes.mdx",
+    "site/out/docs/operating-modes/index.html",
+}
 ISSUE_REFERENCE = re.compile(r"\bIssue\s+#\d+\b|\bspecs/\d{3}[-/]", re.IGNORECASE)
 VAGUE = re.compile(r"\b(?:usually|often|generally|might|where possible)\b", re.IGNORECASE)
 HISTORICAL = re.compile(
@@ -130,6 +136,7 @@ def prepared_documents(root: Path, brands: Optional[Iterable[str]] = None) -> It
 
 def scan_text(label: str, text: str) -> list[str]:
     problems = []  # type: list[str]
+    process_text = text.replace(ALLOWED_PROCESS_INSTRUCTION, "") if label in ALLOWED_PROCESS_PATHS else text
     for kind, pattern in (
         ("work-slice code", SLICE_CODE),
         ("Spec Kit process reference", PROCESS_REFERENCE),
@@ -138,7 +145,7 @@ def scan_text(label: str, text: str) -> list[str]:
         ("vague wording", VAGUE),
         ("vague promotional wording", PROMOTIONAL),
     ):
-        match = pattern.search(text)
+        match = pattern.search(process_text if kind == "Spec Kit process reference" else text)
         if match:
             problems.append("%s: %s: %s" % (label, kind, match.group(0)))
     return problems
