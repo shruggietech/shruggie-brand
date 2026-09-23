@@ -1825,7 +1825,8 @@ class PipelineTests(unittest.TestCase):
             full.write_text('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0H1V1Z"/></svg>\n', encoding="utf-8")
             reduced.write_bytes(full.read_bytes())
             brand = {"slug": "native-roles", "title": "Native Roles", "surfaces": {"base": "#0B0C0D"},
-                     "logo": {"reduced_below_px": 32, "application_icon": {
+                     "logo": {"reduced_below_px": 32, "square_enclosure": {"frame_role": "frame"},
+                              "role_colors": {"color": {"frame": "#FFD900"}}, "application_icon": {
                          "background": "#0B0C0D", "masked_background": "#FFD900",
                          "windows_unplated": True, "transparent_web_icons": True}}}
 
@@ -1869,7 +1870,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(0, taskbar_frame.getpixel((0, 0))[3])
             problems = []
             verify._validate_web_manifest(str(kit), problems)
-            verify._validate_masked_roles(str(kit), profile, manifest["artifacts"], problems)
+            verify._validate_masked_roles(str(kit), brand, profile, manifest["artifacts"], problems)
             verify._validate_windows_taskbar_frames(str(kit), profile, problems)
             self.assertEqual([], problems)
 
@@ -1892,13 +1893,39 @@ class PipelineTests(unittest.TestCase):
             altered.putpixel((0, 0), (0, 0, 0, 0))
             altered.save(maskable_path)
             problems = []
-            verify._validate_masked_roles(str(kit), profile, manifest["artifacts"], problems)
+            verify._validate_masked_roles(str(kit), brand, profile, manifest["artifacts"], problems)
             self.assertIn("must fill its maskable background", "\n".join(problems))
             maskable_path.write_bytes(original_maskable)
             write_utf8(res / "values" / "ic_launcher_colors.xml", "<resources><color name=\"ic_launcher_background\">#0B0C0D</color></resources>\n")
             problems = []
-            verify._validate_masked_roles(str(kit), profile, manifest["artifacts"], problems)
+            verify._validate_masked_roles(str(kit), brand, profile, manifest["artifacts"], problems)
             self.assertIn("Android adaptive background color disagrees", "\n".join(problems))
+            write_utf8(res / "values" / "ic_launcher_colors.xml", "<resources><color name=\"ic_launcher_background\">#FFD900</color></resources>\n")
+            foreground = res / "drawable-nodpi" / "ic_launcher_foreground.png"
+            with Image.open(foreground) as image:
+                altered = image.convert("RGBA")
+            box = altered.getchannel("A").getbbox()
+            altered.putpixel(((box[0] + box[2] - 1) // 2, box[1] + max(2, altered.width // 108)),
+                             (11, 12, 13, 255))
+            altered.save(foreground)
+            problems = []
+            verify._validate_masked_roles(str(kit), brand, profile, manifest["artifacts"], problems)
+            self.assertIn("enclosure boundary contrasts", "\n".join(problems))
+            mismatch_brand = copy.deepcopy(brand)
+            mismatch_brand["logo"]["application_icon"]["masked_background"] = "#0B0C0D"
+            mismatch_kit = Path(temporary) / "mismatched-mask"
+            mismatch_kit.mkdir()
+            mismatch_full = mismatch_kit / "full.svg"
+            mismatch_reduced = mismatch_kit / "reduced.svg"
+            mismatch_full.write_bytes(full.read_bytes())
+            mismatch_reduced.write_bytes(reduced.read_bytes())
+            mismatch_manifest = generate_icon_suites(
+                mismatch_brand, mismatch_kit, mismatch_full, mismatch_reduced, render,
+                {"tier": "full", "svg_raster": True, "ico_writer": True})
+            problems = []
+            verify._validate_masked_roles(str(mismatch_kit), mismatch_brand,
+                                          mismatch_manifest["profile"], mismatch_manifest["artifacts"], problems)
+            self.assertIn("enclosure boundary contrasts", "\n".join(problems))
             webmanifest = web / "site.webmanifest"
             payload = json.loads(webmanifest.read_text(encoding="utf-8"))
             payload["icons"][2]["purpose"] = "any maskable"

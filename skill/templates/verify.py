@@ -650,7 +650,7 @@ def _validate_web_manifest(kit, problems):
         problems.append("web manifest icon roles cannot be validated: %s" % error)
 
 
-def _validate_masked_roles(kit, profile, artifacts, problems):
+def _validate_masked_roles(kit, brand, profile, artifacts, problems):
     from PIL import Image, ImageChops, ImageDraw
     plate = tuple(int(profile.get("masked_background", profile["background"])[i:i + 2], 16) for i in (1, 3, 5))
     for size in (192, 512):
@@ -705,9 +705,17 @@ def _validate_masked_roles(kit, profile, artifacts, problems):
                 visible = composited.getchannel("A")
                 if ImageChops.difference(visible, mask).getbbox() is not None:
                     problems.append("Android %s adaptive composition has an uncovered mask" % shape)
-                sample = (size // 2, max(0, bounds[1] // 2))
-                if mask.getpixel(sample) and composited.getpixel(sample)[:3] != plate:
-                    problems.append("Android %s adaptive composition has a contrasting boundary" % shape)
+            if (brand.get("logo") or {}).get("square_enclosure"):
+                left, top, right, bottom = bounds
+                inset = max(2, size // 108)
+                mid_x = (left + right - 1) // 2
+                mid_y = (top + bottom - 1) // 2
+                samples = ((mid_x, top + inset), (mid_x, bottom - inset - 1),
+                           (left + inset, mid_y), (right - inset - 1, mid_y))
+                if any(rgba.getpixel(point)[3] < 250 or
+                       max(abs(rgba.getpixel(point)[channel] - plate[channel]) for channel in range(3)) > 3
+                       for point in samples):
+                    problems.append("Android adaptive foreground enclosure boundary contrasts with mask background")
     except Exception as error:
         problems.append("Android adaptive mask compositions cannot be inspected: %s" % error)
     for density, size in ANDROID_DENSITIES.items():
@@ -1160,7 +1168,7 @@ def c_icon_suites(kit, brand, rep):
         problems.append("required platform artifacts are absent: %s" % ", ".join(absent[:12]))
     if raster:
         _validate_web_manifest(kit, problems)
-        _validate_masked_roles(kit, expected_profile, artifacts, problems)
+        _validate_masked_roles(kit, brand, expected_profile, artifacts, problems)
         _validate_windows_taskbar_frames(kit, expected_profile, problems)
         try:
             for relative in ("icons/web/favicon.ico", "icons/windows/classic/app.ico"):
