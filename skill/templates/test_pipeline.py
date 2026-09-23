@@ -388,7 +388,12 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual("Thoughtfully guided tours on the island we love.", brand["descriptor"])
         self.assertEqual("light", brand["guide"]["surface_mode"])
         self.assertEqual(["vertical_sand.svg", "horizontal_sand.svg"],
-                         [Path(item["path"]).name for item in brand["guide"]["expressions"]])
+                         [Path(item["source"]["path"]).name for item in brand["custom_assets"]])
+        self.assertNotIn("expressions", brand["guide"])
+        self.assertTrue(all(item["approval"] == {"status": "approved", "publication_eligible": True}
+                            for item in brand["custom_assets"]))
+        for item in brand["custom_assets"]:
+            self.assertEqual(item["source"]["sha256"], hashlib.sha256((ROOT / "brands" / "i-heart-pr-tours" / item["source"]["path"]).read_bytes()).hexdigest())
         self.assertFalse(brand["logo"]["application_icon"]["monochrome_platforms"])
         self.assertTrue(brand["logo"]["application_icon"]["transparent_web_icons"])
         self.assertEqual({"#FFFFFF", "#F8F6F2"}, {brand["light_surfaces"]["base"], brand["light_surfaces"]["secondary"]})
@@ -543,6 +548,22 @@ class PipelineTests(unittest.TestCase):
                 ],
                 [(topic["key"], topic["label"], topic["section"], topic["order"], topic["path"]) for topic in payload["topics"]],
             )
+            item = json.loads((ROOT / "brands" / "i-heart-pr-tours" / "brand.json").read_text(encoding="utf-8"))["custom_assets"][0]
+            source = kit / item["source"]["path"]
+            source.parent.mkdir(parents=True)
+            shutil.copy2(ROOT / "brands" / "i-heart-pr-tours" / item["source"]["path"], source)
+            brand["custom_assets"] = [item]
+            with mock.patch.object(gen_guidelines, "tokens", return_value=palettes):
+                governed = gen_guidelines.portal_payload(brand, kit)
+            self.assertIn("expressions", [topic["key"] for topic in governed["topics"]])
+            self.assertEqual([item["id"]], [asset["id"] for family in governed["asset_families"] if family["key"] == "expressions" for asset in family["assets"]])
+            self.assertIn(item["accessibility"]["alt"], gen_guidelines.expression_gallery(brand, kit))
+            brand["custom_assets"][0] = copy.deepcopy(item)
+            brand["custom_assets"][0]["approval"] = {"status": "pending", "publication_eligible": False}
+            with mock.patch.object(gen_guidelines, "tokens", return_value=palettes):
+                private = gen_guidelines.portal_payload(brand, kit)
+            self.assertNotIn("expressions", [topic["key"] for topic in private["topics"]])
+            self.assertEqual("", gen_guidelines.expression_gallery(brand, kit))
 
     def test_guideline_swatches_cover_every_role_and_deduplicate_equal_values(self):
         html = gen_guidelines._swatches("Dark palette", [
@@ -777,6 +798,17 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue(light["primary"] in pdf_html)
             self.assertTrue("Dark and close to monochrome" not in pdf_html)
             self.assertTrue("background:%s; color:%s" % (light["background"], light["foreground"]) in pdf_html)
+            self.assertEqual(1, pdf_html.count("Expressions and atmosphere"))
+            self.assertEqual(1, portable_html.count('<section id="expressions">'))
+            for item in brand["custom_assets"]:
+                for text in (item["title"], item["role"], item["credit"]["attribution"], item["credit"]["license"]):
+                    self.assertIn(text, pdf_html)
+                    self.assertIn(text, portable_html)
+            private = copy.deepcopy(brand)
+            for item in private["custom_assets"]:
+                item["approval"] = {"status": "pending", "publication_eligible": False}
+            self.assertNotIn("Expressions and atmosphere", gen_guide_pdf.build(private, kit))
+            self.assertNotIn('<section id="expressions">', gen_guidelines.build(private, kit))
 
     def test_secondary_ctas_use_the_surface_aware_red_outline_contract(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -18,6 +18,7 @@ from release_contract import (
     verify_release_directory,
 )
 from interface_contract import package_identity, source_revision
+from brand_contract import custom_assets
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -71,6 +72,9 @@ def write_brand_archive(
     if not brand_path.is_file():
         raise ValueError(f"missing built kit metadata: {source.name}")
     brand = json.loads(brand_path.read_text(encoding="utf-8"))
+    eligible = {item["id"] for item in custom_assets(brand, source, public_only=True)}
+    withheld_paths = {item["source"]["path"] for item in brand.get("custom_assets", [])
+                      if item["id"] not in eligible}
     slug = brand.get("slug")
     version = brand.get("version")
     if slug != source.name or not isinstance(version, str) or not version:
@@ -98,7 +102,11 @@ def write_brand_archive(
     staged.unlink(missing_ok=True)
     try:
         with zipfile.ZipFile(staged, "w") as archive:
-            add_tree(archive, source)
+            add_tree(archive, source, omit=withheld_paths | ({"manifest.json"} if withheld_paths else set()))
+            if withheld_paths:
+                manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
+                manifest["files"] = [item for item in manifest["files"] if item["path"] not in withheld_paths]
+                add_bytes(archive, "manifest.json", (json.dumps(manifest, indent=2) + "\n").encode("utf-8"))
             existing = set(archive.namelist())
             for name in LICENSES:
                 if name not in existing:

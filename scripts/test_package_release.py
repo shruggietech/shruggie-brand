@@ -204,6 +204,46 @@ class PackageReleaseTests(unittest.TestCase):
                     expected,
                 )
 
+    def test_nonpublic_custom_source_is_withheld_from_verified_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = self.make_brand_source(root)
+            relative = "assets/source/private.svg"
+            art = source / relative
+            art.parent.mkdir(parents=True)
+            art.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="M0 0H1V1Z"/></svg>', encoding="utf-8")
+            brand_path = source / "brand.json"
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["custom_assets"] = [{
+                "id": "private", "title": "Private concept", "description": "Unreleased review art", "role": "mood-imagery",
+                "source": {"path": relative, "format": "svg", "sha256": hashlib.sha256(art.read_bytes()).hexdigest()},
+                "provenance": {"kind": "supplied", "owner": "Owner", "detail": "Review concept"},
+                "approval": {"status": "pending", "publication_eligible": False},
+                "transformations": ["embed-unchanged"], "usage": {"use": "Review", "avoid": "Public publication"},
+                "accessibility": {"alt": "Private concept", "legibility": "Plain well", "text_overlay": "None", "reduced_motion": "Static", "disclosure": "Illustration"},
+                "credit": {"attribution": "Owner", "license": "Private review only"}, "preview": {"well": "light", "fit": "contain"},
+            }]
+            brand_path.write_text(json.dumps(brand), encoding="utf-8")
+            consumer_path = source / "enforcement" / "consumer-contract.json"
+            consumer = json.loads(consumer_path.read_text(encoding="utf-8"))
+            for record in consumer["provenance"]:
+                if record["path"] == "brand.json":
+                    record.update(bytes=brand_path.stat().st_size, sha256=hashlib.sha256(brand_path.read_bytes()).hexdigest())
+            consumer_path.write_text(json.dumps(consumer), encoding="utf-8")
+            manifest_path = source / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            for path in (brand_path, consumer_path, art):
+                name = path.relative_to(source).as_posix()
+                record = {"path": name, "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+                manifest["files"] = [item for item in manifest["files"] if item["path"] != name] + [record]
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            destination = root / "release" / "alpha-brand-1.0.0-bb2.0.0.zip"
+            package_release.write_brand_archive(source, destination, root=root, expected_canon="1.2.1")
+            with zipfile.ZipFile(destination) as archive:
+                self.assertNotIn(relative, archive.namelist())
+                delivered = json.loads(archive.read("manifest.json"))
+                self.assertNotIn(relative, [item["path"] for item in delivered["files"]])
+
     def test_brand_archive_rejects_corrupt_offline_recovery(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

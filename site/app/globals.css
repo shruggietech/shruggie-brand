@@ -199,6 +199,15 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .logo-example figcaption { margin-top: 1rem; color: inherit; text-align: center; }
 .dark-well { background: #090909; color: #f5f5f5; }
 .light-well { background: #f5f5f5; color: #111; }
+.grid-well { background-color: #f5f5f5; background-image: linear-gradient(45deg, #d5d5d5 25%, transparent 25%), linear-gradient(-45deg, #d5d5d5 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d5d5d5 75%), linear-gradient(-45deg, transparent 75%, #d5d5d5 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; color: #111; }
+.image-well { background: #f5f5f5; color: #111; }
+.expression-preview { display: grid; gap: 1rem; max-width: 46rem; margin: 1rem 0; padding: 1rem; border: 1px solid var(--border); border-radius: .75rem; overflow: clip; }
+.expression-preview img { display: block; width: 100%; max-height: 28rem; object-fit: contain; }
+.expression-preview figcaption { color: inherit; }
+.expression-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .75rem; max-width: 46rem; margin: 1rem 0; }
+.expression-details > div { min-width: 0; padding: .85rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); }
+.expression-details dt { color: var(--muted-foreground); font-size: .85rem; font-weight: 600; }
+.expression-details dd { margin: .35rem 0 0; overflow-wrap: anywhere; }
 .color-list { display: grid; gap: .65rem; }
 .color-row { min-width: 0; border: 1px solid var(--border); border-radius: .65rem; background: var(--card); overflow: clip; }
 .color-summary { display: grid; min-width: 0; min-height: 4.5rem; grid-template-columns: 2.75rem minmax(9rem, 1fr) minmax(7rem, auto) 4rem; align-items: center; gap: .85rem; padding: .7rem .85rem; }

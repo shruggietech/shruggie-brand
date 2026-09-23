@@ -47,6 +47,11 @@
       "items": {"$ref": "#/$defs/authoritativeInput"},
       "default": []
     },
+    "custom_assets": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/customAsset"},
+      "default": []
+    },
     "palette_approvals": {
       "type": "array",
       "items": {"$ref": "#/$defs/paletteApproval"},
@@ -124,6 +129,33 @@
   ],
   "$defs": {
     "hexColor": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+    "customAsset": {
+      "type": "object",
+      "required": ["id", "title", "description", "role", "source", "provenance", "approval", "transformations", "usage", "accessibility", "credit", "preview"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "title": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "role": {"enum": ["stylized-mark", "campaign-treatment", "mood-imagery", "environmental", "background-art"]},
+        "source": {"type": "object", "required": ["path", "format", "sha256"], "additionalProperties": false, "properties": {
+          "path": {"type": "string", "minLength": 1}, "format": {"enum": ["svg", "png", "jpeg", "webp"]}, "sha256": {"$ref": "#/$defs/sha256"}}},
+        "provenance": {"type": "object", "required": ["kind", "owner", "detail"], "additionalProperties": false, "properties": {
+          "kind": {"enum": ["supplied", "generated"]}, "owner": {"type": "string", "minLength": 1}, "detail": {"type": "string", "minLength": 1}}},
+        "approval": {"type": "object", "required": ["status", "publication_eligible"], "additionalProperties": false, "properties": {
+          "status": {"enum": ["approved", "pending", "rejected"]}, "publication_eligible": {"type": "boolean"}}},
+        "transformations": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}},
+        "usage": {"type": "object", "required": ["use", "avoid"], "additionalProperties": false, "properties": {
+          "use": {"type": "string", "minLength": 1}, "avoid": {"type": "string", "minLength": 1}}},
+        "accessibility": {"type": "object", "required": ["alt", "legibility", "text_overlay", "reduced_motion", "disclosure"], "additionalProperties": false, "properties": {
+          "alt": {"type": "string", "minLength": 1}, "legibility": {"type": "string", "minLength": 1}, "text_overlay": {"type": "string", "minLength": 1},
+          "reduced_motion": {"type": "string", "minLength": 1}, "disclosure": {"type": "string", "minLength": 1}}},
+        "credit": {"type": "object", "required": ["attribution", "license"], "additionalProperties": false, "properties": {
+          "attribution": {"type": "string", "minLength": 1}, "license": {"type": "string", "minLength": 1}}},
+        "preview": {"type": "object", "required": ["well", "fit"], "additionalProperties": false, "properties": {
+          "well": {"enum": ["light", "dark", "grid", "image"]}, "fit": {"const": "contain"}}}
+      }
+    },
     "interfaceDeclaration": {
       "type": "object",
       "required": ["canon"],
