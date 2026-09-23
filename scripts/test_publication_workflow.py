@@ -25,14 +25,24 @@ PRODUCTION = (
     "shruggietech",
 )
 EXPECTED_ACTIONS = {
-    "actions/checkout": "d23441a48e516b6c34aea4fa41551a30e30af803",
-    "actions/setup-python": "ece7cb06caefa5fff74198d8649806c4678c61a1",
-    "actions/setup-node": "249970729cb0ef3589644e2896645e5dc5ba9c38",
+    "actions/checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "actions/setup-python": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+    "actions/setup-node": "820762786026740c76f36085b0efc47a31fe5020",
     "actions/upload-artifact": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
-    "actions/download-artifact": "37930b1c2abaa49bbe596cd826c3c89aef350131",
+    "actions/download-artifact": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
     "actions/upload-pages-artifact": "fc324d3547104276b827a68afc52ff2a11cc49c9",
     "actions/deploy-pages": "368f82528645a54fb793d4d04e342629a3f51346",
-    "pnpm/action-setup": "fc06bc1257f339d1d5d8b3a19a8cae5388b55320",
+    "pnpm/action-setup": "ea17c68df8912ef543352723c149a84f56e3d413",
+}
+EXPECTED_ACTION_VERSIONS = {
+    "actions/checkout": "v7.0.1",
+    "actions/setup-python": "v7.0.0",
+    "actions/setup-node": "v7.0.0",
+    "actions/upload-artifact": "v7.0.0",
+    "actions/download-artifact": "v8.0.1",
+    "actions/upload-pages-artifact": "v5.0.0",
+    "actions/deploy-pages": "v5.0.0",
+    "pnpm/action-setup": "v6.1.0",
 }
 
 
@@ -162,7 +172,7 @@ class PublicationWorkflowContractTests(unittest.TestCase):
             self.assertIn(action, EXPECTED_ACTIONS)
             self.assertEqual(EXPECTED_ACTIONS[action], revision, action)
             self.assertRegex(revision, r"^[0-9a-f]{40}$")
-            self.assertRegex(comment or "", r"^v\d")
+            self.assertEqual(EXPECTED_ACTION_VERSIONS[action], comment, action)
 
     def test_checkouts_are_exact_and_do_not_persist_credentials(self):
         text = workflow_text()
