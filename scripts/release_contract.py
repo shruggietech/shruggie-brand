@@ -31,6 +31,7 @@ REQUIRED_HISTORY = {
     "2.0.0": ("AppFrame", "environment", "immutable kit package", "release-backed", "Web/React adapter"),
     "2.0.1": ("egui", "fine-pointer", "44-point", "iframe"),
     "2.0.2": ("documentation", "preview", "pagination"),
+    "2.0.3": ("native", "maskable", "Windows", "egui"),
 }
 MIGRATIONS = {
     "1.2.0": (
@@ -62,6 +63,12 @@ MIGRATIONS = {
         "and repin kits with v2.0.2 to receive the immutable bb2.0.2 package identity, current "
         "instructions, and readable integration previews. Native egui adapter 1.0.1 and approved "
         "identity remain unchanged."
+    ),
+    "2.0.3": (
+        "Existing kits need migration: **yes for affected native icon and egui consumers**. Regenerate "
+        "and repin kits with v2.0.3 to receive distinct maskable web and Android icon roles, "
+        "unplated ESO Weave Windows taskbar frames, and egui adapter 1.0.2 status contrast. "
+        "Approved logo geometry remains unchanged; downstream applications still own their local call sites."
     ),
 }
 

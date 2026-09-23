@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.0.3 - 2026-09-23
+
+- Generated separate opaque maskable web icons, mask-safe Android icons, and unplated ESO Weave Windows taskbar frames without altering approved logo geometry.
+- Added native-role checks and explicit egui status/disabled text contrast, with adapter 1.0.2 and Brand Canon 1.3.0.
+- Documented downstream repinning and the separate ESO Weave application call-site fix.
+
 ## 2.0.2 - 2026-09-22
 
 - Corrected generated public documentation and portable integration preview clarity, while preserving current compatibility and approved asset bytes.

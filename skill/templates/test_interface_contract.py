@@ -59,6 +59,19 @@ class InterfaceCanonTests(unittest.TestCase):
         self.assertEqual(set(self.canon["role_catalog"]), set(self.canon["aliases"]))
         self.assertTrue(set(self.canon["required_roles"]).issubset(self.canon["aliases"]))
 
+    def test_generated_egui_status_and_disabled_text_do_not_inherit_active_action_color(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            (kit / "brand.json").write_bytes((ROOT / "brands" / "eso-weave" / "brand.json").read_bytes())
+            generate_egui(kit / "brand.json", kit)
+            components = next((kit / "native" / "egui" / "src").glob("*/components.rs"), None)
+            if components is None:
+                components = kit / "native" / "egui" / "src" / "components.rs"
+            source = components.read_text(encoding="utf-8")
+            self.assertIn("widgets.active.fg_stroke.color = tokens.text_primary", source)
+            self.assertIn("tokens.text_muted", source)
+            self.assertIn("WidgetText::color", source)
+
     def test_published_schemas_are_valid_json_and_define_closed_required_fields(self):
         references = ROOT / "skill" / "references"
         for name in ("interface-canon.schema.json", "component-recipes.schema.json", "consumer-contract.schema.json", "documentation-contract.schema.json", "release-impact.schema.json"):
@@ -98,10 +111,10 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_release_impact_is_closed_and_rejects_downstream_evidence_fields(self):
         impact = load_release_impact()
-        self.assertEqual("2.0.2", impact["brandbuilder_version"])
+        self.assertEqual("2.0.3", impact["brandbuilder_version"])
         self.assertFalse(impact["identity_redesign"])
         self.assertNotIn("brand versions are unchanged", impact["surfaces"]["identity"]["summary"])
-        for version in ("Cueson 1.0.1", "ESO Weave 1.0.1", "Fragcap 1.1.1"):
+        for version in ("Glitchpad 1.1.1", "ESO Weave 1.0.2"):
             self.assertIn(version, impact["surfaces"]["identity"]["summary"])
         self.assertEqual(
             {"identity", "palette", "typography", "platform_assets", "web_react", "egui", "documentation", "recovery"},
@@ -330,10 +343,10 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual(4, first["schema_version"])
             self.assertEqual("1.1.0", first["versions"]["component_recipe_version"])
             self.assertEqual("1.1.0", first["versions"]["web_react_adapter_version"])
-            self.assertEqual("1.0.1", first["versions"]["egui_adapter_version"])
+            self.assertEqual("1.0.2", first["versions"]["egui_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertNotIn("adoption_status", first["compatibility"])
-            expected_package = "shruggietech-brand-%s-bb2.0.2" % brand["version"]
+            expected_package = "shruggietech-brand-%s-bb2.0.3" % brand["version"]
             self.assertEqual(expected_package, first["bundle"]["package"]["id"])
             self.assertEqual(expected_package + ".zip", first["bundle"]["package"]["filename"])
             self.assertEqual(brand["version"], first["bundle"]["package"]["brand_version"])

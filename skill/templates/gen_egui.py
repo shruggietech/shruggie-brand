@@ -20,7 +20,7 @@ from interface_contract import (
 
 HERE = Path(__file__).resolve().parent
 REFERENCES = HERE.parent / "references"
-ADAPTER_VERSION = "1.0.1"
+ADAPTER_VERSION = "1.0.2"
 EGUI_VERSION = "0.36.1"
 RUST_VERSION = "1.95"
 LOCKFILE_TEMPLATE = HERE / "egui-Cargo.lock"
@@ -291,6 +291,10 @@ fn install_style(ctx: &egui::Context, egui_theme: egui::Theme, theme: ThemeMode,
     style.visuals = egui_theme.default_visuals();
     style.visuals.panel_fill = tokens.background;
     style.visuals.override_text_color = Some(tokens.text_primary);
+    style.visuals.widgets.noninteractive.fg_stroke.color = tokens.text_muted;
+    style.visuals.widgets.inactive.fg_stroke.color = tokens.text_primary;
+    style.visuals.widgets.hovered.fg_stroke.color = tokens.text_primary;
+    style.visuals.widgets.active.fg_stroke.color = tokens.text_primary;
     style.visuals.selection.bg_fill = tokens.action;
     style.visuals.selection.stroke = egui::Stroke::new(tokens.focus_width, tokens.focus);
     ctx.set_style_of(egui_theme, style);
@@ -337,7 +341,18 @@ pub fn button(ui: &mut egui::Ui, label: impl Into<egui::WidgetText>, intent: But
         ButtonIntent::Ghost => (egui::Color32::TRANSPARENT, tokens.text_primary),
         ButtonIntent::Destructive => (tokens.destructive, tokens.on_destructive),
     };
-    ui.add_enabled(!disabled, egui::Button::new(label).fill(fill).stroke(egui::Stroke::new(1.0, text)).min_size(ui.spacing().interact_size))
+    let (fill, text) = if disabled { (tokens.card, tokens.text_muted) } else { (fill, text) };
+    let label = egui::WidgetText::color(label.into(), text);
+    let control = egui::Button::new(label).fill(fill).stroke(egui::Stroke::new(1.0, text)).min_size(ui.spacing().interact_size);
+    if disabled {
+        ui.scope(|ui| {
+            // egui::Ui::disable multiplies painter opacity; keep disabled semantics without fading readable text.
+            ui.style_mut().visuals.disabled_alpha = 1.0;
+            ui.add_enabled(false, control)
+        }).inner
+    } else {
+        ui.add(control)
+    }
 }
 
 pub fn icon_button(ui: &mut egui::Ui, accessible_label: &str, glyph: &str, disabled: bool) -> egui::Response {
@@ -413,6 +428,19 @@ TEST_RS = '''use egui_kittest::{Harness, kittest::Queryable as _};
 use {{crate_name}}::components::{app_frame, apply_capabilities, apply_style, button, card, checkbox, dialog, empty_state, field, icon_button, list_row, menu, split_pane, status_badge, tabs, toast, toolbar, ButtonIntent};
 use {{crate_name}}::{Density, Insets, PointerPrecision, RuntimeCapabilities, ThemeMode};
 use {{crate_name}}::tokens::{logical_points, Tokens, UnitTransformError};
+
+fn contrast(left: egui::Color32, right: egui::Color32) -> f32 {
+    fn linear(channel: u8) -> f32 {
+        let value = channel as f32 / 255.0;
+        if value <= 0.04045 { value / 12.92 } else { ((value + 0.055) / 1.055).powf(2.4) }
+    }
+    fn luminance(color: egui::Color32) -> f32 {
+        0.2126 * linear(color.r()) + 0.7152 * linear(color.g()) + 0.0722 * linear(color.b())
+    }
+    let a = luminance(left);
+    let b = luminance(right);
+    (a.max(b) + 0.05) / (a.min(b) + 0.05)
+}
 
 fn capabilities(text_scale: f32) -> RuntimeCapabilities {
     RuntimeCapabilities {
@@ -580,10 +608,49 @@ fn invalid_units_and_runtime_scaling_fail_closed() {
 
 #[test]
 fn generated_style_applies_focus_selection_tokens() {
-    let mut harness = Harness::new_ui(|ui| { apply_style(ui.ctx(), ThemeMode::Light, Density::Comfortable); ui.button("Focus target"); });
+    let mut harness = Harness::new_ui(|ui| { apply_style(ui.ctx(), ThemeMode::Light, Density::Comfortable); let _ = ui.button("Focus target"); });
     harness.run();
     let expected = Tokens::for_theme(ThemeMode::Light, Density::Comfortable).action;
     assert_eq!(harness.ctx.style_of(egui::Theme::Light).visuals.selection.bg_fill, expected);
+}
+
+#[test]
+fn native_status_and_control_states_remain_readable_in_both_themes() {
+    for theme in [ThemeMode::Light, ThemeMode::Dark] {
+        let mut harness = Harness::new_ui(move |ui| {
+            apply_style(ui.ctx(), theme, Density::Comfortable);
+            ui.strong("Capture Unavailable");
+            button(ui, "Available", ButtonIntent::Primary, false);
+            button(ui, "Unavailable", ButtonIntent::Primary, true);
+        });
+        harness.run();
+        harness.get_by_label("Capture Unavailable");
+        harness.get_by_label("Unavailable");
+        harness.get_by_label("Available").hover();
+        harness.run();
+        harness.get_by_label("Available").focus();
+        harness.run();
+        let actual_theme = match theme { ThemeMode::Light => egui::Theme::Light, _ => egui::Theme::Dark };
+        let style = harness.ctx.style_of(actual_theme);
+        let tokens = Tokens::for_theme(theme, Density::Comfortable);
+        let disabled_text = harness.output().shapes.iter().filter_map(|clipped| match &clipped.shape {
+            egui::Shape::Text(text) if text.galley.text() == "Unavailable" => Some(text),
+            _ => None,
+        }).collect::<Vec<_>>();
+        assert!(!disabled_text.is_empty());
+        for text in disabled_text {
+            assert_eq!(text.opacity_factor, 1.0);
+            let colors = text.galley.rows.iter().flat_map(|row| row.row.visuals.mesh.vertices.iter().map(|vertex| vertex.color)).collect::<Vec<_>>();
+            assert!(!colors.is_empty());
+            assert!(colors.iter().all(|color| color.a() == 255 && contrast(*color, tokens.card) >= 4.5));
+        }
+        assert_eq!(style.visuals.strong_text_color(), tokens.text_primary);
+        assert!(contrast(style.visuals.strong_text_color(), tokens.card) >= 4.5);
+        assert!(contrast(tokens.text_muted, tokens.card) >= 4.5);
+        assert!(contrast(tokens.on_action, tokens.action) >= 4.5);
+        assert_eq!(style.visuals.widgets.hovered.fg_stroke.color, tokens.text_primary);
+        assert_eq!(style.visuals.selection.stroke.color, tokens.focus);
+    }
 }
 '''
 

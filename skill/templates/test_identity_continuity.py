@@ -31,6 +31,7 @@ from identity_continuity import (  # noqa: E402
     identity_snapshot,
     measured_oklch,
     palette_roles,
+    proof_iconkit_digest,
     record_digest,
     safe_path,
     validate_glyphkit_helper,
@@ -158,6 +159,16 @@ def proof_artifact_bytes(size):
 
 
 class IdentityContinuityTests(unittest.TestCase):
+    def test_icon_role_edits_preserve_approved_proof_binding_only_while_proof_functions_match(self):
+        source = (HERE / "iconkit.py").read_bytes()
+        self.assertEqual("f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b",
+                         proof_iconkit_digest(source))
+        changed = source.replace(b"maximum = max(1, int(round(size * ratio)))",
+                                 b"maximum = max(1, int(round(size * ratio * 0.9)))", 1)
+        self.assertNotEqual(proof_iconkit_digest(source), proof_iconkit_digest(changed))
+        changed_import = source.replace(b"import base64", b"import base64\nimport secrets", 1)
+        self.assertNotEqual(proof_iconkit_digest(source), proof_iconkit_digest(changed_import))
+
     def make_promotion_bundle(self, root):
         approval = root / "approval"
         source = approval / "source"

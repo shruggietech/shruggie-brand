@@ -191,14 +191,23 @@ def application_icon_profile(brand):
         configured = {}
     else:
         _require(isinstance(configured, dict), "logo.application_icon must be an object")
-        allowed = {"background", "source_variant", "monochrome_platforms", "transparent_web_icons", "shadow_suppression",
-                   "framing", "supplied_targets"}
+        allowed = {"background", "masked_background", "windows_unplated", "source_variant", "monochrome_platforms",
+                   "transparent_web_icons", "shadow_suppression", "framing", "supplied_targets"}
         _require("background" in configured and set(configured).issubset(allowed),
                  "logo.application_icon must contain exactly the supported fields")
     surfaces = brand.get("surfaces") or {}
     background = configured.get("background", surfaces.get("base", "#000000"))
     _require(isinstance(background, str) and HEX.fullmatch(background),
              "application icon background must be a six-digit hex color")
+    enclosure = logo.get("square_enclosure") or {}
+    role = enclosure.get("frame_role")
+    role_color = (((logo.get("role_colors") or {}).get("color") or {}).get(role)
+                  if isinstance(role, str) else None)
+    masked_background = configured.get("masked_background", role_color or background)
+    _require(isinstance(masked_background, str) and HEX.fullmatch(masked_background),
+             "application icon masked_background must be a six-digit hex color")
+    windows_unplated = configured.get("windows_unplated", not bool(enclosure))
+    _require(isinstance(windows_unplated, bool), "application icon windows_unplated must be boolean")
     threshold = logo.get("reduced_below_px", 32)
     _require(isinstance(threshold, int) and not isinstance(threshold, bool)
              and 1 <= threshold <= 1024,
@@ -257,6 +266,10 @@ def application_icon_profile(brand):
         _require(DIGEST.fullmatch(item["sha256"] or ""), "application icon supplied target has an invalid SHA-256")
         normalized_targets.append(dict(item))
     result = {"background": background.upper(), "reduced_below_px": threshold}
+    if "masked_background" in configured or role_color is not None:
+        result["masked_background"] = masked_background.upper()
+    if "windows_unplated" in configured or windows_unplated:
+        result["windows_unplated"] = windows_unplated
     if "source_variant" in configured:
         result["source_variant"] = source_variant
     if suppression is not None:

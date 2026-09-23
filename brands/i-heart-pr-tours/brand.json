@@ -509,7 +509,7 @@
       {"title": "Horizontal sand expression", "description": "An approved atmospheric treatment for wide campaign and editorial placements.", "path": "assets/source/horizontal_sand.svg"}
     ]
   },
-  "canon": "1.2.1",
+  "canon": "1.3.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "approved-canonical"

@@ -43,7 +43,7 @@ class EguiAdapterTests(unittest.TestCase):
             self.assertEqual(first, second)
             manifest = json.loads((native / "adapter.json").read_text(encoding="utf-8"))
             support = json.loads((native / "support-matrix.json").read_text(encoding="utf-8"))
-            self.assertEqual("1.0.1", manifest["adapter_version"])
+            self.assertEqual("1.0.2", manifest["adapter_version"])
             self.assertEqual("=0.36.1", manifest["crate"]["dependencies"]["egui"])
             self.assertEqual("=0.36.1", manifest["crate"]["dev_dependencies"]["egui_kittest"])
             self.assertEqual("1.95", manifest["crate"]["rust_version"])

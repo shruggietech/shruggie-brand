@@ -121,6 +121,8 @@
       "additionalProperties": false,
       "properties": {
         "background": {"$ref": "#/$defs/hexColor"},
+        "masked_background": {"$ref": "#/$defs/hexColor"},
+        "windows_unplated": {"type": "boolean"},
         "source_variant": {"enum": ["full", "reduced"]},
         "monochrome_platforms": {"type": "boolean"},
         "transparent_web_icons": {"type": "boolean"},

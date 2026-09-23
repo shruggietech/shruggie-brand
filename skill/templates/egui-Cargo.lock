@@ -529,7 +529,7 @@ dependencies = [
 
 [[package]]
 name = "{{crate_name}}"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "egui",
  "egui_kittest",

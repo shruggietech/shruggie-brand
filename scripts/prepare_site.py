@@ -845,6 +845,8 @@ def copy_site_identity(source: Path, public: Path = PUBLIC) -> None:
         public / "apple-touch-icon.png": web / "apple-touch-icon.png",
         public / "android-chrome-192x192.png": web / "android-chrome-192x192.png",
         public / "android-chrome-512x512.png": web / "android-chrome-512x512.png",
+        public / "maskable-icon-192x192.png": web / "maskable-icon-192x192.png",
+        public / "maskable-icon-512x512.png": web / "maskable-icon-512x512.png",
         public / "shruggietech-logo.svg": source / "logos" / "svg" / "shruggietech-horizontal-color.svg",
         public / "shruggietech-logo-dark.svg": source / "logos" / "svg" / "shruggietech-horizontal-color.svg",
         public / "shruggietech-logo-light.svg": source / "logos" / "svg" / "shruggietech-horizontal-light.svg",

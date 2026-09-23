@@ -557,6 +557,8 @@ def _expected_icon_paths(raster, monochrome=True):
         "icons/web/apple-touch-icon.png",
         "icons/web/android-chrome-192x192.png",
         "icons/web/android-chrome-512x512.png",
+        "icons/web/maskable-icon-192x192.png",
+        "icons/web/maskable-icon-512x512.png",
         "icons/web/favicon.ico",
         "icons/web/site.webmanifest",
         "icons/android/app/src/main/res/drawable-nodpi/ic_launcher_foreground.png",
@@ -628,6 +630,136 @@ def _validate_apple_catalogs(kit, problems, monochrome=True):
                         problems.append("%s catalog entry %s has dimensions that disagree with its size and scale" % (label, row["filename"]))
         except Exception as error:
             problems.append("%s Contents.json cannot be validated: %s" % (label, error))
+
+
+def _validate_web_manifest(kit, problems):
+    path = os.path.join(kit, "icons", "web", "site.webmanifest")
+    try:
+        with open(path, encoding="utf-8") as handle:
+            manifest = json.load(handle)
+        expected = [
+            ("/android-chrome-192x192.png", "192x192", "any"),
+            ("/android-chrome-512x512.png", "512x512", "any"),
+            ("/maskable-icon-192x192.png", "192x192", "maskable"),
+            ("/maskable-icon-512x512.png", "512x512", "maskable"),
+        ]
+        actual = [(row.get("src"), row.get("sizes"), row.get("purpose")) for row in manifest.get("icons", [])]
+        if actual != expected or any(row.get("type") != "image/png" for row in manifest.get("icons", [])):
+            problems.append("web manifest must declare distinct any and maskable PNG roles at 192 and 512 pixels")
+    except Exception as error:
+        problems.append("web manifest icon roles cannot be validated: %s" % error)
+
+
+def _validate_masked_roles(kit, brand, profile, artifacts, problems):
+    from PIL import Image, ImageChops, ImageDraw
+    plate = tuple(int(profile.get("masked_background", profile["background"])[i:i + 2], 16) for i in (1, 3, 5))
+    for size in (192, 512):
+        relative = "icons/web/maskable-icon-%dx%d.png" % (size, size)
+        try:
+            with Image.open(os.path.join(kit, relative.replace("/", os.sep))) as source:
+                rgba = source.convert("RGBA")
+            if rgba.getchannel("A").getextrema() != (255, 255) or rgba.getpixel((0, 0))[:3] != plate:
+                problems.append("%s must fill its maskable background to every edge" % relative)
+            difference = ImageChops.difference(rgba.convert("RGB"), Image.new("RGB", rgba.size, plate))
+            center = (size - 1) / 2.0
+            safe_radius_squared = (size * 0.4 + 1.0) ** 2
+            outside = any(any(channel > 3 for channel in difference.getpixel((x, y)))
+                          for y in range(size) for x in range(size)
+                          if (x - center) ** 2 + (y - center) ** 2 > safe_radius_squared)
+            if outside:
+                problems.append("%s has essential artwork outside the maskable safe circle" % relative)
+        except Exception as error:
+            problems.append("%s maskable composition cannot be inspected: %s" % (relative, error))
+    colors = os.path.join(kit, "icons", "android", "app", "src", "main", "res", "values", "ic_launcher_colors.xml")
+    try:
+        root = ET.parse(colors).getroot()
+        values = [(row.attrib.get("name"), (row.text or "").upper()) for row in root]
+        if values != [("ic_launcher_background", profile.get("masked_background", profile["background"]))]:
+            problems.append("Android adaptive background color disagrees with the mask role")
+    except Exception as error:
+        problems.append("Android adaptive background color cannot be validated: %s" % error)
+    foreground = os.path.join(kit, "icons", "android", "app", "src", "main", "res", "drawable-nodpi", "ic_launcher_foreground.png")
+    try:
+        with Image.open(foreground) as source:
+            rgba = source.convert("RGBA")
+        size = rgba.width
+        if rgba.height != size or rgba.getchannel("A").getbbox() is None:
+            problems.append("Android adaptive foreground has invalid mask canvas or no visible mark")
+        else:
+            bounds = rgba.getchannel("A").getbbox()
+            for shape in ("circle", "rounded-square", "squircle"):
+                mask = Image.new("L", rgba.size)
+                draw = ImageDraw.Draw(mask)
+                if shape == "circle":
+                    draw.ellipse((0, 0, size - 1, size - 1), fill=255)
+                elif shape == "rounded-square":
+                    draw.rounded_rectangle((0, 0, size - 1, size - 1), radius=size // 5, fill=255)
+                else:
+                    center = (size - 1) / 2.0
+                    radius = size / 2.0
+                    for y in range(size):
+                        extent = radius * max(0.0, 1.0 - abs((y - center) / radius) ** 4) ** 0.25
+                        draw.line((max(0, int(center - extent)), y, min(size - 1, int(center + extent)), y), fill=255)
+                composited = Image.composite(Image.alpha_composite(Image.new("RGBA", rgba.size, plate + (255,)), rgba),
+                                             Image.new("RGBA", rgba.size), mask)
+                visible = composited.getchannel("A")
+                if ImageChops.difference(visible, mask).getbbox() is not None:
+                    problems.append("Android %s adaptive composition has an uncovered mask" % shape)
+            if (brand.get("logo") or {}).get("square_enclosure"):
+                left, top, right, bottom = bounds
+                inset = max(2, size // 108)
+                mid_x = (left + right - 1) // 2
+                mid_y = (top + bottom - 1) // 2
+                samples = ((mid_x, top + inset), (mid_x, bottom - inset - 1),
+                           (left + inset, mid_y), (right - inset - 1, mid_y))
+                if any(rgba.getpixel(point)[3] < 250 or
+                       max(abs(rgba.getpixel(point)[channel] - plate[channel]) for channel in range(3)) > 3
+                       for point in samples):
+                    problems.append("Android adaptive foreground enclosure boundary contrasts with mask background")
+    except Exception as error:
+        problems.append("Android adaptive mask compositions cannot be inspected: %s" % error)
+    for density, size in ANDROID_DENSITIES.items():
+        relative = "icons/android/app/src/main/res/mipmap-%s/ic_launcher.png" % density
+        if any(item.get("path") == relative and item.get("source_variant") == "source-preserved" for item in artifacts):
+            continue
+        try:
+            with Image.open(os.path.join(kit, relative.replace("/", os.sep))) as source:
+                rgba = source.convert("RGBA")
+            if rgba.getchannel("A").getextrema() != (255, 255) or rgba.getpixel((0, 0))[:3] != plate:
+                problems.append("%s has an uncovered or contrasting launcher-mask boundary" % relative)
+        except Exception as error:
+            problems.append("%s launcher composition cannot be inspected: %s" % (relative, error))
+
+
+def _validate_windows_taskbar_frames(kit, profile, problems):
+    from PIL import Image
+    relative = "icons/windows/classic/app.ico"
+    expected_alpha = 0 if profile.get("windows_unplated", False) else 255
+    try:
+        frames = _container_png_payloads(os.path.join(kit, relative.replace("/", os.sep)), "ico")
+        if [size for size, _ in frames] != list(ICO_SIZES):
+            problems.append("Win32 ICO taskbar frame sizes disagree with the declared role")
+        for size, payload in frames:
+            with Image.open(BytesIO(payload)) as source:
+                rgba = source.convert("RGBA")
+            if rgba.getpixel((0, 0))[3] != expected_alpha:
+                problems.append("Win32 ICO %d px frame has an unintended taskbar backplate" % size)
+            if expected_alpha == 0 and size <= 48:
+                box = rgba.getchannel("A").getbbox()
+                if box is None or box[2] - box[0] < size * 0.45 or box[3] - box[1] < size * 0.45:
+                    problems.append("Win32 ICO %d px mark is too small for taskbar use" % size)
+    except Exception as error:
+        problems.append("Win32 ICO taskbar frames cannot be inspected: %s" % error)
+    for size in WINDOWS_TARGETS:
+        for suffix, alpha in (("", expected_alpha), ("_altform-unplated", 0), ("_altform-lightunplated", 0)):
+            relative = "icons/windows/msix/Assets/Square44x44Logo.targetsize-%d%s.png" % (size, suffix)
+            try:
+                with Image.open(os.path.join(kit, relative.replace("/", os.sep))) as source:
+                    rgba = source.convert("RGBA")
+                if rgba.getpixel((0, 0))[3] != alpha:
+                    problems.append("%s has an unintended MSIX taskbar plate" % relative)
+            except Exception as error:
+                problems.append("%s MSIX taskbar pixels cannot be inspected: %s" % (relative, error))
 
 
 def _validate_windows_manifest_fragments(kit, brand, profile, problems):
@@ -708,16 +840,24 @@ def _expected_authoritative_icon(item, masters, profile):
     framing = profile.get("framing") or {}
     ratio = framing.get("content_ratio", 0.75 if role == "play-store" else 0.72)
     offset = framing.get("vertical_offset_ratio", 0)
+    masked_background = profile.get("masked_background", profile["background"])
+    windows_unplated = profile.get("windows_unplated", False)
+    taskbar_ratio = max(ratio, 0.84) if windows_unplated else ratio
     if role == "adaptive-foreground":
         return contain_visible(mark, size, 66.0 / 108.0)
     if role == "adaptive-monochrome":
         return contain_visible(mark, size, 66.0 / 108.0, "#FFFFFF")
+    if role == "maskable":
+        return _plated(mark, size, masked_background, min(ratio, 0.56))
+    if role in {"classic-ico", "target-size"} and windows_unplated:
+        return contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset)
     if appearance in {"dark-unplated", "light-unplated"}:
-        return contain_visible(mark, size, ratio, vertical_offset_ratio=offset)
+        return contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset)
     if role in {"favicon", "apple-touch", "installable"} and profile.get("transparent_web_icons", False):
         return contain_visible(mark, size, ratio, vertical_offset_ratio=offset)
     background = ("#000000" if appearance == "dark" else
-                  "#FFFFFF" if appearance == "tinted" else profile["background"])
+                  "#FFFFFF" if appearance == "tinted" else
+                  masked_background if role == "legacy-launcher" else profile["background"])
     colour = "#000000" if appearance == "tinted" else None
     return _plated(mark, size, background, ratio, colour, offset)
 
@@ -898,14 +1038,18 @@ def c_icon_suites(kit, brand, rep):
                     problems.append("%s must be opaque" % relative)
                 if item.get("alpha") == "transparent" and not info["has_transparency"]:
                     problems.append("%s must preserve transparency" % relative)
-                plated_roles = {"favicon", "apple-touch", "installable", "legacy-launcher", "play-store", "app-icon", "asset-catalog-icon", "iconset-icon", "msix-scale", "store-logo"}
-                if item.get("role") == "target-size" and item.get("appearance") == "default":
+                plated_roles = {"favicon", "apple-touch", "installable", "maskable", "legacy-launcher", "play-store", "app-icon", "asset-catalog-icon", "iconset-icon", "msix-scale", "store-logo"}
+                if item.get("role") == "target-size" and item.get("appearance") == "default" and not expected_profile.get("windows_unplated"):
                     plated_roles.add("target-size")
                 if item.get("role") in plated_roles and item.get("alpha") == "opaque":
-                    plate = "#000000" if item.get("appearance") == "dark" else "#FFFFFF" if item.get("appearance") == "tinted" else expected_profile["background"]
+                    plate = ("#000000" if item.get("appearance") == "dark" else
+                             "#FFFFFF" if item.get("appearance") == "tinted" else
+                             expected_profile.get("masked_background", expected_profile["background"])
+                             if item.get("role") in {"maskable", "legacy-launcher"} else expected_profile["background"])
                     content = inspect_png(path, plate)["content_bbox"]
                     framing = expected_profile.get("framing") or {}
-                    ratio = framing.get("content_ratio", 0.75 if item.get("role") == "play-store" else 0.72)
+                    ratio = (min(framing.get("content_ratio", 0.72), 0.56) if item.get("role") == "maskable" else
+                             framing.get("content_ratio", 0.75 if item.get("role") == "play-store" else 0.72))
                     inset = max(0, int(item.get("width") * (1.0 - ratio) / 2.0) - 2)
                     if content is None or content[0] < inset or content[1] < inset or content[2] > item.get("width") - inset or content[3] > item.get("height") - inset:
                         problems.append("%s artwork exceeds its declared safe area: %s" % (relative, content))
@@ -954,7 +1098,7 @@ def c_icon_suites(kit, brand, rep):
                 kind = fmt
                 for size, payload in _container_png_payloads(path, kind):
                     variant = "full" if kind == "icns" or size > expected_profile["reduced_below_px"] else "reduced"
-                    expected_role = "asset-catalog-icon" if kind == "icns" else "classic-ico"
+                    expected_role = "asset-catalog-icon" if kind == "icns" else item.get("role")
                     expected_identity = _expected_authoritative_icon(
                         {"source_variant": variant, "width": size, "role": expected_role, "appearance": "default"},
                         identity_masters, expected_profile)
@@ -1023,6 +1167,9 @@ def c_icon_suites(kit, brand, rep):
     if absent:
         problems.append("required platform artifacts are absent: %s" % ", ".join(absent[:12]))
     if raster:
+        _validate_web_manifest(kit, problems)
+        _validate_masked_roles(kit, brand, expected_profile, artifacts, problems)
+        _validate_windows_taskbar_frames(kit, expected_profile, problems)
         try:
             for relative in ("icons/web/favicon.ico", "icons/windows/classic/app.ico"):
                 record = next((item for item in artifacts if item.get("path") == relative), {})
