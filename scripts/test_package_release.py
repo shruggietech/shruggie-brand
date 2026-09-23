@@ -268,6 +268,21 @@ class PackageReleaseTests(unittest.TestCase):
                 package_release.write_brand_archive(source, destination, root=root)
             self.assertFalse(destination.exists())
 
+    def test_nonpublic_custom_source_cannot_remove_continuity_input(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = self.make_brand_source(root)
+            relative = self.add_private_custom_source(source)
+            brand_path = source / "brand.json"
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["identity_continuity"] = {"record": "identity-continuity.json"}
+            brand_path.write_text(json.dumps(brand), encoding="utf-8")
+            (source / "identity-continuity.json").write_text(json.dumps({"source_files": [{"path": relative}]}), encoding="utf-8")
+            destination = root / "release" / "alpha-brand-1.0.0-bb2.0.0.zip"
+            with self.assertRaisesRegex(ValueError, "required by canonical identity"):
+                package_release.write_brand_archive(source, destination, root=root)
+            self.assertFalse(destination.exists())
+
     def test_brand_archive_rejects_corrupt_offline_recovery(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -19,7 +19,7 @@ from release_contract import (
     verify_release_directory,
 )
 from interface_contract import package_identity, source_revision
-from brand_contract import custom_assets
+from brand_contract import contained_path, custom_assets
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -77,6 +77,10 @@ def write_brand_archive(
     withheld_paths = {item["source"]["path"] for item in brand.get("custom_assets", [])
                       if item["id"] not in eligible}
     shared_sources = withheld_paths & {item.get("path") for item in brand.get("authoritative_inputs", [])}
+    continuity_path = (brand.get("identity_continuity") or {}).get("record")
+    if continuity_path and withheld_paths:
+        continuity = json.loads(contained_path(source, continuity_path).read_text(encoding="utf-8"))
+        shared_sources |= withheld_paths & {item.get("path") for item in continuity.get("source_files", [])}
     if shared_sources:
         raise ValueError("non-public custom source is also required by canonical identity: %s" % ", ".join(sorted(shared_sources)))
     slug = brand.get("slug")
