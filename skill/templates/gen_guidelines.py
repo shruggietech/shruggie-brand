@@ -251,10 +251,44 @@ def asset_deliveries(kit):
 def _preview(kit, item, title):
     path = Path(kit, item["path"])
     if item.get("format") not in {"png", "svg"}:
-        return '<div class="no-preview">Container asset</div>'
+        kind = {"ico": "Icon container", "icns": "Icon container", "json": "JSON metadata",
+                "xml": "XML metadata"}.get(item.get("format"), "Integration resource")
+        return '<div class="no-preview" role="note">%s (no image preview)</div>' % escape(kind)
     mime = "image/svg+xml" if item["format"] == "svg" else "image/png"
     payload = base64.b64encode(path.read_bytes()).decode("ascii")
     return '<img src="data:%s;base64,%s" alt="%s preview">' % (mime, payload, escape(title, quote=True))
+
+def _preview_surface(kit, item):
+    """Choose the well from visible artwork when possible, then declared appearance."""
+    path = Path(kit, item["path"])
+    colors = []
+    if item.get("format") == "png":
+        from PIL import Image
+        with Image.open(str(path)) as image:
+            image = image.convert("RGBA")
+            image.thumbnail((48, 48))
+            samples = {image.getpixel((x, y)) for y in range(0, image.height, 3)
+                       for x in range(0, image.width, 3)}
+            colors = [Color("srgb", [channel / 255.0 for channel in rgba[:3]])
+                      for rgba in samples if rgba[3] >= 128]
+    elif item.get("format") == "svg":
+        for element in ET.parse(str(path)).iter():
+            style = dict(re.findall(r"(?:^|;)\s*([\w-]+)\s*:\s*([^;]+)", element.get("style", "")))
+            for key in ("fill", "stroke", "stop-color"):
+                value = style.get(key, element.get(key, ""))
+                if value and value not in {"none", "transparent", "currentColor"} and not value.startswith("url("):
+                    try:
+                        colors.append(Color(value))
+                    except ValueError:
+                        pass
+    if colors:
+        # The weaker visible colour determines whether artwork disappears into a well.
+        dark = Color("#090909")
+        light = Color("#F5F5F5")
+        dark_score = min(color.contrast(dark, method="wcag21") for color in colors)
+        light_score = min(color.contrast(light, method="wcag21") for color in colors)
+        return "dark" if dark_score > light_score else "light"
+    return "light" if item.get("colourway") in {"light", "black"} or item.get("appearance") in {"light", "tinted", "light-unplated"} else "dark"
 
 def _asset_catalog(kit, title):
     deliveries, suites, aliases = asset_deliveries(kit)
@@ -276,7 +310,7 @@ def _asset_catalog(kit, title):
                            (escape(item["path"], quote=True), escape(item["path"]), escape(str(item.get("role") or "asset")),
                             size, item["format"].upper(),
                             escape(str(item.get("destination") or "Kit delivery"))))
-        light_surface = row.get("colourway") in {"light", "black"} or row.get("appearance") in {"light", "tinted", "light-unplated"}
+        light_surface = _preview_surface(kit, row) == "light"
         surface_class = "light-well" if light_surface else "dark-well"
         surface_label = "Light surface" if light_surface else "Dark surface"
         raster_widths = [int(item["width"]) for item in group["deliveries"] if item.get("format") == "png" and item.get("width")]
@@ -422,9 +456,9 @@ section { scroll-margin-top:24px; }
 .color-value { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; border-top:1px solid var(--border); padding:8px 0; }
 .color-value code,.deliveries a,.deliveries span { overflow-wrap:anywhere; }
 .copy { min-width:44px; min-height:44px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--secondary); color:var(--foreground); cursor:pointer; }
-.preview { display:grid; place-items:center; min-height:180px; border:1px solid var(--border); border-radius:var(--radius-md); padding:20px; overflow:hidden; }
-.preview img { max-height:180px; }
-.dark-well { background:#090909; }
+.preview { display:grid; grid-template-columns:minmax(0,1fr); place-items:center; min-height:180px; border:1px solid var(--border); border-radius:var(--radius-md); padding:20px; overflow:hidden; }
+.preview img { max-width:100%%; max-height:180px; height:auto; object-fit:contain; }
+.dark-well { background:#090909; color:#F5F5F5; }
 .light-well { background:#F5F5F5; color:#111111; }
 .surface-label { align-self:start; justify-self:start; font:var(--font-label-weight) .72rem var(--font-body); letter-spacing:.04em; text-transform:uppercase; }
 .deliveries { list-style:none; padding:0; margin:12px 0 0; }

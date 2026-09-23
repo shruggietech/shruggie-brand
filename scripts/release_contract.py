@@ -30,6 +30,7 @@ REQUIRED_HISTORY = {
     "1.2.1": ("black-background", "Brotli"),
     "2.0.0": ("AppFrame", "environment", "immutable kit package", "release-backed", "Web/React adapter"),
     "2.0.1": ("egui", "fine-pointer", "44-point", "iframe"),
+    "2.0.2": ("documentation", "preview", "pagination"),
 }
 MIGRATIONS = {
     "1.2.0": (
@@ -55,6 +56,12 @@ MIGRATIONS = {
         "v2.0.1 to receive the immutable bb2.0.1 package identity and egui adapter 1.0.1. Fine-pointer "
         "controls use corrected compact density while touch, coarse, mixed, and unknown input profiles "
         "retain 44-point targets. Approved identity is unchanged."
+    ),
+    "2.0.2": (
+        "Existing kits need migration: **yes to adopt corrected public guidance and previews**. Regenerate "
+        "and repin kits with v2.0.2 to receive the immutable bb2.0.2 package identity, current "
+        "instructions, and readable integration previews. Native egui adapter 1.0.1 and approved "
+        "identity remain unchanged."
     ),
 }
 

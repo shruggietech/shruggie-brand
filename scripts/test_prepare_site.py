@@ -446,6 +446,14 @@ class PrepareSiteTests(unittest.TestCase):
         self.assertIn("`canon` and `A ShruggieTech project` stay literal.", body)
         self.assertIn('{"canon": "1.1.2", "endorsement": "A ShruggieTech project"}', body)
 
+    def test_public_markdown_preserves_named_canon_authorities(self):
+        source = "# Operating modes\n\nBrand Canon and Interface Canon are separate authorities; the canon is the shared brand system.\n"
+        title, body = prepare_site.derive_public_markdown(source)
+        self.assertEqual("Operating modes", title)
+        self.assertIn("Brand Canon and Interface Canon are separate authorities", body)
+        self.assertIn("the brand system is the shared brand system", body)
+        self.assertNotIn("Brand Brand system", body)
+
     def test_public_markdown_promotes_explicit_alerts_only(self):
         source = """# Alerts
 

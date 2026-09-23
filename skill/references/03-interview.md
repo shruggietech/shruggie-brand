@@ -107,9 +107,9 @@ rebuild the geometry from primitives. If the operator declares the file an autho
 to explore the concept space together. This is encouraged and it is the right
 use of the tool. It produces conversation, never artwork.
 
-**Path C, the agent proposes directly.** A geometric or monogram mark derived
-from the governing principle. Usually the strongest option for a technical
-sub-brand and always the fastest.
+**Path C, the agent proposes directly.** Propose a geometric or monogram mark
+derived from the governing principle when that form can express the identity
+without exploratory imagery.
 
 **What this decision means.** The operator selects a direction, not production source. The decision is nonbinding and cannot authorize permanent source, derivatives, publication, or consumer integration. Record the selected visual idea and the operator wording, then construct the production candidate.
 

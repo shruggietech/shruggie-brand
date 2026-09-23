@@ -23,6 +23,8 @@ class PackageReleaseTests(unittest.TestCase):
         self.assertEqual(first["brand_version"], second["brand_version"])
         self.assertNotEqual(first["id"], second["id"])
         self.assertEqual("eso-weave-brand-1.0.0-bb2.0.1.zip", second["filename"])
+        third = package_release.package_identity("eso-weave", "1.0.1", "2.0.2")
+        self.assertEqual("eso-weave-brand-1.0.1-bb2.0.2.zip", third["filename"])
 
     def test_tree_packaging_excludes_host_generated_dependency_and_cache_trees(self):
         with tempfile.TemporaryDirectory() as tmp:

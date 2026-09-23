@@ -980,6 +980,42 @@ try {
     const hrefs = await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')));
     check(JSON.stringify(hrefs) === JSON.stringify(paginationCase.hrefs), `${paginationCase.route} changed its established pagination neighbors (${JSON.stringify(hrefs)})`);
   }
+  for (const width of [1280, 390]) for (const reducedMotion of [false, true]) for (const input of ['pointer', 'keyboard']) {
+    await page.setViewportSize({ width, height: 780 });
+    await page.emulateMedia({ reducedMotion: reducedMotion ? 'reduce' : 'no-preference' });
+    await page.goto(base + '/docs/04-toolchain/', { waitUntil: 'networkidle' });
+    const sourceHeading = await page.locator('.docs-page h1').textContent();
+    await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }));
+    const pagination = page.locator('.docs-pagination > a').last();
+    const destination = await pagination.getAttribute('href');
+    check((await page.evaluate(() => window.scrollY)) > 300, `pagination ${width}px ${input} did not start from a scrolled source`);
+    if (input === 'keyboard') { await pagination.focus(); await pagination.press('Enter'); }
+    else await pagination.click();
+    await page.waitForURL(`**${destination}`);
+    await page.waitForFunction(() => document.activeElement === document.querySelector('.docs-page h1'));
+    const arrival = await page.evaluate(() => { const heading = document.querySelector('.docs-page h1'); const rect = heading.getBoundingClientRect(); return { scrollY: window.scrollY, headingTop: rect.top, headingBottom: rect.bottom, viewport: window.innerHeight }; });
+    check(arrival.scrollY < 80 && arrival.headingTop >= 0 && arrival.headingBottom < arrival.viewport,
+      `pagination ${width}px ${input} reduced-motion=${reducedMotion} missed destination heading (${JSON.stringify(arrival)})`);
+    await page.goBack({ waitUntil: 'networkidle' });
+    check(new URL(page.url()).pathname === '/docs/04-toolchain/', `pagination ${width}px ${input} broke browser back history`);
+    await page.waitForFunction((heading) => document.querySelector('.docs-page h1')?.textContent === heading, sourceHeading);
+    await page.goForward({ waitUntil: 'networkidle' });
+    await page.waitForURL(`**${destination}`);
+    const forwardPath = new URL(page.url()).pathname;
+    check(forwardPath.replace(/\/?$/, '/') === destination.replace(/\/?$/, '/'),
+      `pagination ${width}px ${input} broke browser forward history (${forwardPath}, expected ${destination})`);
+  }
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto(base + '/docs/04-toolchain/', { waitUntil: 'networkidle' });
+  const fragmentId = await page.locator('.docs-page h2[id]').first().getAttribute('id');
+  check(Boolean(fragmentId), 'documentation fragment fixture lacks a heading id');
+  if (fragmentId) {
+    await page.goto(`${base}/docs/04-toolchain/#${fragmentId}`, { waitUntil: 'networkidle' });
+    await page.waitForFunction((id) => { const heading = document.getElementById(id); return heading && heading.getBoundingClientRect().top >= 0 && heading.getBoundingClientRect().top < innerHeight; }, fragmentId);
+    check(new URL(page.url()).hash === `#${fragmentId}`, 'direct documentation fragment navigation lost its target');
+  }
+  await page.goto(base + '/docs/04-toolchain/', { waitUntil: 'networkidle' });
+  check((await page.locator('.docs-page h1').boundingBox())?.y >= 0, 'direct documentation load did not begin at its heading');
   for (const route of ['/docs/', '/docs/02-kit-anatomy/', '/docs/09-portability/']) for (const width of visualWidths) for (const theme of visualThemes) await measurePagination(route, width, theme, route === '/docs/02-kit-anatomy/' && width === 360);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(base + '/docs/');
@@ -1115,6 +1151,35 @@ try {
   }
   const portableAxe = await new AxeBuilder({ page }).include('.btn-primary, main .btn-secondary').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   for (const violation of portableAxe.violations) failures.push(`${portableGuideRoute} fails ${violation.id}: ${violation.nodes.map((node) => node.target.join(' ')).join(', ')}`);
+  for (const width of [1280, 390]) for (const zoom of width === 1280 ? [1, 2] : [1]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.evaluate((scale) => { document.documentElement.style.zoom = String(scale); }, zoom);
+    const previews = await page.locator('.asset-card .preview').evaluateAll((elements) => elements.map((well) => {
+      const label = well.querySelector('.surface-label');
+      const fallback = well.querySelector('.no-preview');
+      const image = well.querySelector('img');
+      const box = well.getBoundingClientRect();
+      return { surface: getComputedStyle(well).backgroundColor, label: label ? getComputedStyle(label).color : null,
+        fallback: fallback ? { color: getComputedStyle(fallback).color, text: fallback.textContent } : null,
+        image: image ? { loaded: image.complete && image.naturalWidth > 0, bounds: image.getBoundingClientRect().toJSON() } : null,
+        bounds: box.toJSON() };
+    }));
+    check(previews.length > 0, `${portableGuideRoute} lacks integration preview cards at ${width}px zoom ${zoom}`);
+    for (const [index, preview] of previews.entries()) {
+      check(preview.label && contrastRatio(preview.label, preview.surface) >= 4.5,
+        `${portableGuideRoute} card ${index + 1} label misses AA on its well at ${width}px zoom ${zoom}`);
+      if (preview.fallback) check(preview.fallback.text.includes('no image preview') && contrastRatio(preview.fallback.color, preview.surface) >= 4.5,
+        `${portableGuideRoute} card ${index + 1} nonvisual resource is unreadable at ${width}px zoom ${zoom}`);
+      if (preview.image) check(preview.image.loaded && preview.image.bounds.width > 0 && preview.image.bounds.right <= preview.bounds.right + 1,
+        `${portableGuideRoute} card ${index + 1} visual preview is missing or clipped at ${width}px zoom ${zoom}`);
+    }
+    if (zoom === 1) {
+      await page.locator('.asset-card').first().scrollIntoViewIfNeeded();
+      await page.screenshot({ path: join(visualRoot, `i-heart-portable-previews-${width}.png`) });
+    }
+  }
+  await page.evaluate(() => { document.documentElement.style.zoom = ''; });
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(base + '/');
   const primaryAction = page.locator('.hero .button.primary');
   const actionStyle = await primaryAction.evaluate((element) => { const style = getComputedStyle(element); const probe = document.createElement('i'); probe.style.backgroundColor = 'var(--brand-cta)'; document.body.append(probe); const result = { background: style.backgroundColor, cta: getComputedStyle(probe).backgroundColor, color: style.color, transitionDuration: style.transitionDuration }; probe.remove(); return result; });

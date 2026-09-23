@@ -37,6 +37,8 @@ jobs:
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
+          python scripts/test_public_documentation.py
+          python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
           python skill/templates/test_brand_contract.py
           python skill/templates/test_interface_contract.py
@@ -125,6 +127,8 @@ jobs:
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
+          python scripts/test_public_documentation.py
+          python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
           python skill/templates/test_brand_contract.py
           python skill/templates/test_interface_contract.py
@@ -165,7 +169,9 @@ jobs:
           path: site/test-results/visual/conformance/
           if-no-files-found: warn
       - name: Audit publication contents
-        run: python scripts/audit_publication_artifacts.py --kits dist --site site/out
+        run: |
+          python scripts/audit_public_documentation.py --prepared
+          python scripts/audit_publication_artifacts.py --kits dist --site site/out
       - name: Stage checksummed release candidate
         run: |
           CANDIDATE="$RUNNER_TEMP/release-candidate"

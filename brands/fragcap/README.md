@@ -340,8 +340,8 @@ feature grids, urgency, and generalized calls to action.
 
 Do not build sentences out of the "X, not Y" contrast — *evidence, not
 theatre*; *an instrument, not a weapon*. It reads as borrowed confidence, it
-is the most recognisable tell of machine-written copy, and it usually
-substitutes a shape for an argument. The same applies to its relatives: *X
+is a recognisable pattern of machine-written copy and substitutes a shape for
+an argument. The same applies to its relatives: *X
 over Y*, *rather than merely Z*, and *never decorate* tacked onto the end of a
 sentence that had already finished.
 

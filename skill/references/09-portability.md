@@ -1,8 +1,7 @@
 # Portability
 
-**This skill has to produce the same kit on Claude, on Codex, and on a bare
-checkout with nothing installed. Every rule here exists because one of those
-three broke.**
+Build the same kit from the same source on Claude, Codex, and a bare checkout.
+Probe local capabilities first and record explicit skips for optional renderers.
 
 ## The capability model
 
@@ -52,8 +51,8 @@ outcome. "The PDF looks good" from an agent that never rendered it is not.
 ## Python
 
 - Invoke as `sys.executable` from inside a script and as `python3` from a shell,
-  falling back to `python` when `python3` is absent. Windows installs are
-  usually `python` only.
+  falling back to `python` when `python3` is absent. On Windows, use `python`
+  when `python3` is unavailable.
 - Target 3.8. No structural pattern matching, no `tomllib`, no `|` unions in
   annotations.
 - Open every file with an explicit `encoding="utf-8"` and, on write,
