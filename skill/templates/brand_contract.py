@@ -841,8 +841,14 @@ def _validate_svg(path):
             _require("http:" not in lowered and "https:" not in lowered and "@import" not in lowered, "supplied SVG contains a network reference")
             _require("animation:" not in lowered and "transition:" not in lowered and "@keyframes" not in lowered,
                      "supplied SVG contains motion styling")
-            if "url(" in lowered:
-                _require("url(#" in lowered, "supplied SVG contains an external paint reference")
+            urls = list(re.finditer(r"url\s*\(([^)]*)\)", value, re.IGNORECASE))
+            if re.search(r"\burl\s*\(", value, re.IGNORECASE):
+                _require(len(urls) == len(re.findall(r"\burl\s*\(", value, re.IGNORECASE)),
+                         "supplied SVG contains a malformed paint reference")
+                for url in urls:
+                    reference = url.group(1).strip().strip("\"'")
+                    _require(re.fullmatch(r"#[^\s#()\"']+", reference) is not None,
+                             "supplied SVG contains an external paint reference")
 
 
 def _validate_custom_raster(path, declared_format):
@@ -926,6 +932,9 @@ def custom_assets(brand, kit, public_only=False):
                  "custom asset %s has invalid approval" % identifier)
         _require(not approval["publication_eligible"] or approval["status"] == "approved",
                  "custom asset %s cannot be public without approval" % identifier)
+        if not approval["publication_eligible"]:
+            _require(not relative.startswith(("logos/", "favicons/", "icons/", "specimens/", "guidelines/", "nextjs/registry/")),
+                     "non-public custom asset %s uses an always-published source tree" % identifier)
         transforms = item["transformations"]
         _require(isinstance(transforms, list) and transforms and all(isinstance(value, str) for value in transforms)
                  and len(transforms) == len(set(transforms))

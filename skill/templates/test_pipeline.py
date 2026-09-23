@@ -810,6 +810,26 @@ class PipelineTests(unittest.TestCase):
             self.assertNotIn("Expressions and atmosphere", gen_guide_pdf.build(private, kit))
             self.assertNotIn('<section id="expressions">', gen_guidelines.build(private, kit))
 
+    def test_pdf_paginates_every_expression_card(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "guide"
+            brand, _, _ = self.i_heart_pr_tours_guide_fixture(kit)
+            source = kit / brand["custom_assets"][0]["source"]["path"]
+            for index in range(3):
+                item = copy.deepcopy(brand["custom_assets"][0])
+                item["id"] = "extra-sand-%d" % index
+                item["title"] = "Extra sand expression %d" % index
+                relative = "assets/source/extra-sand-%d.svg" % index
+                shutil.copy2(source, kit / relative)
+                item["source"]["path"] = relative
+                brand["custom_assets"].append(item)
+            html = gen_guide_pdf.build(brand, kit)
+            expression_pages = html.split('<div class="ey">Optional expressions</div>')[1:]
+            card_counts = [page.split('<div class="pg">', 1)[0].count('style="height:75mm') for page in expression_pages]
+            self.assertEqual([2, 2, 1], card_counts)
+            for item in brand["custom_assets"]:
+                self.assertEqual(1, html.count('<h3>%s</h3>' % item["title"]))
+
     def test_secondary_ctas_use_the_surface_aware_red_outline_contract(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "guide"

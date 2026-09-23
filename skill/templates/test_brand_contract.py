@@ -150,6 +150,33 @@ class CustomAssetContractTests(unittest.TestCase):
                 item["source"]["sha256"] = sha256_file(raster)
                 self.assertEqual([item], custom_assets({"custom_assets": [item]}, self.kit, public_only=True))
 
+    def test_every_svg_css_url_must_be_local(self):
+        source = self.kit / self.asset["source"]["path"]
+        for reference in ("/cursor.cur", "file:///cursor.cur", "../cursor.cur"):
+            with self.subTest(reference=reference):
+                source.write_text('<svg xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="paint"/></defs><rect style="fill:url(#paint);cursor:url(%s)"/></svg>' % reference, encoding="utf-8")
+                item = copy.deepcopy(self.asset)
+                item["source"]["sha256"] = sha256_file(source)
+                with self.assertRaisesRegex(ContractError, "external paint reference"):
+                    custom_assets({"custom_assets": [item]}, self.kit)
+        source.write_text('<svg xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="paint"/></defs><rect style="fill:url(#paint);stroke:url(\'#paint\')"/></svg>', encoding="utf-8")
+        item = copy.deepcopy(self.asset)
+        item["source"]["sha256"] = sha256_file(source)
+        self.assertEqual([item], custom_assets({"custom_assets": [item]}, self.kit, public_only=True))
+
+    def test_nonpublic_sources_cannot_live_in_always_published_trees(self):
+        original = self.kit / self.asset["source"]["path"]
+        for relative in ("logos/private.svg", "favicons/private.svg", "icons/private.svg", "specimens/private.svg", "guidelines/private.svg", "nextjs/registry/private.svg"):
+            with self.subTest(path=relative):
+                source = self.kit / relative
+                source.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(original, source)
+                item = copy.deepcopy(self.asset)
+                item["source"] = {"path": relative, "format": "svg", "sha256": sha256_file(source)}
+                item["approval"] = {"status": "pending", "publication_eligible": False}
+                with self.assertRaisesRegex(ContractError, "always-published source tree"):
+                    custom_assets({"custom_assets": [item]}, self.kit)
+
 
 def approval_brand(status="pending"):
     gate_2 = {"status": status, "approved_by": None, "approved_on": None,

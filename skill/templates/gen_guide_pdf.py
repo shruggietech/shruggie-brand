@@ -440,10 +440,15 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
                 well, mime, encoded, escape(item["accessibility"]["alt"], quote=True), escape(item["title"]),
                 escape(item["description"]), escape(item["role"]), escape(item["usage"]["use"]), escape(item["usage"]["avoid"]),
                 escape(item["credit"]["attribution"]), escape(item["credit"]["license"]), escape(item["source"]["path"])))
-        pages.append(pg("Optional expressions", "Expressions and atmosphere",
-                        '<p>These approved treatments extend the identity for selected contexts. They are not substitutes for the core logo masters.</p><div class="two" style="margin-top:4mm">%s</div>' % "".join(cards), 7))
+        for start in range(0, len(cards), 2):
+            heading = "Expressions and atmosphere" if start == 0 else "Expressions and atmosphere (continued)"
+            intro = ('<p>These approved treatments extend the identity for selected contexts. They are not substitutes for the core logo masters.</p>'
+                     if start == 0 else "")
+            pages.append(pg("Optional expressions", heading,
+                            '%s<div class="two" style="margin-top:4mm">%s</div>' % (intro, "".join(cards[start:start + 2])),
+                            len(pages) + 1))
 
-    affiliation_page = 8 if expressions else 7
+    affiliation_page = len(pages) + 1
     if aff["parent"]:
         pages.append(pg("Parent", endorsement,
         '<p>%s uses the ShruggieTech type families, dark product surfaces, and the inherited orange '

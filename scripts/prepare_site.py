@@ -624,6 +624,7 @@ def publication_record(sources: list[Path], release_slugs: Optional[Set[str]] = 
 
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
+    governed = custom_assets(brand, source, public_only=True)
     guide = source / "brand-guide.pdf"
     if not guide.is_file():
         raise ValueError(f"{slug}: verified public brand guide is missing")
@@ -646,7 +647,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
     shutil.copy2(portable_guide, downloads / f"{slug}-portable-guidelines.html")
     for name in ("logos", "favicons", "icons"):
         replace_tree(source / name, downloads / name)
-    for item in custom_assets(brand, source, public_only=True):
+    for item in governed:
         relative = Path(item["source"]["path"])
         destination = downloads / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
