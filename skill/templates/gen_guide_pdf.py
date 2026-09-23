@@ -18,7 +18,7 @@ import argparse, base64, json, os, sys
 from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
-from brand_contract import affiliation, affiliation_text, logo_metrics, vendor_boundary
+from brand_contract import affiliation, affiliation_text, guide_surface_mode, logo_metrics, vendor_boundary
 
 def chips(t, keys, light=False):
     o = ""
@@ -169,9 +169,10 @@ def _charttable(D, L, B):
 def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
-    light_first = (B.get("guide") or {}).get("surface_mode") == "light"
+    light_first = guide_surface_mode(B) == "light"
     P, ALT = (L, D) if light_first else (D, L)
-    A, AL = P["primary"], ALT["primary"]
+    A, AL = P["primary"], L["primary"]
+    bright_accent = B["accent"]["bright"]
     AD = P.get("brand-accent-deep", A)
     OR, FA = P["brand-emphasis"], P["destructive"]
     CTA, CTA_FG = P["brand-cta"], P["brand-cta-foreground"]
@@ -370,7 +371,10 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         'The bright accent %s measures <b style="color:%s">%s:1</b> on the light reading surface and is '
         'never text there. The light token block substitutes %s at %s:1 automatically. The legal '
         'foreground on an accent fill is %s at %s:1.%s</p></div>' % (
-            copy_for(B, "palette", ("Dark and close to monochrome. The accent is the signal; the "
+            copy_for(B, "palette", ("White-paper first. The accessible accent structures the light "
+                                    "surface; the brand-specific emphasis marks attention."
+                                    if light_first else
+                                    "Dark and close to monochrome. The accent is the signal; the "
                                     "inherited orange marks a state needing attention."
                                     if inherits_house else
                                     "Dark and close to monochrome. The accent is the signal; the "
@@ -378,7 +382,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             role_grid, chips(D, role_tokens),
             chips(D, ["background", "card", "secondary", "border"]),
             AL, chips(L, ["primary", "background", "muted", "muted-foreground"], True),
-            A,
+            bright_accent,
             TX,
             (B.get("color", {}).get("accent-bright", {}).get("contrast", {}) or {}).get("on_light_base", "?"),
             AL,
@@ -517,7 +521,7 @@ def main():
                    margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
             b.close()
         print("wrote", pdf_path)
-        ground = "light" if (B.get("guide") or {}).get("surface_mode") == "light" else "dark"
+        ground = guide_surface_mode(B)
         print("Now run qc_render.py --expect-ground %s AND OPEN THE CONTACT SHEET." % ground)
     except Exception as e:
         print("FAIL brand guide PDF: Chromium was probed successfully but export failed (%s)" % e)

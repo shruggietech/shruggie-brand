@@ -512,6 +512,40 @@ def showcase_surface(brand):
     return value.upper()
 
 
+def validate_light_presentation(brand, consumer):
+    """Validate a light palette when any published surface consumes it."""
+    light = brand.get("light_surfaces")
+    required = ("base", "card", "popover", "secondary", "hover", "foreground", "muted_foreground")
+    _require(isinstance(light, dict) and all(key in light for key in required),
+             "%s requires complete light_surfaces" % consumer)
+    for key in required:
+        _require(isinstance(light[key], str) and HEX.fullmatch(light[key]),
+                 "light_surfaces.%s must be a six-digit hex color" % key)
+    primary = (brand.get("accent") or {}).get("accessible")
+    _require(isinstance(primary, str) and HEX.fullmatch(primary),
+             "%s requires an accessible accent" % consumer)
+    from coloraide import Color
+    for foreground, value in (("foreground", light["foreground"]),
+                              ("muted_foreground", light["muted_foreground"]),
+                              ("accent.accessible", primary)):
+        for surface in ("base", "card", "popover", "secondary", "hover"):
+            ratio = Color(value).contrast(light[surface], method="wcag21")
+            _require(ratio >= 4.5,
+                     "%s contrast on light_surfaces.%s is %.2f:1, needs 4.5:1"
+                     % (foreground, surface, ratio))
+
+
+def guide_surface_mode(brand):
+    """Resolve the governed reading surface before any generated output exists."""
+    guide = brand.get("guide", {})
+    _require(isinstance(guide, dict), "guide must be an object")
+    mode = guide.get("surface_mode", "dark")
+    _require(mode in ("dark", "light"), "guide.surface_mode must be dark or light")
+    if mode == "light":
+        validate_light_presentation(brand, "guide.surface_mode light")
+    return mode
+
+
 def affiliation_text(brand):
     value = affiliation(brand)
     if value["endorsement"] == "shruggietech-project":
@@ -1202,6 +1236,7 @@ def validate_palette_approvals(brand, evidence):
 
 def validate_brand(brand, kit):
     _require(isinstance(brand.get("slug"), str) and ID.fullmatch(brand["slug"]), "brand slug is missing or invalid")
+    guide_surface_mode(brand)
     aff = affiliation(brand)
     if aff["inheritance"] == "independent":
         colors = brand.get("semantic_colors")
@@ -1213,6 +1248,8 @@ def validate_brand(brand, kit):
     square_enclosure_profile(brand)
     wordmark_role_colors(brand)
     showcase_surface(brand)
+    if (brand.get("showcase_surface") or "").startswith("light."):
+        validate_light_presentation(brand, "light showcase_surface")
     normalized_inputs = authoritative_inputs(brand, kit)
     if aff["ownership"] == THIRD_PARTY and aff["showcase"] == "public":
         _require(brand.get("approval_ledger") is not None,

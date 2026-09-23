@@ -90,6 +90,21 @@ def contrast(a, b):
     hi, lo = max(la, lb), min(la, lb)
     return round((hi + 0.05) / (lo + 0.05), 2)
 
+def ground_problems(grounds, expected):
+    """Reject mixed page grounds and any page contrary to the declared mode."""
+    dark_pages = sum(1 for ground in grounds if luminance(ground) < 0.2)
+    problems = []
+    if 0 < dark_pages < len(grounds):
+        problems.append("page ground is inconsistent: %d of %d pages dark, the rest light. "
+                        "Pick one ground for the whole document and show the other surface "
+                        "as specimen panels inside it." % (dark_pages, len(grounds)))
+    if expected == "dark" and dark_pages != len(grounds):
+        problems.append("brand declares a dark guide surface but %d pages are light"
+                        % (len(grounds) - dark_pages))
+    if expected == "light" and dark_pages:
+        problems.append("brand declares a light guide surface but %d pages are dark" % dark_pages)
+    return problems
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("pdf"); ap.add_argument("--out", default="qc")
@@ -165,17 +180,7 @@ def main():
     # Surface consistency, not an ink budget. A dark-first brand ships a
     # full-bleed dark guide on purpose; the real defect is a document whose
     # page ground changes part way through, which reads as a broken export.
-    lums = [luminance(g) for g in grounds]
-    dark_pages = sum(1 for l in lums if l < 0.2)
-    if 0 < dark_pages < len(lums):
-        problems.append("page ground is inconsistent: %d of %d pages dark, the rest light. "
-                        "Pick one ground for the whole document and show the other surface "
-                        "as specimen panels inside it." % (dark_pages, len(lums)))
-    if a.expect_ground == "dark" and dark_pages != len(lums):
-        problems.append("brand declares a dark guide surface but %d pages are light"
-                        % (len(lums) - dark_pages))
-    if a.expect_ground == "light" and dark_pages:
-        problems.append("brand declares a light guide surface but %d pages are dark" % dark_pages)
+    problems.extend(ground_problems(grounds, a.expect_ground))
     # A cover and a closing page are legitimately atypical. Judge the variance
     # on the body pages, the same exemption the empty-run check already makes.
     body_h = heights[1:-1] if len(heights) > 2 else heights

@@ -1,6 +1,7 @@
 import portals from '@/generated/guidelines.json';
 import type { Root } from 'fumadocs-core/page-tree';
 import type { TOCItemType } from 'fumadocs-core/toc';
+import type { CSSProperties } from 'react';
 
 export type InlineSegment = { type: 'text' | 'code' | 'link'; text: string; href?: string };
 export type InstructionBlock =
@@ -32,7 +33,9 @@ export type GuidelinePortal = {
     hosted: { manual_path: string; scope: string };
     bundled: { facts_path: string; authority: string; latest_substitution_allowed: boolean };
   };
-  brand: { slug: string; title: string; version: string; descriptor: string; idea: string; affiliation: string; vendorBoundary: string };
+  brand: { slug: string; title: string; version: string; descriptor: string; idea: string; affiliation: string; vendorBoundary: string; surface_mode: 'light' | 'dark' };
+  presentation: Record<string, string>;
+  presentations: { dark: Record<string, string>; light: Record<string, string> };
   topics: GuidelineTopic[];
   content: {
     overview: { foundation_title?: string; foundation?: string; promises?: string[]; in_scope?: string[]; out_of_scope?: string[]; sharp_edge?: string };
@@ -51,6 +54,23 @@ export type GuidelinePortal = {
 export const guidelinePortals = portals as unknown as GuidelinePortal[];
 
 export function guidelineBySlug(slug: string) { return guidelinePortals.find((portal) => portal.brand.slug === slug); }
+
+export function guidePresentationStyle(portal: GuidelinePortal): CSSProperties {
+  const tokens = portal.presentation;
+  const style: Record<string, string> = {};
+  for (const [key, value] of Object.entries(tokens)) {
+    if (!/^#[0-9A-Fa-f]{6}$/.test(value)) throw new Error(`${portal.brand.slug} has invalid ${key} presentation color`);
+    style[`--${key}`] = value;
+  }
+  for (const key of ['background', 'foreground', 'card', 'card-foreground', 'popover', 'popover-foreground',
+    'muted', 'muted-foreground', 'secondary', 'secondary-foreground', 'accent', 'accent-foreground',
+    'primary', 'primary-foreground', 'border', 'ring']) {
+    if (!tokens[key]) throw new Error(`${portal.brand.slug} lacks ${key} presentation color`);
+    style[`--color-fd-${key}`] = tokens[key];
+  }
+  style['--guide-accent'] = tokens.primary;
+  return style as CSSProperties;
+}
 
 export function guidelineTopic(portal: GuidelinePortal, segments?: string[]) {
   if (!segments?.length) return portal.topics[0];

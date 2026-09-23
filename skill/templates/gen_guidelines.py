@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 from coloraide import Color
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
-from brand_contract import affiliation_text, logo_metrics, vendor_boundary
+from brand_contract import affiliation_text, guide_surface_mode, logo_metrics, vendor_boundary
 
 def color_reference(token, value):
     color = Color(value).convert("srgb")
@@ -139,6 +139,7 @@ def portal_payload(B, kit):
         raise ValueError("guideline portal requires enforcement/documentation-facts.json")
     implementation = json.loads(facts_path.read_text(encoding="utf-8"))
     dark, light = tokens(kit)
+    mode = guide_surface_mode(B)
     deliveries, suites, aliases = asset_deliveries(kit)
     families, resources = portal_assets(deliveries, kit)
     instructions = []
@@ -164,7 +165,9 @@ def portal_payload(B, kit):
     return {
         "schema_version": "1.0",
         "implementation": implementation,
-        "brand": {"slug": B["slug"], "title": B["title"], "version": B["version"], "descriptor": B.get("descriptor", ""), "idea": B.get("brand_idea", ""), "affiliation": affiliation_text(B), "vendorBoundary": (vendor_boundary(B) or {}).get("notice", "")},
+        "brand": {"slug": B["slug"], "title": B["title"], "version": B["version"], "descriptor": B.get("descriptor", ""), "idea": B.get("brand_idea", ""), "affiliation": affiliation_text(B), "vendorBoundary": (vendor_boundary(B) or {}).get("notice", ""), "surface_mode": mode},
+        "presentation": light if mode == "light" else dark,
+        "presentations": {"dark": dark, "light": light},
         "topics": topics,
         "content": {
             "overview": {"foundation_title": guide.get("foundation_title", "Foundations"), "foundation": guide.get("foundation", ""), "promises": guide.get("promises", []), "in_scope": guide.get("in_scope", []), "out_of_scope": guide.get("out_of_scope", []), "sharp_edge": guide.get("sharp_edge", "")},
@@ -391,7 +394,7 @@ def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
     A, AL = D["primary"], L["primary"]
-    light_first = (B.get("guide") or {}).get("surface_mode") == "light"
+    light_first = guide_surface_mode(B) == "light"
     logo = asset(kit, "%s-horizontal-light-1024.png" % slug) if light_first else asset(kit, "%s-horizontal-color-1024.png" % slug)
     lockups = (B.get("logo") or {}).get("lockups") or {}
     horizontal_lockup = lockups.get("horizontal") or {}
@@ -489,6 +492,8 @@ section { scroll-margin-top:24px; }
 .btn-secondary:hover { background:var(--brand-cta); color:var(--brand-cta-foreground); border-color:var(--brand-cta); transform:translateY(-1px); }
 .btn-secondary:active { background:var(--brand-cta); color:var(--brand-cta-foreground); border-color:var(--brand-cta); transform:none; box-shadow:inset 0 0 0 2px var(--brand-cta-foreground); }
 .btn-secondary:focus-visible { background:transparent; color:var(--brand-cta-outline-foreground); border-color:var(--brand-cta); outline:2px solid #FFFFFF; outline-offset:2px; box-shadow:0 0 0 4px #000000; }
+body[data-guide-mode="light"] .btn-primary:focus-visible,
+body[data-guide-mode="light"] .btn-secondary:focus-visible { outline:2px solid var(--ring); outline-offset:2px; box-shadow:0 0 0 4px var(--background); }
 .badge { font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:.75rem; letter-spacing:.04em; text-transform:uppercase;
   border-radius:999px; padding:4px 12px; border:1px solid currentColor; }
 input { font-family:var(--font-body); font-size:.875rem; background:var(--card); color:var(--foreground);
@@ -508,7 +513,8 @@ img.logo { max-height:56px; } img.mark { max-height:40px; } img.stacked { max-he
 .expression-art img { max-height:360px; width:100%%; }
 code { font-family:var(--font-body); font-weight:var(--font-label-weight); font-variant-ligatures:none; }
 @media(prefers-reduced-motion:reduce){ *{ animation-duration:.01ms!important; transition-duration:.01ms!important; } .btn-primary:hover,.btn-secondary:hover{transform:none;} }
-</style></head><body class="%(body_class)s"><div class="wrap">
+@media print { body { background:var(--background); color:var(--foreground); } .back-top { display:none; } }
+</style></head><body class="%(body_class)s" data-guide-mode="%(surface_mode)s"><div class="wrap">
 <header id="top">%(logoimg)s
 <div class="eyebrow" style="margin-top:32px">Brand guidelines</div>
 <h1>%(idea)s</h1>
@@ -583,6 +589,7 @@ if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;
 </script></body></html>""" % {
         "title": title, "faces": faces(kit, B), "lv": lv, "dv": dv,
         "body_class": "" if light_first else "dark",
+        "surface_mode": guide_surface_mode(B),
         "expression_nav": '<li><a href="#expressions">Expressions</a></li>' if (B.get("guide") or {}).get("expressions") else "",
         "expressions": expression_gallery(B, kit),
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),

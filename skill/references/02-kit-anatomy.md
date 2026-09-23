@@ -97,10 +97,10 @@ because that is what the agent's hands already know.
   fonts/                       R    woff2 + ttf + OFL licenses. BUNDLED.
     licenses/
   specimens/                   R    type specimen, fully outlined
-  guidelines/index.html        R    the system rendered from itself
+  guidelines/index.html        R    the system rendered from itself, on its declared reading surface
   ui_kits/<brand>-web/         R    a demo product surface in the brand's
                                     own register
-  brand-guide.pdf              R    printable reference, fonts embedded Type0
+  brand-guide.pdf              R    printable reference, fonts embedded Type0, declared page ground
 
   build/                       R    Python. Quarantined so a text-only ingest
     mk_paths.py                     is unaffected. mk_paths.py is the LOGO
