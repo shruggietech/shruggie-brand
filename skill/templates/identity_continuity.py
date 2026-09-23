@@ -53,7 +53,7 @@ LIFECYCLE_TRANSITIONS = {
     "discarded": set(),
 }
 LEGACY_PROOF_ICONKIT_SHA256 = "f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b"
-LEGACY_PROOF_FUNCTIONS_SHA256 = "7ad0c84dc432083af06c7fa4b0ba46c88934a38408eb633c2d5131a809ed6fa4"
+LEGACY_PROOF_FUNCTIONS_SHA256 = "9406bcbb747d1cf40c3592786d7446c4c34a72b83ee51cb51c8eef74daf7dd21"
 PROOF_ICONKIT_FUNCTIONS = {"_pillow", "_visible_crop", "_hex_rgb", "contain_visible"}
 FRAMING_FIELDS = (
     "grid", "canvas_width", "canvas_height", "artwork_width", "artwork_height",
@@ -88,12 +88,14 @@ def record_digest(record):
 
 def proof_iconkit_digest(source):
     """Keep approved proof settings stable only while proof code and module setup are unchanged."""
-    tree = ast.parse(source.decode("utf-8"))
+    source_text = source.decode("utf-8")
+    tree = ast.parse(source_text)
     functions = [node.name for node in tree.body if isinstance(node, ast.FunctionDef)
                  and node.name in PROOF_ICONKIT_FUNCTIONS]
     _require(len(functions) == len(PROOF_ICONKIT_FUNCTIONS) and set(functions) == PROOF_ICONKIT_FUNCTIONS,
              "identity proof icon helpers are missing or redefined")
-    bound = [(type(node).__name__, getattr(node, "name", ""), ast.dump(node, include_attributes=False))
+    # AST dumps differ across supported Python versions; source segments give a stable fingerprint.
+    bound = [(type(node).__name__, getattr(node, "name", ""), ast.get_source_segment(source_text, node))
              for node in tree.body
              if (isinstance(node, ast.FunctionDef) and node.name in PROOF_ICONKIT_FUNCTIONS)
              or (not isinstance(node, ast.FunctionDef)

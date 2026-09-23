@@ -24,4 +24,5 @@
 
 ## Review ledger
 
-Pending official pull request and external reviews. Maximum two Codex review rounds, including any manually requested second round.
+- PR #258 was opened at `be98870`; the automatic Codex code review is round one. Maximum two Codex review rounds, including any manually requested second round.
+- The first PR CI run exposed a Python 3.8-only fingerprint mismatch: `ast.dump()` produced version-dependent proof-helper serialization. S048 replaced that internal compatibility fingerprint with exact source segments, leaving the mandatory 32-image approval comparison intact. The 23 identity continuity tests pass locally after the correction; CI rerun and bot reviews remain pending.
