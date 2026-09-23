@@ -89,6 +89,37 @@ class ReadmeLinkAuditTests(unittest.TestCase):
     def test_versioned_builder_artifact_name_fails(self) -> None:
         self.assertIn("versioned BrandBuilder asset", "\n".join(self.problems(self.valid + "Get shruggie-brandbuilder-2.0.0.skill\n")))
 
+    def test_markdown_autolink_is_audited(self) -> None:
+        self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "<https://brand.shruggie.tech/not-a-route/>\n")))
+
+    def test_markdown_image_cannot_satisfy_brand_navigation(self) -> None:
+        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "![Alpha](https://brand.shruggie.tech/alpha/guidelines/)")
+        self.assertIn("missing brand overview", "\n".join(self.problems(text)))
+
+    def test_markdown_image_cannot_satisfy_release_navigation(self) -> None:
+        text = self.valid.replace("[Latest official release](https://github.com/shruggietech/shruggie-brand/releases/latest)", "![Latest official release](https://github.com/shruggietech/shruggie-brand/releases/latest)")
+        self.assertIn("missing latest official release", "\n".join(self.problems(text)))
+
+    def test_html_image_cannot_satisfy_brand_navigation(self) -> None:
+        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", '<img src="https://brand.shruggie.tech/alpha/guidelines/" alt="Alpha">')
+        self.assertIn("missing brand overview", "\n".join(self.problems(text)))
+
+    def test_html_anchor_can_satisfy_brand_navigation(self) -> None:
+        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", '<a href="https://brand.shruggie.tech/alpha/guidelines/">Alpha</a>')
+        self.assertEqual([], self.problems(text))
+
+    def test_angle_bracket_image_target_is_not_an_autolink(self) -> None:
+        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "![Alpha](<https://brand.shruggie.tech/alpha/guidelines/>)")
+        self.assertIn("missing brand overview", "\n".join(self.problems(text)))
+
+    def test_reference_link_can_satisfy_brand_navigation(self) -> None:
+        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "[Alpha][alpha]\n\n[alpha]: https://brand.shruggie.tech/alpha/guidelines/")
+        self.assertEqual([], self.problems(text))
+
+    def test_reference_image_cannot_satisfy_brand_navigation(self) -> None:
+        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "![Alpha][alpha]\n\n[alpha]: https://brand.shruggie.tech/alpha/guidelines/")
+        self.assertIn("missing brand overview", "\n".join(self.problems(text)))
+
     def test_fenced_example_links_are_not_public_destinations(self) -> None:
         self.assertEqual([], self.problems(self.valid + "\n```md\n[Example](missing.md)\n```\n"))
 

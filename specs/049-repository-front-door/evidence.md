@@ -11,7 +11,7 @@
 ## Verification
 
 - Spec Kit requirements checklist: 16/16 passing. Cross-artifact analysis found no blocking conflict; post-merge publication is explicitly deferred to owner merge.
-- Test-first README audit: 15 isolated tests pass, including invalid local paths, encoded traversal, lookalike site host, noncanonical route, missing brand, bad image candidate, same-document fragment, missing latest release, and stale fixed-version skill name.
+- Test-first README audit: 23 isolated tests pass, including invalid local paths, encoded traversal, lookalike site host, noncanonical route, missing brand, bad image candidate, same-document fragment, missing latest release, stale fixed-version skill name, Markdown autolinks, and link-versus-image navigation roles.
 - README audit against freshly generated `site/generated/routes.json`: 0 problems. All eight brand destinations and the site root returned HTTP 200 in a one-time manual HEAD check; official release, workflow, Build badge, release badge, and code-license badge destinations also returned HTTP 200. CI remains network-free.
 - Aggregate `build_all.py` with the approved Node v24.11.0 renderer: eight production kits clean, zero verifier problems and zero glyph failures. The first local attempt used Node v26.5.0 and correctly failed I Heart PR Tours' renderer fingerprint; switching the process-local `GP_NODE` to the installed approved version resolved it without source changes.
 - Release candidate: `package_release.py --version 2.0.3`, generated notes, and `release_contract.py verify` passed for nine contract-declared assets (seven brand archives and two BrandBuilder distributions). The site showcases eight brands; the README now directs readers to the release's actual asset list instead of implying every showcase has an archive. No tag or release was published.
@@ -23,7 +23,8 @@
 
 ## Review and CI ledger
 
-Pending PR creation. Codex review requests are capped at two rounds, including any automatically triggered first round.
+- PR [#260](https://github.com/shruggietech/shruggie-brand/pull/260) opened from commit `58f14de`. The automatic Codex review is round one; no second review has been requested yet. Codex review requests are capped at two rounds total.
+- Round-one Codex review identified two P2 findings: Markdown autolinks escaped route checking, and non-navigable image targets could satisfy required brand/release links. Added failing tests for both, implemented role-aware extraction for inline links, reference links, HTML anchors/images, and autolinks, then passed all 23 focused tests and the live README audit. Thread replies and CI recheck are pending the correction push.
 
 ## Post-merge release ritual
 

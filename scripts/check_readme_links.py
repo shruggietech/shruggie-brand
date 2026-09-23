@@ -17,7 +17,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE_ORIGIN = "https://brand.shruggie.tech"
 LATEST_RELEASE = "https://github.com/shruggietech/shruggie-brand/releases/latest"
 MARKDOWN_TARGET = re.compile(r"\]\((?:<([^>]+)>|([^\s)]+))")
-REFERENCE_TARGET = re.compile(r"(?m)^ {0,3}\[[^\]]+\]:[ \t]*(?:<([^>]+)>|([^\s]+))")
+MARKDOWN_IMAGE = re.compile(r"!\[[^\]]*\]\((?:<[^>]+>|[^\s)]+)\)")
+MARKDOWN_AUTOLINK = re.compile(r"<(https?://[^\s<>]+)>")
+REFERENCE_TARGET = re.compile(r"(?m)^ {0,3}\[(?P<id>[^\]]+)\]:[ \t]*(?:<(?P<angle>[^>]+)>|(?P<plain>[^\s]+))")
+REFERENCE_USE = re.compile(r"(?P<image>!)?\[[^\]]+\]\[(?P<id>[^\]]+)\]")
 FENCE = re.compile(r"^ {0,3}(```|~~~)")
 VERSIONED_BUILDER_ASSET = re.compile(r"shruggie-brandbuilder-\d+\.\d+\.\d+(?:-portable)?\.(?:skill|zip)")
 
@@ -25,7 +28,7 @@ VERSIONED_BUILDER_ASSET = re.compile(r"shruggie-brandbuilder-\d+\.\d+\.\d+(?:-po
 class _HtmlTargets(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self.targets: list[str] = []
+        self.targets: list[tuple[str, bool]] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag not in {"a", "img", "source"}:
@@ -33,14 +36,16 @@ class _HtmlTargets(HTMLParser):
         for name, value in attrs:
             if not value:
                 continue
-            if name in {"href", "src"}:
-                self.targets.append(value)
+            if name == "href" and tag == "a":
+                self.targets.append((value, True))
+            elif name == "src":
+                self.targets.append((value, False))
             elif name == "srcset":
-                self.targets.extend(candidate.strip().split()[0] for candidate in value.split(",") if candidate.strip())
+                self.targets.extend((candidate.strip().split()[0], False) for candidate in value.split(",") if candidate.strip())
 
 
-def destinations(markdown: str) -> list[str]:
-    """Collect inline Markdown and HTML targets outside fenced examples."""
+def destinations(markdown: str) -> list[tuple[str, bool]]:
+    """Collect destinations and whether each is a navigable link."""
     visible: list[str] = []
     fence: str | None = None
     for line in markdown.splitlines():
@@ -55,8 +60,19 @@ def destinations(markdown: str) -> list[str]:
         if fence is None:
             visible.append(line)
     content = "\n".join(visible)
-    links = [match.group(1) or match.group(2) for pattern in (MARKDOWN_TARGET, REFERENCE_TARGET)
-             for match in pattern.finditer(content)]
+    inline = list(MARKDOWN_TARGET.finditer(content))
+    images = list(MARKDOWN_IMAGE.finditer(content))
+    references = list(REFERENCE_TARGET.finditer(content))
+    navigation_refs = {match.group("id").casefold() for match in REFERENCE_USE.finditer(content)
+                       if not match.group("image")}
+    links = [(match.group(1) or match.group(2),
+              not any(image.start() <= match.start() < image.end() for image in images))
+             for match in inline]
+    links.extend((match.group("angle") or match.group("plain"), match.group("id").casefold() in navigation_refs)
+                 for match in references)
+    claimed = [*inline, *references]
+    links.extend((match.group(1), True) for match in MARKDOWN_AUTOLINK.finditer(content)
+                 if not any(item.start() <= match.start() < item.end() for item in claimed))
     html = _HtmlTargets()
     html.feed(content)
     return [*links, *html.targets]
@@ -106,7 +122,7 @@ def audit(root: Path, markdown: str, contract: dict) -> list[str]:
     seen_brands: set[str] = set()
     problems: list[str] = []
     targets = destinations(markdown)
-    for target in targets:
+    for target, navigable in targets:
         parsed = urlsplit(target)
         host = (parsed.hostname or "").lower()
         if host == "brand.shruggie.tech" or "brand.shruggie.tech" in (parsed.netloc or "").lower():
@@ -116,7 +132,7 @@ def audit(root: Path, markdown: str, contract: dict) -> list[str]:
             url = SITE_ORIGIN + parsed.path
             if parsed.query or url not in canonical:
                 problems.append("undeclared site route: " + target)
-            elif url in brands:
+            elif url in brands and navigable:
                 seen_brands.add(url)
         elif parsed.scheme:
             if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
@@ -129,7 +145,7 @@ def audit(root: Path, markdown: str, contract: dict) -> list[str]:
             problem = "unsafe local target: " + target if parsed.query else _local_problem(root, target, parsed.path)
             if problem:
                 problems.append(problem)
-    if LATEST_RELEASE not in targets:
+    if not any(target == LATEST_RELEASE and navigable for target, navigable in targets):
         problems.append("missing latest official release: " + LATEST_RELEASE)
     if VERSIONED_BUILDER_ASSET.search(markdown):
         problems.append("versioned BrandBuilder asset name in README")

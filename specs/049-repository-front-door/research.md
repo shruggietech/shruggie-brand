@@ -8,6 +8,8 @@
 
 **Alternatives considered**: Hard-coded eight-link allowlist (stale on new brand), live HTTP checking in CI (network and deployment timing flakiness), route parsing from source text (brittle).
 
+**Review refinement**: Keep navigation links distinct from image resources and include standard Markdown autolinks. An image URL cannot satisfy a required brand or release destination even when the target itself is valid.
+
 ## Release guidance during source-versus-publication lag
 
 **Decision**: Point public README downloads to the official latest release page, describe asset roles without fixed-version filenames, and leave exact-version pinning to release assets and checksums.
