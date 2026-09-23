@@ -91,6 +91,7 @@ As a reader using bottom previous/next navigation, I arrive at the new page's be
 - **FR-011**: Rendered regression checks MUST exercise actual pointer and keyboard pagination from a scrolled source page at desktop and mobile widths and measure destination URL, heading visibility, position, and focus.
 - **FR-012**: Changes MUST be made in authoritative source and generation logic; generated kits, site exports, release archives, and approved logo geometry MUST remain uncommitted and unchanged as source.
 - **FR-013**: The complete production-kit, glyph, site, accessibility, publication, encoding, and repository-hygiene gates MUST pass before the slice is offered for merge.
+- **FR-014 (post-merge correction)**: If canonical-host proof export alone produces a Gate 2 derivative-manifest mismatch, CI MUST retry once from a clean destination and still require the exact approved manifest hash. Other failures and a second mismatch MUST fail without accepting alternate identity bytes; failed exports MUST retain diagnostic evidence.
 
 ### Key Entities
 
@@ -107,6 +108,7 @@ As a reader using bottom previous/next navigation, I arrive at the new page's be
 - **SC-003**: Every audited integration-card text sample passes WCAG 2.1 AA text contrast, and every meaningful icon preview passes the applicable non-text contrast threshold on its actual well.
 - **SC-004**: All tested fragment-free pagination transitions from a scrolled page show the destination heading in the first readable viewport with focus in the destination, across pointer, keyboard, desktop, mobile, and reduced-motion cases.
 - **SC-005**: All production kits report zero verifier problems and zero glyph failures; the public site, accessibility, publication, and encoding checks pass with no gate waiver.
+- **SC-006 (post-merge correction)**: A transient first manifest mismatch can recover on one exact-hash regeneration, while repeated drift and unrelated export errors remain red and identifiable.
 
 ## Scope and Assumptions
 
@@ -115,3 +117,4 @@ As a reader using bottom previous/next navigation, I arrive at the new page's be
 - The broader light-first theme contract in #193 and the custom-expression asset schema in #194 are separate features. S047 corrects readability of existing cards without introducing those systems.
 - Existing active brand updates may merge during S047. Reconcile their latest reader-facing guidance before final verification; do not overwrite unrelated work.
 - This slice does not cut a new release tag. Its pull request and merged site/source changes follow the project's normal publication process.
+- The post-merge CI correction changes proof-export reliability only; it does not change approved geometry, the Gate 2 ledger, generated kit contents, or the 2.0.2 release candidate.
