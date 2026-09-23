@@ -48,7 +48,7 @@
 ## Phase 6: Cross-Cutting Completion
 
 - [x] T017 Advance compiler, adapter, and changed brand candidate versions and migration impact in `skill/SKILL.md`, `skill/references/`, `brands/glitchpad/brand.json`, `scripts/release_contract.py`, `site/package.json`, and `CHANGELOG.md`.
-- [ ] T018 Run focused tests and full documented production, glyph, site, release, encoding, and hygiene gates; record outcomes in `specs/048-native-host-conformance/evidence.md`.
+- [x] T018 Run focused tests and full documented production, glyph, site, release, encoding, and hygiene gates; record outcomes in `specs/048-native-host-conformance/evidence.md`.
 - [ ] T019 Commit, push, open official issue-linked PR, process no more than two Codex review rounds, resolve comments, and wait for green CI; record review ledger in `specs/048-native-host-conformance/evidence.md`.
 
 ## Dependencies and Execution Order

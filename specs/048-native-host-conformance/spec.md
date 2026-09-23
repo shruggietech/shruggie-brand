@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-23
 
-**Status**: Implementation candidate, pending final validation and PR review
+**Status**: Implemented, pending PR review and CI
 
 **Input**: Deliver the BrandBuilder-owned remedies for native rendering and role defects reported in #254, #255, #256, and #257, verify actual consumer resource selection where available, and prepare source and kits for owner review without publishing a release tag.
 

@@ -18,9 +18,9 @@
 - Generated ESO Weave egui adapter: 11 Rust tests passed with pinned egui 0.36.1. The generated paint-shape test checks actual disabled-label vertex alpha and 4.5:1 contrast in both themes, plus strong status, hover, focus, and enabled roles.
 - `scripts/build_all.py`: eight production kits built cleanly with zero verifier problems and zero glyph failures. The affected ESO Weave, Glitchpad, and Shruggietech logo and desktop/mobile page sheets were opened and inspected; ESO's transparent taskbar composite was also inspected on a light surface.
 - Candidate v2.0.3 packaging and `release_contract.py verify`: nine assets and generated notes verified. No tag or release was published.
-- Pinned Node 24.11.0 and pnpm 10.28.2 site lint and 95-page production build passed. An earlier full site test passed 12 Node tests and 90-route desktop/mobile WCAG 2.1 AA checks; a final repeat against the clean all-brand rebuild is in progress.
+- Pinned Node 24.11.0 and pnpm 10.28.2 site lint and 95-page production build passed. The final clean-rebuild site test passed 12 Node tests and verified 90 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations.
 - `check_markdown.py`, `audit_public_documentation.py --sources`, generated-agent-contract sync, and `git diff --check` passed. No BOM or common mojibake markers found in changed prose; tracked changed text uses LF. Approved logo path data was not edited.
-- External CI and bot review remain pending the official PR.
+- PR #258 opened at `https://github.com/shruggietech/shruggie-brand/pull/258` from commit `be98870`; external CI and bot reviews are running.
 
 ## Review ledger
 
