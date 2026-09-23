@@ -29,7 +29,7 @@ SITE_DESCRIPTION = "Explore ShruggieTech brand identities, standards, assets, an
 SOCIAL_SIZE = (1280, 640)
 ALERT_TYPES = {"NOTE": "info", "WARNING": "warn", "CAUTION": "error"}
 sys.path.insert(0, str(TEMPLATES))
-from brand_contract import affiliation, public_showcase, showcase_surface, vendor_boundary
+from brand_contract import affiliation, guide_surface_mode, public_showcase, showcase_surface, vendor_boundary
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from package_release import write_brand_archive
@@ -619,6 +619,10 @@ def copy_kit(source: Path, brand: dict) -> dict:
     portal_payload_path = source / "guidelines" / "portal.json"
     if not portable_guide.is_file() or not portal_payload_path.is_file():
         raise ValueError(f"{slug}: verified guideline portal output is missing")
+    portal = json.loads(portal_payload_path.read_text(encoding="utf-8"))
+    guide_mode = guide_surface_mode(brand)
+    if (portal.get("brand") or {}).get("surface_mode") != guide_mode:
+        raise ValueError(f"{slug}: guideline portal presentation disagrees with source")
     shutil.copy2(portable_guide, downloads / f"{slug}-portable-guidelines.html")
     for name in ("logos", "favicons", "icons"):
         replace_tree(source / name, downloads / name)
@@ -666,11 +670,20 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "endorsement": aff["endorsement"],
         "serviceCredit": aff["service_credit"],
         "vendorBoundary": boundary["notice"] if boundary else None,
+        "guideSurfaceMode": guide_mode,
     }
     surface = showcase_surface(brand)
     if surface is not None:
         record["showcaseSurface"] = surface
         record["showcaseForeground"] = contrast_foreground(surface)
+        showcase_mode = "light" if brand["showcase_surface"].startswith("light.") else "dark"
+        record["showcaseMode"] = showcase_mode
+        tokens = (portal.get("presentations") or {}).get(showcase_mode) or {}
+        required = ("foreground", "muted-foreground", "secondary", "border", "ring",
+                    "brand-cta", "brand-cta-foreground")
+        if any(not re.fullmatch(r"#[0-9A-Fa-f]{6}", tokens.get(key, "")) for key in required):
+            raise ValueError(f"{slug}: showcase palette lacks valid {showcase_mode} semantic tokens")
+        record["showcaseTokens"] = {key: tokens[key].upper() for key in required}
     return record
 
 

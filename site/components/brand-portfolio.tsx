@@ -6,15 +6,18 @@ import type { Brand } from '@/lib/brands';
 
 const noticeId = 'portfolio-third-party-notice';
 
-function usesDarkShowcaseSurface(brand: Brand) {
-  return Boolean(brand.showcaseSurface && brand.showcaseForeground?.toUpperCase() === '#FFFFFF');
-}
-
 function brandStyle(brand: Brand) {
   return {
     '--brand-accent': brand.accent,
-    ...(usesDarkShowcaseSurface(brand) ? {
+    ...(brand.showcaseSurface && brand.showcaseTokens ? {
       '--brand-showcase-surface': brand.showcaseSurface,
+      '--brand-showcase-foreground': brand.showcaseTokens.foreground,
+      '--brand-showcase-muted': brand.showcaseTokens['muted-foreground'],
+      '--brand-showcase-secondary': brand.showcaseTokens.secondary,
+      '--brand-showcase-border': brand.showcaseTokens.border,
+      '--brand-showcase-ring': brand.showcaseTokens.ring,
+      '--brand-showcase-cta': brand.showcaseTokens['brand-cta'],
+      '--brand-showcase-cta-foreground': brand.showcaseTokens['brand-cta-foreground'],
     } : {}),
   } as CSSProperties;
 }
@@ -37,7 +40,7 @@ function DesktopBrandCard({ brand }: { brand: Brand }) {
     className="brand-card"
     aria-label={`${brand.title} portfolio card. Focus to reveal actions.`}
     data-actions-dismissed={dismissed ? 'true' : undefined}
-    data-showcase-surface={usesDarkShowcaseSurface(brand) ? 'governed-dark' : undefined}
+    data-showcase-surface={brand.showcaseMode ? `governed-${brand.showcaseMode}` : undefined}
     onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDismissed(false); }}
     onFocusCapture={(event) => { if (event.target !== event.currentTarget) setDismissed(false); }}
     onKeyDown={(event) => { if (event.key === 'Escape') { setDismissed(true); card.current?.focus(); } }}
@@ -63,7 +66,7 @@ export function BrandPortfolio({ brands }: { brands: Brand[] }) {
       {brands.map((brand) => <DesktopBrandCard brand={brand} key={brand.slug} />)}
     </div>
     <div className="brand-accordion-list">
-      {brands.map((brand) => <details className="brand-accordion" data-showcase-surface={usesDarkShowcaseSurface(brand) ? 'governed-dark' : undefined} key={brand.slug} style={brandStyle(brand)}>
+      {brands.map((brand) => <details className="brand-accordion" data-showcase-surface={brand.showcaseMode ? `governed-${brand.showcaseMode}` : undefined} key={brand.slug} style={brandStyle(brand)}>
         <summary><span className="brand-icon"><img src={brand.icon} alt="" /></span><span className="mobile-brand-title"><BrandName brand={brand} /></span></summary>
         <div className="brand-accordion-panel"><p>{brand.descriptor}</p><BrandActions brand={brand} /></div>
       </details>)}

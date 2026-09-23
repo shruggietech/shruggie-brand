@@ -13,6 +13,24 @@
     "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "interface": {"$ref": "#/$defs/interfaceDeclaration"},
     "showcase_surface": {"type": "string", "minLength": 1},
+    "guide": {
+      "type": "object",
+      "properties": {"surface_mode": {"enum": ["dark", "light"]}},
+      "additionalProperties": true
+    },
+    "light_surfaces": {
+      "type": "object",
+      "properties": {
+        "base": {"$ref": "#/$defs/hexColor"},
+        "card": {"$ref": "#/$defs/hexColor"},
+        "popover": {"$ref": "#/$defs/hexColor"},
+        "secondary": {"$ref": "#/$defs/hexColor"},
+        "hover": {"$ref": "#/$defs/hexColor"},
+        "foreground": {"$ref": "#/$defs/hexColor"},
+        "muted_foreground": {"$ref": "#/$defs/hexColor"}
+      },
+      "additionalProperties": true
+    },
     "affiliation": {"$ref": "#/$defs/affiliation"},
     "semantic_colors": {
       "type": "object",
@@ -87,6 +105,10 @@
     {
       "if": {"properties": {"affiliation": {"properties": {"inheritance": {"const": "independent"}}, "required": ["inheritance"]}}, "required": ["affiliation"]},
       "then": {"required": ["semantic_colors"]}
+    },
+    {
+      "if": {"properties": {"guide": {"properties": {"surface_mode": {"const": "light"}}, "required": ["surface_mode"]}}, "required": ["guide"]},
+      "then": {"required": ["light_surfaces"], "properties": {"light_surfaces": {"required": ["base", "card", "popover", "secondary", "hover", "foreground", "muted_foreground"]}}}
     },
     {
       "if": {"properties": {"identity_continuity": {"properties": {"status": {"const": "approved-canonical"}}, "required": ["status"]}}, "required": ["identity_continuity"]},

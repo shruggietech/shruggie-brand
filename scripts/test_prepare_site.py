@@ -38,7 +38,7 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
     (guideline / "portal.json").write_text(json.dumps({
         "schema_version": "1.0",
         "implementation": facts,
-        "brand": {"slug": slug, "title": title, "descriptor": "Alpha.", "idea": "Alpha.", "affiliation": ""},
+        "brand": {"slug": slug, "title": title, "descriptor": "Alpha.", "idea": "Alpha.", "affiliation": "", "surface_mode": "dark"},
         "topics": [
             {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "path": f"/{slug}/guidelines/", "description": "Start here."},
             {"key": "voice", "title": "Voice and messaging", "label": "Voice", "section": "Voice", "order": 0, "path": f"/{slug}/guidelines/voice/", "description": "Voice."},
@@ -50,7 +50,23 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
             {"key": "integration", "title": "Platform integration", "label": "Integration", "section": "Integration", "order": 0, "path": f"/{slug}/guidelines/integration/", "description": "Integration."},
         ],
         "content": {"overview": {}, "voice": {}, "logos": {}, "typography": {}, "components": {}},
-        "palettes": {"dark": [], "light": []},
+        "palettes": {
+            "dark": [{"token": key, "hex": value} for key, value in {
+                "background": "#080B0D", "foreground": "#FFFFFF", "muted-foreground": "#D0D0D0",
+                "secondary": "#202428", "border": "#808080", "ring": "#68A9DD",
+                "brand-cta": "#C5342C", "brand-cta-foreground": "#FFFFFF",
+            }.items()],
+            "light": [{"token": key, "hex": value} for key, value in {
+                "background": "#FFFFFF", "foreground": "#111111", "muted-foreground": "#555555",
+                "secondary": "#F8F6F2", "border": "#888888", "ring": "#1C5B8D",
+                "brand-cta": "#C5342C", "brand-cta-foreground": "#FFFFFF",
+            }.items()],
+        },
+        "presentation": {"background": "#080B0D", "foreground": "#FFFFFF"},
+        "presentations": {
+            "dark": {"background": "#080B0D", "foreground": "#FFFFFF", "muted-foreground": "#D0D0D0", "secondary": "#202428", "border": "#808080", "ring": "#68A9DD", "brand-cta": "#C5342C", "brand-cta-foreground": "#FFFFFF"},
+            "light": {"background": "#FFFFFF", "foreground": "#111111", "muted-foreground": "#555555", "secondary": "#F8F6F2", "border": "#888888", "ring": "#1C5B8D", "brand-cta": "#C5342C", "brand-cta-foreground": "#FFFFFF"},
+        },
         "asset_families": [], "resources": [], "instructions": [], "capability_suites": [], "aliases": {},
         "portable_guide": "guidelines/index.html",
     }) + "\n", encoding="utf-8")
@@ -224,6 +240,7 @@ class PrepareSiteTests(unittest.TestCase):
                 record = prepare_site.copy_kit(source, brand)
                 self.assertNotIn("showcaseSurface", record)
                 self.assertNotIn("showcaseForeground", record)
+                self.assertEqual("dark", record["guideSurfaceMode"])
                 self.assertEqual("/alpha/guidelines/", record["guidelinesPath"])
                 self.assertEqual("/alpha/downloads/alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchive"])
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchiveFilename"])
@@ -234,9 +251,14 @@ class PrepareSiteTests(unittest.TestCase):
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual("#121416", record["showcaseSurface"])
                 self.assertEqual("#FFFFFF", record["showcaseForeground"])
-                brand["surfaces"]["card"] = "#F4F5F6"
+                self.assertEqual("dark", record["showcaseMode"])
+                brand["showcase_surface"] = "light.card"
+                brand["light_surfaces"] = {"card": "#FFFFFF"}
                 record = prepare_site.copy_kit(source, brand)
+                self.assertEqual("light", record["showcaseMode"])
+                self.assertEqual("#FFFFFF", record["showcaseSurface"])
                 self.assertEqual("#000000", record["showcaseForeground"])
+                self.assertEqual("#111111", record["showcaseTokens"]["foreground"])
                 brand["vendor_boundary"] = {"required": True, "notice": "Acme is independent. Users are responsible.", "entities": ["Acme"], "trademark_owner": "Acme", "terms_responsibility": "Users are responsible."}
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual(brand["vendor_boundary"]["notice"], record["vendorBoundary"])

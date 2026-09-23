@@ -102,6 +102,7 @@ if (cueson?.parent !== 'ShruggieTech' || cueson?.endorsement !== 'shruggietech-p
 const ihprt = brands.find((brand) => brand.slug === 'i-heart-pr-tours');
 if (ihprt?.idea !== 'Experience Puerto Rico' || ihprt?.descriptor !== 'Thoughtfully guided tours on the island we love.') throw new Error('I Heart PR Tours public wording differs from the Gate 2 approval');
 if (ihprt?.ownership !== 'third-party' || ihprt?.showcase !== 'public' || ihprt?.showcaseSurface !== '#FFFFFF' || ihprt?.showcaseForeground !== '#000000') throw new Error('I Heart PR Tours public affiliation or light showcase differs from the approved contract');
+if (ihprt?.guideSurfaceMode !== 'light' || ihprt?.showcaseMode !== 'light' || ihprt?.showcaseTokens?.foreground !== '#111111') throw new Error('I Heart PR Tours generated light presentation is missing');
 if (!ihprt?.vendorBoundary?.includes('I Heart PR Tours owns its trademarks')) throw new Error('I Heart PR Tours public record omits the required vendor boundary');
 for (const brand of brands) {
   const expectedArchive = `/${brand.slug}/downloads/${brand.packageId}.zip`;
@@ -117,6 +118,8 @@ for (const portal of guidelinePortals) {
   const actual = portal.topics.map(({ key, label, section, order }) => [key, label, section, order]);
   if (JSON.stringify(actual) !== JSON.stringify(expectedBrandNavigation)) throw new Error(`${portal.brand.slug} guideline hierarchy differs from the approved contract`);
   if (portal.brand.version !== brands.find((brand) => brand.slug === portal.brand.slug)?.version) throw new Error(`${portal.brand.slug} portal omits the brand version needed by the consolidated Overview`);
+  if (portal.brand.surface_mode !== brands.find((brand) => brand.slug === portal.brand.slug)?.guideSurfaceMode || portal.presentation?.background !== (portal.brand.surface_mode === 'light' ? portal.palettes.light : portal.palettes.dark).find((entry) => entry.token === 'background')?.hex) throw new Error(`${portal.brand.slug} declared guide mode and selected palette disagree`);
+  if (JSON.stringify(portal.presentation) !== JSON.stringify(portal.presentations?.[portal.brand.surface_mode])) throw new Error(`${portal.brand.slug} selected guide tokens differ from its full mode palette`);
   if (portal.implementation?.schema_version !== 1 || portal.implementation.brand.slug !== portal.brand.slug || portal.implementation.versions.brand_version !== portal.brand.version) throw new Error(`${portal.brand.slug} hosted implementation facts are missing or inconsistent`);
   if (portal.implementation.hosted.manual_path !== '/docs/' || portal.implementation.bundled.latest_substitution_allowed !== false) throw new Error(`${portal.brand.slug} documentation authority boundaries are invalid`);
   const assets = portal.topics.find((topic) => topic.key === 'assets');
@@ -149,10 +152,11 @@ if (!/@media \(hover: none\), \(pointer: coarse\) \{[^}]*\.brand-grid-desktop \{
 if (!brandPortfolioSource.includes('<a href={brand.guidelinesPath}>Guidelines</a>') || !brandPortfolioSource.includes('<a href={brand.kitArchive} download={brand.kitArchiveFilename}>Download Kit</a>')) throw new Error('portfolio component lacks exact generated Guidelines and Download Kit actions');
 if (!brandPortfolioSource.includes("const noticeId = 'portfolio-third-party-notice'") || !brandPortfolioSource.includes('id={noticeId}') || !brandPortfolioSource.includes('aria-describedby={noticeId}')) throw new Error('portfolio component lacks one accessible shared vendor-notice association');
 if (brandPortfolioSource.includes('vendorBoundarySummary') || homepageSource.includes('vendorBoundarySummary') || homepageSource.includes('href={`/${brand.slug}/`}')) throw new Error('portfolio retains retired repeated disclaimer or implicit full-card navigation');
-if (!brandPortfolioSource.includes("brand.showcaseForeground?.toUpperCase() === '#FFFFFF'") || !brandPortfolioSource.includes("data-showcase-surface={usesDarkShowcaseSurface(brand) ? 'governed-dark' : undefined}")) throw new Error('portfolio does not limit governed showcase surfaces to generated white-foreground treatments');
-if (brandPortfolioSource.includes("'--brand-showcase-foreground'")) throw new Error('portfolio still injects per-brand foregrounds instead of exact shared white copy');
+if (!brandPortfolioSource.includes("data-showcase-surface={brand.showcaseMode ? `governed-${brand.showcaseMode}` : undefined}") || !brandPortfolioSource.includes("'--brand-showcase-foreground'")) throw new Error('portfolio does not project complete governed light and dark showcase scopes');
+if (!guidelineLayoutSource.includes('data-guide-mode') || !guidelineLayoutSource.includes('guidePresentationStyle(portal)')) throw new Error('hosted brand routes lack the declared local guide presentation');
+if (!globalStyles.includes(".guideline-layout[data-guide-mode='light']") || !globalStyles.includes(".brand-card[data-showcase-surface='governed-light']")) throw new Error('light brand routes or cards lack complete local scopes');
 if (!brandPortfolioSource.includes('tabIndex={0}') || !brandPortfolioSource.includes('aria-label={`${brand.title} portfolio card. Focus to reveal actions.`}')) throw new Error('desktop cards lack the labeled keyboard reveal entry');
-if (!/\.brand-card h3 \{[^}]*color: #fff;/s.test(globalStyles) || !/\.brand-card-description \{[^}]*color: #fff;/s.test(globalStyles) || !/\.brand-actions a \{[^}]*color: #fff;/s.test(globalStyles)) throw new Error('portfolio source contract does not make every visible card text role exactly white');
+if (!/\.brand-card h3 \{[^}]*color: #fff;/s.test(globalStyles) || !/\.brand-card-description \{[^}]*color: #fff;/s.test(globalStyles) || !/\.brand-actions a \{[^}]*color: #fff;/s.test(globalStyles)) throw new Error('portfolio dark fallback has lost its white text roles');
 if ((globalStyles.match(/color-mix\(in srgb, var\(--brand-accent\) 12%, #111315\), #111315 54%/g) ?? []).length !== 2) throw new Error('desktop and mobile portfolio fallbacks are not pinned to the shared theme-invariant dark surface');
 if (/\.brand-(?:card|accordion) \{[^}]*background:[^;}]*var\(--panel\)/s.test(globalStyles)) throw new Error('portfolio fallback still inherits the site panel and becomes light in light mode');
 if (!/\.brand-accordion \{[^}]*color: #fff;/s.test(globalStyles)) throw new Error('mobile portfolio disclosures still inherit the site theme foreground');
@@ -172,9 +176,9 @@ export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolch
 export const htmlRoutes = routeRecords.map((route) => route.pathname);
 export const conformanceRoutes = routeRecords.filter((route) => route.kind === 'conformance').map((route) => route.pathname);
 export const guidelineRoutes = routeRecords.filter((route) => ['guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
-export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/`, `/${brand.slug}/downloads/`]), '/glitchpad/guidelines/color/', '/docs/', '/docs/00-variance-contract/'];
+export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/`, `/${brand.slug}/downloads/`]), '/glitchpad/guidelines/color/', '/i-heart-pr-tours/guidelines/color/', '/docs/', '/docs/00-variance-contract/'];
 export const visualThemes = ['light', 'dark'];
-export const visualWidths = [360, 1280];
+export const visualWidths = [360, 390, 1280];
 export const requiredFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/maskable-icon-192x192.png', '/maskable-icon-512x512.png', '/shruggietech-logo-dark.svg', '/shruggietech-logo-light.svg', '/site.webmanifest', '/robots.txt', '/sitemap.xml', '/static.json', ...routeRecords.map((route) => route.social.path), ...conformanceRecords.flatMap((record) => [record.specimenPath, record.manifestPath])];
 export const iconFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/maskable-icon-192x192.png', '/maskable-icon-512x512.png'];
 export const iconRoutes = ['/', '/docs/', '/docs/04-toolchain/'];

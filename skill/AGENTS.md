@@ -154,11 +154,11 @@ It validates the explicit contract first, then probes, runs the glyph gate, and 
     python3 templates/gen_enforcement.py <brand.json> <kit>   # consumer contract, AGENTS.md, ESLint, stylelint
     python3 templates/gen_logo.py       <brand.json> <kit>    # colourways, lockups, native icon suites
     python3 templates/gen_guidelines.py <brand.json> <kit>    # portal payload and portable guide
-    python3 templates/gen_guide_pdf.py  <brand.json> <kit>    # the brand guide, full-bleed dark
+    python3 templates/gen_guide_pdf.py  <brand.json> <kit>    # brand guide, declared light or default dark
     python3 templates/verify.py         <kit>                 # measured VERIFY.md
     python3 templates/scan_affiliation.py <brand.json> <kit>  # false claims
     python3 templates/qc_images.py      <kit>                 # logo and page contact sheets
-    python3 templates/qc_render.py      <kit>/brand-guide.pdf --expect-ground dark
+    python3 templates/qc_render.py      <kit>/brand-guide.pdf --expect-ground <declared-mode>
     python3 templates/qc_paginate.py    <kit>/build/*.print.html
 
 `gen_logo.py` does not invent geometry. In constructed mode, copy `templates/mk_paths.example.py` to `<kit>/build/mk_paths.py`, edit the parameter block, run the gate, write the paths into `brand.json`, and the generator produces every colourway, the outlined wordmark, the lockups, all rasters, and categorized application-icon suites for web, Android, iOS and iPadOS, macOS, and Windows. In authoritative mode, bind the two variants to approved source IDs and do not create a construction helper. Portable PNG logo masters must be non-interlaced RGBA8 and carry hash-bound mask approval so Core can recolor and verify them without Pillow. The Full source must approve lockup placement because generated typography supplies a wordmark fallback. `logos/provenance.json` records every generated logo derivative, `icons/manifest.json` names its verified Full, Reduced, or monochrome master per artifact, and verification independently rerenders raster derivatives and container frames.
@@ -237,7 +237,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/gen_logo.py` | colourways, outlined wordmark, lockups, rasters, categorized application icons |
 | `templates/iconkit.py` | platform matrices, composition, native containers, manifests, and compatibility aliases |
 | `templates/gen_guidelines.py` | the deterministic `guidelines/portal.json` contract and portable HTML reference, rendered from shipped tokens, logo provenance, icon manifests, instruction files, semantic asset families, and complete color palettes |
-| `templates/gen_guide_pdf.py` | the brand guide PDF, full-bleed dark to the house standard |
+| `templates/gen_guide_pdf.py` | the brand guide PDF, full-page declared light or default dark |
 | `templates/build_specimen.py` | the outlined type specimen, driven by brand.json |
 | `templates/_guidekit.py` | shared token, font and copy helpers for the document generators |
 | `templates/enrich_brand.py` | writes measured contrast and hue separation back into brand.json |

@@ -101,6 +101,8 @@ function geometryProblems(reference, sample, fields = ['left', 'right', 'width',
 check(geometryProblems({ left: 10, right: 110, width: 100, center: 60 }, { left: 10.5, right: 110.5, width: 100, center: 60.5 }).length === 0, 'geometry helper rejects raster-rounding tolerance');
 check(geometryProblems({ left: 10, right: 110, width: 100, center: 60 }, { left: 13, right: 113, width: 100, center: 63 }).length === 3, 'geometry helper accepts visible horizontal drift');
 function cssColorChannels(value) {
+  const hex = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(value);
+  if (hex) return hex.slice(1, 4).map((channel) => Number.parseInt(channel, 16));
   const rgb = /^rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)/.exec(value);
   if (rgb) return rgb.slice(1, 4).map(Number);
   const srgb = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/.exec(value);
@@ -121,6 +123,9 @@ function cssColorChannels(value) {
 }
 function isWhiteColor(value) {
   return cssColorChannels(value).every((channel) => channel >= 254.5);
+}
+function sameColor(left, right) {
+  return cssColorChannels(left).every((channel, index) => Math.abs(channel - cssColorChannels(right)[index]) <= 1);
 }
 function contrastRatio(left, right) {
   const luminance = (value) => {
@@ -491,7 +496,11 @@ try {
       const style = getComputedStyle(element); const title = element.querySelector('h3, .mobile-brand-title'); const description = element.querySelector('.brand-card-description, .brand-accordion-panel > p'); const action = element.querySelector('.brand-actions a');
       return { surface: element.getAttribute('data-showcase-surface'), backgroundColor: style.backgroundColor, backgroundImage: style.backgroundImage, color: style.color, titleColor: title ? getComputedStyle(title).color : null, descriptionColor: description ? getComputedStyle(description).color : null, actionColor: action ? getComputedStyle(action).color : null };
     }));
-    check(presentation.length === 16 && presentation.every((sample) => [sample.color, sample.titleColor, sample.descriptionColor, sample.actionColor].every(isWhiteColor)), `homepage ${theme} portfolio copy is not uniformly white (${JSON.stringify(presentation)})`);
+    check(presentation.length === 16 && presentation.every((sample, index) => {
+      const brand = brands[index % brands.length];
+      const expected = brand.showcaseMode === 'light' ? brand.showcaseTokens.foreground : '#FFFFFF';
+      return [sample.color, sample.titleColor, sample.descriptionColor].every((color) => sameColor(color, expected)) && sameColor(sample.actionColor, brand.showcaseMode === 'light' ? brand.showcaseTokens['brand-cta-foreground'] : '#FFFFFF');
+    }), `homepage ${theme} portfolio copy differs from each governed surface (${JSON.stringify(presentation)})`);
     if (theme === 'dark') darkPortfolioPresentation = presentation;
     else check(JSON.stringify(presentation) === JSON.stringify(darkPortfolioPresentation), `portfolio surfaces or foregrounds change with the site theme (${JSON.stringify({ dark: darkPortfolioPresentation, light: presentation })})`);
   }
@@ -534,7 +543,8 @@ try {
       const cardStyle = getComputedStyle(element); const titleStyle = getComputedStyle(element.querySelector('h3')); const description = element.querySelector('.brand-card-description'); const descriptionStyle = getComputedStyle(description); const actions = element.querySelector('.brand-actions'); const actionsStyle = getComputedStyle(actions); const cardBox = element.getBoundingClientRect(); const descriptionBox = description.getBoundingClientRect();
       return { cardColor: cardStyle.color, titleColor: titleStyle.color, descriptionColor: descriptionStyle.color, descriptionOpacity: descriptionStyle.opacity, actionsOpacity: actionsStyle.opacity, actionsVisibility: actionsStyle.visibility, actionsPointerEvents: actionsStyle.pointerEvents, descriptionBottomClearance: cardBox.bottom - descriptionBox.bottom };
     });
-    check(isWhiteColor(resting.cardColor) && isWhiteColor(resting.titleColor) && isWhiteColor(resting.descriptionColor), `${brands[index].slug} desktop copy is not uniformly white (${JSON.stringify(resting)})`);
+    const expectedCardForeground = brands[index].showcaseMode === 'light' ? brands[index].showcaseTokens.foreground : '#FFFFFF';
+    check([resting.cardColor, resting.titleColor, resting.descriptionColor].every((color) => sameColor(color, expectedCardForeground)), `${brands[index].slug} desktop copy differs from its governed foreground (${JSON.stringify(resting)})`);
     check(resting.descriptionOpacity === '1' && resting.actionsOpacity === '0' && resting.actionsVisibility === 'hidden' && resting.actionsPointerEvents === 'none', `${brands[index].slug} resting action layer is visible or interactive (${JSON.stringify(resting)})`);
     check(resting.descriptionBottomClearance >= 16, `${brands[index].slug} description has only ${resting.descriptionBottomClearance.toFixed(2)} CSS pixels of bottom clearance`);
     const links = await card.locator('.brand-actions a').evaluateAll((anchors) => anchors.map((anchor) => ({ label: anchor.textContent?.trim(), href: anchor.getAttribute('href'), download: anchor.getAttribute('download') })));
@@ -552,7 +562,7 @@ try {
     await page.keyboard.press('Tab');
     check(await firstAction.evaluate((element) => document.activeElement === element), `${brands[index].slug} first action is not next after the keyboard reveal entry`);
     const focusStyle = await firstAction.evaluate((element) => { const style = getComputedStyle(element); return { color: style.color, background: style.backgroundColor, outline: style.outlineColor, outlineStyle: style.outlineStyle, outlineWidth: Number.parseFloat(style.outlineWidth), shadow: style.boxShadow, width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }; });
-    check(isWhiteColor(focusStyle.color) && contrastRatio(focusStyle.color, focusStyle.background) >= 4.5, `${brands[index].slug} focused action fails 4.5:1 white-text contrast (${JSON.stringify(focusStyle)})`);
+    check(contrastRatio(focusStyle.color, focusStyle.background) >= 4.5, `${brands[index].slug} focused action fails 4.5:1 text contrast (${JSON.stringify(focusStyle)})`);
     check(focusStyle.outlineStyle !== 'none' && focusStyle.outlineWidth >= 2 && contrastRatio(focusStyle.outline, focusStyle.background) >= 3 && focusStyle.shadow !== 'none', `${brands[index].slug} focused action lacks its 3:1 dual focus indicator (${JSON.stringify(focusStyle)})`);
     check(focusStyle.width >= 43.5 && focusStyle.height >= 43.5, `${brands[index].slug} focused action target differs from its 44-by-44 CSS-pixel minimum beyond rendering tolerance (${JSON.stringify(focusStyle)})`);
     check(Boolean(before && keyboardRevealed && portfolioGeometryProblems(before, keyboardRevealed).length === 0), `${brands[index].slug} card geometry changes during keyboard reveal (${JSON.stringify({ before, keyboardRevealed })})`);
@@ -582,13 +592,14 @@ try {
   check(isWhiteColor(glitchpadCardStyle.foreground) && isWhiteColor(glitchpadCardStyle.bodyForeground), `Glitchpad card does not use its generated contrast foreground (${JSON.stringify(glitchpadCardStyle)})`);
   check(glitchpadCardStyle.shadow === 'none', `Glitchpad card retains an accent showcase glow (${glitchpadCardStyle.shadow})`);
   const ihprtCard = page.locator('.brand-card', { hasText: 'I Heart PR Tours' });
+  const ihprt = brands.find((brand) => brand.slug === 'i-heart-pr-tours');
   const ihprtCardStyle = await ihprtCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-showcase-surface'), iconSource: element.querySelector('.brand-icon img')?.getAttribute('src') }));
-  check(ihprtCardStyle.surface === null && ihprtCardStyle.backgroundColor !== 'rgb(255, 255, 255)' && ihprtCardStyle.backgroundImage !== 'none', `I Heart PR Tours card does not use the shared dark fallback (${JSON.stringify(ihprtCardStyle)})`);
-  check(isWhiteColor(ihprtCardStyle.foreground) && isWhiteColor(ihprtCardStyle.bodyForeground), `I Heart PR Tours card copy is not white (${JSON.stringify(ihprtCardStyle)})`);
+  check(ihprtCardStyle.surface === 'governed-light' && sameColor(ihprtCardStyle.backgroundColor, '#FFFFFF') && ihprtCardStyle.backgroundImage === 'none', `I Heart PR Tours card does not use its governed light surface (${JSON.stringify(ihprtCardStyle)})`);
+  check(sameColor(ihprtCardStyle.foreground, ihprt.showcaseTokens.foreground) && sameColor(ihprtCardStyle.bodyForeground, ihprt.showcaseTokens.foreground), `I Heart PR Tours card copy differs from its governed foreground (${JSON.stringify(ihprtCardStyle)})`);
   check(ihprtCardStyle.iconSource?.endsWith('/i-heart-pr-tours-mark-color.svg'), `I Heart PR Tours card does not use the colored heart icon (${JSON.stringify(ihprtCardStyle)})`);
   for (const card of await page.locator('.brand-card').all()) {
     const style = await card.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
-    if (style.surface === 'governed-dark') check(style.image === 'none', `${await card.locator('h3').textContent()} governed dark showcase added an unapproved background image (${JSON.stringify(style)})`);
+    if (style.surface === 'governed-dark' || style.surface === 'governed-light') check(style.image === 'none', `${await card.locator('h3').textContent()} governed showcase added an unapproved background image (${JSON.stringify(style)})`);
     else check(style.surface === null && style.image !== 'none', `${await card.locator('h3').textContent()} lost its existing showcase fallback (${JSON.stringify(style)})`);
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -620,8 +631,9 @@ try {
     check(!(await disclosure.evaluate((element) => element.open)), `${brands[index].slug} mobile disclosure does not begin collapsed`);
     check(!(await disclosure.locator('.brand-actions a').first().isVisible()), `${brands[index].slug} collapsed disclosure exposes hidden actions`);
     const disclosureStyle = await disclosure.evaluate((element) => ({ title: getComputedStyle(element.querySelector('.mobile-brand-title')).color, color: getComputedStyle(element).color, background: getComputedStyle(element).backgroundColor, image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
-    check(isWhiteColor(disclosureStyle.title) && isWhiteColor(disclosureStyle.color) && !isWhiteColor(disclosureStyle.background), `${brands[index].slug} mobile disclosure is not dark with white copy (${JSON.stringify(disclosureStyle)})`);
-    if (disclosureStyle.surface === 'governed-dark') check(disclosureStyle.image === 'none', `${brands[index].slug} governed dark mobile disclosure has an unexpected gradient`);
+    const expectedDisclosureForeground = brands[index].showcaseMode === 'light' ? brands[index].showcaseTokens.foreground : '#FFFFFF';
+    check(sameColor(disclosureStyle.title, expectedDisclosureForeground) && sameColor(disclosureStyle.color, expectedDisclosureForeground) && contrastRatio(disclosureStyle.title, disclosureStyle.background) >= 4.5, `${brands[index].slug} mobile disclosure fails its governed foreground contrast (${JSON.stringify(disclosureStyle)})`);
+    if (disclosureStyle.surface === 'governed-dark' || disclosureStyle.surface === 'governed-light') check(disclosureStyle.image === 'none', `${brands[index].slug} governed mobile disclosure has an unexpected gradient`);
     else check(disclosureStyle.surface === null && disclosureStyle.image !== 'none', `${brands[index].slug} mobile disclosure lost the dark fallback gradient`);
     const summary = disclosure.locator('summary');
     const summaryBox = await summary.boundingBox();
@@ -854,6 +866,9 @@ try {
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').evaluate((element) => { const style = getComputedStyle(element); return Number.parseInt(style.fontWeight, 10) >= 700 && style.boxShadow !== 'none'; }), 'no-script guideline fallback does not visibly distinguish the current topic');
   check(await noScriptPage.locator('.asset-tile').count() > 0 && await noScriptPage.locator('.resource-list a[data-kit-asset]').count() > 0, 'no-script asset route does not retain complete server-rendered browsing and downloads');
   check((await noScriptPage.locator('body').innerText()).includes('Search and filters require JavaScript'), 'no-script asset route does not explain its progressive enhancement boundary');
+  await noScriptPage.goto(base + '/i-heart-pr-tours/downloads/');
+  check(await noScriptPage.locator('.guideline-layout').getAttribute('data-guide-mode') === 'light' && await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 8 && await noScriptPage.locator('.asset-tile').count() > 0, 'light no-script brand route loses its declared surface, navigation, or assets');
+  check(sameColor(await noScriptPage.locator('.guideline-layout').evaluate((element) => getComputedStyle(element).backgroundColor), '#FFFFFF'), 'light no-script brand route inherits a dark background');
   await noScriptPage.goto(base + '/docs/06-logo-protocol/');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === 16, 'no-script documentation fallback does not expose the complete navigation hierarchy');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script documentation fallback does not identify the current page');
@@ -921,6 +936,11 @@ try {
       check(isCanonicalRedirect(redirect.status(), redirect.headers().location, base, withoutSlash), `${withoutSlash} must permanently redirect once to its canonical same-origin trailing-slash path`);
     }
   }
+  await page.goto(base + '/i-heart-pr-tours/guidelines/');
+  await page.emulateMedia({ media: 'print' });
+  const lightPrint = await page.locator('.guideline-layout').evaluate((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, foreground: style.color }; });
+  check(sameColor(lightPrint.background, '#FFFFFF') && contrastRatio(lightPrint.foreground, lightPrint.background) >= 4.5, `light brand print presentation is not readable (${JSON.stringify(lightPrint)})`);
+  await page.emulateMedia({ media: 'screen' });
   await page.setViewportSize({ width: 1280, height: 900 });
   for (const record of routeRecords.filter(({ pathname }) => pathname.startsWith('/docs/'))) await verifyNoGlobalFooter(record.pathname);
   await page.goto(base + '/docs/04-toolchain/');
@@ -1048,9 +1068,13 @@ try {
         await page.reload({ waitUntil: 'networkidle' });
         await page.waitForTimeout(350);
         check(await page.locator('html').evaluate((element, selectedTheme) => element.classList.contains('dark') === (selectedTheme === 'dark'), theme), `${route} did not settle in the requested ${theme} theme`);
-        const surface = await page.evaluate(() => { const style = getComputedStyle(document.body); return `${style.backgroundColor}|${style.color}`; });
+        const brandRoute = ['guidelines', 'guidelines-topic', 'downloads'].includes(routeByPath.get(route)?.kind);
+        const surface = await page.evaluate((selectedBrandRoute) => { const element = selectedBrandRoute ? document.querySelector('.guideline-layout') : document.body; const style = getComputedStyle(element); return `${style.backgroundColor}|${style.color}`; }, brandRoute);
         themeSurfaces.set(`${route}:${width}:${theme}`, surface);
-        if (['guidelines', 'guidelines-topic', 'downloads'].includes(routeByPath.get(route)?.kind)) {
+        if (brandRoute) {
+          const portal = portalBySlug.get(route.split('/')[1]);
+          check(await page.locator('.guideline-layout').getAttribute('data-guide-mode') === portal?.brand.surface_mode, `${route} does not use its declared brand guide mode at ${width}px`);
+          check(sameColor(surface.split('|')[0], portal.presentation.background), `${route} guide surface differs from its brand presentation at ${width}px (${surface})`);
           check(await page.locator('.header-logo:visible').count() === 0, `${route} leaks the host ShruggieTech lockup into the brand-owned portal`);
           check(await page.locator('.guide-nav-title').count() >= 1, `${route} lacks its brand-owned portal identity at ${width}px`);
         } else {
@@ -1067,7 +1091,8 @@ try {
         const filename = `${routeName}-${theme}-${width}.png`;
         await page.screenshot({ path: join(visualRoot, filename), fullPage: true });
       }
-      check(themeSurfaces.get(`${route}:${width}:light`) !== themeSurfaces.get(`${route}:${width}:dark`), `${route} light and dark themes resolve to the same surface at ${width}px`);
+      if (['guidelines', 'guidelines-topic', 'downloads'].includes(routeByPath.get(route)?.kind)) check(themeSurfaces.get(`${route}:${width}:light`) === themeSurfaces.get(`${route}:${width}:dark`), `${route} brand presentation changes with the host theme at ${width}px`);
+      else check(themeSurfaces.get(`${route}:${width}:light`) !== themeSurfaces.get(`${route}:${width}:dark`), `${route} light and dark themes resolve to the same surface at ${width}px`);
     }
   }
   await page.setViewportSize({ width: 1280, height: 900 });

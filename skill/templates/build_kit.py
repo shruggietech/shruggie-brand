@@ -14,7 +14,7 @@ automated gate in this kit can pass on a document that looks wrong.
 """
 import json, os, subprocess, sys
 
-from brand_contract import affiliation
+from brand_contract import affiliation, guide_surface_mode
 from identity_continuity import ContinuityError, write_continuity_report
 from process_utils import hidden_process_kwargs
 
@@ -148,9 +148,7 @@ def main():
     pdf = os.path.join(kit, "brand-guide.pdf")
     if os.path.exists(pdf):
         with open(brand, encoding="utf-8") as source:
-            surface_mode = ((json.load(source).get("guide") or {}).get("surface_mode") or "dark")
-        if surface_mode not in {"dark", "light"}:
-            raise ValueError("guide.surface_mode must be dark or light")
+            surface_mode = guide_surface_mode(json.load(source))
         rc, out = run("qc_render.py", [pdf, "--out", os.path.join(kit, "qc"),
                                        "--expect-ground", surface_mode], here)
         print("%-5s %-42s %s" % ("ok" if rc == 0 else "FAIL", "PDF QC",

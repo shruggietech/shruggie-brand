@@ -109,6 +109,17 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .mobile-brand-title { min-width: 0; color: #fff; font-size: 1.1rem; font-weight: 700; overflow-wrap: anywhere; }
 .brand-accordion-panel { box-sizing: border-box; min-width: 0; max-width: 100%; padding: 0 1rem 1rem; }
 .brand-accordion-panel > p { margin: 0 0 1rem; color: #fff; overflow-wrap: anywhere; }
+.brand-card[data-showcase-surface='governed-light'], .brand-accordion[data-showcase-surface='governed-light'] { background: var(--brand-showcase-surface); color: var(--brand-showcase-foreground); border-color: var(--brand-showcase-border); color-scheme: light; }
+.brand-card[data-showcase-surface='governed-light']:hover, .brand-card[data-showcase-surface='governed-light']:focus-within { border-color: var(--brand-showcase-ring); box-shadow: 0 0 0 1px var(--brand-showcase-ring); }
+.brand-card[data-showcase-surface='governed-light']:focus-visible { outline-color: var(--brand-showcase-ring); box-shadow: 0 0 0 4px var(--brand-showcase-surface); }
+.brand-card[data-showcase-surface='governed-light'] :is(h3, .brand-card-description), .brand-accordion[data-showcase-surface='governed-light'] :is(.mobile-brand-title, .brand-accordion-panel > p) { color: var(--brand-showcase-foreground); }
+.brand-card[data-showcase-surface='governed-light'] .vendor-marker, .brand-accordion[data-showcase-surface='governed-light'] .vendor-marker, .brand-accordion[data-showcase-surface='governed-light'] summary::after { color: var(--brand-showcase-ring); }
+.brand-card[data-showcase-surface='governed-light'] .brand-icon, .brand-accordion[data-showcase-surface='governed-light'] .brand-icon { background: var(--brand-showcase-surface); outline: 1px solid var(--brand-showcase-border); box-shadow: none; }
+.brand-card[data-showcase-surface='governed-light'] .brand-actions a, .brand-accordion[data-showcase-surface='governed-light'] .brand-actions a { background: var(--brand-showcase-secondary); color: var(--brand-showcase-foreground); border-color: var(--brand-showcase-border); }
+.brand-card[data-showcase-surface='governed-light'] .brand-actions a:first-child, .brand-accordion[data-showcase-surface='governed-light'] .brand-actions a:first-child { background: var(--brand-showcase-cta); color: var(--brand-showcase-cta-foreground); border-color: var(--brand-showcase-cta); }
+.brand-card[data-showcase-surface='governed-light'] .brand-actions a:hover, .brand-accordion[data-showcase-surface='governed-light'] .brand-actions a:hover { border-color: var(--brand-showcase-ring); box-shadow: inset 0 0 0 1px var(--brand-showcase-ring); }
+.brand-card[data-showcase-surface='governed-light'] .brand-actions a:focus-visible, .brand-accordion[data-showcase-surface='governed-light'] .brand-actions a:focus-visible { outline-color: var(--brand-showcase-foreground); box-shadow: 0 0 0 4px var(--brand-showcase-ring); }
+.brand-accordion[data-showcase-surface='governed-light'] summary:focus-visible { outline-color: var(--brand-showcase-ring); }
 .portfolio-vendor-notice { max-width: 78ch; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted-text); font-size: .8rem; line-height: 1.5; }
 .brand-hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(18rem, .85fr); align-items: center; gap: clamp(2rem, 7vw, 6rem); }
 .brand-hero h1 { max-width: 100%; margin: 1rem 0; overflow-wrap: normal; font-size: clamp(2.5rem, 5vw, 4.25rem); line-height: .98; text-wrap: balance; }
@@ -152,8 +163,9 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 :where(button[data-theme-toggle], [data-theme-toggle] button):disabled { cursor: not-allowed; }
 #nd-docs-layout :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 #nd-sidebar a[data-active='true'], #nd-sidebar a[aria-current='page'], #nd-toc a[data-active='true'], #nd-toc a[aria-current='true'] { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--foreground); font-weight: 700; box-shadow: inset 3px 0 var(--primary); }
-.guideline-layout { --color-fd-muted-foreground: #6b6b6b; background: var(--background); }
-.dark .guideline-layout { --color-fd-muted-foreground: #a3a3a3; }
+.guideline-layout { background: var(--background); color: var(--foreground); }
+.guideline-layout[data-guide-mode='light'] { color-scheme: light; --color-fd-muted-foreground: var(--muted-foreground); }
+.guideline-layout[data-guide-mode='dark'] { color-scheme: dark; --color-fd-muted-foreground: var(--muted-foreground); }
 .guideline-layout #nd-nav { background: color-mix(in srgb, var(--background) 96%, transparent); }
 .guide-nav-title { display: grid; line-height: 1.15; }
 .guide-nav-title strong { color: var(--foreground); font-family: var(--sh-font-display); }
@@ -233,7 +245,7 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .guide-table-scroll { max-width: 100%; overflow-x: auto; }
 .guide-table-scroll table { width: 100%; }
 .guide-affiliation { color: var(--muted-foreground); font-size: .8rem; }
-.vendor-boundary { max-width: 78ch; margin-top: 1rem; color: var(--muted-text); font-size: .8rem; line-height: 1.5; }
+.vendor-boundary { max-width: 78ch; margin-top: 1rem; color: var(--muted-foreground); font-size: .8rem; line-height: 1.5; }
 .guide-footer { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; margin-top: 3rem; padding: 1.5rem 0 max(5rem, env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
 .guide-footer a { display: inline-flex; min-height: 44px; align-items: center; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: .4rem; text-decoration: none; }
 .guide-footer .guide-host-exit { background: #fff; color: #000; }

@@ -36,6 +36,7 @@ import build_kit
 import enrich_brand
 import probe
 import qc_images
+import qc_render
 import verify
 from brand_contract import sha256_file
 from capabilities import load_capabilities
@@ -50,6 +51,15 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_pdf_ground_gate_rejects_wrong_or_mixed_declared_modes(self):
+        light = (255, 255, 255)
+        dark = (12, 15, 18)
+        self.assertEqual([], qc_render.ground_problems([light, light], "light"))
+        self.assertEqual([], qc_render.ground_problems([dark, dark], "dark"))
+        self.assertTrue(any("dark guide surface" in problem for problem in qc_render.ground_problems([light], "dark")))
+        self.assertTrue(any("light guide surface" in problem for problem in qc_render.ground_problems([dark], "light")))
+        self.assertTrue(any("inconsistent" in problem for problem in qc_render.ground_problems([light, dark], "light")))
+
     def test_enforcement_emits_deterministic_merge_safe_consumer_contract(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "shruggietech"
@@ -517,6 +527,9 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual("1.0", payload["schema_version"])
             self.assertEqual(facts, payload["implementation"])
             self.assertEqual("1.2.3", payload["brand"]["version"])
+            self.assertEqual("dark", payload["brand"]["surface_mode"])
+            self.assertEqual(palettes[0], payload["presentation"])
+            self.assertEqual({"dark": palettes[0], "light": palettes[1]}, payload["presentations"])
             self.assertEqual(
                 [
                     ("overview", "Overview", "Overview", 0, "/alpha/guidelines/"),
@@ -706,6 +719,10 @@ class PipelineTests(unittest.TestCase):
                 self.assertNotEqual(scope["primary"], scope["brand-cta"])
                 self.assertNotEqual(scope["destructive"], scope["brand-cta"])
                 self.assertGreaterEqual(gen_nextjs.ratio(scope["brand-cta"], scope["brand-cta-foreground"]), 4.5)
+            for border_role in ("border", "input", "sidebar-border"):
+                for surface_role in ("background", "card", "secondary", "muted"):
+                    self.assertGreaterEqual(gen_nextjs.ratio(light[border_role], light[surface_role]), 3.0,
+                                            "%s on %s" % (border_role, surface_role))
 
             isolated = Path(temporary) / "isolated"
             _, isolated_dark, isolated_light = self.i_heart_pr_tours_guide_fixture(isolated, "#006565")
@@ -734,6 +751,21 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("box-shadow", html)
             self.assertIn("prefers-reduced-motion:reduce", html)
             self.assertEqual(2, html.count("--brand-cta-foreground:#FFFFFF"))
+
+    def test_light_guide_is_declared_in_portable_and_pdf_copy_is_surface_aware(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "guide"
+            brand, dark, light = self.i_heart_pr_tours_guide_fixture(kit)
+            portable_html = gen_guidelines.build(brand, kit)
+            pdf_html = gen_guide_pdf.build(brand, kit)
+            self.assertTrue('<body class="" data-guide-mode="light">' in portable_html,
+                            "portable guide lacks a declared light body")
+            self.assertIn("@media print", portable_html)
+            self.assertIn("var(--ring)", portable_html)
+            self.assertTrue("Light reading surface" in pdf_html)
+            self.assertTrue(light["primary"] in pdf_html)
+            self.assertTrue("Dark and close to monochrome" not in pdf_html)
+            self.assertTrue("background:%s; color:%s" % (light["background"], light["foreground"]) in pdf_html)
 
     def test_secondary_ctas_use_the_surface_aware_red_outline_contract(self):
         with tempfile.TemporaryDirectory() as temporary:

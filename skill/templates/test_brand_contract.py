@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, derivative_configuration_sha256, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, derivative_configuration_sha256, guide_surface_mode, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
 from identity_continuity import canonical_digest, identity_snapshot, record_digest
 from ingest_font import ingest_font
 
@@ -546,6 +546,40 @@ class ShowcaseSurfaceTests(unittest.TestCase):
         brand["light_surfaces"] = {"card": "#FFFFFF"}
         with self.assertRaisesRegex(ContractError, "showcase surface role"):
             showcase_surface(brand)
+
+
+class GuideSurfaceModeTests(unittest.TestCase):
+    def test_missing_mode_defaults_to_dark_and_explicit_light_is_valid(self):
+        brand = owned_brand()
+        self.assertEqual("dark", guide_surface_mode(brand))
+        brand["guide"] = {"surface_mode": "light"}
+        brand["light_surfaces"] = {
+            "base": "#FFFFFF", "card": "#FFFFFF", "popover": "#FFFFFF",
+            "secondary": "#F8F6F2", "hover": "#EEF4F8",
+            "foreground": "#111111", "muted_foreground": "#555555",
+        }
+        self.assertEqual("light", guide_surface_mode(brand))
+
+    def test_invalid_mode_and_incomplete_light_palette_fail_early(self):
+        brand = owned_brand()
+        for guide in ("light", {"surface_mode": "sepia"}, {"surface_mode": None}):
+            brand["guide"] = guide
+            with self.assertRaisesRegex(ContractError, "guide.surface_mode|guide must"):
+                guide_surface_mode(brand)
+        brand["guide"] = {"surface_mode": "light"}
+        with self.assertRaisesRegex(ContractError, "light_surfaces"):
+            guide_surface_mode(brand)
+
+    def test_light_palette_rejects_low_contrast_local_text(self):
+        brand = owned_brand()
+        brand["guide"] = {"surface_mode": "light"}
+        brand["light_surfaces"] = {
+            "base": "#FFFFFF", "card": "#FFFFFF", "popover": "#FFFFFF",
+            "secondary": "#F8F6F2", "hover": "#EEF4F8",
+            "foreground": "#AAAAAA", "muted_foreground": "#555555",
+        }
+        with self.assertRaisesRegex(ContractError, "contrast"):
+            guide_surface_mode(brand)
 
 
 class SquareEnclosureProfileTests(unittest.TestCase):
