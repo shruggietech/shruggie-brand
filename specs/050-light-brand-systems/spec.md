@@ -39,6 +39,7 @@ As a visitor, I can browse a light-first brand's card, guideline route, and down
 1. **Given** a dark portfolio shell, **when** a light-first brand card is shown, **then** its foreground, icon well, actions, hover, and focus states form a complete light scope.
 2. **Given** a light-first brand guideline or download route, **when** the page is opened, **then** its navigation, content panels, tables, asset wells, controls, and footer use the declared presentation rather than inherited dark styling.
 3. **Given** a dark-first brand, **when** the same routes are opened, **then** its existing dark presentation remains intact.
+4. **Given** a default-dark guide with a `light.*` showcase surface, **when** the brand is validated and published, **then** the light palette is complete and accessible, including at least 3:1 meaningful borders on each local light surface.
 
 ---
 
@@ -59,6 +60,7 @@ As a maintainer, I can validate that each brand's declared presentation is actua
 ### Edge Cases
 
 - A declaration may be missing, malformed, or inconsistent with the available governed light colors. Missing means dark; malformed or incomplete explicit light must fail closed.
+- A light portfolio showcase may be declared independently of the guide mode; it must receive the same light-palette validation even when the guide remains dark.
 - Light artwork may be dark-lettered, transparent, or pale. Preview wells must be selected by approved surface role rather than a universal near-black fill.
 - Brand-specific theme scopes must not silently change unrelated documentation or the portfolio shell.
 - Text enlargement to 200 percent, 360 to 390px layouts, no-script navigation, reduced motion, and print output must preserve access to content and controls.
@@ -73,7 +75,7 @@ As a maintainer, I can validate that each brand's declared presentation is actua
 - **FR-003**: Generated PDF guides MUST use the declared presentation on every page, including cover, cards, tables, callouts, code, footers, and identity samples, with dark/light comparison samples explicitly contained.
 - **FR-004**: Portable guidelines MUST use the declared presentation for outer document, nested panels, controls, focus and print without an unconditional dark body.
 - **FR-005**: Hosted guideline and download routes MUST apply the brand's declared presentation to navigation, content, controls, asset previews, mobile accordions, and footer, independent of the public portfolio shell.
-- **FR-006**: Portfolio cards and large logo wells MUST support a complete governed light scope, including foreground, action, hover, focus, and preview-well roles, while preserving dark-first cards.
+- **FR-006**: Portfolio cards and large logo wells MUST support a complete governed light scope, including foreground, action, hover, focus, meaningful border, and preview-well roles, while preserving dark-first cards. A `light.*` showcase role MUST require a complete accessible light palette independently of the guide mode.
 - **FR-007**: Generated and hosted output MUST identify asset preview wells according to governed asset presentation, including approved marks requiring white wells, without changing master asset bytes.
 - **FR-008**: Quality gates MUST reject a light-declared guide with dark outer pages or inherited dark UI areas and MUST validate measured WCAG 2.1 AA foreground, border, control, hover, focus, and semantic-state pairings on their actual surfaces.
 - **FR-009**: Coverage MUST include light and dark brands, PDF pages, portable and hosted views, no-script output, 360 to 390px layouts, 200 percent zoom, reduced motion, print, and representative white-well assets.

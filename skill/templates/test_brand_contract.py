@@ -581,6 +581,23 @@ class GuideSurfaceModeTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "contrast"):
             guide_surface_mode(brand)
 
+    def test_dark_guide_with_light_showcase_validates_the_light_palette(self):
+        brand = owned_brand()
+        brand["showcase_surface"] = "light.card"
+        brand["light_surfaces"] = {"card": "#FFFFFF"}
+        self.assertEqual("dark", guide_surface_mode(brand))
+        with tempfile.TemporaryDirectory() as temporary:
+            stage_house_fonts(Path(temporary))
+            with self.assertRaisesRegex(ContractError, "light showcase_surface requires complete light_surfaces"):
+                validate_brand(brand, Path(temporary))
+            brand["light_surfaces"].update({
+                "base": "#FFFFFF", "popover": "#FFFFFF", "secondary": "#F8F6F2",
+                "hover": "#EEF4F8", "foreground": "#AAAAAA",
+                "muted_foreground": "#555555",
+            })
+            with self.assertRaisesRegex(ContractError, "foreground contrast on light_surfaces"):
+                validate_brand(brand, Path(temporary))
+
 
 class SquareEnclosureProfileTests(unittest.TestCase):
     def test_optional_profile_resolves_complete_safe_geometry(self):

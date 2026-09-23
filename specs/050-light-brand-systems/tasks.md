@@ -52,6 +52,11 @@
 - [X] T015 Run the complete validation from `CONTRIBUTING.md`, inspect produced contact sheets, and record results in `specs/050-light-brand-systems/evidence.md`.
 - [X] T016 Review diff, source-only boundary, UTF-8/LF, and mojibake; sync all S050 docs and task markers in `specs/050-light-brand-systems/`.
 
+## Phase 7: PR Review Resolution
+
+- [X] T017 Validate a `light.*` showcase palette independently of guide mode, derive accessible light border tokens unconditionally, and add dark-guide/light-showcase regression tests in `skill/templates/`.
+- [X] T018 Rerun the affected contract and full pipeline suites, audit source and Spec Kit files, and record the review correction in verification evidence. PR-thread response and CI monitoring follow the pushed commit.
+
 ## Dependencies and Execution Order
 
 T001 precedes T002-T003. T003 is foundational. T004 precedes T005-T006. T007 precedes T008-T010. T011 precedes T012-T013. T014 may run alongside a story in separate files; T015-T016 follow all story work. User Story 1 is the MVP and can be verified independently; Stories 2 and 3 add hosted publication and quality gates.

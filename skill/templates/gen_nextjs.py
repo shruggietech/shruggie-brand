@@ -22,7 +22,7 @@ Usage:  python3 gen_nextjs.py <brand-spec.json> <output-dir>
 """
 import json, re, os, sys
 from coloraide import Color
-from brand_contract import font_faces, guide_surface_mode, semantic_colors, typography_families, vendor_boundary
+from brand_contract import font_faces, semantic_colors, typography_families, vendor_boundary
 
 def governed_description(brand, description):
     boundary = vendor_boundary(brand)
@@ -157,11 +157,10 @@ def build_slots(canon, brand):
         "sidebar-accent": light_hover,     "sidebar-accent-foreground": light_foreground,
         "sidebar-border": "#E5E5E5",      "sidebar-ring": al,
     }
-    if guide_surface_mode(brand) == "light":
-        border = accessible_light_border(light_foreground,
-                                         (light_background, light_card, light_popover,
-                                          light_secondary, light_hover))
-        light.update({"border": border, "input": border, "sidebar-border": border})
+    border = accessible_light_border(light_foreground,
+                                     (light_background, light_card, light_popover,
+                                      light_secondary, light_hover))
+    light.update({"border": border, "input": border, "sidebar-border": border})
     chart_cfg = brand.get("chart_palette", {})
     for i, hx in enumerate(charts(a, base_dark, chart_cfg.get("dark_target_lightness"), chart_cfg.get("hue_rotations")), 1):
         dark["chart-%d" % i] = hx

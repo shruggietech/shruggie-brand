@@ -81,7 +81,7 @@ site/scripts/verify-site.mjs
 
 ## Design Sequence
 
-1. Make `guide.surface_mode` a schema-backed, early-validated value with a dark default and explicit light-source preconditions.
+1. Make `guide.surface_mode` a schema-backed, early-validated value with a dark default and explicit light-source preconditions. Validate the same complete light palette when `showcase_surface` selects `light.*`, even if the guide remains dark.
 2. Keep a single mode resolver in generator code; use it in PDF, portable HTML, build QC, and emitted portal data.
 3. Include the selected guide block and complete dark/light semantic token blocks in the generated portal, project only the relevant mode into each site record, then scope hosted guide and portfolio UI with brand-local CSS variables and data attributes.
 4. Preserve explicit dark/light specimen wells while making the document outer ground deterministic. Select white wells from asset metadata and governed showcase surface, never by editing artwork.

@@ -738,6 +738,17 @@ class PipelineTests(unittest.TestCase):
             verify.c_globals(str(kit), report)
             self.assertTrue(any("brand-cta-foreground on brand-cta" in problem for problem in report.problems))
 
+    def test_dark_guide_light_showcase_has_accessible_light_borders(self):
+        brand = json.loads((ROOT / "brands" / "i-heart-pr-tours" / "brand.json").read_text(encoding="utf-8"))
+        brand["guide"]["surface_mode"] = "dark"
+        self.assertEqual("light.card", brand["showcase_surface"])
+        canon = json.loads((ROOT / "skill" / "references" / "01-canon.json").read_text(encoding="utf-8"))
+        _, light = gen_nextjs.build_slots(canon, brand)
+        for border_role in ("border", "input", "sidebar-border"):
+            for surface_role in ("background", "card", "popover", "secondary", "accent"):
+                self.assertGreaterEqual(gen_nextjs.ratio(light[border_role], light[surface_role]), 3.0,
+                                        "%s on %s" % (border_role, surface_role))
+
     def test_portable_primary_ctas_use_the_accessible_action_contract(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "guide"
