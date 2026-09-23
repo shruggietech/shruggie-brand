@@ -4,6 +4,15 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Changed
+
+- Prepared the S049 repository front door with approved theme-aware branding, canonical brand destinations, stable latest-release guidance, and release/status badges.
+
+### Decisions
+
+- On 2026-09-23, made README link validation consume the generated route contract after site preparation, using isolated negative fixtures instead of a duplicated slug list or live HTTP checks in CI.
+- On 2026-09-23, kept public README downloads on the latest published release rather than naming an unpublished 2.0.3 candidate; exact-version assets remain governed by release metadata and checksums.
+
 ## [2.0.3] - 2026-09-23
 
 ### Changed
@@ -15,6 +24,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 ### Fixed
 
 - Added generated-role verification for maskable web icons, Android masks, Windows taskbar frames, and egui status contrast.
+- Repaired the repository README's eight noncanonical brand links and stale skill-download guidance, and added deterministic local and generated-route link checks to CI.
 
 ### Changed
 
