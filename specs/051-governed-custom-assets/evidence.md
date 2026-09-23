@@ -28,3 +28,5 @@ The approved S051 scope and issue #194 map to T001-T010 without an unresolved cl
 ## Pull request and pending external gates
 
 The source-only S051 change was committed as `c9cfbf6`, pushed on `codex/051-governed-custom-assets`, and opened as [PR #262](https://github.com/shruggietech/shruggie-brand/pull/262). PR CI and external reviews are pending. No release tag or merge is part of S051.
+
+The first Codex review identified three publication boundary defects: animated SVG could move inside an image document despite reduced-motion CSS, raster magic prefixes did not prove a complete image, and a filtered archive still declared its omitted private source. The follow-up rejects SVG motion elements and styling, decodes complete PNG/JPEG/WebP data, and publishes a filtered `brand.json` with matching manifest and consumer provenance. Focused contract, package, and release suites passed after these corrections; CI and any allowed second review remain pending.

@@ -126,6 +126,30 @@ class CustomAssetContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "symbolic-link"):
             custom_assets({"custom_assets": [self.asset]}, self.kit)
 
+    def test_svg_motion_and_truncated_rasters_are_rejected(self):
+        source = self.kit / self.asset["source"]["path"]
+        for element in ("animate", "set", "animateTransform", "animateMotion", "discard"):
+            with self.subTest(element=element):
+                source.write_text('<svg xmlns="http://www.w3.org/2000/svg"><%s attributeName="opacity" dur="1s" repeatCount="indefinite"/></svg>' % element, encoding="utf-8")
+                item = copy.deepcopy(self.asset)
+                item["source"]["sha256"] = sha256_file(source)
+                with self.assertRaisesRegex(ContractError, "prohibited"):
+                    custom_assets({"custom_assets": [item]}, self.kit)
+        for format_name, suffix, header in (("png", ".png", b"\x89PNG\r\n\x1a\n"),
+                                            ("jpeg", ".jpg", b"\xff\xd8\xff"),
+                                            ("webp", ".webp", b"RIFF\x04\x00\x00\x00WEBP")):
+            with self.subTest(format=format_name):
+                raster = source.with_suffix(suffix)
+                raster.write_bytes(header)
+                item = copy.deepcopy(self.asset)
+                item["source"] = {"path": raster.relative_to(self.kit).as_posix(), "format": format_name,
+                                  "sha256": sha256_file(raster)}
+                with self.assertRaisesRegex(ContractError, "incomplete or invalid"):
+                    custom_assets({"custom_assets": [item]}, self.kit)
+                Image.new("RGB", (3, 2), (22, 44, 66)).save(raster, format={"png": "PNG", "jpeg": "JPEG", "webp": "WEBP"}[format_name])
+                item["source"]["sha256"] = sha256_file(raster)
+                self.assertEqual([item], custom_assets({"custom_assets": [item]}, self.kit, public_only=True))
+
 
 def approval_brand(status="pending"):
     gate_2 = {"status": status, "approved_by": None, "approved_on": None,

@@ -204,17 +204,16 @@ class PackageReleaseTests(unittest.TestCase):
                     expected,
                 )
 
-    def test_nonpublic_custom_source_is_withheld_from_verified_archive(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            source = self.make_brand_source(root)
-            relative = "assets/source/private.svg"
-            art = source / relative
-            art.parent.mkdir(parents=True)
-            art.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="M0 0H1V1Z"/></svg>', encoding="utf-8")
-            brand_path = source / "brand.json"
-            brand = json.loads(brand_path.read_text(encoding="utf-8"))
-            brand["custom_assets"] = [{
+    def add_private_custom_source(self, source: Path, *, canonical: bool = False) -> str:
+        relative = "assets/source/private.svg"
+        art = source / relative
+        art.parent.mkdir(parents=True)
+        art.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="M0 0H1V1Z"/></svg>', encoding="utf-8")
+        brand_path = source / "brand.json"
+        brand = json.loads(brand_path.read_text(encoding="utf-8"))
+        if canonical:
+            brand["authoritative_inputs"] = [{"path": relative}]
+        brand["custom_assets"] = [{
                 "id": "private", "title": "Private concept", "description": "Unreleased review art", "role": "mood-imagery",
                 "source": {"path": relative, "format": "svg", "sha256": hashlib.sha256(art.read_bytes()).hexdigest()},
                 "provenance": {"kind": "supplied", "owner": "Owner", "detail": "Review concept"},
@@ -222,27 +221,52 @@ class PackageReleaseTests(unittest.TestCase):
                 "transformations": ["embed-unchanged"], "usage": {"use": "Review", "avoid": "Public publication"},
                 "accessibility": {"alt": "Private concept", "legibility": "Plain well", "text_overlay": "None", "reduced_motion": "Static", "disclosure": "Illustration"},
                 "credit": {"attribution": "Owner", "license": "Private review only"}, "preview": {"well": "light", "fit": "contain"},
-            }]
-            brand_path.write_text(json.dumps(brand), encoding="utf-8")
-            consumer_path = source / "enforcement" / "consumer-contract.json"
-            consumer = json.loads(consumer_path.read_text(encoding="utf-8"))
-            for record in consumer["provenance"]:
-                if record["path"] == "brand.json":
-                    record.update(bytes=brand_path.stat().st_size, sha256=hashlib.sha256(brand_path.read_bytes()).hexdigest())
-            consumer_path.write_text(json.dumps(consumer), encoding="utf-8")
-            manifest_path = source / "manifest.json"
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            for path in (brand_path, consumer_path, art):
-                name = path.relative_to(source).as_posix()
-                record = {"path": name, "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
-                manifest["files"] = [item for item in manifest["files"] if item["path"] != name] + [record]
-            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        }]
+        brand_path.write_text(json.dumps(brand), encoding="utf-8")
+        consumer_path = source / "enforcement" / "consumer-contract.json"
+        consumer = json.loads(consumer_path.read_text(encoding="utf-8"))
+        for record in consumer["provenance"]:
+            if record["path"] == "brand.json":
+                record.update(bytes=brand_path.stat().st_size, sha256=hashlib.sha256(brand_path.read_bytes()).hexdigest())
+        consumer_path.write_text(json.dumps(consumer), encoding="utf-8")
+        manifest_path = source / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for path in (brand_path, consumer_path, art):
+            name = path.relative_to(source).as_posix()
+            record = {"path": name, "bytes": path.stat().st_size, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+            manifest["files"] = [item for item in manifest["files"] if item["path"] != name] + [record]
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        return relative
+
+    def test_nonpublic_custom_source_is_withheld_from_verified_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = self.make_brand_source(root)
+            relative = self.add_private_custom_source(source)
             destination = root / "release" / "alpha-brand-1.0.0-bb2.0.0.zip"
             package_release.write_brand_archive(source, destination, root=root, expected_canon="1.2.1")
             with zipfile.ZipFile(destination) as archive:
                 self.assertNotIn(relative, archive.namelist())
                 delivered = json.loads(archive.read("manifest.json"))
                 self.assertNotIn(relative, [item["path"] for item in delivered["files"]])
+                public_brand = json.loads(archive.read("brand.json"))
+                self.assertNotIn("custom_assets", public_brand)
+                public_consumer = json.loads(archive.read("enforcement/consumer-contract.json"))
+                brand_provenance = next(item for item in public_consumer["provenance"] if item["path"] == "brand.json")
+                self.assertEqual(hashlib.sha256(archive.read("brand.json")).hexdigest(), brand_provenance["sha256"])
+                self.assertEqual(len(archive.read("brand.json")), brand_provenance["bytes"])
+                archive.extractall(root / "extracted")
+            self.assertEqual([], package_release.custom_assets(public_brand, root / "extracted"))
+
+    def test_nonpublic_custom_source_cannot_remove_canonical_input(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = self.make_brand_source(root)
+            self.add_private_custom_source(source, canonical=True)
+            destination = root / "release" / "alpha-brand-1.0.0-bb2.0.0.zip"
+            with self.assertRaisesRegex(ValueError, "required by canonical identity"):
+                package_release.write_brand_archive(source, destination, root=root)
+            self.assertFalse(destination.exists())
 
     def test_brand_archive_rejects_corrupt_offline_recovery(self):
         with tempfile.TemporaryDirectory() as tmp:

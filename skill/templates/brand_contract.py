@@ -816,7 +816,8 @@ def _validate_svg(path):
         raise ContractError("invalid supplied SVG %s: %s" % (path.name, error)) from error
     for element in root.iter():
         tag = element.tag.rsplit("}", 1)[-1].lower()
-        _require(tag not in {"script", "style", "text", "foreignobject"}, "supplied SVG contains prohibited <%s> content" % tag)
+        _require(tag not in {"script", "style", "text", "foreignobject", "animate", "animatecolor", "animatemotion", "animatetransform", "set", "discard"},
+                 "supplied SVG contains prohibited <%s> content" % tag)
         for raw_name, raw_value in element.attrib.items():
             name = raw_name.rsplit("}", 1)[-1].lower()
             value = str(raw_value).strip()
@@ -838,8 +839,30 @@ def _validate_svg(path):
                     _require(False, "supplied SVG contains an external reference")
             lowered = value.lower().replace(" ", "")
             _require("http:" not in lowered and "https:" not in lowered and "@import" not in lowered, "supplied SVG contains a network reference")
+            _require("animation:" not in lowered and "transition:" not in lowered and "@keyframes" not in lowered,
+                     "supplied SVG contains motion styling")
             if "url(" in lowered:
                 _require("url(#" in lowered, "supplied SVG contains an external paint reference")
+
+
+def _validate_custom_raster(path, declared_format):
+    try:
+        from PIL import Image, ImageFile
+    except ImportError as error:
+        raise ContractError("raster custom assets require Pillow for complete image validation") from error
+    expected = {"png": "PNG", "jpeg": "JPEG", "webp": "WEBP"}[declared_format]
+    previous = ImageFile.LOAD_TRUNCATED_IMAGES
+    ImageFile.LOAD_TRUNCATED_IMAGES = False
+    try:
+        with Image.open(path) as image:
+            _require(image.format == expected, "custom raster format mismatch: %s" % path.name)
+            image.verify()
+        with Image.open(path) as image:
+            image.load()
+    except (OSError, ValueError, SyntaxError) as error:
+        raise ContractError("custom raster is incomplete or invalid: %s" % path.name) from error
+    finally:
+        ImageFile.LOAD_TRUNCATED_IMAGES = previous
 
 
 def custom_assets(brand, kit, public_only=False):
@@ -887,6 +910,8 @@ def custom_assets(brand, kit, public_only=False):
         _require(sha256_file(path) == source["sha256"], "custom asset %s hash drift" % identifier)
         if source["format"] == "svg":
             _validate_svg(path)
+        else:
+            _validate_custom_raster(path, source["format"])
         provenance = item["provenance"]
         _require(isinstance(provenance, dict) and set(provenance) == {"kind", "owner", "detail"}
                  and isinstance(provenance["kind"], str) and provenance["kind"] in {"supplied", "generated"},

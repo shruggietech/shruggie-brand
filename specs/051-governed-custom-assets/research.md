@@ -10,7 +10,7 @@
 
 ## Decisions
 
-- Supported public media for S051: passive SVG and raster PNG/JPEG/WebP, subject to existing media validation. Motion/WebGL metadata is modelable but such files do not become publishable until supported preview and reduced-motion verification exists.
+- Supported public media for S051: static passive SVG and fully decodable raster PNG/JPEG/WebP. SVG animation is rejected because embedded image-document motion cannot be stopped by page-level reduced-motion CSS. Motion/WebGL metadata is modelable but such files do not become publishable until supported preview and reduced-motion verification exists.
 - Distinguish approval status from publication eligibility. Only both approved and public records enter outputs.
 - Treat asset-source paths as brand-relative, contained committed files. Existing `authoritative_inputs` can record the same supplied source, but `custom_assets` is the public expression authority.
 - Require declared preview well and containment. No crop, recolor, or source conversion in generated previews.
