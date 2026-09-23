@@ -4,6 +4,18 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-09-23
+
+### Changed
+
+- Separated ordinary and maskable web icon roles, added mask-safe Android presentation, and made ESO Weave Windows taskbar icons unplated while preserving source logo geometry.
+- Advanced the Brand Canon to 1.3.0, BrandBuilder to 2.0.3, egui adapter to 1.0.2, Glitchpad brand package to 1.1.1, and ESO Weave brand package to 1.0.2.
+- Documented native host icon and egui status roles with explicit consumer repin and application call-site boundaries.
+
+### Fixed
+
+- Added generated-role verification for maskable web icons, Android masks, Windows taskbar frames, and egui status contrast.
+
 ### Changed
 
 - On 2026-09-22, prepared S047 as a publication-bound documentation and guideline integrity correction with a new immutable compiler patch candidate.

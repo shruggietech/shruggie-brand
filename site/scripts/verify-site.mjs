@@ -1239,7 +1239,7 @@ try {
       }
     } catch (error) { failures.push(`${file} lockup payload does not decode: ${error.message}`); }
   }
-  const expectedPngs = new Map([['/favicon-16x16.png', 16], ['/favicon-32x32.png', 32], ['/apple-touch-icon.png', 180], ['/android-chrome-192x192.png', 192], ['/android-chrome-512x512.png', 512]]);
+  const expectedPngs = new Map([['/favicon-16x16.png', 16], ['/favicon-32x32.png', 32], ['/apple-touch-icon.png', 180], ['/android-chrome-192x192.png', 192], ['/android-chrome-512x512.png', 512], ['/maskable-icon-192x192.png', 192], ['/maskable-icon-512x512.png', 512]]);
   for (const file of iconFiles) {
     const response = await page.request.get(base + file); check(response.ok(), `${file} cannot be fetched for icon validation`); if (!response.ok()) continue;
     const buffer = Buffer.from(await response.body());
@@ -1251,7 +1251,8 @@ try {
   }
   const manifestResponse = await page.request.get(base + '/site.webmanifest');
   if (manifestResponse.ok()) {
-    const manifest = await manifestResponse.json(); check(Array.isArray(manifest.icons) && manifest.icons.length >= 2, 'site.webmanifest lacks installable icons'); check(manifest.background_color === '#000000' && manifest.theme_color === '#000000', 'site.webmanifest must declare canonical #000000 background and theme colors');
+    const manifest = await manifestResponse.json(); check(Array.isArray(manifest.icons) && manifest.icons.length === 4, 'site.webmanifest must declare four independently qualified installable icons'); check(manifest.background_color === '#000000' && manifest.theme_color === '#000000', 'site.webmanifest must declare canonical #000000 background and theme colors');
+    check(JSON.stringify((manifest.icons ?? []).map(({ src, purpose }) => [src, purpose])) === JSON.stringify([['/android-chrome-192x192.png', 'any'], ['/android-chrome-512x512.png', 'any'], ['/maskable-icon-192x192.png', 'maskable'], ['/maskable-icon-512x512.png', 'maskable']]), 'site.webmanifest conflates ordinary and maskable icon roles');
     for (const icon of manifest.icons ?? []) { const match = /^(\d+)x(\d+)$/.exec(icon.sizes ?? ''); check(Boolean(match), `manifest icon ${icon.src} has an invalid size declaration`); if (!match) continue; const response = await page.request.get(new URL(icon.src, base).href); check(response.ok(), `manifest icon ${icon.src} is missing`); if (!response.ok()) continue; try { const info = pngInfo(Buffer.from(await response.body())); check(info.width === Number(match[1]) && info.height === Number(match[2]), `manifest icon ${icon.src} dimensions disagree with ${icon.sizes}`); check(info.srgb, `manifest icon ${icon.src} lacks an sRGB declaration`); check(info.opaque, `manifest icon ${icon.src} must be opaque`); check(hasCanonicalBlackCorners(info), `manifest icon ${icon.src} does not use canonical #000000 corner pixels`); check(hasVisibleArtwork(info), `manifest icon ${icon.src} contains only its black background and no measurable ShruggieTech artwork`); } catch (error) { failures.push(`manifest icon ${icon.src} does not decode: ${error.message}`); } }
   }
   for (const route of iconRoutes) {

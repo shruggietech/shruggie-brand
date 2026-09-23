@@ -18,6 +18,8 @@ site/public/favicon-32x32.png
 site/public/apple-touch-icon.png
 site/public/android-chrome-192x192.png
 site/public/android-chrome-512x512.png
+site/public/maskable-icon-192x192.png
+site/public/maskable-icon-512x512.png
 site/public/cueson/
 site/public/shruggietech-logo.svg
 site/public/shruggietech-logo-dark.svg

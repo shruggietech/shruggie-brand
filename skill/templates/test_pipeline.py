@@ -39,7 +39,7 @@ import qc_images
 import verify
 from brand_contract import sha256_file
 from capabilities import load_capabilities
-from iconkit import generate_icon_suites
+from iconkit import _write_ico, generate_icon_suites
 from process_utils import hidden_process_kwargs
 from identity_continuity import ContinuityError, identity_snapshot, record_digest, validate_brand_continuity, write_continuity_report
 
@@ -1815,6 +1815,97 @@ class PipelineTests(unittest.TestCase):
             alias_report = verify.Report()
             verify.c_icon_suites(str(kit), brand, alias_report)
             self.assertIn("required favicon aliases", "\n".join(alias_report.problems))
+
+    def test_native_icon_roles_use_separate_maskable_android_and_win32_policies(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "native-roles"
+            kit.mkdir()
+            full = kit / "full.svg"
+            reduced = kit / "reduced.svg"
+            full.write_text('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0H1V1Z"/></svg>\n', encoding="utf-8")
+            reduced.write_bytes(full.read_bytes())
+            brand = {"slug": "native-roles", "title": "Native Roles", "surfaces": {"base": "#0B0C0D"},
+                     "logo": {"reduced_below_px": 32, "application_icon": {
+                         "background": "#0B0C0D", "masked_background": "#FFD900",
+                         "windows_unplated": True, "transparent_web_icons": True}}}
+
+            def render(_source, target, size):
+                image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+                for y in range(size // 8, size * 7 // 8):
+                    for x in range(size // 8, size * 7 // 8):
+                        image.putpixel((x, y), (255, 217, 0, 255))
+                image.save(target)
+
+            manifest = generate_icon_suites(brand, kit, full, reduced, render,
+                                            {"tier": "full", "svg_raster": True, "ico_writer": True})
+            web = kit / "icons" / "web"
+            icons = json.loads((web / "site.webmanifest").read_text(encoding="utf-8"))["icons"]
+            self.assertEqual({"any", "maskable"}, {row["purpose"] for row in icons})
+            self.assertEqual(4, len(icons))
+            self.assertTrue((web / "maskable-icon-192x192.png").is_file())
+            with Image.open(web / "maskable-icon-192x192.png") as image:
+                self.assertEqual(255, image.convert("RGBA").getpixel((0, 0))[3])
+            with Image.open(web / "android-chrome-192x192.png") as image:
+                self.assertEqual(0, image.convert("RGBA").getpixel((0, 0))[3])
+
+            res = kit / "icons" / "android" / "app" / "src" / "main" / "res"
+            self.assertIn("#FFD900", (res / "values" / "ic_launcher_colors.xml").read_text(encoding="utf-8"))
+            with Image.open(res / "mipmap-mdpi" / "ic_launcher.png") as image:
+                self.assertEqual((255, 217, 0, 255), image.convert("RGBA").getpixel((0, 0)))
+            with Image.open(kit / "icons" / "android" / "play-store" / "google-play-512.png") as image:
+                self.assertEqual((11, 12, 13, 255), image.convert("RGBA").getpixel((0, 0)))
+            with Image.open(kit / "icons" / "windows" / "classic" / "app.ico") as image:
+                image.seek(0)
+                self.assertEqual(0, image.convert("RGBA").getpixel((0, 0))[3])
+            profile = manifest["profile"]
+            exemplar = Image.new("RGBA", (32, 32), (255, 217, 0, 255))
+            web_frame = verify._expected_authoritative_icon(
+                {"source_variant": "reduced", "width": 16, "role": "favicon-ico", "appearance": "default"},
+                {"reduced": exemplar}, profile)
+            taskbar_frame = verify._expected_authoritative_icon(
+                {"source_variant": "reduced", "width": 16, "role": "classic-ico", "appearance": "default"},
+                {"reduced": exemplar}, profile)
+            self.assertEqual(255, web_frame.getpixel((0, 0))[3])
+            self.assertEqual(0, taskbar_frame.getpixel((0, 0))[3])
+            problems = []
+            verify._validate_web_manifest(str(kit), problems)
+            verify._validate_masked_roles(str(kit), profile, manifest["artifacts"], problems)
+            verify._validate_windows_taskbar_frames(str(kit), profile, problems)
+            self.assertEqual([], problems)
+
+            ico_path = kit / "icons" / "windows" / "classic" / "app.ico"
+            original_ico = ico_path.read_bytes()
+            frames = [(size, Image.open(BytesIO(payload)).convert("RGBA"))
+                      for size, payload in verify._container_png_payloads(str(ico_path), "ico")]
+            frames[0] = (frames[0][0], Image.alpha_composite(
+                Image.new("RGBA", frames[0][1].size, (11, 12, 13, 255)), frames[0][1]))
+            _write_ico(frames, ico_path)
+            problems = []
+            verify._validate_windows_taskbar_frames(str(kit), profile, problems)
+            self.assertIn("unintended taskbar backplate", "\n".join(problems))
+            ico_path.write_bytes(original_ico)
+
+            maskable_path = web / "maskable-icon-192x192.png"
+            original_maskable = maskable_path.read_bytes()
+            with Image.open(maskable_path) as image:
+                altered = image.convert("RGBA")
+            altered.putpixel((0, 0), (0, 0, 0, 0))
+            altered.save(maskable_path)
+            problems = []
+            verify._validate_masked_roles(str(kit), profile, manifest["artifacts"], problems)
+            self.assertIn("must fill its maskable background", "\n".join(problems))
+            maskable_path.write_bytes(original_maskable)
+            write_utf8(res / "values" / "ic_launcher_colors.xml", "<resources><color name=\"ic_launcher_background\">#0B0C0D</color></resources>\n")
+            problems = []
+            verify._validate_masked_roles(str(kit), profile, manifest["artifacts"], problems)
+            self.assertIn("Android adaptive background color disagrees", "\n".join(problems))
+            webmanifest = web / "site.webmanifest"
+            payload = json.loads(webmanifest.read_text(encoding="utf-8"))
+            payload["icons"][2]["purpose"] = "any maskable"
+            write_utf8(webmanifest, json.dumps(payload) + "\n")
+            problems = []
+            verify._validate_web_manifest(str(kit), problems)
+            self.assertIn("distinct any and maskable", "\n".join(problems))
 
     def test_shruggietech_runtime_uses_native_form_and_link_semantics(self):
         kit = ROOT / "brands" / "shruggietech" / "ui_kits" / "shruggie-web"

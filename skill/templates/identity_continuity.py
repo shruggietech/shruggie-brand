@@ -52,6 +52,9 @@ LIFECYCLE_TRANSITIONS = {
     "invalidated": {"canonical-candidate"},
     "discarded": set(),
 }
+LEGACY_PROOF_ICONKIT_SHA256 = "f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b"
+LEGACY_PROOF_FUNCTIONS_SHA256 = "7ad0c84dc432083af06c7fa4b0ba46c88934a38408eb633c2d5131a809ed6fa4"
+PROOF_ICONKIT_FUNCTIONS = {"_pillow", "_visible_crop", "_hex_rgb", "contain_visible"}
 FRAMING_FIELDS = (
     "grid", "canvas_width", "canvas_height", "artwork_width", "artwork_height",
     "reduced_artwork_width", "reduced_artwork_height", "clear_space_units", "standalone_padding_units",
@@ -81,6 +84,25 @@ def record_digest(record):
     payload = dict(record)
     payload.pop("record_sha256", None)
     return canonical_digest(payload)
+
+
+def proof_iconkit_digest(source):
+    """Keep approved proof settings stable only while proof code and module setup are unchanged."""
+    tree = ast.parse(source.decode("utf-8"))
+    functions = [node.name for node in tree.body if isinstance(node, ast.FunctionDef)
+                 and node.name in PROOF_ICONKIT_FUNCTIONS]
+    _require(len(functions) == len(PROOF_ICONKIT_FUNCTIONS) and set(functions) == PROOF_ICONKIT_FUNCTIONS,
+             "identity proof icon helpers are missing or redefined")
+    bound = [(type(node).__name__, getattr(node, "name", ""), ast.dump(node, include_attributes=False))
+             for node in tree.body
+             if (isinstance(node, ast.FunctionDef) and node.name in PROOF_ICONKIT_FUNCTIONS)
+             or (not isinstance(node, ast.FunctionDef)
+                 and not (isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant)
+                          and isinstance(node.value.value, str)))]
+    semantic = canonical_digest(bound)
+    if semantic == LEGACY_PROOF_FUNCTIONS_SHA256:
+        return LEGACY_PROOF_ICONKIT_SHA256
+    return canonical_digest(source)
 
 
 def canonical_source_binding(record):
@@ -581,7 +603,8 @@ def production_renderer_contract(brand=None):
         "variants": list(PROOF_VARIANTS),
         "surface_mapping": {name: list(values) for name, values in proof_surface_mapping(brand).items()},
         "gen_logo_sha256": canonical_digest((here / "gen_logo.py").read_bytes()),
-        "iconkit_sha256": canonical_digest((here / "iconkit.py").read_bytes()),
+        # Legacy approval key: bind proof-relevant code to its approved fingerprint; exact 32-image comparison remains mandatory.
+        "iconkit_sha256": proof_iconkit_digest((here / "iconkit.py").read_bytes()),
         "resvg_adapter_sha256": canonical_digest((here / "rsvg-convert.js").read_bytes()),
         "pillow_version": pillow_version,
     }

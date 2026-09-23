@@ -229,7 +229,7 @@ class PrepareSiteTests(unittest.TestCase):
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchiveFilename"])
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0", record["packageId"])
                 self.assertEqual("2.0.0", record["brandbuilderVersion"])
-                self.assertEqual("1.2.1", archive_writer.call_args.kwargs["expected_canon"])
+                self.assertEqual("1.3.0", archive_writer.call_args.kwargs["expected_canon"])
                 brand["showcase_surface"] = "card"
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual("#121416", record["showcaseSurface"])
@@ -656,13 +656,15 @@ class PrepareSiteTests(unittest.TestCase):
             (web / "favicon.svg").write_text('<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1"/></svg>\n', encoding="utf-8")
             for name, size in (("favicon-16x16.png", 16), ("favicon-32x32.png", 32),
                                ("apple-touch-icon.png", 180), ("android-chrome-192x192.png", 192),
-                               ("android-chrome-512x512.png", 512)):
+                               ("android-chrome-512x512.png", 512), ("maskable-icon-192x192.png", 192),
+                               ("maskable-icon-512x512.png", 512)):
                 Image.new("RGBA", (size, size), (0, 0, 0, 255)).save(web / name)
             (web / "favicon.ico").write_bytes(b"\x00\x00\x01\x00test")
             (web / "site.webmanifest").write_text(json.dumps({
                 "name": "ShruggieTech", "short_name": "ShruggieTech", "display": "standalone",
                 "background_color": "#000000", "theme_color": "#000000",
-                "icons": [{"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png"}],
+                "icons": [{"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+                          {"src": "/maskable-icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"}],
             }) + "\n", encoding="utf-8")
             (logos / "shruggietech-horizontal-color.svg").write_text('<svg data-appearance="colored-dark"/>\n', encoding="utf-8")
             (logos / "shruggietech-horizontal-light.svg").write_text('<svg data-appearance="colored-light"><path/></svg>\n', encoding="utf-8")
@@ -672,6 +674,7 @@ class PrepareSiteTests(unittest.TestCase):
 
             self.assertEqual((web / "favicon.svg").read_bytes(), (public / "favicon.svg").read_bytes())
             self.assertEqual((web / "favicon.ico").read_bytes(), (public / "favicon.ico").read_bytes())
+            self.assertEqual((web / "maskable-icon-192x192.png").read_bytes(), (public / "maskable-icon-192x192.png").read_bytes())
             self.assertEqual((logos / "shruggietech-horizontal-color.svg").read_bytes(), (public / "shruggietech-logo-dark.svg").read_bytes())
             self.assertEqual((logos / "shruggietech-horizontal-light.svg").read_bytes(), (public / "shruggietech-logo-light.svg").read_bytes())
             manifest = json.loads((public / "site.webmanifest").read_text(encoding="utf-8"))

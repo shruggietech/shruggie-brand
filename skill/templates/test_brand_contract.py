@@ -406,6 +406,18 @@ class AffiliationTests(unittest.TestCase):
 
 
 class ApplicationIconProfileTests(unittest.TestCase):
+    def test_existing_glitchpad_frame_role_supplies_mask_background(self):
+        brand = json.loads((ROOT / "brands" / "glitchpad" / "brand.json").read_text(encoding="utf-8"))
+        profile = application_icon_profile(brand)
+        self.assertEqual("#FFD900", profile["masked_background"])
+        self.assertEqual("#0B0C0D", profile["background"])
+        self.assertFalse(profile.get("windows_unplated", False))
+
+    def test_eso_taskbar_is_unplated_without_changing_approved_source_settings(self):
+        brand = json.loads((ROOT / "brands" / "eso-weave" / "brand.json").read_text(encoding="utf-8"))
+        self.assertNotIn("windows_unplated", brand["logo"]["application_icon"])
+        self.assertTrue(application_icon_profile(brand)["windows_unplated"])
+
     def test_shruggietech_uses_canonical_void_background(self):
         brand = json.loads((ROOT / "brands" / "shruggietech" / "brand.json").read_text(encoding="utf-8"))
         self.assertEqual(brand["surfaces"]["base"], application_icon_profile(brand)["background"])
@@ -417,7 +429,7 @@ class ApplicationIconProfileTests(unittest.TestCase):
         brand["logo"]["reduced_below_px"] = 32
         brand["logo"]["application_icon"] = {"background": "#FFFFFF"}
         self.assertEqual(
-            {"background": "#FFFFFF", "reduced_below_px": 32},
+            {"background": "#FFFFFF", "reduced_below_px": 32, "windows_unplated": True},
             application_icon_profile(brand),
         )
 

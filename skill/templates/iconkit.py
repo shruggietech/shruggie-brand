@@ -317,10 +317,11 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
     readme = root / "README.md"
     writer.text(readme, _suite_readme(
         "Web icons",
-        "Browser, touch, and installable-web assets. `favicon.svg` is preferred; PNG and ICO files are fallbacks.",
+        ("Browser, touch, and installable-web assets. `favicon.svg` is preferred. At raster tiers, copy both ordinary `android-chrome-*` and dedicated opaque `maskable-icon-*` PNGs alongside `site.webmanifest`. The manifest declares their roles separately; do not reuse a transparent ordinary icon as maskable." if raster else "Core tier provides vector browser artwork only; raster, manifest, and maskable roles require a raster-capable tier."),
         (("favicon.svg", "Preferred reduced-mark browser favicon"), ("favicon-full.svg", "Full-mark vector alternative"),
          ("favicon.ico", "Classic multi-size fallback"),
-         ("apple-touch-icon.png", "Apple touch icon"), ("site.webmanifest", "Installable web metadata")),
+         ("apple-touch-icon.png", "Apple touch icon"), ("maskable-icon-192x192.png and maskable-icon-512x512.png", "Opaque PWA maskable artwork"),
+         ("site.webmanifest", "Installable web metadata")),
     ), "web", "instructions")
     if not raster:
         entries = writer.artifacts[start:]
@@ -340,6 +341,10 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
     writer.png(root / "apple-touch-icon.png", images[180], "web", "apple-touch", alpha="transparent" if transparent_web else "opaque", destination="Web root")
     for size in (192, 512):
         writer.png(root / ("android-chrome-%dx%d.png" % (size, size)), images[size], "web", "installable", alpha="transparent" if transparent_web else "opaque", destination="Web root")
+        variant = "reduced" if size <= writer.profile["reduced_below_px"] else "full"
+        mark = reduced_mark if variant == "reduced" else full_mark
+        maskable = _plated(mark, size, writer.profile.get("masked_background", background), min(ratio, 0.56))
+        writer.png(root / ("maskable-icon-%dx%d.png" % (size, size)), maskable, "web", "maskable", alpha="opaque", source_variant=variant, destination="Web root")
     ico = root / "favicon.ico"
     _write_ico([(size, images[size]) for size in ICO_SIZES], ico)
     writer.record(ico, "web", "favicon-ico", "ico", appearance="default", alpha="opaque", source_variant="mixed", destination="Web root")
@@ -348,8 +353,10 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
         "name": writer.brand["title"], "short_name": writer.brand["title"],
         "display": "standalone", "background_color": background, "theme_color": background,
         "icons": [
-            {"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
-            {"src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+            {"src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+            {"src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+            {"src": "/maskable-icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+            {"src": "/maskable-icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
         ],
     }, indent=2) + "\n")
     writer.record(webmanifest, "web", "web-manifest", "json", destination="Web root")
@@ -362,12 +369,13 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
 def _write_android(writer, full_mark, monochrome_mark):
     root = writer.kit / "icons" / "android"
     start = len(writer.artifacts)
-    background = writer.profile["background"]
+    background = writer.profile.get("masked_background", writer.profile["background"])
     ratio, offset = _profile_frame(writer, 0.72)
     readme = root / "README.md"
     writer.text(readme, _suite_readme(
-        "Android icons", "Copy the `app/src/main/res` tree into an Android application and upload the separate Play image in Play Console.",
-        (("app/src/main/res", "Launcher and adaptive resources"), ("play-store/google-play-512.png", "Google Play listing artwork")),
+        "Android icons", "Copy the `app/src/main/res` tree into an Android application and upload the separate Play image in Play Console. Declare `android:icon=\"@mipmap/ic_launcher\"` in the app manifest; if declaring `android:roundIcon`, point it to a separately qualified round resource. Verify the packaged APK manifest and resources along with these source files.",
+        (("app/src/main/res", "Legacy density PNGs and adaptive foreground, background, and optional monochrome resources"),
+         ("play-store/google-play-512.png", "Full-square Google Play listing artwork; use only in Play Console")),
     ), "android", "instructions")
     res = root / "app" / "src" / "main" / "res"
     for density, size in ANDROID_DENSITIES.items():
@@ -387,7 +395,7 @@ def _write_android(writer, full_mark, monochrome_mark):
     colors = '<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="ic_launcher_background">%s</color></resources>\n' % background
     writer.text(res / "values" / "ic_launcher_colors.xml", colors, "android", "color-resource", "xml", "Android res/values")
     play_ratio, play_offset = _profile_frame(writer, 0.75)
-    writer.png(root / "play-store" / "google-play-512.png", _plated(full_mark, 512, background, play_ratio, vertical_offset_ratio=play_offset),
+    writer.png(root / "play-store" / "google-play-512.png", _plated(full_mark, 512, writer.profile["background"], play_ratio, vertical_offset_ratio=play_offset),
                "android", "play-store", alpha="opaque", destination="Google Play Console")
     entries = writer.artifacts[start:]
     manifest = writer.platform_manifest(root, "android", entries)
@@ -471,18 +479,21 @@ def _write_windows(writer, full_mark, reduced_mark):
     ratio, offset = _profile_frame(writer, 0.72)
     readme = root / "README.md"
     writer.text(readme, _suite_readme(
-        "Windows icons", "Use `classic/app.ico` for Win32 and the `msix` directory for packaged Windows applications.",
-        (("classic/app.ico", "Classic application icon"), ("msix/Assets", "MSIX scale, target-size, and store assets"),
+        "Windows icons", "Embed `classic/app.ico` in Win32 executables and use the `msix` directory only for packaged Windows applications. The ICO and target-size assets have taskbar roles; scale, tile, and Store assets have separate plate rules. Confirm which resource the actual EXE or MSIX embeds and inspect 16, 24, 32, and 48-pixel light/dark taskbar appearances.",
+        (("classic/app.ico", "Classic Win32 executable, shortcut, and taskbar icon"), ("msix/Assets", "MSIX scale/tile, target-size/unplated taskbar, and Store assets"),
          ("msix/ApplicationVisualElements.fragment.xml", "Merge into Applications/Application"),
          ("msix/PackageProperties.fragment.xml", "Merge into Package for the Store logo")),
     ), "windows", "instructions")
+    unplated = writer.profile.get("windows_unplated", False)
+    taskbar_ratio = max(ratio, 0.84) if unplated else ratio
     ico_images = {}
     for size in ICO_SIZES:
         mark = reduced_mark if size <= writer.profile["reduced_below_px"] else full_mark
-        ico_images[size] = _plated(mark, size, background, ratio, vertical_offset_ratio=offset)
+        ico_images[size] = (contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset) if unplated
+                            else _plated(mark, size, background, ratio, vertical_offset_ratio=offset))
     ico = root / "classic" / "app.ico"
     _write_ico([(size, ico_images[size]) for size in ICO_SIZES], ico)
-    writer.record(ico, "windows", "classic-ico", "ico", appearance="default", alpha="opaque", source_variant="mixed", destination="Win32 application")
+    writer.record(ico, "windows", "classic-ico", "ico", appearance="default", alpha="transparent" if unplated else "opaque", source_variant="mixed", destination="Win32 application")
     assets = root / "msix" / "Assets"
     for base, label in ((44, "Square44x44Logo"), (150, "Square150x150Logo")):
         for scale in (100, 200, 400):
@@ -491,11 +502,13 @@ def _write_windows(writer, full_mark, reduced_mark):
                        "windows", "msix-scale", alpha="opaque", destination="MSIX Assets")
     for size in WINDOWS_TARGETS:
         mark = reduced_mark if size <= writer.profile["reduced_below_px"] else full_mark
-        writer.png(assets / ("Square44x44Logo.targetsize-%d.png" % size), _plated(mark, size, background, ratio, vertical_offset_ratio=offset),
-                   "windows", "target-size", alpha="opaque", source_variant="reduced" if mark is reduced_mark else "full", destination="MSIX Assets")
-        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-unplated.png" % size), contain_visible(mark, size, ratio, vertical_offset_ratio=offset),
+        taskbar = (contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset) if unplated
+                   else _plated(mark, size, background, ratio, vertical_offset_ratio=offset))
+        writer.png(assets / ("Square44x44Logo.targetsize-%d.png" % size), taskbar,
+                   "windows", "target-size", alpha="transparent" if unplated else "opaque", source_variant="reduced" if mark is reduced_mark else "full", destination="MSIX Assets")
+        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-unplated.png" % size), contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset),
                    "windows", "target-size", "dark-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
-        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size), contain_visible(mark, size, ratio, vertical_offset_ratio=offset),
+        writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size), contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset),
                    "windows", "target-size", "light-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
     for scale in (100, 200, 400):
         pixels = 50 * scale // 100
