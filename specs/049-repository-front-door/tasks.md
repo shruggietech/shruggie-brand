@@ -43,7 +43,7 @@
 ## Phase 6: Cross-Cutting Completion
 
 - [x] T010 Run the full documented build, glyph, site, accessibility, identity, publication, encoding, and hygiene gates; record evidence in `specs/049-repository-front-door/evidence.md`.
-- [ ] T011 Commit and push `codex/049-repository-front-door`, open an issue-linked PR, resolve all received review comments within at most two Codex review rounds, and wait for green CI; record the PR ledger in `specs/049-repository-front-door/evidence.md`.
+- [x] T011 Commit and push `codex/049-repository-front-door`, open an issue-linked PR, resolve all received review comments within at most two Codex review rounds, and wait for green CI; record the PR ledger in `specs/049-repository-front-door/evidence.md`.
 
 ## Dependencies and Execution Order
 
