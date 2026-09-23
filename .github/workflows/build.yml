@@ -38,6 +38,7 @@ jobs:
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
           python scripts/test_public_documentation.py
+          python scripts/test_check_readme_links.py
           python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
           python skill/templates/test_brand_contract.py
@@ -135,6 +136,7 @@ jobs:
           python scripts/test_release_contract.py
           python scripts/test_prepare_site.py
           python scripts/test_public_documentation.py
+          python scripts/test_check_readme_links.py
           python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
           python skill/templates/test_brand_contract.py
@@ -165,7 +167,7 @@ jobs:
           python skill/templates/sync_agents_md.py skill
           git diff --exit-code -- skill/AGENTS.md
       - name: Type-check and export site
-        run: pnpm --dir site lint && pnpm --dir site build && pnpm --dir site test
+        run: pnpm --dir site lint && pnpm --dir site build && python scripts/check_readme_links.py && pnpm --dir site test
         env:
           GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
       - name: Upload human-reviewable conformance candidates
