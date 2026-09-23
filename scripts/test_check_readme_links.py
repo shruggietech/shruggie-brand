@@ -92,6 +92,16 @@ class ReadmeLinkAuditTests(unittest.TestCase):
     def test_markdown_autolink_is_audited(self) -> None:
         self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "<https://brand.shruggie.tech/not-a-route/>\n")))
 
+    def test_bare_github_autolink_is_audited(self) -> None:
+        self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "See https://brand.shruggie.tech/not-a-route/.\n")))
+
+    def test_bare_github_autolink_counts_as_navigation(self) -> None:
+        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "https://brand.shruggie.tech/alpha/guidelines/")
+        self.assertEqual([], self.problems(text))
+
+    def test_percent_encoded_authority_is_rejected(self) -> None:
+        self.assertIn("unsupported URL scheme or authority", "\n".join(self.problems(self.valid + "[Bad](https://%62rand.shruggie.tech/not-a-route/)\n")))
+
     def test_markdown_image_cannot_satisfy_brand_navigation(self) -> None:
         text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "![Alpha](https://brand.shruggie.tech/alpha/guidelines/)")
         self.assertIn("missing brand overview", "\n".join(self.problems(text)))

@@ -19,6 +19,8 @@ LATEST_RELEASE = "https://github.com/shruggietech/shruggie-brand/releases/latest
 MARKDOWN_TARGET = re.compile(r"\]\((?:<([^>]+)>|([^\s)]+))")
 MARKDOWN_IMAGE = re.compile(r"!\[[^\]]*\]\((?:<[^>]+>|[^\s)]+)\)")
 MARKDOWN_AUTOLINK = re.compile(r"<(https?://[^\s<>]+)>")
+BARE_URL = re.compile(r"https?://[^\s<>()\[\]\"']+")
+HTML_TAG = re.compile(r"<[^>\n]+>")
 REFERENCE_TARGET = re.compile(r"(?m)^ {0,3}\[(?P<id>[^\]]+)\]:[ \t]*(?:<(?P<angle>[^>]+)>|(?P<plain>[^\s]+))")
 REFERENCE_USE = re.compile(r"(?P<image>!)?\[[^\]]+\]\[(?P<id>[^\]]+)\]")
 FENCE = re.compile(r"^ {0,3}(```|~~~)")
@@ -73,6 +75,9 @@ def destinations(markdown: str) -> list[tuple[str, bool]]:
     claimed = [*inline, *references]
     links.extend((match.group(1), True) for match in MARKDOWN_AUTOLINK.finditer(content)
                  if not any(item.start() <= match.start() < item.end() for item in claimed))
+    bare_claimed = [*claimed, *HTML_TAG.finditer(content)]
+    links.extend((match.group().rstrip(".,;:!"), True) for match in BARE_URL.finditer(content)
+                 if not any(item.start() <= match.start() < item.end() for item in bare_claimed))
     html = _HtmlTargets()
     html.feed(content)
     return [*links, *html.targets]
@@ -124,6 +129,9 @@ def audit(root: Path, markdown: str, contract: dict) -> list[str]:
     targets = destinations(markdown)
     for target, navigable in targets:
         parsed = urlsplit(target)
+        if "%" in parsed.netloc:
+            problems.append("unsupported URL scheme or authority: " + target)
+            continue
         host = (parsed.hostname or "").lower()
         if host == "brand.shruggie.tech" or "brand.shruggie.tech" in (parsed.netloc or "").lower():
             if parsed.scheme != "https" or parsed.netloc.lower() != "brand.shruggie.tech":

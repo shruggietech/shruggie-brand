@@ -8,7 +8,7 @@
 
 **Alternatives considered**: Hard-coded eight-link allowlist (stale on new brand), live HTTP checking in CI (network and deployment timing flakiness), route parsing from source text (brittle).
 
-**Review refinement**: Keep navigation links distinct from image resources and include standard Markdown autolinks. An image URL cannot satisfy a required brand or release destination even when the target itself is valid.
+**Review refinement**: Keep navigation links distinct from image resources and include both angle-bracket Markdown autolinks and bare GitHub-autolinked URLs. An image URL cannot satisfy a required brand or release destination even when the target itself is valid. Reject percent-encoded URL authorities before host trust checks, since browser normalization can turn one into the canonical site host.
 
 ## Release guidance during source-versus-publication lag
 
