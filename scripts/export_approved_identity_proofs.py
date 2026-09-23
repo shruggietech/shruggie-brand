@@ -25,6 +25,14 @@ from identity_continuity import (  # noqa: E402
 from process_utils import hidden_process_kwargs  # noqa: E402
 
 
+class DerivativeManifestDrift(ValueError):
+    """The generated manifest differs from the approved Gate 2 bytes."""
+
+    def __init__(self, expected, actual):
+        super().__init__("canonical-host Gate 2 derivative manifest drift: expected %s, got %s"
+                         % (expected, actual))
+
+
 def confined(path, root, label):
     resolved = Path(path).resolve()
     try:
@@ -34,9 +42,7 @@ def confined(path, root, label):
     return resolved
 
 
-def export_proofs(source, destination):
-    source = confined(source, ROOT / "brands", "brand source")
-    destination = confined(destination, ROOT / "dist" / "ci-approved-proofs", "proof destination")
+def _export_once(source, destination):
     if destination.exists():
         shutil.rmtree(str(destination))
     shutil.copytree(str(source), str(destination))
@@ -70,14 +76,27 @@ def export_proofs(source, destination):
     validation = validate_current_proof_matrix(record, destination, brand=brand)
     gate_2 = ((brand.get("approval_ledger") or {}).get("gate_2") or {})
     approval = destination / "logos" / "approval.json"
-    if gate_2.get("status") == "approved" and sha256_file(approval) != gate_2.get("derivative_manifest_sha256"):
-        raise ValueError("canonical-host Gate 2 derivative manifest drift")
+    if gate_2.get("status") == "approved":
+        actual = sha256_file(approval)
+        expected = gate_2.get("derivative_manifest_sha256")
+        if actual != expected:
+            raise DerivativeManifestDrift(expected, actual)
     if (destination / "fonts").exists():
         shutil.rmtree(str(destination / "fonts"))
     for generated in (destination / "icons", destination / "favicons"):
         if generated.exists():
             shutil.rmtree(str(generated))
     return destination / "qc" / "identity-continuity-proofs", len(validation["proofs"])
+
+
+def export_proofs(source, destination):
+    source = confined(source, ROOT / "brands", "brand source")
+    destination = confined(destination, ROOT / "dist" / "ci-approved-proofs", "proof destination")
+    try:
+        return _export_once(source, destination)
+    except DerivativeManifestDrift as error:
+        print("%s; retrying once from a clean proof destination" % error, file=sys.stderr)
+    return _export_once(source, destination)
 
 
 def main():

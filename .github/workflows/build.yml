@@ -80,6 +80,12 @@ jobs:
           name: approved-identity-proofs-${{ github.sha }}
           path: dist/ci-approved-proofs/
           if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+        if: failure()
+        with:
+          name: failed-approved-identity-proofs-${{ github.sha }}
+          path: dist/ci-approved-proofs/
+          if-no-files-found: warn
 
   verified-build:
     needs: approved-identity-proofs
@@ -122,6 +128,7 @@ jobs:
           path: approved-identity-proofs
       - name: Test geometry and publication contracts
         run: |
+          python scripts/test_export_approved_identity_proofs.py
           python skill/templates/test_glyphkit.py
           python scripts/test_publication_workflow.py
           python scripts/test_package_release.py

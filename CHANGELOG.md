@@ -7,10 +7,12 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 ### Changed
 
 - On 2026-09-22, prepared S047 as a publication-bound documentation and guideline integrity correction with a new immutable compiler patch candidate.
+- On 2026-09-23, made the canonical-host Gate 2 proof export tolerate one transient exact-manifest mismatch by regenerating from a clean destination; repeated or unrelated failures still block CI and retain diagnostic artifacts.
 
 ### Decisions
 
 - On 2026-09-22, retained governed manual and brand source as the authority for public prose and generated preview treatment, and kept internal history outside the reader-facing audit.
+- On 2026-09-23, preserved the approved derivative hash as the sole Gate 2 acceptance value after a merged-build flake, without changing identity sources, generated-kit bytes, or the 2.0.2 candidate.
 
 ## [2.0.2] - 2026-09-22
 

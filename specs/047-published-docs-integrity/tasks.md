@@ -59,7 +59,13 @@
 - [x] T022 Audit UTF-8 without BOM, LF, mojibake, generated-artifact exclusion, preserved logo/source hashes, and `git diff --check` in `specs/047-published-docs-integrity/evidence.md`
 - [x] T023 Re-run Spec Kit cross-artifact analysis and reconcile `spec.md`, `plan.md`, `tasks.md`, contracts, and implementation before commit
 - [x] T024 Commit the candidate with a Conventional Commit subject, push `codex/047-published-docs-integrity`, and open a PR closing #236, #237, and #202 with scope and verification evidence
-- [ ] T025 Process every actionable Codex/security review comment, request at most one additional Codex round if needed, and wait for all required CI checks to pass before requesting the owner's final review and merge in `specs/047-published-docs-integrity/evidence.md`
+- [x] T025 Process every actionable Codex/security review comment, request at most one additional Codex round if needed, and wait for all required CI checks to pass before requesting the owner's final review and merge in `specs/047-published-docs-integrity/evidence.md`
+
+## Phase 7: Post-merge CI correction (2026-09-23)
+
+- [x] T026 Reproduce the failed `main` Gate 2 path from run 35819083608 and add tests for one mismatch, repeated mismatch, unrelated export failure, and destination confinement in `scripts/test_export_approved_identity_proofs.py`
+- [x] T027 Keep the exact approved hash gate while adding one clean mismatch retry and failed-proof artifact capture in `scripts/export_approved_identity_proofs.py` and `.github/workflows/build.yml`
+- [ ] T028 Run focused tests, Spec Kit cross-artifact analysis, and the complete CI gate on the follow-up PR; record final results in `specs/047-published-docs-integrity/evidence.md`
 
 ## Dependencies
 
