@@ -503,12 +503,38 @@
     "logo": "Use the exact supplied dark or light lockup for its intended surface. Use the colored heart for reduced, favicon, and application-icon contexts. Single-ink files are derived only through the approved source-faithful mask process.",
     "palette": "White paper and soft paper establish the light-first identity. CTA red #C5342C fills the primary action button and outlines secondary actions, blue provides identity structure, and brown appears occasionally as a warm secondary note. CTA red is not a substitute for links, focus, charts, emphasis, or destructive status.",
     "specimen_line": "Experience Puerto Rico",
-    "specimen_body": "Thoughtfully guided tours on the island we love.",
-    "expressions": [
-      {"title": "Vertical sand expression", "description": "An approved atmospheric treatment for spacious campaign and editorial placements.", "path": "assets/source/vertical_sand.svg"},
-      {"title": "Horizontal sand expression", "description": "An approved atmospheric treatment for wide campaign and editorial placements.", "path": "assets/source/horizontal_sand.svg"}
-    ]
+    "specimen_body": "Thoughtfully guided tours on the island we love."
   },
+  "custom_assets": [
+    {
+      "id": "vertical-sand-treatment",
+      "title": "Vertical sand expression",
+      "description": "An approved atmospheric treatment for spacious campaign and editorial placements.",
+      "role": "campaign-treatment",
+      "source": {"path": "assets/source/vertical_sand.svg", "format": "svg", "sha256": "f53fc580aaab858cb1e1bef2ff4bdd0f635959d39e96827d7add9f703a5cc04b"},
+      "provenance": {"kind": "supplied", "owner": "I Heart PR Tours", "detail": "Owner-supplied sand treatment master"},
+      "approval": {"status": "approved", "publication_eligible": true},
+      "transformations": ["embed-unchanged", "scale-proportionally"],
+      "usage": {"use": "Spacious campaign and editorial placements", "avoid": "Do not substitute for a core logo master or recolor the supplied art"},
+      "accessibility": {"alt": "Vertical sand-toned I Heart PR Tours atmospheric treatment", "legibility": "Keep the artwork inside a plain light well with generous clear space", "text_overlay": "Do not place text over the artwork", "reduced_motion": "Not applicable to this static SVG", "disclosure": "Illustration; no photographic depiction"},
+      "credit": {"attribution": "I Heart PR Tours", "license": "Owner-supplied I Heart PR Tours identity source"},
+      "preview": {"well": "light", "fit": "contain"}
+    },
+    {
+      "id": "horizontal-sand-treatment",
+      "title": "Horizontal sand expression",
+      "description": "An approved atmospheric treatment for wide campaign and editorial placements.",
+      "role": "campaign-treatment",
+      "source": {"path": "assets/source/horizontal_sand.svg", "format": "svg", "sha256": "7e117230b1605e5bc023a5157758429c7fc1a5ac6486f523de0eb2e4bb48c7d6"},
+      "provenance": {"kind": "supplied", "owner": "I Heart PR Tours", "detail": "Owner-supplied sand treatment master"},
+      "approval": {"status": "approved", "publication_eligible": true},
+      "transformations": ["embed-unchanged", "scale-proportionally"],
+      "usage": {"use": "Wide campaign and editorial placements", "avoid": "Do not substitute for a core logo master or recolor the supplied art"},
+      "accessibility": {"alt": "Horizontal sand-toned I Heart PR Tours atmospheric treatment", "legibility": "Keep the artwork inside a plain light well with generous clear space", "text_overlay": "Do not place text over the artwork", "reduced_motion": "Not applicable to this static SVG", "disclosure": "Illustration; no photographic depiction"},
+      "credit": {"attribution": "I Heart PR Tours", "license": "Owner-supplied I Heart PR Tours identity source"},
+      "preview": {"well": "light", "fit": "contain"}
+    }
+  ],
   "canon": "1.3.0",
   "identity_continuity": {
     "record": "identity-continuity.json",

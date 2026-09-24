@@ -355,6 +355,15 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             if archive.read("enforcement/documentation-contract.json") != (root / "skill" / "references" / "documentation-contract.json").read_bytes():
                 raise ValueError("%s contains noncanonical enforcement/documentation-contract.json" % path.name)
         brand = _read_json(archive, "brand.json", path.name)
+        for item in brand.get("custom_assets", []):
+            approval = item.get("approval") or {}
+            relative = (item.get("source") or {}).get("path")
+            if not approval.get("publication_eligible"):
+                raise ValueError("%s contains non-public custom asset declaration %s" % (path.name, item.get("id")))
+            if approval.get("status") != "approved":
+                raise ValueError("%s publishes unapproved custom asset %s" % (path.name, item.get("id")))
+            if relative not in entries:
+                raise ValueError("%s lacks public custom asset %s" % (path.name, item.get("id")))
         manifest = _read_json(archive, "manifest.json", path.name)
         if brand.get("slug") != slug or brand.get("version") != version:
             raise ValueError("%s filename and brand.json metadata disagree" % path.name)

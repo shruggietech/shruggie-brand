@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, derivative_configuration_sha256, guide_surface_mode, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, custom_assets, derivative_configuration_sha256, guide_surface_mode, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
 from identity_continuity import canonical_digest, identity_snapshot, record_digest
 from ingest_font import ingest_font
 
@@ -53,6 +53,129 @@ def owned_brand():
 
 def stage_house_fonts(kit):
     shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+
+
+class CustomAssetContractTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.kit = Path(self.temp.name)
+        source = self.kit / "assets" / "source" / "sand.svg"
+        source.parent.mkdir(parents=True)
+        source.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0H10V10Z"/></svg>', encoding="utf-8")
+        self.asset = {
+            "id": "sand", "title": "Sand treatment", "description": "A quiet editorial treatment.",
+            "role": "campaign-treatment",
+            "source": {"path": "assets/source/sand.svg", "format": "svg", "sha256": sha256_file(source)},
+            "provenance": {"kind": "supplied", "owner": "Brand owner", "detail": "Owner-supplied master"},
+            "approval": {"status": "approved", "publication_eligible": True},
+            "transformations": ["embed-unchanged"],
+            "usage": {"use": "Editorial atmosphere", "avoid": "Do not replace the core logo"},
+            "accessibility": {"alt": "Sand-toned decorative treatment", "legibility": "Use on a plain light well", "text_overlay": "prohibited", "reduced_motion": "not-applicable", "disclosure": "Illustration, not photography"},
+            "credit": {"attribution": "Brand owner", "license": "Owner-approved brand use"},
+            "preview": {"well": "light", "fit": "contain"},
+        }
+
+    def test_absent_and_valid_public_asset(self):
+        self.assertEqual([], custom_assets({}, self.kit, public_only=True))
+        self.assertEqual([self.asset], custom_assets({"custom_assets": [self.asset]}, self.kit, public_only=True))
+
+    def test_private_asset_is_valid_but_not_published(self):
+        item = copy.deepcopy(self.asset)
+        item["approval"] = {"status": "pending", "publication_eligible": False}
+        self.assertEqual([], custom_assets({"custom_assets": [item]}, self.kit, public_only=True))
+
+    def test_bad_paths_hash_and_rights_are_rejected(self):
+        for section, field, value in [
+            ("source", "path", "../outside.svg"), ("source", "path", "https://example.com/sand.svg"),
+            ("source", "path", "assets\\source\\sand.svg"), ("source", "path", "assets/source/absent.svg"),
+            ("source", "sha256", "0" * 64), ("source", "format", "png"),
+            ("provenance", "owner", ""), ("credit", "license", ""),
+            ("credit", "attribution", ""), ("accessibility", "alt", ""),
+        ]:
+            with self.subTest(section=section, field=field, value=value):
+                item = copy.deepcopy(self.asset)
+                item[section][field] = value
+                with self.assertRaises(ContractError):
+                    custom_assets({"custom_assets": [item]}, self.kit)
+
+    def test_duplicate_and_unapproved_public_asset_are_rejected(self):
+        with self.assertRaisesRegex(ContractError, "duplicate custom asset id"):
+            custom_assets({"custom_assets": [self.asset, self.asset]}, self.kit)
+        second = copy.deepcopy(self.asset)
+        second["id"] = "other-sand"
+        with self.assertRaisesRegex(ContractError, "duplicate custom asset path"):
+            custom_assets({"custom_assets": [self.asset, second]}, self.kit)
+        item = copy.deepcopy(self.asset)
+        item["approval"]["status"] = "pending"
+        with self.assertRaisesRegex(ContractError, "cannot be public"):
+            custom_assets({"custom_assets": [item]}, self.kit)
+
+    def test_active_svg_and_symlink_escape_are_rejected(self):
+        source = self.kit / self.asset["source"]["path"]
+        source.write_text('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>', encoding="utf-8")
+        item = copy.deepcopy(self.asset)
+        item["source"]["sha256"] = sha256_file(source)
+        with self.assertRaisesRegex(ContractError, "prohibited <script>"):
+            custom_assets({"custom_assets": [item]}, self.kit)
+        source.unlink()
+        try:
+            source.symlink_to(HERE / "brand_contract.py")
+        except (OSError, NotImplementedError):
+            self.skipTest("symlink creation unavailable")
+        with self.assertRaisesRegex(ContractError, "symbolic-link"):
+            custom_assets({"custom_assets": [self.asset]}, self.kit)
+
+    def test_svg_motion_and_truncated_rasters_are_rejected(self):
+        source = self.kit / self.asset["source"]["path"]
+        for element in ("animate", "set", "animateTransform", "animateMotion", "discard"):
+            with self.subTest(element=element):
+                source.write_text('<svg xmlns="http://www.w3.org/2000/svg"><%s attributeName="opacity" dur="1s" repeatCount="indefinite"/></svg>' % element, encoding="utf-8")
+                item = copy.deepcopy(self.asset)
+                item["source"]["sha256"] = sha256_file(source)
+                with self.assertRaisesRegex(ContractError, "prohibited"):
+                    custom_assets({"custom_assets": [item]}, self.kit)
+        for format_name, suffix, header in (("png", ".png", b"\x89PNG\r\n\x1a\n"),
+                                            ("jpeg", ".jpg", b"\xff\xd8\xff"),
+                                            ("webp", ".webp", b"RIFF\x04\x00\x00\x00WEBP")):
+            with self.subTest(format=format_name):
+                raster = source.with_suffix(suffix)
+                raster.write_bytes(header)
+                item = copy.deepcopy(self.asset)
+                item["source"] = {"path": raster.relative_to(self.kit).as_posix(), "format": format_name,
+                                  "sha256": sha256_file(raster)}
+                with self.assertRaisesRegex(ContractError, "incomplete or invalid"):
+                    custom_assets({"custom_assets": [item]}, self.kit)
+                Image.new("RGB", (3, 2), (22, 44, 66)).save(raster, format={"png": "PNG", "jpeg": "JPEG", "webp": "WEBP"}[format_name])
+                item["source"]["sha256"] = sha256_file(raster)
+                self.assertEqual([item], custom_assets({"custom_assets": [item]}, self.kit, public_only=True))
+
+    def test_every_svg_css_url_must_be_local(self):
+        source = self.kit / self.asset["source"]["path"]
+        for reference in ("/cursor.cur", "file:///cursor.cur", "../cursor.cur"):
+            with self.subTest(reference=reference):
+                source.write_text('<svg xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="paint"/></defs><rect style="fill:url(#paint);cursor:url(%s)"/></svg>' % reference, encoding="utf-8")
+                item = copy.deepcopy(self.asset)
+                item["source"]["sha256"] = sha256_file(source)
+                with self.assertRaisesRegex(ContractError, "external paint reference"):
+                    custom_assets({"custom_assets": [item]}, self.kit)
+        source.write_text('<svg xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="paint"/></defs><rect style="fill:url(#paint);stroke:url(\'#paint\')"/></svg>', encoding="utf-8")
+        item = copy.deepcopy(self.asset)
+        item["source"]["sha256"] = sha256_file(source)
+        self.assertEqual([item], custom_assets({"custom_assets": [item]}, self.kit, public_only=True))
+
+    def test_nonpublic_sources_cannot_live_in_always_published_trees(self):
+        original = self.kit / self.asset["source"]["path"]
+        for relative in ("logos/private.svg", "favicons/private.svg", "icons/private.svg", "specimens/private.svg", "guidelines/private.svg", "nextjs/registry/private.svg"):
+            with self.subTest(path=relative):
+                source = self.kit / relative
+                source.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(original, source)
+                item = copy.deepcopy(self.asset)
+                item["source"] = {"path": relative, "format": "svg", "sha256": sha256_file(source)}
+                item["approval"] = {"status": "pending", "publication_eligible": False}
+                with self.assertRaisesRegex(ContractError, "always-published source tree"):
+                    custom_assets({"custom_assets": [item]}, self.kit)
 
 
 def approval_brand(status="pending"):

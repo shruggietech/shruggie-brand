@@ -116,7 +116,16 @@ const expectedBrandNavigation = [
 ];
 for (const portal of guidelinePortals) {
   const actual = portal.topics.map(({ key, label, section, order }) => [key, label, section, order]);
-  if (JSON.stringify(actual) !== JSON.stringify(expectedBrandNavigation)) throw new Error(`${portal.brand.slug} guideline hierarchy differs from the approved contract`);
+  const expected = [...expectedBrandNavigation];
+  if (portal.brand.slug === 'i-heart-pr-tours') expected.splice(6, 0, ['expressions', 'Expressions', 'Identity', 3]);
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(`${portal.brand.slug} guideline hierarchy differs from the approved contract`);
+  const expressions = portal.asset_families.find((family) => family.key === 'expressions');
+  if (portal.brand.slug === 'i-heart-pr-tours') {
+    if (JSON.stringify(expressions?.assets.map((asset) => asset.id)) !== JSON.stringify(['vertical-sand-treatment', 'horizontal-sand-treatment'])) throw new Error('I Heart PR Tours expression inventory differs from approved sand sources');
+    for (const asset of expressions.assets) {
+      if (!asset.preview.url || !asset.deliveries[0]?.url || !asset.credit?.license || !asset.accessibility?.alt || !asset.usage?.avoid) throw new Error(`Incomplete governed expression ${asset.id}`);
+    }
+  } else if (expressions || portal.topics.some((topic) => topic.key === 'expressions')) throw new Error(`${portal.brand.slug} exposes an empty expressions section`);
   if (portal.brand.version !== brands.find((brand) => brand.slug === portal.brand.slug)?.version) throw new Error(`${portal.brand.slug} portal omits the brand version needed by the consolidated Overview`);
   if (portal.brand.surface_mode !== brands.find((brand) => brand.slug === portal.brand.slug)?.guideSurfaceMode || portal.presentation?.background !== (portal.brand.surface_mode === 'light' ? portal.palettes.light : portal.palettes.dark).find((entry) => entry.token === 'background')?.hex) throw new Error(`${portal.brand.slug} declared guide mode and selected palette disagree`);
   if (JSON.stringify(portal.presentation) !== JSON.stringify(portal.presentations?.[portal.brand.surface_mode])) throw new Error(`${portal.brand.slug} selected guide tokens differ from its full mode palette`);
@@ -176,10 +185,10 @@ export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolch
 export const htmlRoutes = routeRecords.map((route) => route.pathname);
 export const conformanceRoutes = routeRecords.filter((route) => route.kind === 'conformance').map((route) => route.pathname);
 export const guidelineRoutes = routeRecords.filter((route) => ['guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
-export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/`, `/${brand.slug}/downloads/`]), '/glitchpad/guidelines/color/', '/i-heart-pr-tours/guidelines/color/', '/docs/', '/docs/00-variance-contract/'];
+export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/`, `/${brand.slug}/downloads/`]), '/glitchpad/guidelines/color/', '/i-heart-pr-tours/guidelines/color/', '/i-heart-pr-tours/guidelines/expressions/', '/docs/', '/docs/00-variance-contract/'];
 export const visualThemes = ['light', 'dark'];
 export const visualWidths = [360, 390, 1280];
 export const requiredFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/maskable-icon-192x192.png', '/maskable-icon-512x512.png', '/shruggietech-logo-dark.svg', '/shruggietech-logo-light.svg', '/site.webmanifest', '/robots.txt', '/sitemap.xml', '/static.json', ...routeRecords.map((route) => route.social.path), ...conformanceRecords.flatMap((record) => [record.specimenPath, record.manifestPath])];
 export const iconFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/maskable-icon-192x192.png', '/maskable-icon-512x512.png'];
 export const iconRoutes = ['/', '/docs/', '/docs/04-toolchain/'];
-export const downloadFiles = brands.flatMap((brand) => { const root = `/${brand.slug}/downloads/files`; return [brand.kitArchive, `${root}/${brand.slug}-brand-guide.pdf`, `${root}/logos/svg/${brand.slug}-mark-color.svg`, `${root}/logos/svg/${brand.slug}-horizontal-color.svg`, `${root}/icons/manifest.json`, `${root}/icons/web/favicon.ico`, `${root}/icons/android/manifest.json`, `${root}/icons/apple/ios/manifest.json`, `${root}/icons/apple/macos/manifest.json`, `${root}/icons/windows/manifest.json`, `${root}/icons/windows/classic/app.ico`, ...(brand.slug === 'cueson' ? [`${root}/consumer-handoff.json`] : []), brand.specimen, `/${brand.slug}/brand/r/theme.json`]; });
+export const downloadFiles = brands.flatMap((brand) => { const root = `/${brand.slug}/downloads/files`; const expressions = guidelinePortals.find((portal) => portal.brand.slug === brand.slug)?.asset_families.find((family) => family.key === 'expressions')?.assets ?? []; return [brand.kitArchive, `${root}/${brand.slug}-brand-guide.pdf`, `${root}/logos/svg/${brand.slug}-mark-color.svg`, `${root}/logos/svg/${brand.slug}-horizontal-color.svg`, `${root}/icons/manifest.json`, `${root}/icons/web/favicon.ico`, `${root}/icons/android/manifest.json`, `${root}/icons/apple/ios/manifest.json`, `${root}/icons/apple/macos/manifest.json`, `${root}/icons/windows/manifest.json`, `${root}/icons/windows/classic/app.ico`, ...expressions.flatMap((asset) => asset.deliveries.map((delivery) => delivery.url)), ...(brand.slug === 'cueson' ? [`${root}/consumer-handoff.json`] : []), brand.specimen, `/${brand.slug}/brand/r/theme.json`]; });

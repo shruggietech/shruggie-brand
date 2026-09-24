@@ -816,7 +816,8 @@ def _validate_svg(path):
         raise ContractError("invalid supplied SVG %s: %s" % (path.name, error)) from error
     for element in root.iter():
         tag = element.tag.rsplit("}", 1)[-1].lower()
-        _require(tag not in {"script", "style", "text", "foreignobject"}, "supplied SVG contains prohibited <%s> content" % tag)
+        _require(tag not in {"script", "style", "text", "foreignobject", "animate", "animatecolor", "animatemotion", "animatetransform", "set", "discard"},
+                 "supplied SVG contains prohibited <%s> content" % tag)
         for raw_name, raw_value in element.attrib.items():
             name = raw_name.rsplit("}", 1)[-1].lower()
             value = str(raw_value).strip()
@@ -838,8 +839,123 @@ def _validate_svg(path):
                     _require(False, "supplied SVG contains an external reference")
             lowered = value.lower().replace(" ", "")
             _require("http:" not in lowered and "https:" not in lowered and "@import" not in lowered, "supplied SVG contains a network reference")
-            if "url(" in lowered:
-                _require("url(#" in lowered, "supplied SVG contains an external paint reference")
+            _require("animation:" not in lowered and "transition:" not in lowered and "@keyframes" not in lowered,
+                     "supplied SVG contains motion styling")
+            urls = list(re.finditer(r"url\s*\(([^)]*)\)", value, re.IGNORECASE))
+            if re.search(r"\burl\s*\(", value, re.IGNORECASE):
+                _require(len(urls) == len(re.findall(r"\burl\s*\(", value, re.IGNORECASE)),
+                         "supplied SVG contains a malformed paint reference")
+                for url in urls:
+                    reference = url.group(1).strip().strip("\"'")
+                    _require(re.fullmatch(r"#[^\s#()\"']+", reference) is not None,
+                             "supplied SVG contains an external paint reference")
+
+
+def _validate_custom_raster(path, declared_format):
+    try:
+        from PIL import Image, ImageFile
+    except ImportError as error:
+        raise ContractError("raster custom assets require Pillow for complete image validation") from error
+    expected = {"png": "PNG", "jpeg": "JPEG", "webp": "WEBP"}[declared_format]
+    previous = ImageFile.LOAD_TRUNCATED_IMAGES
+    ImageFile.LOAD_TRUNCATED_IMAGES = False
+    try:
+        with Image.open(path) as image:
+            _require(image.format == expected, "custom raster format mismatch: %s" % path.name)
+            image.verify()
+        with Image.open(path) as image:
+            image.load()
+    except (OSError, ValueError, SyntaxError) as error:
+        raise ContractError("custom raster is incomplete or invalid: %s" % path.name) from error
+    finally:
+        ImageFile.LOAD_TRUNCATED_IMAGES = previous
+
+
+def custom_assets(brand, kit, public_only=False):
+    """Validate optional non-core sources and return the eligible public subset."""
+    records = brand.get("custom_assets", [])
+    _require(isinstance(records, list), "custom_assets must be an array")
+    _require(not (brand.get("guide") or {}).get("expressions"),
+             "guide.expressions is obsolete; declare governed custom_assets instead")
+    identifiers, paths, eligible = set(), set(), []
+    required = {"id", "title", "description", "role", "source", "provenance", "approval",
+                "transformations", "usage", "accessibility", "credit", "preview"}
+    for index, item in enumerate(records):
+        _require(isinstance(item, dict) and set(item) == required,
+                 "custom asset %d has missing or unsupported fields" % index)
+        identifier = item["id"]
+        _require(isinstance(identifier, str) and ID.fullmatch(identifier or ""),
+                 "custom asset %d has an invalid id" % index)
+        _require(identifier not in identifiers, "duplicate custom asset id: %s" % identifier)
+        identifiers.add(identifier)
+        for key in ("title", "description", "role"):
+            _require(isinstance(item[key], str) and item[key].strip(),
+                     "custom asset %s lacks %s" % (identifier, key))
+        _require(isinstance(item["role"], str) and item["role"] in {"stylized-mark", "campaign-treatment", "mood-imagery", "environmental", "background-art"},
+                 "custom asset %s has an unsupported role" % identifier)
+        source = item["source"]
+        _require(isinstance(source, dict) and set(source) == {"path", "format", "sha256"},
+                 "custom asset %s source needs path, format, and sha256" % identifier)
+        relative = source["path"]
+        _require(isinstance(relative, str) and not re.search(r"[:?#]", relative)
+                 and all(part not in {"", ".", ".."} for part in relative.split("/")),
+                 "custom asset %s has an unsafe source path" % identifier)
+        path = contained_path(kit, relative)
+        canonical_path = os.path.normcase(str(path))
+        _require(canonical_path not in paths, "duplicate custom asset path: %s" % relative)
+        paths.add(canonical_path)
+        _require(isinstance(source["format"], str) and source["format"] in {"svg", "png", "jpeg", "webp"},
+                 "custom asset %s has an unsupported format" % identifier)
+        allowed_extensions = {"svg": {".svg"}, "png": {".png"}, "jpeg": {".jpg", ".jpeg"}, "webp": {".webp"}}
+        _require(path.suffix.lower() in allowed_extensions[source["format"]],
+                 "custom asset %s extension does not match format" % identifier)
+        _require(_detect_image_format(path) == source["format"],
+                 "custom asset %s format mismatch" % identifier)
+        _require(isinstance(source["sha256"], str) and DIGEST.fullmatch(source["sha256"] or ""),
+                 "custom asset %s has an invalid SHA-256" % identifier)
+        _require(sha256_file(path) == source["sha256"], "custom asset %s hash drift" % identifier)
+        if source["format"] == "svg":
+            _validate_svg(path)
+        else:
+            _validate_custom_raster(path, source["format"])
+        provenance = item["provenance"]
+        _require(isinstance(provenance, dict) and set(provenance) == {"kind", "owner", "detail"}
+                 and isinstance(provenance["kind"], str) and provenance["kind"] in {"supplied", "generated"},
+                 "custom asset %s has invalid provenance" % identifier)
+        for key in ("owner", "detail"):
+            _require(isinstance(provenance[key], str) and provenance[key].strip(),
+                     "custom asset %s lacks provenance %s" % (identifier, key))
+        approval = item["approval"]
+        _require(isinstance(approval, dict) and set(approval) == {"status", "publication_eligible"}
+                 and isinstance(approval["status"], str) and approval["status"] in {"approved", "pending", "rejected"}
+                 and type(approval["publication_eligible"]) is bool,
+                 "custom asset %s has invalid approval" % identifier)
+        _require(not approval["publication_eligible"] or approval["status"] == "approved",
+                 "custom asset %s cannot be public without approval" % identifier)
+        if not approval["publication_eligible"]:
+            _require(not relative.startswith(("logos/", "favicons/", "icons/", "specimens/", "guidelines/", "nextjs/registry/")),
+                     "non-public custom asset %s uses an always-published source tree" % identifier)
+        transforms = item["transformations"]
+        _require(isinstance(transforms, list) and transforms and all(isinstance(value, str) for value in transforms)
+                 and len(transforms) == len(set(transforms))
+                 and all(re.fullmatch(r"[a-z][a-z0-9-]*", value) for value in transforms),
+                 "custom asset %s has invalid transformations" % identifier)
+        for section, fields in (("usage", ("use", "avoid")),
+                                ("accessibility", ("alt", "legibility", "text_overlay", "reduced_motion", "disclosure")),
+                                ("credit", ("attribution", "license"))):
+            block = item[section]
+            _require(isinstance(block, dict) and set(block) == set(fields),
+                     "custom asset %s has invalid %s" % (identifier, section))
+            for field in fields:
+                _require(isinstance(block[field], str) and block[field].strip(),
+                         "custom asset %s lacks %s.%s" % (identifier, section, field))
+        preview = item["preview"]
+        _require(isinstance(preview, dict) and set(preview) == {"well", "fit"}
+                 and isinstance(preview["well"], str) and preview["well"] in {"light", "dark", "grid", "image"} and preview["fit"] == "contain",
+                 "custom asset %s has invalid preview" % identifier)
+        if approval["publication_eligible"]:
+            eligible.append(item)
+    return eligible if public_only else records
 
 
 def authoritative_inputs(brand, kit):
@@ -1251,6 +1367,7 @@ def validate_brand(brand, kit):
     if (brand.get("showcase_surface") or "").startswith("light."):
         validate_light_presentation(brand, "light showcase_surface")
     normalized_inputs = authoritative_inputs(brand, kit)
+    custom_assets(brand, kit)
     if aff["ownership"] == THIRD_PARTY and aff["showcase"] == "public":
         _require(brand.get("approval_ledger") is not None,
                  "public third-party brands require an approval ledger")

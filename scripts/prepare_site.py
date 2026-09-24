@@ -29,7 +29,7 @@ SITE_DESCRIPTION = "Explore ShruggieTech brand identities, standards, assets, an
 SOCIAL_SIZE = (1280, 640)
 ALERT_TYPES = {"NOTE": "info", "WARNING": "warn", "CAUTION": "error"}
 sys.path.insert(0, str(TEMPLATES))
-from brand_contract import affiliation, guide_surface_mode, public_showcase, showcase_surface, vendor_boundary
+from brand_contract import affiliation, custom_assets, guide_surface_mode, public_showcase, showcase_surface, vendor_boundary
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from package_release import write_brand_archive
@@ -143,11 +143,15 @@ def validate_portal_navigation(portal: dict[str, Any], slug: str) -> None:
     if not isinstance(topics, list):
         raise ValueError(f"{slug}: guideline topics are missing")
     actual = [(topic.get("key"), topic.get("label"), topic.get("section"), topic.get("order")) for topic in topics]
-    if actual != BRAND_TOPIC_CONTRACT:
+    has_expressions = any(family.get("key") == "expressions" and family.get("assets") for family in portal.get("asset_families", []))
+    expected_topics = BRAND_TOPIC_CONTRACT.copy()
+    if has_expressions:
+        expected_topics.insert(6, ("expressions", "Expressions", "Identity", 3))
+    if actual != expected_topics:
         raise ValueError(f"{slug}: guideline navigation differs from the authoritative hierarchy")
     expected_paths = {
         key: f"/{slug}/downloads/" if key == "assets" else f"/{slug}/guidelines/" if key == "overview" else f"/{slug}/guidelines/{key}/"
-        for key, _, _, _ in BRAND_TOPIC_CONTRACT
+        for key, _, _, _ in expected_topics
     }
     paths = [topic.get("path") for topic in topics]
     if paths != [expected_paths[topic["key"]] for topic in topics] or len(paths) != len(set(paths)):
@@ -410,6 +414,22 @@ def project_portal(source: Path, payload: dict[str, Any]) -> dict[str, Any]:
     if any(not isinstance(key, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", key) for key in topic_keys) or len(topic_keys) != len(set(topic_keys)):
         raise ValueError(f"{source.name}: portal topic keys must be unique and URL-safe")
     projected = copy.deepcopy(payload)
+    governed = custom_assets(load_brand(source), source, public_only=True)
+    expression_families = [family for family in projected.get("asset_families", []) if family.get("key") == "expressions"]
+    if len(expression_families) != (1 if governed else 0):
+        raise ValueError(f"{source.name}: expression family differs from eligible custom assets")
+    if governed:
+        records = expression_families[0].get("assets", [])
+        if [item.get("id") for item in records] != [item["id"] for item in governed]:
+            raise ValueError(f"{source.name}: expression inventory differs from eligible custom assets")
+        for declared, record in zip(governed, records):
+            if (record.get("title") != declared["title"] or record.get("summary") != declared["description"]
+                    or record.get("role") != declared["role"] or record.get("preview_well") != declared["preview"]["well"]
+                    or record.get("usage") != declared["usage"] or record.get("credit") != declared["credit"]
+                    or record.get("accessibility") != declared["accessibility"]
+                    or [item.get("path") for item in record.get("deliveries", [])] != [declared["source"]["path"]]
+                    or record.get("preview", {}).get("sha256") != declared["source"]["sha256"]):
+                raise ValueError(f"{source.name}: expression metadata differs from governed custom asset {declared['id']}")
     seen: set[str] = set()
 
     def add_url(record: dict[str, Any], count: bool = True) -> None:
@@ -604,6 +624,7 @@ def publication_record(sources: list[Path], release_slugs: Optional[Set[str]] = 
 
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
+    governed = custom_assets(brand, source, public_only=True)
     guide = source / "brand-guide.pdf"
     if not guide.is_file():
         raise ValueError(f"{slug}: verified public brand guide is missing")
@@ -626,6 +647,13 @@ def copy_kit(source: Path, brand: dict) -> dict:
     shutil.copy2(portable_guide, downloads / f"{slug}-portable-guidelines.html")
     for name in ("logos", "favicons", "icons"):
         replace_tree(source / name, downloads / name)
+    for item in governed:
+        relative = Path(item["source"]["path"])
+        destination = downloads / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source / relative, destination)
+        if hashlib.sha256(destination.read_bytes()).hexdigest() != item["source"]["sha256"]:
+            raise ValueError(f"{slug}: hosted custom asset bytes differ: {item['id']}")
     specimen_name = copy_verified_specimens(source / "specimens", downloads / "specimens")
     handoff = source / "consumer-handoff.json"
     if handoff.is_file():

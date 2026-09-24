@@ -48,8 +48,10 @@ export function AssetLibraryClient({ families, resources }: { families: AssetFam
     {visible.map((family) => <section className="asset-family guide-section" id={family.key} key={family.key}>
       <h2>{family.title}</h2><p className="guide-lead">{family.summary}</p>
       <div className="asset-grid">{family.assets.map((asset) => <article className="asset-tile" key={asset.id} data-family={family.key} data-platform={asset.platform} data-role={asset.role}>
-        <div className={`asset-preview ${asset.surface}-well`}><div className="asset-preview-media"><img src={asset.preview.url} alt={`${asset.title} preview`} /></div></div>
+        <div className={`asset-preview ${asset.preview_well ?? asset.surface}-well`}><div className="asset-preview-media"><img src={asset.preview.url} alt={asset.accessibility?.alt ?? `${asset.title} preview`} /></div></div>
         <div className="asset-summary"><h3>{asset.title}</h3><p>{asset.summary}</p><p className="asset-variants">{asset.formats.map((item) => item.toUpperCase()).join(', ')} · {asset.variants.join(', ')}</p>
+          {asset.usage && <p><strong>Use:</strong> {asset.usage.use} <strong>Avoid:</strong> {asset.usage.avoid}</p>}
+          {asset.credit && <p><strong>Credit:</strong> {asset.credit.attribution} · <strong>License:</strong> {asset.credit.license}</p>}
           <details><summary>View {asset.deliveries.length} {asset.deliveries.length === 1 ? 'delivery' : 'deliveries'}</summary><ul className="delivery-list">{asset.deliveries.map((delivery) => <li key={delivery.path}><a data-kit-asset href={delivery.url}>{delivery.path.split('/').at(-1)}</a><span>{[delivery.format.toUpperCase(), delivery.width && delivery.height ? `${delivery.width} × ${delivery.height}` : delivery.embedded_sizes?.length ? `${delivery.embedded_sizes.join(', ')} px embedded` : null, delivery.destination].filter(Boolean).join(' · ')}</span><code>{delivery.path}</code></li>)}</ul></details>
         </div>
       </article>)}</div>

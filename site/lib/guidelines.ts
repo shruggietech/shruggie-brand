@@ -12,7 +12,7 @@ export type InstructionBlock =
   | { type: 'code'; language: string; text: string };
 export type ColorEntry = { token: string; role: string; hex: string; rgb: string; hsl: string; oklch: string; lab: string; print: string; aliases: string[] };
 export type Delivery = { path: string; url: string; format: string; role?: string; platform?: string; appearance?: string; source_variant?: string; destination?: string; width?: number | null; height?: number | null; embedded_sizes?: number[]; sha256?: string };
-export type PortalAsset = { id: string; title: string; role: string; platform: string; appearance: string; surface: 'light' | 'dark'; summary: string; formats: string[]; variants: string[]; preview: Delivery; deliveries: Delivery[] };
+export type PortalAsset = { id: string; title: string; role: string; platform: string; appearance: string; surface: 'light' | 'dark'; summary: string; formats: string[]; variants: string[]; preview: Delivery; deliveries: Delivery[]; preview_well?: 'light' | 'dark' | 'grid' | 'image'; usage?: { use: string; avoid: string }; accessibility?: { alt: string; legibility: string; text_overlay: string; reduced_motion: string; disclosure: string }; credit?: { attribution: string; license: string } };
 export type AssetFamily = { key: string; title: string; summary: string; assets: PortalAsset[] };
 export type PortalResource = Delivery & { id: string; title: string; resource_kind: string; summary: string };
 export type GuidelineTopic = { key: string; title: string; label: string; section: string; order: number; path: string; description: string };
@@ -112,6 +112,7 @@ export function guidelineTree(portal: GuidelinePortal): Root {
 export function topicToc(portal: GuidelinePortal, topic: GuidelineTopic): TOCItemType[] {
   if (topic.key === 'color') return [{ title: 'Dark palette', url: '#dark-palette', depth: 2 }, { title: 'Light palette', url: '#light-palette', depth: 2 }];
   if (topic.key === 'assets') return [...portal.asset_families.map((family) => ({ title: family.title, url: `#${family.key}`, depth: 2 })), { title: 'Documents and containers', url: '#resources', depth: 2 }];
+  if (topic.key === 'expressions') return (portal.asset_families.find((family) => family.key === 'expressions')?.assets ?? []).map((asset) => ({ title: asset.title, url: `#${asset.id}`, depth: 2 }));
   if (topic.key === 'integration') return portal.instructions.map((instruction, index) => ({ title: `${instruction.platform}: ${instruction.title}`, url: `#instruction-${index + 1}`, depth: 2 }));
   const sections: Record<string, string[]> = { overview: ['Brand overview', 'Foundations', 'Promises', 'Boundaries', 'Built to ship'], voice: ['Governing principle', 'Voice qualities', 'Personality'], logos: ['Usage', 'Minimum sizes', 'Prohibitions'], typography: ['Type families'], components: ['Domain components'] };
   return (sections[topic.key] ?? []).map((title) => ({ title, url: `#${title.toLowerCase().replaceAll(' ', '-')}`, depth: 2 }));

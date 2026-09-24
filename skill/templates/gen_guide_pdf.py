@@ -15,10 +15,11 @@ produce a complete document.
     python3 build/gen_guide_pdf.py <brand.json> <kit-dir> [--html-only]
 """
 import argparse, base64, json, os, sys
+from html import escape
 from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
-from brand_contract import affiliation, affiliation_text, guide_surface_mode, logo_metrics, vendor_boundary
+from brand_contract import affiliation, affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
 
 def chips(t, keys, light=False):
     o = ""
@@ -426,24 +427,28 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             copy_for(B, "descriptor", B.get("descriptor", "")),
             type_["display"], type_["display_weights"], type_["body"], type_["body_weights"], type_["mono"], type_["mono_weights"]) + _scales(), 6))
 
-    expressions = (B.get("guide") or {}).get("expressions") or []
+    expressions = custom_assets(B, kit, public_only=True)
     if expressions:
         cards = []
-        root = os.path.realpath(kit)
-        for index, item in enumerate(expressions):
-            if not isinstance(item, dict) or set(item) != {"title", "description", "path"}:
-                raise ValueError("guide expression %d has an invalid structure" % index)
-            source = os.path.realpath(os.path.join(kit, *item["path"].split("/")))
-            if os.path.commonpath((root, source)) != root or not os.path.isfile(source):
-                raise ValueError("guide expression path is unsafe or missing: %s" % item["path"])
-            mime = "image/svg+xml" if source.lower().endswith(".svg") else "image/png"
+        for item in expressions:
+            source = os.path.join(kit, *item["source"]["path"].split("/"))
+            mime = {"svg": "image/svg+xml", "png": "image/png", "jpeg": "image/jpeg", "webp": "image/webp"}[item["source"]["format"]]
             with open(source, "rb") as handle:
                 encoded = base64.b64encode(handle.read()).decode("ascii")
-            cards.append('<div class="card" style="text-align:center"><img style="height:90mm;max-width:100%%" src="data:%s;base64,%s"><h3>%s</h3><p class="dim">%s</p></div>' % (mime, encoded, item["title"], item["description"]))
-        pages.append(pg("Optional expressions", "Expressions and atmosphere",
-                        '<p>These approved treatments extend the identity for selected campaign and editorial contexts. They are not substitutes for the core logo masters.</p><div class="two" style="margin-top:4mm">%s</div><div class="callout acc"><div class="ey">Use with intention</div><p>Choose these atmospheric marks when the setting benefits from a tactile island reference. Keep the surrounding composition quiet, preserve the artwork as supplied, and pair it with the core identity whenever recognition must be immediate.</p></div>' % "".join(cards), 7))
+            well = {"dark": "background:#121820", "light": "background:#FFFFFF", "grid": "background:repeating-conic-gradient(#D5D5D5 0 25%,#F5F5F5 0 50%) 0/20px 20px", "image": "background:#F5F5F5"}[item["preview"]["well"]]
+            cards.append('<div class="card" style="text-align:center"><div style="%s;padding:3mm"><img style="height:75mm;max-width:100%%;object-fit:contain" src="data:%s;base64,%s" alt="%s"></div><h3>%s</h3><p class="dim">%s</p><p class="dim">Role: %s. Use: %s. Avoid: %s.</p><p class="dim">%s · %s</p><p class="dim">Source: %s</p></div>' % (
+                well, mime, encoded, escape(item["accessibility"]["alt"], quote=True), escape(item["title"]),
+                escape(item["description"]), escape(item["role"]), escape(item["usage"]["use"]), escape(item["usage"]["avoid"]),
+                escape(item["credit"]["attribution"]), escape(item["credit"]["license"]), escape(item["source"]["path"])))
+        for start in range(0, len(cards), 2):
+            heading = "Expressions and atmosphere" if start == 0 else "Expressions and atmosphere (continued)"
+            intro = ('<p>These approved treatments extend the identity for selected contexts. They are not substitutes for the core logo masters.</p>'
+                     if start == 0 else "")
+            pages.append(pg("Optional expressions", heading,
+                            '%s<div class="two" style="margin-top:4mm">%s</div>' % (intro, "".join(cards[start:start + 2])),
+                            len(pages) + 1))
 
-    affiliation_page = 8 if expressions else 7
+    affiliation_page = len(pages) + 1
     if aff["parent"]:
         pages.append(pg("Parent", endorsement,
         '<p>%s uses the ShruggieTech type families, dark product surfaces, and the inherited orange '

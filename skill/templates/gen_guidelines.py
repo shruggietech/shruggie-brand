@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 from coloraide import Color
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
-from brand_contract import affiliation_text, guide_surface_mode, logo_metrics, vendor_boundary
+from brand_contract import affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
 
 def color_reference(token, value):
     color = Color(value).convert("srgb")
@@ -142,6 +142,27 @@ def portal_payload(B, kit):
     mode = guide_surface_mode(B)
     deliveries, suites, aliases = asset_deliveries(kit)
     families, resources = portal_assets(deliveries, kit)
+    expressions = custom_assets(B, kit, public_only=True)
+    if expressions:
+        existing_ids = {asset["id"] for family in families for asset in family["assets"]}
+        if any(item["id"] in existing_ids for item in expressions):
+            raise ValueError("custom asset id collides with a generated delivery id")
+        families.append({
+            "key": "expressions", "title": "Expressions and atmosphere",
+            "summary": "Approved non-core treatments for their declared settings. Keep the supplied artwork unchanged.",
+            "assets": [{
+                "id": item["id"], "title": item["title"], "role": item["role"],
+                "platform": "editorial", "appearance": item["preview"]["well"],
+                "surface": "dark" if item["preview"]["well"] == "dark" else "light",
+                "summary": item["description"], "formats": [item["source"]["format"]],
+                "variants": ["supplied"],
+                "preview": {"path": item["source"]["path"], "format": item["source"]["format"], "sha256": item["source"]["sha256"]},
+                "deliveries": [{"path": item["source"]["path"], "format": item["source"]["format"],
+                                "sha256": item["source"]["sha256"], "destination": item["usage"]["use"]}],
+                "usage": item["usage"], "accessibility": item["accessibility"], "credit": item["credit"],
+                "preview_well": item["preview"]["well"],
+            } for item in expressions],
+        })
     instructions = []
     for resource in resources:
         if resource["format"] == "markdown":
@@ -162,6 +183,9 @@ def portal_payload(B, kit):
         {"key": "assets", "title": "Assets", "label": "Assets", "section": "Assets", "order": 0, "path": "/%s/downloads/" % slug, "description": "Task-oriented access to every verified delivery."},
         {"key": "integration", "title": "Platform integration", "label": "Integration", "section": "Integration", "order": 0, "path": "/%s/guidelines/integration/" % slug, "description": "Rendered instructions for delivered platform assets."},
     ]
+    if expressions:
+        topics.insert(6, {"key": "expressions", "title": "Expressions and atmosphere", "label": "Expressions", "section": "Identity", "order": 3,
+                          "path": "/%s/guidelines/expressions/" % slug, "description": "Approved non-core treatments and atmosphere."})
     return {
         "schema_version": "1.0",
         "implementation": implementation,
@@ -174,7 +198,6 @@ def portal_payload(B, kit):
             "voice": {"principle": B.get("governing_principle", ""), "qualities": (B.get("voice") or {}).get("qualities", []), "lead_with": (B.get("voice") or {}).get("lead_with", []), "avoid": (B.get("voice") or {}).get("avoid", []), "personality": guide.get("personality", [])},
             "logos": {"guidance": guide.get("logo", ""), "minimum_sizes": (B.get("logo") or {}).get("min_px", {}), "reduced_below_px": (B.get("logo") or {}).get("reduced_below_px"), "prohibitions": (B.get("logo") or {}).get("prohibitions", [])},
             "typography": B.get("typography", {}), "components": B.get("domain_components", {}),
-            "expressions": guide.get("expressions", []),
         },
         "palettes": {"dark": portal_colors(list(dark.items())), "light": portal_colors(list(light.items()))},
         "asset_families": families, "resources": resources, "instructions": instructions,
@@ -369,23 +392,25 @@ def clear_space_guidance(brand, clear_space):
 
 
 def expression_gallery(brand, kit):
-    items = (brand.get("guide") or {}).get("expressions") or []
+    items = custom_assets(brand, kit, public_only=True)
     if not items:
         return ""
-    root = Path(kit).resolve()
     cards = []
-    for index, item in enumerate(items):
-        if not isinstance(item, dict) or set(item) != {"title", "description", "path"}:
-            raise ValueError("guide expression %d has an invalid structure" % index)
-        path = (root / item["path"]).resolve()
-        if root not in path.parents or not path.is_file() or path.suffix.lower() not in {".svg", ".png"}:
-            raise ValueError("guide expression path is unsafe or missing: %s" % item["path"])
-        mime = "image/svg+xml" if path.suffix.lower() == ".svg" else "image/png"
+    for item in items:
+        path = Path(kit, item["source"]["path"])
+        mime = {"svg": "image/svg+xml", "png": "image/png", "jpeg": "image/jpeg", "webp": "image/webp"}[item["source"]["format"]]
         encoded = base64.b64encode(path.read_bytes()).decode("ascii")
-        cards.append('<article class="expression"><div class="expression-art"><img src="data:%s;base64,%s" alt="%s"></div>'
-                     '<h3>%s</h3><p class="lead">%s</p></article>' % (
-                         mime, encoded, escape(item["title"], quote=True), escape(item["title"]),
-                         escape(item["description"])))
+        cards.append('<article class="expression" id="%s"><div class="expression-art %s-well"><img src="data:%s;base64,%s" alt="%s"></div>'
+                     '<h3>%s</h3><p class="lead">%s</p><p><strong>Role:</strong> %s</p><p><strong>Use:</strong> %s <strong>Avoid:</strong> %s</p>'
+                     '<p><strong>Credit:</strong> %s · <strong>License:</strong> %s</p><p>%s</p><p>%s %s</p>'
+                     '<a download="%s" href="data:%s;base64,%s">Download supplied source</a></article>' % (
+                         escape(item["id"], quote=True), escape(item["preview"]["well"], quote=True),
+                         mime, encoded, escape(item["accessibility"]["alt"], quote=True),
+                         escape(item["title"]), escape(item["description"]), escape(item["role"]), escape(item["usage"]["use"]),
+                         escape(item["usage"]["avoid"]), escape(item["credit"]["attribution"]),
+                         escape(item["credit"]["license"]), escape(item["accessibility"]["disclosure"]),
+                         escape(item["accessibility"]["legibility"]), escape(item["accessibility"]["text_overlay"]),
+                         escape(path.name, quote=True), mime, encoded))
     return ('<section id="expressions"><div class="eyebrow">Optional expressions</div>'
             '<h2>Expressions and atmosphere</h2><p class="lead">These approved treatments extend the identity for selected campaign and editorial contexts. They are not substitutes for the core logo masters.</p>'
             '<div class="expression-grid">%s</div></section>' % "".join(cards))
@@ -509,8 +534,10 @@ img { max-width:100%%; height:auto; object-fit:contain; }
 img.logo { max-height:56px; } img.mark { max-height:40px; } img.stacked { max-height:160px; }
 .expression-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%%,360px),1fr)); gap:24px; margin-top:24px; }
 .expression { min-width:0; }
-.expression-art { min-height:240px; display:grid; place-items:center; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-xl); background:#FFFFFF; padding:24px; }
-.expression-art img { max-height:360px; width:100%%; }
+.expression-art { min-height:240px; display:grid; place-items:center; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius-xl); padding:24px; }
+.expression-art img { max-height:360px; width:100%%; object-fit:contain; }
+.expression-art.grid-well { background-color:#F5F5F5; background-image:linear-gradient(45deg,#D5D5D5 25%%,transparent 25%%),linear-gradient(-45deg,#D5D5D5 25%%,transparent 25%%),linear-gradient(45deg,transparent 75%%,#D5D5D5 75%%),linear-gradient(-45deg,transparent 75%%,#D5D5D5 75%%); background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0; color:#111; }
+.expression-art.image-well { background:#F5F5F5; color:#111; }
 code { font-family:var(--font-body); font-weight:var(--font-label-weight); font-variant-ligatures:none; }
 @media(prefers-reduced-motion:reduce){ *{ animation-duration:.01ms!important; transition-duration:.01ms!important; } .btn-primary:hover,.btn-secondary:hover{transform:none;} }
 @media print { body { background:var(--background); color:var(--foreground); } .back-top { display:none; } }
@@ -590,7 +617,7 @@ if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;
         "title": title, "faces": faces(kit, B), "lv": lv, "dv": dv,
         "body_class": "" if light_first else "dark",
         "surface_mode": guide_surface_mode(B),
-        "expression_nav": '<li><a href="#expressions">Expressions</a></li>' if (B.get("guide") or {}).get("expressions") else "",
+        "expression_nav": '<li><a href="#expressions">Expressions</a></li>' if custom_assets(B, kit, public_only=True) else "",
         "expressions": expression_gallery(B, kit),
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),
         "idea": copy_for(B, "idea", B.get("brand_idea", title)),

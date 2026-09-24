@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -358,6 +359,7 @@ class PrepareSiteTests(unittest.TestCase):
             asset = source / "icons" / "web" / "favicon.svg"
             asset.parent.mkdir(parents=True)
             asset.write_text('<svg xmlns="http://www.w3.org/2000/svg"/>\n', encoding="utf-8")
+            (source / "brand.json").write_text('{"custom_assets": []}\n', encoding="utf-8")
             write_minimal_portal(source)
             payload = json.loads((source / "guidelines" / "portal.json").read_text(encoding="utf-8"))
             delivery = {"path": "icons/web/favicon.svg", "format": "svg", "role": "web-icon", "platform": "web", "appearance": "default", "width": 32, "height": 32, "destination": "Web root", "sha256": hashlib.sha256(asset.read_bytes()).hexdigest()}
@@ -368,6 +370,30 @@ class PrepareSiteTests(unittest.TestCase):
             payload["resources"] = [{"id": "duplicate", "title": "Duplicate", "resource_kind": "code-or-container", **delivery}]
             with self.assertRaisesRegex(ValueError, "duplicate portal delivery"):
                 prepare_site.project_portal(source, payload)
+
+    def test_expression_projection_matches_governed_source_and_optional_navigation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "alpha"
+            write_minimal_portal(source)
+            item = json.loads((prepare_site.ROOT / "brands" / "i-heart-pr-tours" / "brand.json").read_text(encoding="utf-8"))["custom_assets"][0]
+            art = source / item["source"]["path"]
+            art.parent.mkdir(parents=True)
+            shutil.copy2(prepare_site.ROOT / "brands" / "i-heart-pr-tours" / item["source"]["path"], art)
+            (source / "brand.json").write_text(json.dumps({"custom_assets": [item]}), encoding="utf-8")
+            portal = json.loads((source / "guidelines" / "portal.json").read_text(encoding="utf-8"))
+            portal["topics"].insert(6, {"key": "expressions", "title": "Expressions and atmosphere", "label": "Expressions", "section": "Identity", "order": 3, "path": "/alpha/guidelines/expressions/", "description": "Approved treatments."})
+            delivery = {"path": item["source"]["path"], "format": "svg", "sha256": item["source"]["sha256"]}
+            asset = {"id": item["id"], "title": item["title"], "summary": item["description"], "role": item["role"], "preview_well": item["preview"]["well"], "usage": item["usage"], "credit": item["credit"], "accessibility": item["accessibility"], "preview": dict(delivery), "deliveries": [dict(delivery)]}
+            portal["asset_families"] = [{"key": "expressions", "assets": [asset]}]
+            prepare_site.validate_portal_navigation(portal, "alpha")
+            projected = prepare_site.project_portal(source, portal)
+            self.assertEqual("/alpha/downloads/files/assets/source/vertical_sand.svg", projected["asset_families"][0]["assets"][0]["deliveries"][0]["url"])
+            portal["asset_families"][0]["assets"][0]["id"] = "wrong"
+            with self.assertRaisesRegex(ValueError, "expression inventory differs"):
+                prepare_site.project_portal(source, portal)
+            portal["asset_families"] = []
+            with self.assertRaisesRegex(ValueError, "guideline navigation differs"):
+                prepare_site.validate_portal_navigation(portal, "alpha")
 
     def test_instruction_markdown_becomes_safe_semantic_blocks(self):
         blocks = prepare_site.markdown_blocks("# Web icons\n\nUse `favicon.svg`.\n\n- Copy the file\n- Keep the name\n\n| Path | Use |\n| --- | --- |\n| `favicon.svg` | Preferred |\n\n```xml\n<link rel=\"icon\">\n```\n")

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import zipfile
@@ -18,6 +19,7 @@ from release_contract import (
     verify_release_directory,
 )
 from interface_contract import package_identity, source_revision
+from brand_contract import contained_path, custom_assets
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -71,6 +73,16 @@ def write_brand_archive(
     if not brand_path.is_file():
         raise ValueError(f"missing built kit metadata: {source.name}")
     brand = json.loads(brand_path.read_text(encoding="utf-8"))
+    eligible = {item["id"] for item in custom_assets(brand, source, public_only=True)}
+    withheld_paths = {item["source"]["path"] for item in brand.get("custom_assets", [])
+                      if item["id"] not in eligible}
+    shared_sources = withheld_paths & {item.get("path") for item in brand.get("authoritative_inputs", [])}
+    continuity_path = (brand.get("identity_continuity") or {}).get("record")
+    if continuity_path and withheld_paths:
+        continuity = json.loads(contained_path(source, continuity_path).read_text(encoding="utf-8"))
+        shared_sources |= withheld_paths & {item.get("path") for item in continuity.get("source_files", [])}
+    if shared_sources:
+        raise ValueError("non-public custom source is also required by canonical identity: %s" % ", ".join(sorted(shared_sources)))
     slug = brand.get("slug")
     version = brand.get("version")
     if slug != source.name or not isinstance(version, str) or not version:
@@ -98,7 +110,32 @@ def write_brand_archive(
     staged.unlink(missing_ok=True)
     try:
         with zipfile.ZipFile(staged, "w") as archive:
-            add_tree(archive, source)
+            replacements = {}
+            if withheld_paths:
+                public_brand = dict(brand)
+                public_brand["custom_assets"] = [item for item in brand["custom_assets"] if item["id"] in eligible]
+                if not public_brand["custom_assets"]:
+                    del public_brand["custom_assets"]
+                replacements["brand.json"] = (json.dumps(public_brand, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+                consumer = json.loads((source / "enforcement" / "consumer-contract.json").read_text(encoding="utf-8"))
+                provenance = [item for item in consumer.get("provenance", []) if item.get("path") == "brand.json"]
+                if len(provenance) != 1:
+                    raise ValueError("consumer provenance must bind brand.json exactly once")
+                provenance[0]["bytes"] = len(replacements["brand.json"])
+                provenance[0]["sha256"] = hashlib.sha256(replacements["brand.json"]).hexdigest()
+                replacements["enforcement/consumer-contract.json"] = (json.dumps(consumer, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+                manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
+                manifest["files"] = [item for item in manifest["files"] if item["path"] not in withheld_paths]
+                for name, data in replacements.items():
+                    records = [item for item in manifest["files"] if item["path"] == name]
+                    if len(records) != 1:
+                        raise ValueError("manifest must bind %s exactly once" % name)
+                    records[0]["bytes"] = len(data)
+                    records[0]["sha256"] = hashlib.sha256(data).hexdigest()
+                replacements["manifest.json"] = (json.dumps(manifest, indent=2) + "\n").encode("utf-8")
+            add_tree(archive, source, omit=withheld_paths | set(replacements))
+            for name, data in sorted(replacements.items()):
+                add_bytes(archive, name, data)
             existing = set(archive.namelist())
             for name in LICENSES:
                 if name not in existing:
