@@ -1,7 +1,5 @@
 # Variance Contract
 
-**Version 1.0.0 · 2026-08-22**
-
 This document answers one question: when we build a ShruggieTech-owned or third-party brand, what may that identity decide and what may it inherit?
 
 The machine-readable form of everything here lives in `01-canon.json`, and
@@ -10,18 +8,7 @@ When the two disagree, the JSON wins and this document is stale.
 
 ## Why a contract exists at all
 
-Three brand kits already exist (ShruggieTech, fragcap, go-schedule). They are
-well written. They still fail in practice, and the failure has a specific
-shape: an agent reads the guidelines, agrees with them, and then writes
-`bg-slate-900` anyway, because that is what its hands know how to do.
-
-Prose does not constrain agents. Three things do:
-
-1. Fewer decisions available to get wrong.
-2. Brand values expressed in the exact vocabulary the target ecosystem uses.
-3. A check that fails at the moment of the mistake.
-
-The contract is item one.
+The contract separates brand decisions from shared implementation rules. A consumer needs values expressed in its target ecosystem, and verification must catch a substituted value at the point of use. Guidance explains the intended choice; generated tokens and checks make that choice executable.
 
 ## The three tiers
 
@@ -131,20 +118,11 @@ An owned child may explicitly select "A ShruggieTech project", set in its declar
 
 ### Kit shape
 
-Every kit ships the same directory tree and passes the same `verify` checks.
-An agent that has seen one kit knows where everything is in all of them.
+Every kit ships the shared core contract and passes its declared `verify` checks. Optional assets and platform capabilities vary by brand; inspect the delivered `manifest.json` for exact files.
 
 ### Glyph production
 
-Mark geometry is free. How it gets produced is not. The mark is composed in
-`build/mk_paths.py` from `glyphkit` primitives, in absolute M/L/C/Z only, as
-filled paths, centred on measured ink, with a separate reduced master that
-removes whole elements. It is proved by `validate_glyph.py` before anything is
-exported. See `08-glyph-construction.md`.
-
-This is immutable because it is the step that fails, and it fails identically
-every time: an agent types path data and then has no mechanical way to tell
-whether the numbers describe the shape it had in mind.
+New constructed marks use an approved `build/mk_paths.py` with `glyphkit` primitives and a separate reduced master. Authoritative supplied marks bind exact approved inputs without a construction helper; imported and legacy constructed geometry remain byte-identical. Every source mode passes its applicable `validate_glyph.py` checks before export. See `08-glyph-construction.md` for the source-mode and measurement rules.
 
 ### Portability
 
@@ -155,11 +133,7 @@ an agent being able to view an image. See `09-portability.md`.
 
 ### Where a fix lands
 
-A kit that has to patch a generator to build has found a defect in the skill,
-not a quirk of that brand. Land the patch in `templates/` and note it in the
-kit's `build/README.md`. Four kits deep, `gen_logo.py` in the skill was 9.5 KB
-while the newest kit shipped 17.8 KB of it, and every new kit started from the
-older, more broken copy.
+A kit that has to patch a generator to build has found a defect in the skill, not a quirk of that brand. Land the patch in `templates/`, rebuild affected kits, and note the change in the kit's `build/README.md`. Never patch a generated copy as the lasting fix.
 
 ## Constrained
 
@@ -177,11 +151,7 @@ Record each approved combination of formal colors with its intended application 
 
 Another brand's hue is context for a creative choice, not a qualification rule. A chosen palette may intentionally share a hue while preserving its own source record and measured interface pairings.
 
-The light variant is not optional bookkeeping. fragcap's Signal Cyan measures
-1.89:1 on its light surface, and ShruggieTech's own bright green measures
-1.98:1 on `#F8F8F6` while being set as the light-mode link color in the live
-stylesheet. That is a real defect on a real site, and it exists because no
-accessible green was ever derived. Now one is (`#037B40`, 5.05:1).
+The light variant is not optional bookkeeping. Measure the actual foreground and surface pair in each theme, record the result, and change a failing value before publication. Do not infer light-theme legibility from a dark-theme pass.
 
 ### Dark surface temperature
 
@@ -216,14 +186,11 @@ decorative scan lines.
 
 ### Voice register
 
-Pick a lane: direct-and-witty (parent), precise-and-dry (fragcap), or
-operator-runbook (go-schedule). The banned-rhetoric list applies to all three
-and is enforced by `verify`.
+Choose a voice register in the brand source and use it consistently. The banned-rhetoric list applies to every register and is enforced by `verify`.
 
 ### The shruggie flourish
 
-Opt-in. At most one moment per view, always in the identity accent. fragcap
-declines it, correctly. A security-adjacent tool should not wink.
+Opt-in. At most one moment per view, always in the identity accent. A brand may decline the flourish when it does not fit its voice.
 
 ## Free
 
@@ -233,7 +200,4 @@ Product-specific page structure.
 
 ## What this buys us
 
-A sub-brand kit becomes, in the normal case, **one color decision and one logo
-decision**. Everything else generates. That is the answer to "keep mandatory
-operator inputs to a minimum": most of the inputs were never real choices, they
-were opportunities to drift.
+A brand author still decides strategy, voice, logo source, palette, and the other choices that define its identity. The contract makes those decisions explicit and lets shared implementation details generate consistently from approved source. The authoring workflow in `03-interview.md` governs discovery and approval before a kit is shipped.

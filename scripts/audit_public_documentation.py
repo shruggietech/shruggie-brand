@@ -13,7 +13,8 @@ from typing import Iterable, Iterator, Optional, Tuple
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SLICE_CODE = re.compile(r"\bS\d{3}\b")
+SLICE_CODE = re.compile(r"\bS\d{2,4}\b|\b(?:work[ -]?)?slice\s+(?:S\s*)?\d{2,4}\b", re.IGNORECASE)
+PORTFOLIO_COUNT = re.compile(r"\b(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|several|many)\s+(?:(?:production|existing|current|published|showcased|subordinate)\s+)?(?:sub-?brands|brand kits|brands|kits)\b|\b(?:brand|kit)\s+count\b", re.IGNORECASE)
 PROCESS_REFERENCE = re.compile(r"\bSpec[ -]?Kit\b", re.IGNORECASE)
 ALLOWED_PROCESS_INSTRUCTION = "Run the repository-installed Spec Kit workflow before changing governed source."
 ALLOWED_PROCESS_PATHS = {
@@ -91,6 +92,7 @@ def source_documents(root: Path, brands: Optional[Iterable[str]] = None) -> Iter
             raise ValueError("unsafe documentation source: %s" % name)
         path = root / "skill" / "references" / name
         yield _label(root, path), _read(root, path)
+        yield "manual-catalog/%s" % page["slug"], " ".join(str(page[key]) for key in ("title", "description", "label", "section"))
     for slug in tuple(brands) if brands is not None else _brands(root):
         if Path(slug).name != slug or slug in {".", ".."}:
             raise ValueError("unsafe brand slug: %s" % slug)
@@ -109,8 +111,21 @@ def prepared_documents(root: Path, brands: Optional[Iterable[str]] = None) -> It
     docs = root / "site" / "generated" / "docs"
     if not docs.is_dir():
         raise ValueError("missing prepared manual: %s" % docs)
+    catalog = json.loads(_read(root, root / "skill" / "references" / "documentation-contract.json"))
+    expected = {"index.mdx"} | {str(page["slug"]) + ".mdx" for page in catalog["manual_pages"]}
+    actual = {path.name for path in docs.glob("*.mdx")}
+    if actual != expected:
+        raise ValueError("prepared manual inventory differs: %s" % sorted(actual ^ expected))
     for path in sorted(docs.glob("*.mdx")):
         yield _label(root, path), _read(root, path)
+    for name in ("documentation.json", "routes.json"):
+        path = root / "site" / "generated" / name
+        data = json.loads(_read(root, path))
+        records = data if name == "documentation.json" else data["routes"]
+        for record in records:
+            if name == "routes.json" and record.get("kind") not in {"docs-index", "docs-page"}:
+                continue
+            yield _label(root, path) + "/" + str(record.get("slug", record.get("id", "index"))), json.dumps(record, ensure_ascii=False)
     for slug in selected:
         kit = root / "dist" / slug
         brand = json.loads(_read(root, kit / "brand.json"))
@@ -126,7 +141,12 @@ def prepared_documents(root: Path, brands: Optional[Iterable[str]] = None) -> It
     exported = root / "site" / "out"
     if not exported.is_dir():
         raise ValueError("missing exported site: %s" % exported)
-    for path in sorted((exported / "docs").rglob("*.html")):
+    exported_docs = exported / "docs"
+    expected_routes = {"index.html"} | {str(page["slug"]) + "/index.html" for page in catalog["manual_pages"]}
+    actual_routes = {path.relative_to(exported_docs).as_posix() for path in exported_docs.rglob("*.html")}
+    if actual_routes != expected_routes:
+        raise ValueError("exported manual inventory differs: %s" % sorted(actual_routes ^ expected_routes))
+    for path in sorted(exported_docs.rglob("*.html")):
         yield _label(root, path), visible_html_text(_read(root, path))
     for slug in selected:
         guide = exported / slug / "guidelines"
@@ -148,6 +168,11 @@ def scan_text(label: str, text: str) -> list[str]:
         match = pattern.search(process_text if kind == "Spec Kit process reference" else text)
         if match:
             problems.append("%s: %s: %s" % (label, kind, match.group(0)))
+    if (label.startswith(("skill/references/", "manual-catalog/", "site/generated/docs/", "site/generated/documentation.json", "site/generated/routes.json", "site/out/docs/"))
+            or label == "manual.md"):
+        match = PORTFOLIO_COUNT.search(text)
+        if match:
+            problems.append("%s: portfolio count: %s" % (label, match.group(0)))
     return problems
 
 

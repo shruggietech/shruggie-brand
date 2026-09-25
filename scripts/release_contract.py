@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT / "skill" / "templates"))
 from schema_validation import SchemaValidationError, validate_json_schema
 from interface_contract import (RELEASE_AUTHORIZED_BRANDS, SOURCE_REVISION, load_release_impact, package_identity,
                                 validate_version_combination, validate_version_policy)
+from documentation_publication import verify_record as verify_documentation_record
 PRODUCTION = RELEASE_AUTHORIZED_BRANDS
 LICENSES = ("LICENSE", "NOTICE", "LICENSE-BRAND.md")
 REQUIRED_HISTORY = {
@@ -758,6 +759,15 @@ def main() -> int:
     publication_parser.add_argument("--record", type=Path, required=True)
     publication_parser.add_argument("--revision", required=True)
     publication_parser.add_argument("--require-release", action="store_true")
+    docs_parser = subparsers.add_parser("documentation", help="verify exact main-manual publication and packaged references")
+    docs_parser.add_argument("--version", required=True)
+    docs_parser.add_argument("--record", type=Path, required=True)
+    docs_parser.add_argument("--publication", type=Path, required=True)
+    docs_parser.add_argument("--docs", type=Path, required=True)
+    docs_parser.add_argument("--exported", type=Path, required=True)
+    docs_parser.add_argument("--release-dir", type=Path, required=True)
+    docs_parser.add_argument("--revision", required=True)
+    docs_parser.add_argument("--require-release", action="store_true")
     args = parser.parse_args()
 
     if args.command == "current":
@@ -772,9 +782,15 @@ def main() -> int:
         verify_release_directory(args.release_dir, metadata, args.notes, args.revision, args.require_release)
         print("verified %d v%s release assets and generated notes"
               % (len(expected_assets(metadata)), args.version))
-    else:
+    elif args.command == "publication":
         verify_publication_record(args.record, metadata, args.revision, args.require_release)
         print("verified %s publication record for v%s" % ("release" if args.require_release else "candidate", args.version))
+    else:
+        publication = verify_publication_record(args.publication, metadata, args.revision, args.require_release)
+        verify_documentation_record(args.record, ROOT / "skill" / "references", args.docs, publication,
+                                    exported_record=args.exported, release_dir=args.release_dir,
+                                    require_release=args.require_release)
+        print("verified exact documentation publication for v%s" % args.version)
     return 0
 
 

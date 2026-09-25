@@ -36,6 +36,7 @@ jobs:
           python scripts/test_publication_workflow.py
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
+          python scripts/test_documentation_publication.py
           python scripts/test_prepare_site.py
           python scripts/test_public_documentation.py
           python scripts/test_check_readme_links.py
@@ -136,6 +137,7 @@ jobs:
           python scripts/test_publication_workflow.py
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
+          python scripts/test_documentation_publication.py
           python scripts/test_prepare_site.py
           python scripts/test_public_documentation.py
           python scripts/test_check_readme_links.py
@@ -191,12 +193,17 @@ jobs:
       - name: Stage checksummed release candidate
         run: |
           CANDIDATE="$RUNNER_TEMP/release-candidate"
+          VERSION="$(python scripts/release_contract.py current)"
           mkdir -p "$CANDIDATE/files"
           cp release/*.skill release/*.zip release/release-notes.md "$CANDIDATE/files/"
           cp site/generated/publication.json "$CANDIDATE/PUBLICATION.json"
+          cp site/generated/documentation-publication.json "$CANDIDATE/DOCUMENTATION.json"
+          cp site/out/docs/publication.json "$CANDIDATE/SITE-DOCUMENTATION.json"
+          cp -R site/generated/docs "$CANDIDATE/docs"
           printf '%s\n' "$GITHUB_SHA" > "$CANDIDATE/SOURCE_COMMIT"
           (cd "$CANDIDATE/files" && sha256sum -- ./*.skill ./*.zip | sort -k2) > "$CANDIDATE/SHA256SUMS"
           (cd "$CANDIDATE/files" && sha256sum --check ../SHA256SUMS)
+          python scripts/release_contract.py documentation --version "$VERSION" --record "$CANDIDATE/DOCUMENTATION.json" --publication "$CANDIDATE/PUBLICATION.json" --docs "$CANDIDATE/docs" --exported "$CANDIDATE/SITE-DOCUMENTATION.json" --release-dir "$CANDIDATE/files" --revision "$GITHUB_SHA"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
           name: verified-brand-kits-${{ github.sha }}
@@ -293,6 +300,7 @@ jobs:
           test "$GITHUB_REF_NAME" = "v$VERSION"
           test "$(cat "$CANDIDATE/SOURCE_COMMIT")" = "$GITHUB_SHA"
           python scripts/release_contract.py publication --version "$VERSION" --record "$CANDIDATE/PUBLICATION.json" --revision "$GITHUB_SHA" --require-release
+          python scripts/release_contract.py documentation --version "$VERSION" --record "$CANDIDATE/DOCUMENTATION.json" --publication "$CANDIDATE/PUBLICATION.json" --docs "$CANDIDATE/docs" --exported "$CANDIDATE/SITE-DOCUMENTATION.json" --release-dir "$CANDIDATE/files" --revision "$GITHUB_SHA" --require-release
           (cd "$CANDIDATE/files" && sha256sum --check ../SHA256SUMS)
           python scripts/release_contract.py verify --version "$VERSION" --release-dir "$CANDIDATE/files" --notes "$CANDIDATE/files/release-notes.md" --revision "$GITHUB_SHA" --require-release
           git fetch --no-tags origin main
