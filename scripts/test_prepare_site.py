@@ -218,6 +218,7 @@ class PrepareSiteTests(unittest.TestCase):
             public = root / "public"
             for name in ("guidelines", "nextjs/registry", "logos/svg", "favicons", "icons", "specimens"):
                 (source / name).mkdir(parents=True, exist_ok=True)
+            (source / "logos" / "svg" / "alpha-mark-reduced-color.svg").write_text("<svg/>\n", encoding="utf-8")
             write_minimal_portal(source)
             (source / "brand-guide.pdf").write_bytes(b"%PDF-test")
             (source / "specimens" / "sample.svg").write_text("<svg/>\n", encoding="utf-8")
@@ -243,6 +244,8 @@ class PrepareSiteTests(unittest.TestCase):
                     "affiliation": {"ownership": "shruggietech-owned", "showcase": "public", "parent": "ShruggieTech", "inheritance": "shruggietech-house", "endorsement": "shruggietech-project", "service_credit": "none"},
                 }
                 record = prepare_site.copy_kit(source, brand)
+                self.assertEqual("#121416", record["portfolioSurface"])
+                self.assertEqual("/alpha/downloads/files/logos/svg/alpha-mark-reduced-color.svg", record["icon"])
                 self.assertNotIn("showcaseSurface", record)
                 self.assertNotIn("showcaseForeground", record)
                 self.assertEqual("dark", record["guideSurfaceMode"])
@@ -263,7 +266,19 @@ class PrepareSiteTests(unittest.TestCase):
                 self.assertEqual("light", record["showcaseMode"])
                 self.assertEqual("#FFFFFF", record["showcaseSurface"])
                 self.assertEqual("#000000", record["showcaseForeground"])
+                self.assertEqual("#121416", record["portfolioSurface"])
                 self.assertEqual("#111111", record["showcaseTokens"]["foreground"])
+                brand["surfaces"]["card"] = "#FFFFFF"
+                with self.assertRaisesRegex(ValueError, "portfolio card surface must support accessible white text"):
+                    prepare_site.copy_kit(source, brand)
+                brand["surfaces"]["card"] = "invalid"
+                with self.assertRaisesRegex(ValueError, "portfolio card requires a valid dark card surface"):
+                    prepare_site.copy_kit(source, brand)
+                brand["surfaces"]["card"] = "#121416"
+                (source / "logos" / "svg" / "alpha-mark-reduced-color.svg").unlink()
+                with self.assertRaisesRegex(ValueError, "verified reduced-color mark is missing"):
+                    prepare_site.copy_kit(source, brand)
+                (source / "logos" / "svg" / "alpha-mark-reduced-color.svg").write_text("<svg/>\n", encoding="utf-8")
                 brand["vendor_boundary"] = {"required": True, "notice": "Acme is independent. Users are responsible.", "entities": ["Acme"], "trademark_owner": "Acme", "terms_responsibility": "Users are responsible."}
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual(brand["vendor_boundary"]["notice"], record["vendorBoundary"])

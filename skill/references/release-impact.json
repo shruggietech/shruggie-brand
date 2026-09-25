@@ -1,16 +1,16 @@
 {
   "$schema": "release-impact.schema.json",
   "schema_version": 1,
-  "brandbuilder_version": "2.2.0",
+  "brandbuilder_version": "2.2.1",
   "identity_redesign": false,
   "surfaces": {
     "identity": {"classification": "unaffected", "summary": "Approved logo geometry, affiliation facts, and existing formal color values remain unchanged."},
-    "palette": {"classification": "optional", "summary": "Brand Canon 1.5.0 permits independent owned-brand palettes and records formal identity colors separately from interface cues. Existing approved colors do not change merely because the policy is broader."},
+    "palette": {"classification": "unaffected", "summary": "Existing approved formal and interface colors remain unchanged; the hosted portfolio selects each brand's existing dark card surface."},
     "typography": {"classification": "unaffected", "summary": "Existing local fonts and typography bindings remain authoritative; typography mode never selects a palette."},
     "platform_assets": {"classification": "unaffected", "summary": "Canonical logo and platform icon source geometry and colors remain unchanged."},
-    "web_react": {"classification": "optional", "summary": "Existing web/React token values remain stable. Regenerated kits add measured color role records and guidance without changing public adapter APIs."},
-    "egui": {"classification": "optional", "summary": "The egui adapter remains at 1.0.2 with unchanged public API and existing approved color values; its manifest points to the kit's new color-role record."},
-    "documentation": {"classification": "required", "summary": "Readers should repin the rebuilt kit for explicit formal-color, interface-cue, and palette-selection guidance."},
-    "recovery": {"classification": "required", "summary": "Consumers repinning a kit must retain exact checksummed BrandBuilder 2.2.0 recovery bytes and the new immutable package identity."}
+    "web_react": {"classification": "unaffected", "summary": "The web/React adapter and existing kit tokens remain unchanged by the hosted portfolio correction."},
+    "egui": {"classification": "unaffected", "summary": "The egui adapter and existing approved color values remain unchanged."},
+    "documentation": {"classification": "optional", "summary": "The hosted homepage now uses approved dark card surfaces and reduced marks. Existing kit guidance remains valid."},
+    "recovery": {"classification": "optional", "summary": "Consumers who repin the rebuilt 2.2.1 package must retain its exact checksummed recovery bytes and immutable package identity; existing 2.2.0 kits remain valid."}
   }
 }

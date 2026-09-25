@@ -4,6 +4,17 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-09-25
+
+### Fixed
+
+- Restored dark backgrounds for every homepage portfolio card and mobile disclosure, including I Heart PR Tours, with white AA-contrast copy. Portfolio surfaces are now validated independently of each brand's own light or dark showcase.
+- Switched compact homepage icons to the approved reduced-color marks so the I Heart PR Tours heart and other client marks remain legible at card size. Brand logo source geometry and brand-page presentation are unchanged.
+
+### Decisions
+
+- On 2026-09-25, prepared a patch release for the emergency homepage regression. Existing 2.2.0 kits remain valid; consumers adopting exact 2.2.1 recovery bytes can repin the new package.
+
 ## [2.2.0] - 2026-09-25
 
 ### Changed

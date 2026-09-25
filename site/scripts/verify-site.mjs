@@ -494,13 +494,12 @@ try {
     check(await page.locator('html').evaluate((element) => element.classList.contains('dark')) === (theme === 'dark'), `homepage did not apply the requested ${theme} theme`);
     const presentation = await page.locator('.brand-card, .brand-accordion').evaluateAll((elements) => elements.map((element) => {
       const style = getComputedStyle(element); const title = element.querySelector('h3, .mobile-brand-title'); const description = element.querySelector('.brand-card-description, .brand-accordion-panel > p'); const action = element.querySelector('.brand-actions a');
-      return { surface: element.getAttribute('data-showcase-surface'), backgroundColor: style.backgroundColor, backgroundImage: style.backgroundImage, color: style.color, titleColor: title ? getComputedStyle(title).color : null, descriptionColor: description ? getComputedStyle(description).color : null, actionColor: action ? getComputedStyle(action).color : null };
+      return { surface: element.getAttribute('data-portfolio-surface'), backgroundColor: style.backgroundColor, backgroundImage: style.backgroundImage, color: style.color, titleColor: title ? getComputedStyle(title).color : null, descriptionColor: description ? getComputedStyle(description).color : null, actionColor: action ? getComputedStyle(action).color : null };
     }));
     check(presentation.length === 16 && presentation.every((sample, index) => {
       const brand = brands[index % brands.length];
-      const expected = brand.showcaseMode === 'light' ? brand.showcaseTokens.foreground : '#FFFFFF';
-      return [sample.color, sample.titleColor, sample.descriptionColor].every((color) => sameColor(color, expected)) && sameColor(sample.actionColor, brand.showcaseMode === 'light' ? brand.showcaseTokens['brand-cta-foreground'] : '#FFFFFF');
-    }), `homepage ${theme} portfolio copy differs from each governed surface (${JSON.stringify(presentation)})`);
+      return sample.surface === 'governed-dark' && sample.backgroundImage === 'none' && sameColor(sample.backgroundColor, brand.portfolioSurface) && [sample.color, sample.titleColor, sample.descriptionColor, sample.actionColor].every((color) => isWhiteColor(color) && contrastRatio(color, sample.backgroundColor) >= 4.5);
+    }), `homepage ${theme} portfolio surface or copy violates the dark-card contract (${JSON.stringify(presentation)})`);
     if (theme === 'dark') darkPortfolioPresentation = presentation;
     else check(JSON.stringify(presentation) === JSON.stringify(darkPortfolioPresentation), `portfolio surfaces or foregrounds change with the site theme (${JSON.stringify({ dark: darkPortfolioPresentation, light: presentation })})`);
   }
@@ -519,10 +518,12 @@ try {
     const tolerance = 1.1;
     for (const card of await page.locator(selector).all()) {
       const title = await card.locator(selector === '.brand-card' ? 'h3' : '.mobile-brand-title').textContent();
-      const { wrapper, image } = await card.evaluate((element) => {
+      const { wrapper, image, source, loaded } = await card.evaluate((element) => {
         const bounds = (node) => { if (!node) return null; const rect = node.getBoundingClientRect(); return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }; };
-        return { wrapper: bounds(element.querySelector('.brand-icon')), image: bounds(element.querySelector('.brand-icon img')) };
+        const mark = element.querySelector('.brand-icon img');
+        return { wrapper: bounds(element.querySelector('.brand-icon')), image: bounds(mark), source: mark?.getAttribute('src'), loaded: Boolean(mark?.complete && mark.naturalWidth > 0) };
       });
+      check(loaded && brands.some((brand) => brand.icon === source), `${title} ${label} approved reduced mark failed to load (${source})`);
       check(Boolean(wrapper && image), `${title} ${label} icon lacks measurable bounds`);
       if (!wrapper || !image) continue;
       const measurement = JSON.stringify({ wrapper, image });
@@ -543,8 +544,7 @@ try {
       const cardStyle = getComputedStyle(element); const titleStyle = getComputedStyle(element.querySelector('h3')); const description = element.querySelector('.brand-card-description'); const descriptionStyle = getComputedStyle(description); const actions = element.querySelector('.brand-actions'); const actionsStyle = getComputedStyle(actions); const cardBox = element.getBoundingClientRect(); const descriptionBox = description.getBoundingClientRect();
       return { cardColor: cardStyle.color, titleColor: titleStyle.color, descriptionColor: descriptionStyle.color, descriptionOpacity: descriptionStyle.opacity, actionsOpacity: actionsStyle.opacity, actionsVisibility: actionsStyle.visibility, actionsPointerEvents: actionsStyle.pointerEvents, descriptionBottomClearance: cardBox.bottom - descriptionBox.bottom };
     });
-    const expectedCardForeground = brands[index].showcaseMode === 'light' ? brands[index].showcaseTokens.foreground : '#FFFFFF';
-    check([resting.cardColor, resting.titleColor, resting.descriptionColor].every((color) => sameColor(color, expectedCardForeground)), `${brands[index].slug} desktop copy differs from its governed foreground (${JSON.stringify(resting)})`);
+    check([resting.cardColor, resting.titleColor, resting.descriptionColor].every(isWhiteColor), `${brands[index].slug} desktop copy differs from the required white foreground (${JSON.stringify(resting)})`);
     check(resting.descriptionOpacity === '1' && resting.actionsOpacity === '0' && resting.actionsVisibility === 'hidden' && resting.actionsPointerEvents === 'none', `${brands[index].slug} resting action layer is visible or interactive (${JSON.stringify(resting)})`);
     check(resting.descriptionBottomClearance >= 16, `${brands[index].slug} description has only ${resting.descriptionBottomClearance.toFixed(2)} CSS pixels of bottom clearance`);
     const links = await card.locator('.brand-actions a').evaluateAll((anchors) => anchors.map((anchor) => ({ label: anchor.textContent?.trim(), href: anchor.getAttribute('href'), download: anchor.getAttribute('download') })));
@@ -587,20 +587,19 @@ try {
     check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity === '0' && getComputedStyle(element).visibility === 'hidden') && await card.locator('.brand-card-description').evaluate((element) => getComputedStyle(element).opacity) === '1', `${brands[index].slug} action panel is not dismissible with Escape`);
   }
   const glitchpadCard = page.locator('.brand-card', { hasText: 'Glitchpad' });
-  const glitchpadCardStyle = await glitchpadCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-showcase-surface'), shadow: getComputedStyle(element.querySelector('.brand-icon')).boxShadow }));
+  const glitchpadCardStyle = await glitchpadCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-portfolio-surface'), shadow: getComputedStyle(element.querySelector('.brand-icon')).boxShadow }));
   check(glitchpadCardStyle.surface === 'governed-dark' && glitchpadCardStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadCardStyle.backgroundImage === 'none', `Glitchpad card does not retain its governed dark surface (${JSON.stringify(glitchpadCardStyle)})`);
   check(isWhiteColor(glitchpadCardStyle.foreground) && isWhiteColor(glitchpadCardStyle.bodyForeground), `Glitchpad card does not use its generated contrast foreground (${JSON.stringify(glitchpadCardStyle)})`);
   check(glitchpadCardStyle.shadow === 'none', `Glitchpad card retains an accent showcase glow (${glitchpadCardStyle.shadow})`);
   const ihprtCard = page.locator('.brand-card', { hasText: 'I Heart PR Tours' });
   const ihprt = brands.find((brand) => brand.slug === 'i-heart-pr-tours');
-  const ihprtCardStyle = await ihprtCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-showcase-surface'), iconSource: element.querySelector('.brand-icon img')?.getAttribute('src') }));
-  check(ihprtCardStyle.surface === 'governed-light' && sameColor(ihprtCardStyle.backgroundColor, '#FFFFFF') && ihprtCardStyle.backgroundImage === 'none', `I Heart PR Tours card does not use its governed light surface (${JSON.stringify(ihprtCardStyle)})`);
-  check(sameColor(ihprtCardStyle.foreground, ihprt.showcaseTokens.foreground) && sameColor(ihprtCardStyle.bodyForeground, ihprt.showcaseTokens.foreground), `I Heart PR Tours card copy differs from its governed foreground (${JSON.stringify(ihprtCardStyle)})`);
-  check(ihprtCardStyle.iconSource?.endsWith('/i-heart-pr-tours-mark-color.svg'), `I Heart PR Tours card does not use the colored heart icon (${JSON.stringify(ihprtCardStyle)})`);
+  const ihprtCardStyle = await ihprtCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-portfolio-surface'), iconSource: element.querySelector('.brand-icon img')?.getAttribute('src') }));
+  check(ihprtCardStyle.surface === 'governed-dark' && sameColor(ihprtCardStyle.backgroundColor, '#101F2C') && ihprtCardStyle.backgroundImage === 'none', `I Heart PR Tours card does not use its approved dark card surface (${JSON.stringify(ihprtCardStyle)})`);
+  check(isWhiteColor(ihprtCardStyle.foreground) && isWhiteColor(ihprtCardStyle.bodyForeground), `I Heart PR Tours card copy is not white on dark (${JSON.stringify(ihprtCardStyle)})`);
+  check(ihprtCardStyle.iconSource?.endsWith('/i-heart-pr-tours-mark-reduced-color.svg'), `I Heart PR Tours card does not use the approved reduced heart (${JSON.stringify(ihprtCardStyle)})`);
   for (const card of await page.locator('.brand-card').all()) {
-    const style = await card.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
-    if (style.surface === 'governed-dark' || style.surface === 'governed-light') check(style.image === 'none', `${await card.locator('h3').textContent()} governed showcase added an unapproved background image (${JSON.stringify(style)})`);
-    else check(style.surface === null && style.image !== 'none', `${await card.locator('h3').textContent()} lost its existing showcase fallback (${JSON.stringify(style)})`);
+    const style = await card.evaluate((element) => ({ image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-portfolio-surface') }));
+    check(style.surface === 'governed-dark' && style.image === 'none', `${await card.locator('h3').textContent()} has an unexpected portfolio surface (${JSON.stringify(style)})`);
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const reducedCard = page.locator('.brand-card').first();
@@ -630,11 +629,9 @@ try {
   for (const [index, disclosure] of (await page.locator('.brand-accordion').all()).entries()) {
     check(!(await disclosure.evaluate((element) => element.open)), `${brands[index].slug} mobile disclosure does not begin collapsed`);
     check(!(await disclosure.locator('.brand-actions a').first().isVisible()), `${brands[index].slug} collapsed disclosure exposes hidden actions`);
-    const disclosureStyle = await disclosure.evaluate((element) => ({ title: getComputedStyle(element.querySelector('.mobile-brand-title')).color, color: getComputedStyle(element).color, background: getComputedStyle(element).backgroundColor, image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-showcase-surface') }));
-    const expectedDisclosureForeground = brands[index].showcaseMode === 'light' ? brands[index].showcaseTokens.foreground : '#FFFFFF';
-    check(sameColor(disclosureStyle.title, expectedDisclosureForeground) && sameColor(disclosureStyle.color, expectedDisclosureForeground) && contrastRatio(disclosureStyle.title, disclosureStyle.background) >= 4.5, `${brands[index].slug} mobile disclosure fails its governed foreground contrast (${JSON.stringify(disclosureStyle)})`);
-    if (disclosureStyle.surface === 'governed-dark' || disclosureStyle.surface === 'governed-light') check(disclosureStyle.image === 'none', `${brands[index].slug} governed mobile disclosure has an unexpected gradient`);
-    else check(disclosureStyle.surface === null && disclosureStyle.image !== 'none', `${brands[index].slug} mobile disclosure lost the dark fallback gradient`);
+    const disclosureStyle = await disclosure.evaluate((element) => ({ title: getComputedStyle(element.querySelector('.mobile-brand-title')).color, color: getComputedStyle(element).color, background: getComputedStyle(element).backgroundColor, image: getComputedStyle(element).backgroundImage, surface: element.getAttribute('data-portfolio-surface'), iconSource: element.querySelector('.brand-icon img')?.getAttribute('src') }));
+    check(disclosureStyle.surface === 'governed-dark' && disclosureStyle.image === 'none' && sameColor(disclosureStyle.background, brands[index].portfolioSurface) && isWhiteColor(disclosureStyle.title) && isWhiteColor(disclosureStyle.color) && contrastRatio(disclosureStyle.title, disclosureStyle.background) >= 4.5, `${brands[index].slug} mobile disclosure fails the dark card contract (${JSON.stringify(disclosureStyle)})`);
+    check(disclosureStyle.iconSource === brands[index].icon, `${brands[index].slug} mobile disclosure does not load the approved reduced mark`);
     const summary = disclosure.locator('summary');
     const summaryBox = await summary.boundingBox();
     check(Boolean(summaryBox && summaryBox.width >= 44 && summaryBox.height >= 44), `${brands[index].slug} disclosure target is smaller than 44 by 44 CSS pixels`);

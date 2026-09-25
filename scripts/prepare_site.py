@@ -612,6 +612,13 @@ def publication_record(sources: list[Path], release_slugs: Optional[Set[str]] = 
 
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
+    portfolio_surface = (brand.get("surfaces") or {}).get("card")
+    if not isinstance(portfolio_surface, str) or not re.fullmatch(r"#[0-9A-Fa-f]{6}", portfolio_surface):
+        raise ValueError(f"{slug}: portfolio card requires a valid dark card surface")
+    if contrast_foreground(portfolio_surface) != "#FFFFFF":
+        raise ValueError(f"{slug}: portfolio card surface must support accessible white text")
+    if not (source / "logos" / "svg" / f"{slug}-mark-reduced-color.svg").is_file():
+        raise ValueError(f"{slug}: verified reduced-color mark is missing")
     validate_registry(source, brand)
     governed = custom_assets(brand, source, public_only=True)
     guide = source / "brand-guide.pdf"
@@ -677,7 +684,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "accent": brand["accent"]["bright"],
         "accentAccessible": brand["accent"]["accessible"],
         "logo": f"{logo_root}/{slug}-horizontal-color.svg",
-        "icon": f"{logo_root}/{slug}-mark-color.svg",
+        "icon": f"{logo_root}/{slug}-mark-reduced-color.svg",
         "specimen": f"/{slug}/downloads/files/specimens/{specimen_name}",
         "portableGuide": f"/{slug}/downloads/files/{slug}-portable-guidelines.html",
         "guidelinesPath": f"/{slug}/guidelines/",
@@ -695,6 +702,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "vendorBoundary": boundary["notice"] if boundary else None,
         "guideSurfaceMode": guide_mode,
     }
+    record["portfolioSurface"] = portfolio_surface.upper()
     surface = showcase_surface(brand)
     if surface is not None:
         record["showcaseSurface"] = surface
