@@ -56,3 +56,7 @@ site/components/guidelines/downloads-content.tsx
 ## Post-Design Constitution Check
 
 All six gates remain PASS. The registry no longer advertises a font capability the supported schema cannot install, and publication fails on schema or semantic incompleteness before public copying.
+
+## Post-merge release publication
+
+On 2026-09-25 the owner authorized completion of the public release without another handoff. The unpublished S050 light-guide and S051 custom-asset capabilities and the S052 registry repair form one release candidate. Version policy assigns BrandBuilder 2.1.0 to the compatible generator capabilities and Brand Canon 1.4.0 to the optional source-contract fields. I Heart PR Tours advances to 1.1.0 for its approved optional sand expressions; other brand package versions remain unchanged. The Interface Canon and adapter APIs do not change. Release preparation updates exact-version metadata, changelogs, migration and impact guidance, tests, and continuity hashes for edited source metadata. The tagged workflow must build and publish its own verified assets from the exact merged revision, deploy that same verified site export, and pass public catalog, item, and clean-consumer checks before issue #263 closes.

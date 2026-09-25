@@ -4,19 +4,20 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-25
+
 ### Changed
 
-- Repaired S052 shadcn registry catalogs and installable endpoints, added pinned schema and clean-consumer gates, and documented the bundled local-font setup.
-- Prepared the S049 repository front door with approved theme-aware branding, canonical brand destinations, stable latest-release guidance, and release/status badges.
-- Completed S050 light-first guide and hosted presentation across PDF, portable, cards, and download surfaces with measured contrast gates.
-- Governed optional S051 custom assets with provenance, approval, rights, accessibility and publication metadata; projected eligible expressions into guides, hosted navigation, asset library, and downloads.
+- Completed light-first guide and hosted presentation across PDF, portable, cards, and download surfaces with measured contrast gates.
+- Governed optional custom assets with provenance, approval, rights, accessibility and publication metadata; projected eligible expressions into guides, hosted navigation, asset library, and downloads.
+- Repaired shadcn registry catalogs and installable endpoints, added pinned schema and clean-consumer gates, and documented the bundled local-font setup.
+- Advanced BrandBuilder to 2.1.0 and Brand Canon to 1.4.0 for the compatible light-guide and custom-asset source fields. Advanced I Heart PR Tours to 1.1.0 for its approved optional sand expressions; other approved brand package versions remain unchanged.
 
 ### Decisions
 
-- On 2026-09-25, treated the public registry as a discovery catalog plus direct install endpoints and removed its unsupported local-font item; the complete kit remains the authority for bundled offline fonts.
-- On 2026-09-23, made README link validation consume the generated route contract after site preparation, using isolated negative fixtures instead of a duplicated slug list or live HTTP checks in CI.
-- On 2026-09-23, kept public README downloads on the latest published release rather than naming an unpublished 2.0.3 candidate; exact-version assets remain governed by release metadata and checksums.
 - On 2026-09-23, kept custom expressions separate from canonical logo authority and excluded non-public source bytes from public archives; the supplied I Heart PR Tours sand SVGs remain unchanged.
+- On 2026-09-25, treated the public registry as a discovery catalog plus direct install endpoints and removed its unsupported local-font item; the complete kit remains the authority for bundled offline fonts.
+- On 2026-09-25, selected a minor BrandBuilder and Brand Canon release for the new compatible generator and source-contract capabilities. Approved logo geometry and the separate Interface Canon and adapter versions remain unchanged.
 
 ## [2.0.3] - 2026-09-23
 
@@ -25,6 +26,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - Separated ordinary and maskable web icon roles, added mask-safe Android presentation, and made ESO Weave Windows taskbar icons unplated while preserving source logo geometry.
 - Advanced the Brand Canon to 1.3.0, BrandBuilder to 2.0.3, egui adapter to 1.0.2, Glitchpad brand package to 1.1.1, and ESO Weave brand package to 1.0.2.
 - Documented native host icon and egui status roles with explicit consumer repin and application call-site boundaries.
+- Prepared the repository front door with approved theme-aware branding, canonical brand destinations, stable latest-release guidance, and release/status badges.
 
 ### Fixed
 
@@ -40,6 +42,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 - On 2026-09-22, retained governed manual and brand source as the authority for public prose and generated preview treatment, and kept internal history outside the reader-facing audit.
 - On 2026-09-23, preserved the approved derivative hash as the sole Gate 2 acceptance value after a merged-build flake, without changing identity sources, generated-kit bytes, or the 2.0.2 candidate.
+- On 2026-09-23, made README link validation consume the generated route contract after site preparation, using isolated negative fixtures instead of a duplicated slug list or live HTTP checks in CI.
+- On 2026-09-23, kept public README downloads on the latest published release rather than naming an unpublished 2.0.3 candidate; exact-version assets remain governed by release metadata and checksums.
 
 ## [2.0.2] - 2026-09-22
 

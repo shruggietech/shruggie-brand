@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 2.1.0 - 2026-09-25
+
+- Added compatible light-guide source declarations and governed optional custom assets, including eligible expression delivery in generated guides and the hosted site.
+- Repaired shadcn discovery catalogs and direct item payloads, removed the unsupported local-font registry item, and added pinned schema plus clean-consumer installation gates.
+- Advanced BrandBuilder to 2.1.0 and Brand Canon to 1.4.0. I Heart PR Tours 1.1.0 includes approved optional sand expressions; approved logo geometry is unchanged.
+- Regenerate and repin kits to use the new registry delivery and guide capabilities. Existing downloaded kits remain tied to their exact published release.
+
 ## 2.0.3 - 2026-09-23
 
 - Generated separate opaque maskable web icons, mask-safe Android icons, and unplated ESO Weave Windows taskbar frames without altering approved logo geometry.

@@ -111,11 +111,9 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_release_impact_is_closed_and_rejects_downstream_evidence_fields(self):
         impact = load_release_impact()
-        self.assertEqual("2.0.3", impact["brandbuilder_version"])
+        self.assertEqual("2.1.0", impact["brandbuilder_version"])
         self.assertFalse(impact["identity_redesign"])
-        self.assertNotIn("brand versions are unchanged", impact["surfaces"]["identity"]["summary"])
-        for version in ("Glitchpad 1.1.1", "ESO Weave 1.0.2"):
-            self.assertIn(version, impact["surfaces"]["identity"]["summary"])
+        self.assertIn("I Heart PR Tours 1.1.0", impact["surfaces"]["identity"]["summary"])
         self.assertEqual(
             {"identity", "palette", "typography", "platform_assets", "web_react", "egui", "documentation", "recovery"},
             set(impact["surfaces"]),
@@ -346,7 +344,7 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual("1.0.2", first["versions"]["egui_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertNotIn("adoption_status", first["compatibility"])
-            expected_package = "shruggietech-brand-%s-bb2.0.3" % brand["version"]
+            expected_package = "shruggietech-brand-%s-bb2.1.0" % brand["version"]
             self.assertEqual(expected_package, first["bundle"]["package"]["id"])
             self.assertEqual(expected_package + ".zip", first["bundle"]["package"]["filename"])
             self.assertEqual(brand["version"], first["bundle"]["package"]["brand_version"])

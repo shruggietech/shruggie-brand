@@ -32,6 +32,7 @@ REQUIRED_HISTORY = {
     "2.0.1": ("egui", "fine-pointer", "44-point", "iframe"),
     "2.0.2": ("documentation", "preview", "pagination"),
     "2.0.3": ("native", "maskable", "Windows", "egui"),
+    "2.1.0": ("light-first", "custom assets", "shadcn registry", "Brand Canon"),
 }
 MIGRATIONS = {
     "1.2.0": (
@@ -69,6 +70,13 @@ MIGRATIONS = {
         "and repin kits with v2.0.3 to receive distinct maskable web and Android icon roles, "
         "unplated ESO Weave Windows taskbar frames, and egui adapter 1.0.2 status contrast. "
         "Approved logo geometry remains unchanged; downstream applications still own their local call sites."
+    ),
+    "2.1.0": (
+        "Existing kits need migration: **yes to adopt the new capabilities and corrected registry**. "
+        "Regenerate and repin kits with v2.1.0 for the light-guide presentation, governed optional "
+        "custom assets, and valid shadcn catalog and direct item delivery. Copy bundled local fonts "
+        "through the documented manual setup; they are not an installable registry font item. "
+        "Approved logo geometry and existing adapter APIs are unchanged."
     ),
 }
 
