@@ -86,6 +86,12 @@ MIGRATIONS = {
         "interface cues, and corrected authoring guidance. Previously approved palette values and logo "
         "geometry remain unchanged; new independent choices require their own approval."
     ),
+    "2.2.1": (
+        "Existing kits need migration: **no**. This patch corrects the hosted homepage portfolio's "
+        "dark card surfaces and compact reduced marks. Existing 2.2.0 kits remain valid; consumers "
+        "repinning 2.2.1 packages should retain their exact checksummed recovery bytes. Approved logo "
+        "geometry, palette values, and adapter APIs remain unchanged."
+    ),
 }
 
 

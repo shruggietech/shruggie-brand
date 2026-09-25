@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 2.2.1 - 2026-09-25
+
+- Corrected the hosted homepage portfolio to use each brand's approved dark card surface and reduced-color mark, including the I Heart PR Tours heart. The brand's own light showcase and shipped logo geometry remain unchanged.
+- Existing 2.2.0 kits require no migration for this site-only correction. Repin only when adopting exact 2.2.1 package and recovery bytes.
+
 ## 2.2.0 - 2026-09-25
 
 - Added formal identity colors, approved artwork combinations, correct-use examples, and measured interface cue records for action, warning, error, success, information, focus, selection, and disabled states in both themes.

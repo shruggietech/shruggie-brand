@@ -74,12 +74,11 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 2rem; margin-bottom: 2rem; }
 .section-heading > p { max-width: 42ch; color: var(--muted-text); }
 .brand-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 1rem; }
-.brand-card { box-sizing: border-box; display: flex; height: 20rem; flex-direction: column; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-showcase-surface, linear-gradient(145deg, color-mix(in srgb, var(--brand-accent) 12%, #111315), #111315 54%)); color: #fff; transition: border-color .2s, box-shadow .2s; }
+.brand-card { box-sizing: border-box; display: flex; height: 20rem; flex-direction: column; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-portfolio-surface); color: #fff; transition: border-color .2s, box-shadow .2s; }
 .brand-card:hover, .brand-card:focus-within { border-color: var(--brand-accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-accent) 55%, transparent); }
 .brand-card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 4px var(--brand-accent); }
-.brand-card[data-showcase-surface='governed-dark'] { color: #fff; }
 .brand-icon { box-sizing: border-box; display: grid; width: 4.25rem; height: 4.25rem; flex: 0 0 4.25rem; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: stretch; padding: .65rem; border-radius: 1rem; background: #050708; box-shadow: 0 1rem 3rem color-mix(in srgb, var(--brand-accent) 18%, transparent); }
-.brand-card[data-showcase-surface='governed-dark'] .brand-icon { box-shadow: none; }
+.brand-card .brand-icon { box-shadow: none; }
 .brand-icon img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; }
 .brand-card h3 { margin-top: 2.5rem; color: #fff; font-size: 1.5rem; }
 .vendor-marker { margin-left: .15em; color: var(--brand-accent); font-size: .65em; vertical-align: super; }
@@ -97,9 +96,8 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .brand-actions a:focus-visible { border-color: var(--brand-accent); outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 4px var(--brand-accent); }
 .brand-actions a:active { transform: translateY(1px); }
 .brand-accordion-list { display: none; }
-.brand-accordion { box-sizing: border-box; min-width: 0; max-width: 100%; overflow: clip; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-showcase-surface, linear-gradient(145deg, color-mix(in srgb, var(--brand-accent) 12%, #111315), #111315 54%)); color: #fff; }
+.brand-accordion { box-sizing: border-box; min-width: 0; max-width: 100%; overflow: clip; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-portfolio-surface); color: #fff; }
 .brand-accordion + .brand-accordion { margin-top: .75rem; }
-.brand-accordion[data-showcase-surface='governed-dark'] { color: #fff; }
 .brand-accordion summary { display: grid; min-height: 5.75rem; grid-template-columns: 3.5rem minmax(0, 1fr) 1.5rem; align-items: center; gap: .85rem; padding: .75rem 1rem; cursor: pointer; list-style: none; }
 .brand-accordion summary::-webkit-details-marker { display: none; }
 .brand-accordion summary::after { color: var(--brand-accent); content: '+'; font-size: 1.5rem; text-align: center; }
@@ -109,17 +107,6 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .mobile-brand-title { min-width: 0; color: #fff; font-size: 1.1rem; font-weight: 700; overflow-wrap: anywhere; }
 .brand-accordion-panel { box-sizing: border-box; min-width: 0; max-width: 100%; padding: 0 1rem 1rem; }
 .brand-accordion-panel > p { margin: 0 0 1rem; color: #fff; overflow-wrap: anywhere; }
-.brand-card[data-showcase-surface='governed-light'], .brand-accordion[data-showcase-surface='governed-light'] { background: var(--brand-showcase-surface); color: var(--brand-showcase-foreground); border-color: var(--brand-showcase-border); color-scheme: light; }
-.brand-card[data-showcase-surface='governed-light']:hover, .brand-card[data-showcase-surface='governed-light']:focus-within { border-color: var(--brand-showcase-ring); box-shadow: 0 0 0 1px var(--brand-showcase-ring); }
-.brand-card[data-showcase-surface='governed-light']:focus-visible { outline-color: var(--brand-showcase-ring); box-shadow: 0 0 0 4px var(--brand-showcase-surface); }
-.brand-card[data-showcase-surface='governed-light'] :is(h3, .brand-card-description), .brand-accordion[data-showcase-surface='governed-light'] :is(.mobile-brand-title, .brand-accordion-panel > p) { color: var(--brand-showcase-foreground); }
-.brand-card[data-showcase-surface='governed-light'] .vendor-marker, .brand-accordion[data-showcase-surface='governed-light'] .vendor-marker, .brand-accordion[data-showcase-surface='governed-light'] summary::after { color: var(--brand-showcase-ring); }
-.brand-card[data-showcase-surface='governed-light'] .brand-icon, .brand-accordion[data-showcase-surface='governed-light'] .brand-icon { background: var(--brand-showcase-surface); outline: 1px solid var(--brand-showcase-border); box-shadow: none; }
-.brand-card[data-showcase-surface='governed-light'] .brand-actions a, .brand-accordion[data-showcase-surface='governed-light'] .brand-actions a { background: var(--brand-showcase-secondary); color: var(--brand-showcase-foreground); border-color: var(--brand-showcase-border); }
-.brand-card[data-showcase-surface='governed-light'] .brand-actions a:first-child, .brand-accordion[data-showcase-surface='governed-light'] .brand-actions a:first-child { background: var(--brand-showcase-cta); color: var(--brand-showcase-cta-foreground); border-color: var(--brand-showcase-cta); }
-.brand-card[data-showcase-surface='governed-light'] .brand-actions a:hover, .brand-accordion[data-showcase-surface='governed-light'] .brand-actions a:hover { border-color: var(--brand-showcase-ring); box-shadow: inset 0 0 0 1px var(--brand-showcase-ring); }
-.brand-card[data-showcase-surface='governed-light'] .brand-actions a:focus-visible, .brand-accordion[data-showcase-surface='governed-light'] .brand-actions a:focus-visible { outline-color: var(--brand-showcase-foreground); box-shadow: 0 0 0 4px var(--brand-showcase-ring); }
-.brand-accordion[data-showcase-surface='governed-light'] summary:focus-visible { outline-color: var(--brand-showcase-ring); }
 .portfolio-vendor-notice { max-width: 78ch; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted-text); font-size: .8rem; line-height: 1.5; }
 .brand-hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(18rem, .85fr); align-items: center; gap: clamp(2rem, 7vw, 6rem); }
 .brand-hero h1 { max-width: 100%; margin: 1rem 0; overflow-wrap: normal; font-size: clamp(2.5rem, 5vw, 4.25rem); line-height: .98; text-wrap: balance; }
