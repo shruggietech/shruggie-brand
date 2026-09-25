@@ -35,6 +35,7 @@ from gen_conformance import verify_conformance
 from package_release import write_brand_archive
 from release_contract import PRODUCTION
 from interface_contract import package_identity
+from registry_contract import validate_registry as validate_registry_delivery
 DOCUMENTATION_CONTRACT = load_documentation_contract()
 DOCUMENTATION_CATALOG = manual_catalog(DOCUMENTATION_CONTRACT)
 DOC_DESCRIPTIONS = {page["slug"]: page["description"] for page in DOCUMENTATION_CATALOG}
@@ -109,33 +110,18 @@ def load_brand(source: Path) -> dict:
 
 def validate_registry(source: Path, brand: dict) -> None:
     registry_dir = source / "nextjs" / "registry"
-    catalog = json.loads((registry_dir / "registry.json").read_text(encoding="utf-8"))
-    if catalog.get("$schema") != "https://ui.shadcn.com/schema/registry.json":
-        raise ValueError(f"{brand['slug']}: registry schema is missing")
-    items = catalog.get("items", [])
-    if not isinstance(items, list) or not items:
-        raise ValueError(f"{brand['slug']}: registry catalog is empty")
-    names = [item.get("name") for item in items if isinstance(item, dict)]
-    if len(names) != len(items) or any(not isinstance(name, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name) for name in names):
-        raise ValueError(f"{brand['slug']}: registry catalog contains an unsafe item")
-    if len(set(names)) != len(names):
-        raise ValueError(f"{brand['slug']}: registry catalog contains a duplicate item")
-    if not {"theme", "fonts"}.issubset(set(names)):
-        raise ValueError(f"{brand['slug']}: registry theme or fonts item is missing")
     expected = f"https://brand.shruggie.tech/{brand['slug']}/brand"
     if brand.get("registry_base") != expected:
         raise ValueError(f"{brand['slug']}: registry_base must be {expected}")
-    for item in items:
-        path = registry_dir / f"{item['name']}.json"
-        if not path.is_file():
-            raise ValueError(f"{brand['slug']}: advertised registry item is missing: {item['name']}")
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        if payload.get("$schema") != "https://ui.shadcn.com/schema/registry-item.json":
-            raise ValueError(f"{brand['slug']}: registry item schema is invalid: {item['name']}")
-        if payload.get("name") != item["name"]:
-            raise ValueError(f"{brand['slug']}: registry item name mismatch: {item['name']}")
-        if payload.get("type") != item.get("type"):
-            raise ValueError(f"{brand['slug']}: registry item type mismatch: {item['name']}")
+    validate_registry_delivery(registry_dir, brand["slug"])
+    catalog = json.loads((registry_dir / "registry.json").read_text(encoding="utf-8"))
+    declared = {"theme"} | {
+        re.sub(r"(?<!^)(?=[A-Z])", "-", name).lower()
+        for name in (brand.get("domain_components") or {})
+    }
+    advertised = {item["name"] for item in catalog["items"]}
+    if advertised != declared:
+        raise ValueError(f"{brand['slug']}: registry catalog differs from declared components")
 
 
 def validate_portal_navigation(portal: dict[str, Any], slug: str) -> None:
@@ -624,6 +610,7 @@ def publication_record(sources: list[Path], release_slugs: Optional[Set[str]] = 
 
 def copy_kit(source: Path, brand: dict) -> dict:
     slug = brand["slug"]
+    validate_registry(source, brand)
     governed = custom_assets(brand, source, public_only=True)
     guide = source / "brand-guide.pdf"
     if not guide.is_file():
@@ -633,6 +620,12 @@ def copy_kit(source: Path, brand: dict) -> dict:
         shutil.rmtree(target)
     target.mkdir(parents=True)
     replace_tree(source / "nextjs" / "registry", target / "brand" / "r")
+    source_registry = source / "nextjs" / "registry"
+    hosted_registry = target / "brand" / "r"
+    source_bytes = {path.name: path.read_bytes() for path in source_registry.glob("*.json")}
+    hosted_bytes = {path.name: path.read_bytes() for path in hosted_registry.glob("*.json")}
+    if source_bytes != hosted_bytes:
+        raise ValueError(f"{slug}: hosted registry differs from the verified kit")
     downloads = target / "downloads" / "files"
     downloads.mkdir(parents=True)
     shutil.copy2(guide, downloads / f"{slug}-brand-guide.pdf")

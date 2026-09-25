@@ -221,6 +221,10 @@ class PrepareSiteTests(unittest.TestCase):
             write_minimal_portal(source)
             (source / "brand-guide.pdf").write_bytes(b"%PDF-test")
             (source / "specimens" / "sample.svg").write_text("<svg/>\n", encoding="utf-8")
+            theme = {"$schema": "https://ui.shadcn.com/schema/registry-item.json", "name": "theme", "type": "registry:theme", "title": "Alpha Theme", "description": "Installable tokens", "cssVars": {"light": {"background": "oklch(1 0 0)"}, "dark": {"background": "oklch(0 0 0)"}}, "files": []}
+            registry = source / "nextjs" / "registry"
+            (registry / "theme.json").write_text(json.dumps(theme), encoding="utf-8")
+            (registry / "registry.json").write_text(json.dumps({"$schema": "https://ui.shadcn.com/schema/registry.json", "name": "alpha", "items": [theme]}), encoding="utf-8")
             enforcement = source / "enforcement"
             enforcement.mkdir(exist_ok=True)
             bundle = {"package": {"id": "alpha-brand-1.0.0-bb2.0.0", "filename": "alpha-brand-1.0.0-bb2.0.0.zip"}, "versions": {"compiler_version": "2.0.0"}}
@@ -232,7 +236,7 @@ class PrepareSiteTests(unittest.TestCase):
             archive_writer = mock.patch.object(prepare_site, "write_brand_archive").start()
             try:
                 brand = {
-                    "slug": "alpha", "title": "Alpha", "kind": "sub-brand",
+                    "slug": "alpha", "title": "Alpha", "kind": "sub-brand", "registry_base": "https://brand.shruggie.tech/alpha/brand",
                     "descriptor": "Alpha.", "brand_idea": "Alpha.", "version": "1.0.0",
                     "accent": {"bright": "#FFD900", "accessible": "#867100"},
                     "surfaces": {"card": "#121416"},
@@ -593,16 +597,16 @@ class PrepareSiteTests(unittest.TestCase):
             registry = source / "nextjs" / "registry"
             registry.mkdir(parents=True)
             brand = {"slug": "alpha", "registry_base": "https://brand.shruggie.tech/alpha/brand"}
-            items = [{"name": "theme", "type": "registry:theme", "files": []}, {"name": "fonts", "type": "registry:font", "files": []}]
-            (registry / "registry.json").write_text(json.dumps({"$schema": "https://ui.shadcn.com/schema/registry.json", "items": items}), encoding="utf-8")
-            for item in items:
-                (registry / f"{item['name']}.json").write_text(json.dumps({"$schema": "https://ui.shadcn.com/schema/registry-item.json", "name": item["name"], "type": item["type"]}), encoding="utf-8")
+            theme = {"$schema": "https://ui.shadcn.com/schema/registry-item.json", "name": "theme", "type": "registry:theme", "title": "Alpha Theme", "description": "Installable tokens", "cssVars": {"light": {"background": "oklch(1 0 0)"}, "dark": {"background": "oklch(0 0 0)"}}, "files": []}
+            catalog = {"$schema": "https://ui.shadcn.com/schema/registry.json", "name": "alpha", "items": [theme]}
+            (registry / "registry.json").write_text(json.dumps(catalog), encoding="utf-8")
+            (registry / "theme.json").write_text(json.dumps(theme), encoding="utf-8")
             prepare_site.validate_registry(source, brand)
-            (registry / "fonts.json").unlink()
-            with self.assertRaisesRegex(ValueError, "advertised registry item is missing"):
+            (registry / "theme.json").unlink()
+            with self.assertRaisesRegex(ValueError, "advertised endpoint is missing"):
                 prepare_site.validate_registry(source, brand)
-            (registry / "fonts.json").write_text(json.dumps({"$schema": "https://ui.shadcn.com/schema/registry-item.json", "name": "fonts", "type": "registry:ui"}), encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "type mismatch"):
+            (registry / "theme.json").write_text(json.dumps(dict(theme, type="registry:ui")), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "catalog and direct payload mismatch"):
                 prepare_site.validate_registry(source, brand)
 
     def test_route_contract_rejects_unsafe_or_duplicate_records(self):

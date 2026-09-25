@@ -978,7 +978,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(kwargs["stdin"], subprocess.DEVNULL)
         self.assertEqual(kwargs["creationflags"], getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000))
 
-    def test_generated_nextjs_binding_uses_local_fonts_and_plural_registry_name(self):
+    def test_generated_nextjs_binding_uses_local_fonts_without_unsupported_registry_item(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp) / "input"
             self.copy_production_test_input(kit)
@@ -990,14 +990,21 @@ class PipelineTests(unittest.TestCase):
                 sys.argv = old_argv
             registry = Path(tmp) / "nextjs" / "registry"
             fonts_ts = (Path(tmp) / "nextjs" / "fonts.ts").read_text(encoding="utf-8")
-            self.assertTrue((registry / "fonts.json").is_file())
-            self.assertFalse((registry / "font.json").exists())
+            self.assertFalse((registry / "fonts.json").exists())
+            self.assertNotIn('"name": "fonts"', (registry / "registry.json").read_text(encoding="utf-8"))
             self.assertIn('from "next/font/local"', fonts_ts)
             self.assertNotIn("next/font/google", fonts_ts)
             for name in ("Geist-Regular.woff2", "Geist-Medium.woff2",
                          "GeistMono-Regular.woff2", "SpaceGrotesk-Medium.woff2",
                          "SpaceGrotesk-Bold.woff2"):
                 self.assertIn(name, fonts_ts)
+
+    def test_generated_registry_component_accepts_reserved_property_name(self):
+        rows = gen_nextjs.domain_row_items({"slug": "fragcap", "title": "Fragcap", "domain_components": {"SessionRow": ["interface"]}})
+        source = rows[0][1]["files"][0]["content"]
+        self.assertIn('"interface": ReactNode', source)
+        self.assertIn('props["interface"]', source)
+        self.assertNotIn("{ interface }", source)
 
     def test_third_party_fixed_font_pipeline_is_offline_and_ownership_safe(self):
         with tempfile.TemporaryDirectory() as tmp:

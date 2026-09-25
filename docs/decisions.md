@@ -96,7 +96,7 @@ The correction reviews on PR #26 found ten additional defects, tracked as issues
 
 The fixes distinguish missing capability from broken capability. A lower tier records a named skip and succeeds with the artifacts that tier promises. Once a probe confirms a renderer or full tier, any later export or QC failure is fatal. The Node resvg wrapper is now exercised during probing instead of treated as available because its script file exists.
 
-The generated manual Next.js binding uses bundled files through `next/font/local`. The current shadcn `registry:font` schema supports only the Google provider, so `fonts.json` remains a standards-compliant registry item while its install note directs deterministic and offline consumers to the local binding. This limitation is documented by the upstream [registry item schema](https://ui.shadcn.com/docs/registry/registry-item-json).
+The generated manual Next.js binding uses bundled files through `next/font/local`. An earlier decision incorrectly called the `fonts.json` item standards-compliant while it declared the unsupported `local` provider and omitted `font.import`. S052 supersedes that claim: the registry no longer advertises the item, and consumers copy the local font helper and assets from the kit. The limitation is documented by the upstream [registry item schema](https://ui.shadcn.com/docs/registry/registry-item-json).
 
 ### Public planning hygiene
 

@@ -15,13 +15,13 @@ Generator: `templates/gen_nextjs.py`. Worked output: `examples/shruggietech/`.
 ```
 nextjs/
   globals.css               Tailwind v4, @theme inline, :root and .dark in OKLCH
-  fonts.ts                  next/font against bundled and npm faces
+  fonts.ts                  next/font/local against bundled faces
   providers.tsx             next-themes, dark by default
   components.json.snippet   the registries entry a consumer pastes
   registry/
     registry.json           the catalog
     theme.json              registry:theme carrying every cssVar
-    fonts.json              registry:font
+    <component>.json        installable registry:ui payloads
   README.md                 install instructions and the rules that outlive them
 ```
 
@@ -97,11 +97,11 @@ Current output for ShruggieTech:
 
 ## Distribution
 
-Publish the catalog and let a consuming project install with one command:
+The public `registry.json` is a discovery catalog. A consuming Next.js/Tailwind v4 project installs direct item endpoints with the pinned shadcn CLI:
 
 ```bash
-npx shadcn@latest registry add @shruggietech=https://brand.shruggie.tech/shruggietech/brand/r/{name}.json
-npx shadcn@latest add @shruggietech/theme @shruggietech/fonts
+npx shadcn@4.21.0 registry add @shruggietech=https://brand.shruggie.tech/shruggietech/brand/r/{name}.json
+npx shadcn@4.21.0 add @shruggietech/theme
 ```
 
 Private registries authenticate through `components.json`'s `registries`
@@ -110,17 +110,12 @@ no special client work.
 
 Two things this unlocks beyond convenience:
 
-- **The shadcn MCP server** (`npx shadcn mcp init --client claude`) works
-  against any valid registry with no extra server code. An agent can ask what
-  is in the namespace and install from it conversationally.
-- **Registries carry non-component files**, including `AGENTS.md` and agent
-  rule files. The enforcement layer ships down the same pipe as the tokens, so
-  the brand and its rules arrive together via the command the agent was already
-  going to run.
+- Each item endpoint is checked against the pinned registry schema and installed in a clean consumer fixture before publication. A catalog entry mirrors that endpoint rather than acting as an empty placeholder.
+- The CLI does not install the whole kit or its enforcement instructions. Download the complete kit to obtain those files, local fonts, and the wider brand guidance.
 
 ## Fonts
 
-`fonts.ts` uses `next/font/local` for the role faces selected by `typography.mode`. House mode emits Geist, Geist Mono, and Space Grotesk. Fixed mode emits only the declared local faces and their measured weights and styles. Keep it beside the exported kit's `fonts/` tree so a Next.js build makes no font-network request.
+`fonts.ts` uses `next/font/local` for the role faces selected by `typography.mode`. House mode emits Geist, Geist Mono, and Space Grotesk. Fixed mode emits only the declared local faces and their measured weights and styles. Copy the kit's `nextjs/fonts.ts` and `fonts/` tree together, preserving their relative paths, then apply `fontVariables` to `<html>`. A `registry:font` item cannot deliver these bundled faces with shadcn 4.21.0 because its schema only permits a Google provider. The catalog therefore does not advertise one. This manual step makes no font-network request.
 
 The generated theme also resolves `brand-emphasis` and `brand-cta` from the explicit inheritance contract. House inheritance uses ShruggieTech orange. Independent inheritance uses the brand's required semantic colors and does not receive the house pair.
 
