@@ -140,7 +140,7 @@ def validate_gate_2_packet(brief, packet, root):
             try:
                 if path.suffix.lower() == ".svg":
                     from brand_contract import _validate_svg
-                    _validate_svg(str(path))
+                    _validate_svg(path)
                 else:
                     from PIL import Image
                     with Image.open(path) as image:

@@ -357,6 +357,15 @@ class PipelineTests(unittest.TestCase):
                       "gate_2": {"status": "pending"}, "public_projection_enabled": False,
                       "social_copy": social, "assets": assets}
             validate_gate_2_packet(brief, packet, root)
+            svg = root / "full-mark.svg"
+            svg.write_text('<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"><rect width="2" height="2"/></svg>', encoding="utf-8")
+            svg_packet = copy.deepcopy(packet)
+            svg_packet["assets"]["full-mark"] = {"path": svg.name, "sha256": hashlib.sha256(svg.read_bytes()).hexdigest()}
+            validate_gate_2_packet(brief, svg_packet, root)
+            svg.write_text('<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/mark.png"/></svg>', encoding="utf-8")
+            svg_packet["assets"]["full-mark"]["sha256"] = hashlib.sha256(svg.read_bytes()).hexdigest()
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, svg_packet, root)
             wrong = copy.deepcopy(packet)
             wrong["social_copy"]["slogan"] = "Invented line."
             with self.assertRaises(BriefError):

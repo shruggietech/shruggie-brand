@@ -11,7 +11,7 @@
 - `git diff --check`: passed.
 - Public documentation source audit: zero problems.
 - UTF-8 without BOM, LF line endings, and mojibake scan of changed source and specification text: passed.
-- Focused adaptive workflow tests: three passed.
+- Focused adaptive workflow tests: three passed. The Gate 2 packet test also accepts a valid SVG review asset and rejects an external-reference SVG.
 - Release contract tests: 27 passed.
 - Interface contract tests: 19 passed.
 - Documentation publication tests: five passed.
