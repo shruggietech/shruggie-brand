@@ -3,6 +3,7 @@
 
 import json
 import base64
+import builtins
 import copy
 import hashlib
 from contextlib import redirect_stdout
@@ -1707,10 +1708,17 @@ class PipelineTests(unittest.TestCase):
         self.assertFalse(probe.svg_renderer_capability(found, False))
 
     def test_probe_blocks_when_jsonschema_is_missing(self):
+        original_import = builtins.__import__
+
+        def missing_jsonschema(name, *args, **kwargs):
+            if name == "jsonschema":
+                raise ModuleNotFoundError("No module named 'jsonschema'")
+            return original_import(name, *args, **kwargs)
+
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "kit"
             output = StringIO()
-            with mock.patch.dict(sys.modules, {"jsonschema": None}), \
+            with mock.patch.object(builtins, "__import__", side_effect=missing_jsonschema), \
                     mock.patch.object(probe, "CLI", [("magick", "ImageMagick"), ("convert", "ImageMagick")]), \
                     mock.patch.object(probe, "which", return_value=None), \
                     mock.patch.object(probe, "node_resvg_ok", return_value=False), \
