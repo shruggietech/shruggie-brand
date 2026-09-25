@@ -20,3 +20,7 @@ S052 implements issue #263. FR-001 to FR-005 map to generator, schema, and site 
 
 - [PR #275](https://github.com/shruggietech/shruggie-brand/pull/275) opened from commit `ce4585a`. The first Codex review found that the standalone capability probe did not require `jsonschema` even though the registry generator imports it. The follow-up blocks an unusable Core tier, stops `build_kit.py` before generation on probe failure, corrects portable guidance, and adds two negative tests. Required CI and final review disposition remain pending.
 - Public HTTPS endpoint and release behavior: pending an authorized merge and deployment. No tag, release, or issue closure is claimed by this PR.
+
+## Post-merge release preparation
+
+The owner authorized a formal public release on 2026-09-25. PR #275 is merged as `1d9602be0b1cdb17b4a74ae1387566c51b608035`. Release preparation selects BrandBuilder 2.1.0, Brand Canon 1.4.0, and I Heart PR Tours 1.1.0 under the declared version policy. The S052 source fix remains the basis for issue #263. Final tagged CI, release assets, public site deployment, live endpoint inventory, and remote consumer installation are recorded in the issue after publication; this preparation does not claim those checks have passed.
