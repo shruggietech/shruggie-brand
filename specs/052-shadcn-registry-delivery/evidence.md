@@ -18,5 +18,5 @@ S052 implements issue #263. FR-001 to FR-005 map to generator, schema, and site 
 
 ## External and later checks
 
-- Official PR required CI, bot reviews, and owner review: pending.
+- [PR #275](https://github.com/shruggietech/shruggie-brand/pull/275) opened from commit `ce4585a`. The first Codex review found that the standalone capability probe did not require `jsonschema` even though the registry generator imports it. The follow-up blocks an unusable Core tier, stops `build_kit.py` before generation on probe failure, corrects portable guidance, and adds two negative tests. Required CI and final review disposition remain pending.
 - Public HTTPS endpoint and release behavior: pending an authorized merge and deployment. No tag, release, or issue closure is claimed by this PR.

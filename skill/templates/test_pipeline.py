@@ -5,7 +5,8 @@ import json
 import base64
 import copy
 import hashlib
-from io import BytesIO
+from contextlib import redirect_stdout
+from io import BytesIO, StringIO
 import os
 import re
 import shutil
@@ -1704,6 +1705,36 @@ class PipelineTests(unittest.TestCase):
         found["magick"] = False
         found["convert"] = True
         self.assertFalse(probe.svg_renderer_capability(found, False))
+
+    def test_probe_blocks_when_jsonschema_is_missing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            output = StringIO()
+            with mock.patch.dict(sys.modules, {"jsonschema": None}), \
+                    mock.patch.object(probe, "CLI", [("magick", "ImageMagick"), ("convert", "ImageMagick")]), \
+                    mock.patch.object(probe, "which", return_value=None), \
+                    mock.patch.object(probe, "node_resvg_ok", return_value=False), \
+                    mock.patch.object(probe, "chromium_ok", return_value=(False, "not tested")), \
+                    mock.patch.object(sys, "argv", ["probe.py", str(kit)]), redirect_stdout(output):
+                self.assertEqual(probe.main(), 1)
+            self.assertRegex(output.getvalue(), r"jsonschema\s+MISSING")
+            self.assertIn("tier         blocked", output.getvalue())
+            self.assertIn("jsonschema==4.17.3", output.getvalue())
+            self.assertFalse((kit / "qc" / "probe.json").exists())
+
+    def test_build_stops_when_core_probe_fails(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            kit.mkdir()
+            write_utf8(kit / "brand.json", "{}\n")
+            output = StringIO()
+            with mock.patch.object(build_kit, "PRE", [("probe the toolchain", ["probe.py", "{kit}"])]), \
+                    mock.patch.object(build_kit, "run", return_value=(1, "jsonschema missing")) as run, \
+                    mock.patch.object(sys, "argv", ["build_kit.py", str(kit)]), redirect_stdout(output):
+                self.assertEqual(build_kit.main(), 1)
+            run.assert_called_once()
+            self.assertIn("required core capability probe failed", output.getvalue())
+            self.assertFalse((kit / "manifest.json").exists())
 
     def test_windows_convert_utility_is_not_imagemagick(self):
         windows_result = types.SimpleNamespace(

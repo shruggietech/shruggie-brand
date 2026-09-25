@@ -105,6 +105,9 @@ def main():
     for label, argv in PRE:
         script = argv[0]; args = [a.format(brand=brand, kit=kit) for a in argv[1:]]
         if not os.path.exists(os.path.join(here, script)):
+            if script == "probe.py":
+                print("FAIL  %-42s (%s absent; core capability is unknown)" % (label, script))
+                return 1
             print("SKIP  %-42s (%s absent)" % (label, script)); continue
         rc, out = run(script, args, here)
         last = out.strip().splitlines()[-1] if out.strip() else ""
@@ -112,9 +115,12 @@ def main():
         if rc:
             fail += rc
             print(out)
-            if script in {"validate_brand.py", "validate_glyph.py"}:
+            if script in {"validate_brand.py", "probe.py", "validate_glyph.py"}:
                 if script == "validate_brand.py":
                     print("\nThe brand contract is invalid. Correct brand.json or its declared local inputs before generating anything.")
+                    return min(fail, 125)
+                if script == "probe.py":
+                    print("\nThe required core capability probe failed. Install its missing dependencies before building.")
                     return min(fail, 125)
                 print("\nThe mark is wrong. Fix build/mk_paths.py and regenerate "
                       "logo.paths before building anything else.")

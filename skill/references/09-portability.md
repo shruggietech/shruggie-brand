@@ -18,7 +18,7 @@ Three capability tiers, and what each can still finish:
 
 | Tier | What is present | What you get |
 | --- | --- | --- |
-| **Core** | Python 3.8+ and its standard library. Nothing else. | brand.json, all tokens, the Next.js binding, enforcement, the guidelines page, the specimen, the manifest, `verify.py` and the full glyph gate |
+| **Core** | Python 3.8+, `coloraide`, `jsonschema`, and the standard library | brand.json, all tokens, the Next.js binding, enforcement, the guidelines page, the specimen, the manifest, `verify.py` and the full glyph gate |
 | **Raster** | Core, plus a rasteriser and Pillow for required compositing | Everything above, plus PNG exports and the favicon set; a measured ICO writer adds the multi-entry `.ico` |
 | **Full** | Raster, plus headless Chromium | Everything above, plus the brand guide PDF and the QC contact sheets |
 
@@ -58,9 +58,8 @@ outcome. "The PDF looks good" from an agent that never rendered it is not.
 - Open every file with an explicit `encoding="utf-8"` and, on write,
   `newline="\n"`. Windows defaults to cp1252 and CRLF, and both corrupt a
   checksummed manifest.
-- Install with `pip install --user`, and treat failure as normal rather than
-  fatal: drop to a lower tier and record the skip.
-- Color work requires `coloraide`. Font contract validation requires fontTools, and WOFF2 inspection also requires Brotli. Raster palette evidence requires Pillow. Report a missing required contract dependency explicitly; do not substitute or publish partial evidence.
+- Install optional renderer dependencies with `pip install --user`; if installation fails, drop to a lower tier and record the skip. Missing `coloraide` or `jsonschema` blocks Core and must be fixed before building.
+- Core work requires `coloraide` for measured color and `jsonschema==4.17.3` for registry validation. If either is missing, the probe blocks before writing a capability report. Font contract validation requires fontTools, and WOFF2 inspection also requires Brotli. Raster palette evidence requires Pillow. Report a missing required contract dependency explicitly; do not substitute or publish partial evidence.
 
 ## Shell and paths
 
