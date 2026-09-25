@@ -304,6 +304,100 @@ class PipelineTests(unittest.TestCase):
                        "before canonical approval", "gate 2", "invalidates approval"):
             self.assertIn(phrase, corpus)
 
+    def test_authoring_guidance_has_adaptive_brief_and_only_two_creative_gates(self):
+        skill = (ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8").lower()
+        interview = (ROOT / "skill" / "references" / "03-interview.md").read_text(encoding="utf-8").lower()
+        brief = interview
+        ambient = (ROOT / "skill" / "AGENTS.md").read_text(encoding="utf-8").lower()
+        self.assertIn("## gate 1:", interview)
+        self.assertIn("## gate 2:", interview)
+        for obsolete in ("## gate 0:", "## gate 3:", "## gate 4a:", "## gate 4b:", "## gate 5:",
+                         "two mandatory inputs", "one colour decision and one logo decision"):
+            self.assertNotIn(obsolete, interview + "\n" + skill)
+        for required in ("facts", "constraints", "proposals", "unresolved", "slogan-only",
+                         "slogan-and-description", "formal brand palette", "interface cue palette"):
+            self.assertIn(required, brief)
+        for required in ("exact approved slogan", "social share image", "before final kit compilation",
+                         "silence is never approval"):
+            self.assertIn(required, interview)
+        self.assertIn("adaptive brief", skill)
+        self.assertIn("adaptive brief", ambient)
+
+    def test_private_brief_and_gate_2_packet_bind_exact_social_copy(self):
+        from authoring_brief import BriefError, validate_brief, validate_gate_2_packet
+        topics = {name: {"facts": [], "constraints": [], "proposals": [], "unresolved": []}
+                  for name in ("purpose", "audience", "positioning", "voice", "references",
+                               "identity", "lockups", "social_copy", "formal_palette",
+                               "interface_cues", "typography", "deliverables", "affiliation")}
+        social = {"status": "approved", "slogan": "A cross-platform scheduler in Go.",
+                  "description": None, "layout": "slogan-only",
+                  "slogan_lines": ["A cross-platform scheduler in Go."],
+                  "description_lines": [], "approved_source": "Owner interview on 2026-09-25",
+                  "approved_by": "owner", "approved_on": "2026-09-25"}
+        brief = {"schema_version": 1, "topics": topics, "social_copy": social}
+        validate_brief(brief)
+        missing_source = copy.deepcopy(brief)
+        del missing_source["social_copy"]["approved_source"]
+        with self.assertRaises(BriefError):
+            validate_brief(missing_source)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            roles = ("full-mark", "reduced-mark", "wide-lockup", "stacked-lockup",
+                     "social-share-image", "formal-palette", "interface-cues", "typography",
+                     "representative-application", "derivative-manifest")
+            assets = {}
+            for role in roles:
+                target = root / (role + (".png" if role in roles[:5] or role == "representative-application" else ".txt"))
+                if target.suffix == ".png":
+                    Image.new("RGBA", (2, 2), (0, 0, 0, 255)).save(target)
+                else:
+                    target.write_text(role, encoding="utf-8")
+                assets[role] = {"path": target.name, "sha256": hashlib.sha256(target.read_bytes()).hexdigest()}
+            packet = {"schema_version": 1, "gate_1": {"status": "approved", "source_sha256": "a" * 64},
+                      "gate_2": {"status": "pending"}, "public_projection_enabled": False,
+                      "social_copy": social, "assets": assets}
+            validate_gate_2_packet(brief, packet, root)
+            wrong = copy.deepcopy(packet)
+            wrong["social_copy"]["slogan"] = "Invented line."
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, wrong, root)
+            missing = copy.deepcopy(packet)
+            del missing["assets"]["social-share-image"]
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, missing, root)
+            public = copy.deepcopy(packet)
+            public["public_projection_enabled"] = True
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, public, root)
+            stale = copy.deepcopy(packet)
+            stale["assets"]["social-share-image"]["sha256"] = "0" * 64
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, stale, root)
+            escaping = copy.deepcopy(packet)
+            escaping["assets"]["social-share-image"]["path"] = "../outside.png"
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, escaping, root)
+            shared = copy.deepcopy(packet)
+            shared["assets"]["social-share-image"] = copy.deepcopy(shared["assets"]["wide-lockup"])
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, shared, root)
+            unresolved = copy.deepcopy(brief)
+            unresolved["topics"]["social_copy"]["unresolved"] = ["Which line breaks are approved?"]
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(unresolved, packet, root)
+
+    def test_adaptive_brief_keeps_sparse_choices_unresolved(self):
+        from authoring_brief import BriefError, validate_brief
+        topics = {name: {"facts": [], "constraints": [], "proposals": [], "unresolved": ["Ask operator"]}
+                  for name in ("purpose", "audience", "positioning", "voice", "references",
+                               "identity", "lockups", "social_copy", "formal_palette",
+                               "interface_cues", "typography", "deliverables", "affiliation")}
+        draft = {"schema_version": 1, "topics": topics, "social_copy": {"status": "unresolved"}}
+        validate_brief(draft)
+        draft["social_copy"]["status"] = "approved"
+        with self.assertRaises(BriefError):
+            validate_brief(draft)
+
     def test_cueson_source_is_bound_to_both_approved_gates(self):
         from brand_contract import approval_ledger, derivative_configuration_sha256, public_showcase, validate_brand
 

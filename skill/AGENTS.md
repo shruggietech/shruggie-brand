@@ -39,16 +39,9 @@ Mode inference never authorizes source changes, identity redesign, consumer muta
 
     python3 templates/probe.py <kit-dir>
 
-That tells you what this machine can do before you plan around it. Then ask two
-questions and nothing else up front:
+That reports the available capabilities. Then follow `references/03-interview.md` to build an adaptive brief. Invite all existing material and constraints, reuse the information supplied, and ask follow-ups that inform a stated design decision. Do not impose a question ceiling or infer identity decisions from a name and sentence. Ownership, showcase permission, source rights, and creative approval have no inferred default.
 
-1. What is the brand or product called?
-2. What does it do, in one sentence?
-
-Then follow `references/03-interview.md`. Ownership, showcase permission, inheritance, usage rights, and palette approval have no inferred default. Every creative gate after the required contract arrives with a computed proposal, so an operator who approves everything still gets a complete kit. **Propose before asking.** A gate that presents an empty creative question has failed.
-
-Offer two optional extras in the same breath, both defaulting to no: an existing
-logo concept to consider, and any existing material at all.
+There are exactly two mandatory creative approval stops: Gate 1 binds the actual production logo source and proofs; Gate 2 binds assembled brand fundamentals, including a distinct social share image with exact approved copy, before final kit compilation. Discussion and automated checks are not extra creative gates. Silence is never approval.
 
 ## Routing
 
@@ -73,7 +66,7 @@ logo concept to consider, and any existing material at all.
 
 **Declare affiliation before creative work.** Ownership, showcase permission, parentage, inheritance, endorsement, and neutral service credit are separate fields. Missing state stops generation. A third-party brand has no ShruggieTech parent or owned-project endorsement. Neutral credit is optional and fixed. House inheritance explicitly adopts ShruggieTech semantic orange. Independent inheritance requires brand-specific emphasis and action colors.
 
-**One colour decision and one logo decision in house mode.** Under the ordinary owned-brand variance contract, everything else is inherited or derived. Authoritative supplied marks and fixed font requirements are explicit exceptions. They require hashes, provenance, usage or license evidence, and approval before generated use.
+**Use the brief for every brand.** Owned brands may choose an independent formal palette. Separate formal identity colors from interface cue colors and discuss both with the operator. Authoritative supplied marks and fixed font requirements require hashes, provenance, usage or license evidence, and approval before generated use.
 
 **Never type path data for constructed mode.** A constructed mark is composed in `<kit>/build/mk_paths.py` from `templates/glyphkit.py` primitives, in absolute M/L/C/Z only, and proved by `templates/validate_glyph.py` before anything is exported. An authoritative mark never has a construction helper. It binds Full and Reduced directly to approved immutable input IDs, and every derivative is recorded in `logos/provenance.json`. This is the step that
 fails, and it fails the same way every time: an agent writes coordinates and
@@ -183,9 +176,7 @@ replace looking.
 
 ## If the operator is not responding
 
-Do not stall on a gate. Take the computed default, state the assumption
-prominently at the top of the output, and continue. A complete kit with three
-stated assumptions beats a half kit waiting on a question nobody is reading.
+Keep proposals and unresolved questions in the working brief. Never turn a missing answer into Gate 1 or Gate 2 approval. Stop the affected creative or publication work until the operator supplies the required decision; other independent research may continue.
 
 ## Files
 

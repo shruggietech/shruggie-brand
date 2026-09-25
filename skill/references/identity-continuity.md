@@ -1,6 +1,6 @@
 # Identity Continuity
 
-Identity work has two distinct approvals. Direction selection chooses what to construct. Canonical approval accepts the exact production source that later generation must use. Never treat the first as the second.
+Identity work has exactly two mandatory creative approvals. Gate 1 accepts the exact production logo source and proof matrix that later generation must use. Gate 2 accepts the assembled brand fundamentals before final kit compilation. Direction selection chooses what to construct but is not an approval gate; never treat it as Gate 1.
 
 ## Lifecycle
 
@@ -42,4 +42,4 @@ A `historical-baseline` records the current production source and its limits. It
 
 ## Gate 2 boundary
 
-Gate 2 reviews derivatives made from the promoted canonical source. It may approve lockups, wordmarks, icons, and publication surfaces within the recorded scope. It must not introduce, reconstruct, simplify, or first reveal production master geometry. Any such change invalidates canonical approval and returns to the canonical candidate stage.
+Gate 2 reviews private provisional derivatives made from the promoted canonical source before final kit compilation. Its packet includes lockups, wordmarks where applicable, icons, formal palette, separate interface cues, typography, representative applications, and a social share image with exact approved copy and layout, identified separately from wide and stacked lockups. It may approve those derivatives and publication surfaces within the recorded scope. It must not introduce, reconstruct, simplify, or first reveal production master geometry. Any such change invalidates Gate 1 approval and returns to the canonical candidate stage. A changed reviewed derivative, including social copy, requires fresh Gate 2 approval. Silence is never approval.

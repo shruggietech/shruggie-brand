@@ -1,169 +1,64 @@
 # The Interview
 
-**Design goal: two mandatory inputs. Everything else is a proposal the operator
-can accept by saying nothing useful.**
+Build an adaptive brief before constructing a brand. Accept substantial source material at the outset or develop the brief conversationally. There is no question ceiling and no minimum-input shortcut. Reuse answers already present in supplied files, links, or prior discussion. Ask a follow-up only when its answer changes a named design decision; say which decision it informs. Invite additional context throughout. An unanswered question stays unresolved, never approved by silence.
 
-Assume the operator arrives with almost nothing. No palette, no logo, no
-positioning doc, possibly not even a firm idea of the audience. That is the
-normal case and the flow is built for it.
+## Working brief
 
-## The required inputs
+Keep a private, reusable record with four separate columns for every topic: **facts** (operator statements and cited source), **constraints** (what the operator explicitly fixes), **proposals** (the agent's recommendation with rationale), and **unresolved** (choices still awaiting an answer). Do not replace a fact with a proposal or turn an unanswered proposal into an approved constraint. Record source, date, and exact operator wording for approvals. The working brief is review evidence, not a public brand contract or an extra approval gate.
 
-1. The brand or product name.
-2. One sentence on what it does.
-3. Explicit affiliation: ownership, showcase permission, parentage, inheritance, endorsement, and service credit.
+For machine-checkable private evidence, store `schema_version`, the thirteen named `topics` below, and `social_copy` in a JSON brief under ignored private output. Each topic has string arrays named `facts`, `constraints`, `proposals`, and `unresolved`. `social_copy` stays `{"status":"unresolved"}` until the exact text, layout, line breaks, approval source, approver, and date are explicitly decided. Run `python templates/authoring_brief.py <private-brief.json>` before preparing Gate 2. The validator checks structure and explicit status; it does not invent missing answers.
 
-These are the mandatory facts. Affiliation and showcase permission cannot be inferred or accepted through silence. If the operator supplies them and then approves each creative gate without edits, the output is a complete, conforming, shippable kit.
+| Topic | Decision it informs | Useful discovery questions |
+| --- | --- | --- |
+| Purpose and success | What the identity must explain and achieve | What does the offering do? What should a customer understand, feel, or do? What would make the kit successful? |
+| Audience and setting | Reading context and language needs | Who will encounter it, in which markets, languages, and settings? What do they already understand? |
+| Positioning | Distinctive, supportable claims | What distinguishes it from alternatives? Which claims can be substantiated? |
+| Personality and voice | Copy register and examples | Which traits, tone examples, and words fit? Which attitudes or styles must be avoided? |
+| References and dislikes | Direction to explore or avoid | Which visual examples appeal or repel, and why? References are not artwork to copy. |
+| Existing identity and constraints | Preservation versus new construction | Is this a new identity, refresh, or preservation job? Which names, marks, colors, faces, licenses, and files are fixed? |
+| Logo and lockups | Source roles and deliverables | Which Full/Reduced marks, standalone wordmarks, wide/stacked lockups, sizes, backgrounds, and tagline combinations are needed? |
+| Social share copy | Exact image text and composition | What exact approved slogan appears beside the full-color wordmark or approved supplied wordmark lockup? Is the image slogan-only or slogan-and-description on a separate line? What exact description and line breaks are approved? |
+| Formal brand palette | Identity artwork colors | Which colors express the identity or appear in approved artwork? Which combinations and applications are approved? |
+| Interface cue palette | Functional state communication | Which action, warning, error, success, information, focus, selection, and disabled roles are needed on dark and light surfaces? What labels, icons, or outlines accompany them? |
+| Typography | Tone and script coverage | Which scripts, weights, local-font constraints, readability contexts, and fixed faces matter? |
+| Deliverables and uses | Relevant outputs and Gate 2 examples | Which web, app, print, social, packaging, or merchandising uses are actually required? Which examples must be reviewed? |
+| Relationship and attribution | Truthful affiliation and publication | Who owns the brand? What parentage, inheritance, endorsement, public showcase permission, source rights, and service credit are explicitly authorized? |
 
-## The standing rule
+For a richly specified job, fill the brief from supplied material first and ask only about gaps or conflicts. For a sparse job, explore the topics progressively and label proposals as proposals. "Undecided" is a valid working state; offer a concrete option for review without treating it as approval. Distinguish an operator's formal brand colors from functional interface cue colors even when one swatch is deliberately used in both roles. Every brand, including an owned sub-brand, may choose an independent accessible palette; shared colors are opt-in.
 
-**Propose before asking.** Never present an empty question. Every gate arrives
-with a computed recommendation, the reasoning behind it, and the option to
-override. A gate that asks "what colour would you like?" has failed.
+## Social-copy decision record
 
-The operator may accept computed positioning and palette proposals tersely, but canonical identity approval and final derivative approval remain explicit decisions over the actual evidence shown at their gates.
+Record the exact approved slogan, its source and approver, the explicit `slogan-only` or `slogan-and-description` choice, and any exact approved description and line breaks. Leave missing fields unresolved. Neither `descriptor` nor `brand_idea` is automatically a slogan. A social share image is its own composition, not a wide or stacked logo lockup. Show the chosen composition in the Gate 2 packet before final kit compilation. Existing generated social images require a separate governed source migration; do not claim that historical copy has been approved merely because it exists in a brand file.
 
-## Gate 0: Affiliation and authoritative inputs
+## Work before creative approval
 
-Record the six affiliation decisions before any creative proposal. A third-party brand has no ShruggieTech parent or owned-project endorsement. Ask separately whether the brand explicitly adopts the shared house orange pair or selects independent emphasis and action colors, whether it may appear in the public showcase, and whether the fixed neutral service credit is approved. Owned children may select independent colors. Ownership, palette, typography, and endorsement are separate decisions.
+First establish affiliation and usage facts: ownership, parentage, inheritance, endorsement, public showcase permission, source rights, and service credit. These are explicit operating facts, not a numbered creative approval gate. Classify supplied logo material as a concept or authoritative master. An authoritative Full and Reduced source needs role-correct immutable input bindings, hashes, usage basis, approved transformations, and mask approval where applicable. Fixed typography needs approved local faces, metadata, hashes, and license evidence. Missing rights or publication permission stop the affected work.
 
-Classify every supplied logo item as either a concept or an authoritative master, then record `logo.source_mode` explicitly. A concept informs a new `constructed` identity. An authoritative master requires `authoritative` mode, separate Full and Reduced bindings to approved role-correct PNG or passive SVG inputs, and no construction helper. Declare role, path, format, hash, color-profile status, usage basis, and only the transformations needed by generation; original bytes remain unchanged. For PNG, explicitly approve `alpha` or `luminance` against the current source hash and record the approver and date. Any later binding, hash, source-art, mask, or visible-geometry change requires fresh owner approval. Palette extraction creates evidence only and requires a human approval tied to the current source hash before a candidate becomes canonical.
+Explore positioning, voice, mark direction, formal colors, interface cues, typography, and applications with the operator. Present reasoned options and measured accessibility evidence. Direction selection is not canonical approval. A selected sketch, image-generation result, or traced reference cannot authorize permanent source or derivatives. A supplied authoritative master remains byte-identical. Follow `06-logo-protocol.md`, `08-glyph-construction.md`, and `identity-continuity.md` for the applicable source mode.
 
-Record typography mode as `house` or `fixed`. Fixed mode requires approved local faces, measured metadata, hashes, license evidence, and provenance. Use controlled ingestion before generation if a required approved face is not present. Ordinary builds never fetch fonts.
+## Gate 1: Logo source approval
 
-## Gate 1: Name and descriptor
+This is the first mandatory creative approval stop. Present the real proposed production Full and Reduced masters, source bindings or construction helper, framing, formal palette qualification, renderer settings, source hashes, topology, and the complete 32-proof production matrix at 256, 64, 32, and 16 pixels on dark, light, black, and white. Explain exactly what will be shipped. The operator explicitly approves that exact source-bound packet or sends it back for revision. Store the decision in the canonical continuity record and `approval_ledger.gate_1`; promotion copies approved bytes without reconstruction. Concept selection alone cannot satisfy this gate. Source, helper, palette, renderer, or proof drift invalidates approval and returns here. Silence is never approval.
 
-The only input the agent cannot compute.
+## Assemble provisional fundamentals
 
-Ask for both at once. Accept a rough sentence; the agent will tighten it.
-Also ask, in the same breath and as optional extras:
+After Gate 1, render private, provisional derivatives from the promoted source using the production path. Review wide and stacked lockups, standalone wordmark where applicable, formal brand palette with approved artwork combinations, separate interface cue palette, typography, usage rules, and representative applications. Show the exact chosen social share image with its approved slogan, optional description, and line breaks as a separate preview from the wide and stacked lockups. If an approved supplied lockup contains the wordmark, use it; do not invent a standalone wordmark. The packet must identify the generated source and derivative manifest being reviewed.
 
-- Is there an existing logo concept, sketch, or reference to consider?
-- Is there any existing material at all (a repo, a landing page, a deck)?
+Provisional review material may live in ignored private output such as `dist/`; it is not a final publishable kit. Do not publish a pending-Gate-2 kit or expose its files through the site, registry, or release. Run the applicable geometry, contrast, and provenance checks on provisional material and fix failures before requesting approval. Automated checks are verification steps, not extra creative approval gates.
 
-Both default to "no" and the flow proceeds unchanged.
+Build a `gate-2-packet.json` beside the private review files, with `schema_version: 1`, the approved Gate 1 `source_sha256`, `gate_2.status: pending`, `public_projection_enabled: false`, a verbatim copy of the approved `social_copy` record, and an `assets` map. Supply checksummed Full and Reduced marks, wide and stacked lockups, a separate `social-share-image`, formal palette, interface cues, typography, representative application, and derivative manifest. Each asset uses a contained relative `path` and `sha256`. Run `python templates/authoring_brief.py <private-brief.json> --gate-2 <private-gate-2-packet.json>`; the validator rejects missing, stale, invalid, or escaping files and requires separate wide, stacked, and social compositions. The operator still inspects the actual preview and approves or rejects it. This private packet does not replace the production ledger or the separately governed final image-role migration.
 
-## Gate 2: Positioning and voice
+## Gate 2: Brand fundamentals approval
 
-The agent proposes, in one block:
+This is the second and final mandatory creative approval stop. Present one concrete packet containing the provisional derivatives above, including the distinct social share image, plus measured accessibility results and the exact source/manifest references. The operator explicitly approves the assembled fundamentals before final kit compilation, or rejects the affected decisions for revision. Record approved derivative evidence in `approval_ledger.gate_2`. A changed social slogan, description, layout, lockup, palette application, or other reviewed derivative returns to Gate 2; a changed production master returns to Gate 1 and then requires a fresh Gate 2 review. Silence is never approval.
 
-- The product principle: verb plus object, three or four words, literal
-- The descriptor: the technical definition of what the system is, one line
+Only after both gates are approved may the final kit be compiled, verified, and packaged. Every production kit still needs zero `verify.py` problems and zero `validate_glyph.py` failures. Publication remains a separate authorization and release process, not a third creative approval stop. A missing operator response leaves the affected gate pending; no unattended default or timeout bypasses it.
 
-- Governing principle (one sentence, the thing the brand is actually about)
-- Category, role, audience, functional descriptor
-- Personality table with an Avoid column
-- Voice register selected from canon's three lanes
-- Whether the shruggie flourish applies
+## Scenario checks
 
-**How the default is computed.** Infer the audience and technical floor from
-the descriptor. Pick the register that fits: a security-adjacent or data tool
-gets precise-and-dry, an operations tool gets operator-runbook, a
-customer-facing product gets direct-and-witty. Default the flourish to off for
-anything security-adjacent, financial, or safety-relevant, and to on otherwise.
-
-Both lines are covered in `07-voice.md`. The principle names what a reader can
-do or see, so "View your files." and "See what is known." are the shape. The
-descriptor names the artifacts the system is made of, not the audience and not a
-feature list.
-
-**What the operator does.** Approve, or edit any line. Editing the governing
-principle is common and cheap; everything downstream re-derives.
-
-## Gate 3: Formal colors and interface cues
-
-The agent proposes an identity palette and a separate interface cue map. The operator can choose any accessible identity hue, including one used by another owned brand. Record every formal color intended for approved artwork with its source and use; do not assume a UI cue is a logo color.
-
-The agent presents two or three candidate accents, each with:
-
-- Hex, OKLCH, and hue in degrees
-- Intended formal identity colors, their source references, and use in marks or brand applications
-- Approved formal-color combinations and the exact artwork or application each permits
-- Measured contrast on the dark base
-- The derived light-surface variant with its measured contrast
-- The measured legal foreground for the accent used as a fill
-- The derived five-entry chart palette
-- The proposed action, warning, error, success, information, focus, selection, and disabled cues in both themes, with foreground pairings and non-color labels, icons, outlines, or attributes
-
-**How the default is computed.** Take the semantic field of the descriptor (time, network, money, security, data) and propose hues that fit the brand. Measure actual contrast and foreground pairing against both surfaces. Compare neighboring brands only as optional creative context. Do not reject a hue because it resembles a sibling or the parent. The cue map must retain accessible and distinguishable state communication through labels, icons, outlines, or attributes.
-
-**What the operator does.** Approve or revise the formal palette and cue map as separate parts of the same creative gate. If a chosen pairing fails AA, show the measured failure and offer an accessible variant. Never turn a sibling-hue preference into a hidden rejection.
-
-**Use example.** A red heart in an approved logo remains an identity color even when the same red is deliberately chosen for an action button. The button needs its action label and measured foreground. Using that logo swatch alone to signal a warning is a misuse; the warning needs its own declared cue plus text or an icon. Include one correct and one misuse example in the Gate 3 approval packet.
-
-## Gate 4A: Logo direction selection
-
-Three ways in. One way out.
-
-**Path A, the operator supplies a concept.** Any format. Describe back in words
-what is load-bearing about it before touching anything; if the operator
-disagrees with the description, the redraw would have been wrong and one
-sentence just saved the step. Extract its palette for reference only, then
-rebuild the geometry from primitives. If the operator declares the file an authoritative master instead, preserve it and follow `06-logo-protocol.md` without reconstruction.
-
-**Path B, the agent ideates.** Generate several directions with image generation
-to explore the concept space together. This is encouraged and it is the right
-use of the tool. It produces conversation, never artwork.
-
-**Path C, the agent proposes directly.** Propose a geometric or monogram mark
-derived from the governing principle when that form can express the identity
-without exploratory imagery.
-
-**What this decision means.** The operator selects a direction, not production source. The decision is nonbinding and cannot authorize permanent source, derivatives, publication, or consumer integration. Record the selected visual idea and the operator wording, then construct the production candidate.
-
-**The way out for a constructed direction.** Before canonical approval, compose the real shipped Full and Reduced marks in `<kit>/build/mk_paths.py` from `glyphkit` primitives on a declared grid, with named parameters. Never trace a generated image, type path data, switch construction methods after approval, or use a downscaled full mark as the reduced one.
-
-**The way out for approved artwork.** Set `logo.source_mode` to `authoritative`; bind Full and Reduced to their exact approved input IDs and hashes; retain one bound image placement per variant; and prohibit `build/mk_paths.py`, tracing, simplification, reconstruction, and replacement. Generation may only recolor, resize, embed, or place the mark in a lockup when that source explicitly approves the operation. Review `logos/provenance.json` with the rendered sheet.
-
-Then run the geometry gate:
-
-    python3 templates/validate_glyph.py <kit>/build/mk_paths.py
-
-**Zero failures is the stopping condition**, and it is the whole point of the
-gate. An agent that can view images should also open `qc/logo-sheet.png`,
-because taste is not measurable. An agent that cannot is finished at zero
-failures and must not pretend otherwise.
-
-If the same check fails twice, the shape is wrong rather than the numbers.
-Change one parameter, or go back and pick a simpler shape. Do not generate a
-third and fourth variant hoping one passes: that is how a run burns out with
-nothing shippable.
-
-## Gate 4B: Canonical identity approval
-
-Build the complete source-bound packet described in `identity-continuity.md`. It uses the exact production source and renderer and shows Full and Reduced at 256, 64, 32, and 16 pixels on dark, light, black, and white. Include topology, framing, palette qualification, the approved formal combinations and interface cue map from Gate 3, source hashes, renderer settings, and visual difference evidence.
-
-**What the operator sees.** The measured report and the complete production proof matrix. The operator approves the exact candidate or sends it back with a note. Approval records the owner wording, approver, date, scope, source revision, snapshot hash, and packet hash. Any later governed drift invalidates it.
-
-Full procedure and the failure catalogue: `08-glyph-construction.md`.
-
-## Gate 5: Derivative review
-
-The agent generates the full kit and presents:
-
-- The rendered guidelines page
-- Screenshots of the UI kit demo at desktop and mobile
-- The type specimen
-- `VERIFY.md` with every measured number and a problems count
-
-**What the operator does.** Approve, or point at whatever looks wrong. A
-problems count above zero blocks the gate.
-
-Gate 5 reviews only derivatives made from the promoted canonical source. It cannot introduce or reconstruct production geometry. A master change returns to Gate 4B rather than being accepted here.
-
-## After gate 5
-
-Nothing further is asked. The kit generates completely: tokens, the Next.js
-binding layer and registry, the enforcement layer, favicons at every size, the
-brand guide PDF, the manifest with checksums.
-
-## Handling the unattended case
-
-If the operator is not responding, creative recommendations may use computed defaults after the required affiliation, publication permission, authoritative-input status, palette approval, and typography mode are already explicit. Never infer ownership, permission to publish, source usage rights, approval, or credit language. Stop when any of those decisions is missing.
-
-## What this is really doing
-
-A sub-brand under this variance contract has, in the normal case, exactly two
-decisions: one colour and one mark. The interview exists to make those two
-decisions well and to keep the operator from being asked about the forty things
-that were never theirs to decide.
+- **New identity**: Explore directions, then present actual production sources at Gate 1 and assembled fundamentals at Gate 2.
+- **Supplied authoritative artwork**: Preserve source bytes and role bindings; review the exact bound sources at Gate 1 and only permitted derivatives at Gate 2.
+- **Sparse input**: Ask decision-relevant follow-ups; unresolved claims and social copy remain pending.
+- **Rich input**: Reuse supplied facts and constraints; ask only about gaps, conflicts, and approvals.
+- **Revision**: Return to the affected gate, and to Gate 1 whenever governed source changes.
+- **Nonresponsive operator**: Retain pending state; do not infer either approval or permission to publish.

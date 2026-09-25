@@ -66,18 +66,18 @@ class DocumentationPublicationTests(unittest.TestCase):
         self.write_record()
         self.assertEqual("release", self.verify(require_release=True)["status"])
 
-    def test_documentation_only_patch_release_has_new_identity(self):
+    def test_documentation_release_has_new_identity(self):
         self.publication.update({
-            "status": "release", "version": "2.2.1", "tag": "v2.2.1",
-            "releaseUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/tag/v2.2.1",
-            "skillUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/download/v2.2.1/shruggie-brandbuilder-2.2.1.skill",
+            "status": "release", "version": "2.3.0", "tag": "v2.3.0",
+            "releaseUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/tag/v2.3.0",
+            "skillUrl": "https://github.com/ShruggieTech/shruggie-brand/releases/download/v2.3.0/shruggie-brandbuilder-2.3.0.skill",
         })
         (self.refs / "guide.md").write_text("# Guide\nClarified instructions.\n", encoding="utf-8")
         (self.docs / "guide.mdx").write_bytes(render_page((self.refs / "guide.md").read_text(encoding="utf-8"), "Current guidance", self.publication).encode("utf-8"))
         (self.docs / "index.mdx").write_bytes(render_index(self.publication).encode("utf-8"))
         self.write_record()
         self.write_archives()
-        self.assertEqual("2.2.1", self.verify(require_release=True)["version"])
+        self.assertEqual("2.3.0", self.verify(require_release=True)["version"])
 
     def test_record_identity_and_inventory_mutations_fail(self):
         for field, value in (("version", "2.1.0"), ("sourceRevision", "b" * 40),
