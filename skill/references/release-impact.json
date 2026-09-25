@@ -1,16 +1,16 @@
 {
   "$schema": "release-impact.schema.json",
   "schema_version": 1,
-  "brandbuilder_version": "2.1.0",
+  "brandbuilder_version": "2.2.0",
   "identity_redesign": false,
   "surfaces": {
-    "identity": {"classification": "unaffected", "summary": "Approved logo geometry, ownership, and affiliation are unchanged. I Heart PR Tours 1.1.0 adds approved optional sand expressions outside canonical logo authority."},
-    "palette": {"classification": "optional", "summary": "Light-guide declarations use approved source colors and measured contrast; consumers may adopt the refreshed guide presentation without changing approved palettes."},
-    "typography": {"classification": "unaffected", "summary": "Existing local font sources and typography bindings remain authoritative. The shadcn registry no longer advertises an unsupported font item; follow the bundled local-font setup."},
-    "platform_assets": {"classification": "optional", "summary": "Approved custom expressions are available to eligible consumers; existing canonical logo and platform icon roles remain unchanged."},
-    "web_react": {"classification": "optional", "summary": "Web and React consumers using shadcn may install validated theme and UI items from direct registry endpoints; bundled local fonts remain a separate setup step."},
-    "egui": {"classification": "unaffected", "summary": "The egui adapter remains at 1.0.2 with no new native API or role changes in this release."},
-    "documentation": {"classification": "required", "summary": "Readers using generated guidance should repin the rebuilt kit for light-guide, custom-asset, and registry installation instructions."},
-    "recovery": {"classification": "required", "summary": "Consumers repinning a kit must retain exact checksummed BrandBuilder 2.1.0 recovery bytes and the new immutable package identity."}
+    "identity": {"classification": "unaffected", "summary": "Approved logo geometry, affiliation facts, and existing formal color values remain unchanged."},
+    "palette": {"classification": "optional", "summary": "Brand Canon 1.5.0 permits independent owned-brand palettes and records formal identity colors separately from interface cues. Existing approved colors do not change merely because the policy is broader."},
+    "typography": {"classification": "unaffected", "summary": "Existing local fonts and typography bindings remain authoritative; typography mode never selects a palette."},
+    "platform_assets": {"classification": "unaffected", "summary": "Canonical logo and platform icon source geometry and colors remain unchanged."},
+    "web_react": {"classification": "optional", "summary": "Existing web/React token values remain stable. Regenerated kits add measured color role records and guidance without changing public adapter APIs."},
+    "egui": {"classification": "optional", "summary": "The egui adapter remains at 1.0.2 with unchanged public API and existing approved color values; its manifest points to the kit's new color-role record."},
+    "documentation": {"classification": "required", "summary": "Readers should repin the rebuilt kit for explicit formal-color, interface-cue, and palette-selection guidance."},
+    "recovery": {"classification": "required", "summary": "Consumers repinning a kit must retain exact checksummed BrandBuilder 2.2.0 recovery bytes and the new immutable package identity."}
   }
 }

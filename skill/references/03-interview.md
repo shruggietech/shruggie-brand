@@ -25,7 +25,7 @@ The operator may accept computed positioning and palette proposals tersely, but 
 
 ## Gate 0: Affiliation and authoritative inputs
 
-Record the six affiliation decisions before any creative proposal. A third-party brand has no ShruggieTech parent or owned-project endorsement. Ask separately whether it adopts house inheritance or uses independent semantic colors, whether it may appear in the public showcase, and whether the fixed neutral service credit is approved.
+Record the six affiliation decisions before any creative proposal. A third-party brand has no ShruggieTech parent or owned-project endorsement. Ask separately whether the brand explicitly adopts the shared house orange pair or selects independent emphasis and action colors, whether it may appear in the public showcase, and whether the fixed neutral service credit is approved. Owned children may select independent colors. Ownership, palette, typography, and endorsement are separate decisions.
 
 Classify every supplied logo item as either a concept or an authoritative master, then record `logo.source_mode` explicitly. A concept informs a new `constructed` identity. An authoritative master requires `authoritative` mode, separate Full and Reduced bindings to approved role-correct PNG or passive SVG inputs, and no construction helper. Declare role, path, format, hash, color-profile status, usage basis, and only the transformations needed by generation; original bytes remain unchanged. For PNG, explicitly approve `alpha` or `luminance` against the current source hash and record the approver and date. Any later binding, hash, source-art, mask, or visible-geometry change requires fresh owner approval. Palette extraction creates evidence only and requires a human approval tied to the current source hash before a candidate becomes canonical.
 
@@ -70,28 +70,26 @@ feature list.
 **What the operator does.** Approve, or edit any line. Editing the governing
 principle is common and cheap; everything downstream re-derives.
 
-## Gate 3: The accent
+## Gate 3: Formal colors and interface cues
 
-The one real decision, and the agent still proposes it.
+The agent proposes an identity palette and a separate interface cue map. The operator can choose any accessible identity hue, including one used by another owned brand. Record every formal color intended for approved artwork with its source and use; do not assume a UI cue is a logo color.
 
 The agent presents two or three candidate accents, each with:
 
 - Hex, OKLCH, and hue in degrees
-- Measured hue separation from every sibling identity accent and from orange
+- Intended formal identity colors, their source references, and use in marks or brand applications
+- Approved formal-color combinations and the exact artwork or application each permits
 - Measured contrast on the dark base
 - The derived light-surface variant with its measured contrast
 - The measured legal foreground for the accent used as a fill
 - The derived five-entry chart palette
+- The proposed action, warning, error, success, information, focus, selection, and disabled cues in both themes, with foreground pairings and non-color labels, icons, outlines, or attributes
 
-**How the default is computed.** Take the semantic field of the descriptor
-(time, network, money, security, data) and pick a hue that reads for it, then
-push it until every check in `canon.color.constrained_rules.identity_accent`
-passes. Reject anything within 30° of green 153.0°, cyan 215.7°, blue 253.3°,
-or orange 38.3°. Present the survivors ranked by fit.
+**How the default is computed.** Take the semantic field of the descriptor (time, network, money, security, data) and propose hues that fit the brand. Measure actual contrast and foreground pairing against both surfaces. Compare neighboring brands only as optional creative context. Do not reject a hue because it resembles a sibling or the parent. The cue map must retain accessible and distinguishable state communication through labels, icons, outlines, or attributes.
 
-**What the operator does.** Pick one, or name a hue and let the agent solve
-for the nearest legal value. If the operator names a colour that fails a check,
-say which check and by how much, then offer the nearest passing value.
+**What the operator does.** Approve or revise the formal palette and cue map as separate parts of the same creative gate. If a chosen pairing fails AA, show the measured failure and offer an accessible variant. Never turn a sibling-hue preference into a hidden rejection.
+
+**Use example.** A red heart in an approved logo remains an identity color even when the same red is deliberately chosen for an action button. The button needs its action label and measured foreground. Using that logo swatch alone to signal a warning is a misuse; the warning needs its own declared cue plus text or an icon. Include one correct and one misuse example in the Gate 3 approval packet.
 
 ## Gate 4A: Logo direction selection
 
@@ -133,7 +131,7 @@ nothing shippable.
 
 ## Gate 4B: Canonical identity approval
 
-Build the complete source-bound packet described in `identity-continuity.md`. It uses the exact production source and renderer and shows Full and Reduced at 256, 64, 32, and 16 pixels on dark, light, black, and white. Include topology, framing, palette qualification, source hashes, renderer settings, and visual difference evidence.
+Build the complete source-bound packet described in `identity-continuity.md`. It uses the exact production source and renderer and shows Full and Reduced at 256, 64, 32, and 16 pixels on dark, light, black, and white. Include topology, framing, palette qualification, the approved formal combinations and interface cue map from Gate 3, source hashes, renderer settings, and visual difference evidence.
 
 **What the operator sees.** The measured report and the complete production proof matrix. The operator approves the exact candidate or sends it back with a note. Approval records the owner wording, approver, date, scope, source revision, snapshot hash, and packet hash. Any later governed drift invalidates it.
 

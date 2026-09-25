@@ -20,6 +20,7 @@ from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
 from brand_contract import affiliation, affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
+from color_roles import load_color_roles
 
 def chips(t, keys, light=False):
     o = ""
@@ -180,9 +181,6 @@ def build(B, kit):
     BG, CARD, LINE = P["background"], P["card"], P["border"]
     TX, MU = P["foreground"], P["muted-foreground"]
     CALLOUT, ACC_CALLOUT = P["secondary"], P["muted"]
-    M = B.get("measured", {})
-    sep = M.get("hue_separation_deg", {})
-    near = min(sep.values()) if sep else None
     LG = B.get("logo", {})
     cs, canvas_width, canvas_height, artwork_width = logo_metrics(B)
     lockups = LG.get("lockups") or {}
@@ -250,6 +248,8 @@ table { width:100%%; border-collapse:collapse; font-family:var(--font-body); fon
 th { text-align:left; font-weight:var(--font-label-weight); text-transform:uppercase; letter-spacing:.04em;
   font-size:7.3pt; color:%s; padding:1.7mm 2mm; border-bottom:.25mm solid %s; }
 td { padding:1.7mm 2mm; border-bottom:.25mm solid %s; vertical-align:top; }
+.role-cues-compact { font-size:7pt; }
+.role-cues-compact td { padding:1mm 1.5mm; }
 .kv { display:grid; grid-template-columns:30mm 1fr; gap:1.4mm 4mm; }
 .kv .k { font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:7.3pt; text-transform:uppercase;
   letter-spacing:.04em; color:%s; padding-top:.5mm; }
@@ -397,7 +397,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         '<p>Chart colors serve data visualization. Brand applications use the identity accent and the neutral surfaces. Each chart color is derived from the identity accent and measured against its surface so every entry clears 4.5:1.</p>'
         '<div class="charts">%s</div><div class="grid5">%s</div>'
         '<div class="callout acc"><div class="ey">Contrast checks</div>'
-        '<p style="margin:0" class="dim">Lightness is calculated separately for dark and light surfaces. Chart hues preserve the measured separation from semantic emphasis and failure colors, and no two entries sit closer than the declared minimum.</p></div><div class="card lite"><div class="ey" style="color:%s">The same palette on '
+        '<p style="margin:0" class="dim">Lightness is calculated separately for dark and light surfaces. Data charts also use labels or shapes; hue alone does not carry meaning.</p></div><div class="card lite"><div class="ey" style="color:%s">The same palette on '
         'the light reading surface</div><div class="charts">%s</div><div class="grid5" '
         'style="margin-bottom:0">%s</div></div>' % (
             dark_bars, chips(D, ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"]),
@@ -448,12 +448,37 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
                             '%s<div class="two" style="margin-top:4mm">%s</div>' % (intro, "".join(cards[start:start + 2])),
                             len(pages) + 1))
 
+    roles = load_color_roles(B, kit)
+    affiliation_detail = ""
+    formal_detail = ""
+    if roles:
+        ownership = "ShruggieTech owned" if aff["ownership"] == "shruggietech-owned" else "Third party"
+        palette_choice = ("Shared house emphasis and action, explicitly selected" if inherits_house
+                          else "Brand-specific emphasis and action")
+        typography_choice = "House families" if B["typography"]["mode"] == "house" else "Declared local faces"
+        decisions = (("Ownership", ownership), ("Parent", aff["parent"] or "None"),
+                     ("Palette", palette_choice), ("Typography", typography_choice))
+        decision_rows = "".join('<tr><th scope="row">%s</th><td>%s</td></tr>' %
+                                (escape(label), escape(value)) for label, value in decisions)
+        formal_rows = "".join('<tr><th scope="row">%s</th><td>%s</td><td>%s</td></tr>' %
+                              (escape(row["label"]), escape(row["hex"]), escape(row["use"]))
+                              for row in roles["identity"])
+        combination_rows = "".join('<tr><th scope="row">%s</th><td>%s in %s</td><td>%s</td></tr>' %
+                                   (escape(row["label"]), escape(", ".join(row["colors"])),
+                                    escape(row["artwork"]), escape(row["use"]))
+                                   for row in roles["identity_combinations"])
+        formal_detail = ('<h3>Formal identity colors</h3>'
+                         '<table><tr><th>Color</th><th>HEX</th><th>Use</th></tr>%s</table>'
+                         '<h3>Approved combinations and artwork</h3>'
+                         '<table><tr><th>Application</th><th>Colors and artwork</th><th>Use</th></tr>%s</table>'
+                         % (formal_rows, combination_rows))
+        affiliation_detail = ('<div class="rule"></div><h3>Independent decisions</h3>'
+                              '<table><tr><th>Decision</th><th>Declaration</th></tr>%s</table>%s'
+                              % (decision_rows, "" if boundary or len(roles["identity"]) > 1 else formal_detail))
     affiliation_page = len(pages) + 1
     if aff["parent"]:
         pages.append(pg("Parent", endorsement,
-        '<p>%s uses the ShruggieTech type families, dark product surfaces, and the inherited orange '
-        'warning color <span class="m" style="color:%s">%s</span>. The mark geometry and the identity '
-        'accent are this sub-brand\'s own and are never borrowed by a sibling.%s</p>'
+        '<p>%s declares ShruggieTech parentage. Palette sharing and typography are separate explicit choices. The approved mark and colors remain this brand\'s own source decisions.</p>'
         '<div class="card" style="text-align:center;padding:7mm;margin:4mm 0"><div class="m" '
         'style="letter-spacing:.2em;text-transform:uppercase;color:%s">%s</div></div>'
         '<p class="dim">The approved mono family, uppercase, positive tracking. Visually subordinate and outside the '
@@ -462,25 +487,47 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         'npx shadcn@4.21.0 registry add @%s=%s/r/{name}.json<br>'
         'npx shadcn@4.21.0 add @%s/theme<br>npm i next-themes</div></div>'
         '<p class="dim">The catalog lists installable theme and component items. For offline fonts, copy nextjs/fonts.ts and fonts/ together from the kit.</p>'
-        '%s' % (
-            title, OR, OR,
-            ("" if near is None else
-             " The identity accent sits %.1f degrees from its nearest sibling." % near),
+        '%s%s' % (
+            title,
             MU, endorsement, slug, B.get("registry_base", B.get("homepage", "https://shruggie.tech").rstrip("/") + "/brand"), slug,
-            _ships(kit) + '<div style="position:absolute;left:16mm;bottom:20mm">%s</div>'
-            % img(mono_logo, "", "height:8mm")), affiliation_page))
+            _ships(kit), affiliation_detail), affiliation_page))
     else:
         pages.append(pg("Affiliation", "Independent identity",
             '<p>This brand has no ShruggieTech parent or ownership endorsement.</p>%s%s'
             '<div class="rule"></div><h3>Load the system</h3><div class="card"><div class="code-block" style="line-height:2">'
             'npx shadcn@4.21.0 registry add @%s=%s/r/{name}.json<br>'
             'npx shadcn@4.21.0 add @%s/theme<br>npm i next-themes</div></div>'
-            '<p class="dim">The catalog lists installable theme and component items. For offline fonts, copy nextjs/fonts.ts and fonts/ together from the kit.</p>%s' % (
+            '<p class="dim">The catalog lists installable theme and component items. For offline fonts, copy nextjs/fonts.ts and fonts/ together from the kit.</p>%s%s' % (
                 (('<div class="card" style="text-align:center;padding:7mm;margin:4mm 0"><div class="m" '
                   'style="letter-spacing:.2em;text-transform:uppercase;color:%s">%s</div></div>' % (MU, endorsement)) if endorsement else ""),
                 (('<div class="callout acc"><div class="ey">Vendor and trademark boundary</div><p style="margin:0" class="dim">%s</p></div>' % boundary["notice"]) if boundary else ""),
                 slug, B.get("registry_base", B.get("homepage", "").rstrip("/") + "/brand"), slug,
-                _ships(kit)), affiliation_page))
+                _ships(kit), affiliation_detail), affiliation_page))
+
+    if roles:
+        compact = bool(boundary or len(roles["identity"]) > 1)
+        rows = []
+        for dark, light in zip(roles["interface"]["dark"], roles["interface"]["light"]):
+            pairing = ('Dark: %s, %s text %.2f:1; surface %.2f:1<br>Light: %s, %s text %.2f:1; surface %.2f:1' %
+                       (escape(dark["hex"]), escape(dark["foreground"]), dark["foreground_contrast"], dark["surface_contrast"],
+                        escape(light["hex"]), escape(light["foreground"]), light["foreground_contrast"], light["surface_contrast"]))
+            if not compact:
+                pairing += '<br>Source: %s / %s' % (escape(dark["source"]), escape(light["source"]))
+            rows.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+                        (escape(dark["label"]), escape(dark["use"]), pairing,
+                         escape(dark["non_color_cue"])))
+        candidates = [(color, cue) for color in roles["identity"] for cue in roles["interface"]["dark"]
+                      if cue["id"] in {"action", "warning"} and color["hex"] == cue["hex"]]
+        sample, cue = candidates[0] if candidates else (roles["identity"][0], roles["interface"]["dark"][1])
+        example = ('<p>Correct: use %s (%s) in approved identity work; pair the %s cue (%s) with %s. Misuse: a lone identity swatch as the only %s signal.</p>' %
+                   (escape(sample["label"]), escape(sample["hex"]), escape(cue["label"]), escape(cue["hex"]),
+                    escape(cue["non_color_cue"].lower()), escape(cue["label"].lower())))
+        pages.append(pg("Color roles", "Interface color cues",
+                        '<p>Colors for actions and states are distinct from formal identity artwork. A shared HEX is a deliberate choice; meaning also uses words, icons, outlines, or state attributes.</p>'
+                        '%s%s'
+                        '<table class="%s"><tr><th>Cue</th><th>Purpose</th><th>Dark and light pairing</th><th>Additional cue</th></tr>%s</table>'
+                        % (formal_detail if compact else "", example,
+                           "role-cues-compact" if compact else "", "".join(rows)), len(pages) + 1))
 
     html = ("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>%s brand guide"
             "</title><style>%s</style></head><body>%s</body></html>"

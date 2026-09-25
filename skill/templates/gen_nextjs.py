@@ -274,7 +274,9 @@ def emit_theme_item(canon, brand, dark, light):
             ":focus-visible": {"outline": "2px solid var(--ring)", "outline-offset": "2px"}}},
         "docs": ("Dark-first. Set defaultTheme=\"dark\" in your theme provider. "
                  "The bright accent is never text on a light surface; the light "
-                 "block already substitutes the accessible variant.")
+                 "block already substitutes the accessible variant. The parent kit's "
+                 "color-roles.json names approved identity combinations and measured "
+                 "interface cues with non-color signals.")
     }
 
 def emit_fonts_ts(brand):
@@ -436,6 +438,8 @@ def main():
       "```\n\n"
       "The public `registry.json` is a discovery catalog. The CLI installs the individual\n"
       "`/r/{name}.json` items. The catalog does not install local fonts.\n\n"
+      "The parent kit's `color-roles.json` records formal identity combinations,\n"
+      "artwork references, interface cue meanings, and accessible pairings.\n\n"
       "Confirm installation by finding light and dark `--background` in your\n"
       "global stylesheet and the requested component files under `components/`.\n\n"
       "## Install bundled local fonts\n\n"

@@ -504,8 +504,6 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
         _require(isinstance(reference, str) and any(
             reference.startswith(prefix) for prefix in canon["permitted_overrides"][role]
         ), "unsupported override reference for %s" % role)
-        if inheritance == "independent" and reference.startswith("$brand_canon.color.immutable.orange"):
-            raise InterfaceContractError("override %s crosses affiliation boundary into house orange" % role)
     if inheritance == "shruggietech-house":
         immutable = brand_canon["color"]["immutable"]
         semantic = {"action": immutable["orange-cta"]["hex"], "emphasis": immutable["orange"]["hex"]}
@@ -1029,7 +1027,7 @@ def verify_consumer_contract(kit):
         _require(impact["brandbuilder_version"] == contract["versions"]["compiler_version"],
                  "consumer release impact version disagrees")
         _require(contract["versions"]["brand_version"] == brand.get("version", "1.0.0"), "consumer contract brand_version disagrees")
-        _require(contract["versions"]["canon_version"] == brand.get("canon", "1.4.0"), "consumer contract canon_version disagrees")
+        _require(contract["versions"]["canon_version"] == brand.get("canon", "1.5.0"), "consumer contract canon_version disagrees")
         copied_canon = _read_json(_contained_kit_file(kit, authority["interface_canon"]))
         _require(contract["versions"]["interface_canon_version"] == copied_canon.get("version"), "consumer contract interface_canon_version disagrees")
         copied_recipes = _read_json(_contained_kit_file(kit, authority["component_recipes"]))

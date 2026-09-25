@@ -62,18 +62,18 @@
     }
   },
   "compatibility_rules": [
-    {"dependent": "interface_canon", "dependent_major": 1, "dependency": "brand_canon", "supported": ["1.1.2", "1.2.0", "1.2.1", "1.3.0", "1.4.0"]},
+    {"dependent": "interface_canon", "dependent_major": 1, "dependency": "brand_canon", "supported": ["1.1.2", "1.2.0", "1.2.1", "1.3.0", "1.4.0", "1.5.0"]},
     {"dependent": "component_recipes", "dependent_major": 1, "dependency": "interface_canon", "supported": ["1.0.0"]},
     {"dependent": "web_react_adapter", "dependent_major": 1, "dependency": "interface_canon", "supported": ["1.0.0"]},
     {"dependent": "web_react_adapter", "dependent_major": 1, "dependency": "component_recipes", "supported": ["1.0.0", "1.1.0"]},
     {"dependent": "egui_adapter", "dependent_major": 1, "dependency": "interface_canon", "supported": ["1.0.0"]},
     {"dependent": "egui_adapter", "dependent_major": 1, "dependency": "component_recipes", "supported": ["1.0.0", "1.1.0"]},
-    {"dependent": "compiler", "dependent_major": 2, "dependency": "brand_canon", "supported": ["1.1.2", "1.2.0", "1.2.1", "1.3.0", "1.4.0"]},
+    {"dependent": "compiler", "dependent_major": 2, "dependency": "brand_canon", "supported": ["1.1.2", "1.2.0", "1.2.1", "1.3.0", "1.4.0", "1.5.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "interface_canon", "supported": ["1.0.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "component_recipes", "supported": ["1.0.0", "1.1.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "web_react_adapter", "supported": ["1.0.0", "1.1.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "egui_adapter", "supported": ["1.0.0", "1.0.1", "1.0.2"]},
-    {"dependent": "brand", "dependent_major": 1, "dependency": "brand_canon", "supported": ["1.1.2", "1.2.0", "1.2.1", "1.3.0", "1.4.0"]},
+    {"dependent": "brand", "dependent_major": 1, "dependency": "brand_canon", "supported": ["1.1.2", "1.2.0", "1.2.1", "1.3.0", "1.4.0", "1.5.0"]},
     {"dependent": "brand", "dependent_major": 1, "dependency": "interface_canon", "supported": ["1.0.0"]}
   ],
   "lifecycle_states": [

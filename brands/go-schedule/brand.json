@@ -51,6 +51,12 @@
     "The existing mark and outlined wordmark are authoritative geometry and must not be redrawn.",
     "The register is operational and calm, so the ShruggieTech verbal flourish is off."
   ],
+  "color_roles": {"identity": [
+    {"id": "primary", "label": "Schedule anchor", "source": "brand.accent.bright", "use": "Primary identity anchor"},
+    {"id": "interval", "label": "Interval Mint", "source": "brand.logo.role_colors.color.interval", "use": "Approved interval segment in the mark"}
+  ], "combinations": [
+    {"id": "core-mark", "label": "Go Schedule mark", "colors": ["primary", "interval"], "artwork": "logo.full", "use": "Anchor blue with the approved interval segment"}
+  ]},
   "accent": {
     "bright": "#58A6FF",
     "deep": "#1160C6",
@@ -352,7 +358,7 @@
     "specimen_line": "A cross-platform scheduler in Go.",
     "specimen_body": "Readable schedules with timezone, catch-up, and overlap policy stated plainly."
   },
-  "canon": "1.4.0",
+  "canon": "1.5.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

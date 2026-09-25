@@ -11,6 +11,10 @@ export type InstructionBlock =
   | { type: 'table'; headers: string[]; rows: InlineSegment[][][] }
   | { type: 'code'; language: string; text: string };
 export type ColorEntry = { token: string; role: string; hex: string; rgb: string; hsl: string; oklch: string; lab: string; print: string; aliases: string[] };
+export type FormalColor = { id: string; label: string; source: string; hex: string; use: string };
+export type IdentityCombination = { id: string; label: string; colors: string[]; artwork: 'logo.full' | 'logo.reduced' | 'brand.applications'; use: string };
+export type InterfaceCue = { id: string; label: string; source: string; hex: string; use: string; non_color_cue: string; foreground: string; foreground_contrast: number; surface: string; surface_contrast: number; theme: 'dark' | 'light' };
+export type ColorRoles = { schema_version: number; identity: FormalColor[]; identity_combinations: IdentityCombination[]; interface: { dark: InterfaceCue[]; light: InterfaceCue[] } };
 export type Delivery = { path: string; url: string; format: string; role?: string; platform?: string; appearance?: string; source_variant?: string; destination?: string; width?: number | null; height?: number | null; embedded_sizes?: number[]; sha256?: string };
 export type PortalAsset = { id: string; title: string; role: string; platform: string; appearance: string; surface: 'light' | 'dark'; summary: string; formats: string[]; variants: string[]; preview: Delivery; deliveries: Delivery[]; preview_well?: 'light' | 'dark' | 'grid' | 'image'; usage?: { use: string; avoid: string }; accessibility?: { alt: string; legibility: string; text_overlay: string; reduced_motion: string; disclosure: string }; credit?: { attribution: string; license: string } };
 export type AssetFamily = { key: string; title: string; summary: string; assets: PortalAsset[] };
@@ -45,6 +49,7 @@ export type GuidelinePortal = {
     components: Record<string, string[]>;
   };
   palettes: { dark: ColorEntry[]; light: ColorEntry[] };
+  color_roles: ColorRoles | null;
   asset_families: AssetFamily[];
   resources: PortalResource[];
   instructions: { key: string; title: string; platform: string; source_path: string; source_url: string; blocks: InstructionBlock[] }[];
@@ -110,7 +115,15 @@ export function guidelineTree(portal: GuidelinePortal): Root {
 }
 
 export function topicToc(portal: GuidelinePortal, topic: GuidelineTopic): TOCItemType[] {
-  if (topic.key === 'color') return [{ title: 'Dark palette', url: '#dark-palette', depth: 2 }, { title: 'Light palette', url: '#light-palette', depth: 2 }];
+  if (topic.key === 'color') return [
+    ...(portal.color_roles ? [
+      { title: 'Formal identity colors', url: '#formal-colors', depth: 2 },
+      { title: 'Dark interface cues', url: '#dark-cues', depth: 2 },
+      { title: 'Light interface cues', url: '#light-cues', depth: 2 },
+    ] : []),
+    { title: 'Dark palette', url: '#dark-palette', depth: 2 },
+    { title: 'Light palette', url: '#light-palette', depth: 2 },
+  ];
   if (topic.key === 'assets') return [...portal.asset_families.map((family) => ({ title: family.title, url: `#${family.key}`, depth: 2 })), { title: 'Documents and containers', url: '#resources', depth: 2 }];
   if (topic.key === 'expressions') return (portal.asset_families.find((family) => family.key === 'expressions')?.assets ?? []).map((asset) => ({ title: asset.title, url: `#${asset.id}`, depth: 2 }));
   if (topic.key === 'integration') return portal.instructions.map((instruction, index) => ({ title: `${instruction.platform}: ${instruction.title}`, url: `#instruction-${index + 1}`, depth: 2 }));

@@ -22,7 +22,7 @@ Construct or bind the real Full and Reduced production masters before asking for
 - side-by-side, alpha-overlay, silhouette-XOR, and color-difference evidence;
 - exact owner wording, approver, date, scope, candidate identifier, and packet hash.
 
-Palette qualification happens before canonical approval. Its sRGB role map must equal every hexadecimal role in the governed identity palette, and each recorded OKLCH triplet is independently recomputed from that sRGB value. Every declared role must pass contrast, sibling separation, color-vision, semantic-role, surface, single-ink, and rendered-color checks. A selected hue or extracted swatch is only a proposal until this evidence is complete.
+Palette qualification happens before canonical approval. Its sRGB role map must equal every hexadecimal role in the governed identity palette, and each recorded OKLCH triplet is independently recomputed from that sRGB value. Every declared role must pass contrast, color-vision, semantic-role, surface, single-ink, and rendered-color checks. Historical `sibling_separation` evidence remains readable but is no longer an approval requirement. A selected hue or extracted swatch is only a proposal until this evidence is complete.
 
 ## Construction continuity
 

@@ -20,6 +20,37 @@ from coloraide import Color
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
 from brand_contract import affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
+from color_roles import load_color_roles
+
+
+def role_reference_html(roles):
+    if not roles:
+        return ""
+    formal = "".join('<tr><th scope="row">%s</th><td><code>%s</code></td><td>%s</td><td>%s</td></tr>' %
+                     (escape(row["label"]), escape(row["hex"]), escape(row["source"]), escape(row["use"]))
+                     for row in roles["identity"])
+    combinations = "".join('<tr><th scope="row">%s</th><td>%s</td><td><code>%s</code></td><td>%s</td></tr>' %
+                           (escape(row["label"]), escape(", ".join(row["colors"])),
+                            escape(row["artwork"]), escape(row["use"]))
+                           for row in roles["identity_combinations"])
+    candidates = [(color, cue) for color in roles["identity"] for cue in roles["interface"]["dark"]
+                  if cue["id"] in {"action", "warning"} and color["hex"] == cue["hex"]]
+    sample, cue = candidates[0] if candidates else (roles["identity"][0], roles["interface"]["dark"][1])
+    sections = ['<h3>Formal identity colors</h3><p>These approved source values belong to marks and brand applications. A color used in artwork is not automatically a warning or action cue.</p>',
+                '<table><thead><tr><th>Color</th><th>HEX</th><th>Source</th><th>Use</th></tr></thead><tbody>%s</tbody></table>' % formal,
+                '<h3>Approved combinations</h3><table><thead><tr><th>Application</th><th>Formal colors</th><th>Artwork</th><th>Use</th></tr></thead><tbody>%s</tbody></table>' % combinations,
+                '<p>Correct: use %s (%s) in its approved identity application; pair the %s cue (%s) with %s. Misuse: a lone identity swatch as the only %s signal.</p>' %
+                (escape(sample["label"]), escape(sample["hex"]), escape(cue["label"]), escape(cue["hex"]),
+                 escape(cue["non_color_cue"].lower()), escape(cue["label"].lower()))]
+    for theme in ("dark", "light"):
+        rows = "".join('<tr><th scope="row">%s</th><td><code>%s</code></td><td>%s</td><td>%s with %s text (%.2f:1); %.2f:1 against %s</td><td>%s</td></tr>' %
+                       (escape(cue["label"]), escape(cue["hex"]), escape(cue["use"]), escape(cue["hex"]),
+                        escape(cue["foreground"]), cue["foreground_contrast"], cue["surface_contrast"],
+                        escape(cue["surface"]), escape(cue["non_color_cue"]))
+                       for cue in roles["interface"][theme])
+        sections.append('<h3>Interface cues on %s surfaces</h3><p>Use words, icons, outlines, or state attributes with color. A shared HEX value does not merge identity and interface roles.</p>' % theme)
+        sections.append('<table><thead><tr><th>Cue</th><th>HEX</th><th>Meaning</th><th>Measured pairing</th><th>Non-color cue</th></tr></thead><tbody>%s</tbody></table>' % rows)
+    return "".join(sections)
 
 def color_reference(token, value):
     color = Color(value).convert("srgb")
@@ -200,6 +231,7 @@ def portal_payload(B, kit):
             "typography": B.get("typography", {}), "components": B.get("domain_components", {}),
         },
         "palettes": {"dark": portal_colors(list(dark.items())), "light": portal_colors(list(light.items()))},
+        "color_roles": load_color_roles(B, kit),
         "asset_families": families, "resources": resources, "instructions": instructions,
         "capability_suites": suites, "aliases": aliases, "portable_guide": "guidelines/index.html",
     }
@@ -424,8 +456,7 @@ def build(B, kit):
     lockups = (B.get("logo") or {}).get("lockups") or {}
     horizontal_lockup = lockups.get("horizontal") or {}
     stacked_lockup = lockups.get("stacked") or {}
-    M = B.get("measured", {}); sep = M.get("hue_separation_deg", {})
-    near = min(sep.values()) if sep else None
+    M = B.get("measured", {})
     cb = (B.get("color", {}).get("accent-bright", {}) or {})
     ca = (B.get("color", {}).get("accent-accessible", {}) or {})
     on_light = (cb.get("contrast") or {}).get("on_light_base", "?")
@@ -441,6 +472,7 @@ def build(B, kit):
     cs, canvas_width, canvas_height, artwork_width = logo_metrics(B)
     color_reference_html = (_swatches("Dark palette", list(D.items()), title)
                             + _swatches("Light palette", list(L.items()), title))
+    color_role_html = role_reference_html(load_color_roles(B, kit))
     catalog = _asset_catalog(kit, title)
 
     return """<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -554,8 +586,9 @@ code { font-family:var(--font-body); font-weight:var(--font-label-weight); font-
 %(expression_nav)s
 </ul></nav>
 
-<main><section id="colors"><div class="eyebrow">Color</div><h2>Identity accent</h2>
+<main><section id="colors"><div class="eyebrow">Color</div><h2>Formal identity colors and interface cues</h2>
 <p class="lead">%(sepline)s</p>
+%(color_role_html)s
 <p class="lead">HEX uses uppercase pairs; sRGB uses integer 0-255 channels; HSL uses degrees and percentages rounded to one decimal; OKLCH uses four decimals for lightness and chroma plus one for hue; CIELAB uses D50 with lightness as a percentage and two decimals per channel.</p>
 %(color_reference_html)s
 <div class="card" style="margin-top:24px"><div class="eyebrow">Light surfaces</div>
@@ -565,7 +598,7 @@ reading surface and is never text there. The light block substitutes <code>%(AL)
 </section>
 
 <section id="themes"><div class="eyebrow">Theme reference</div><h2>Dark and light examples</h2>
-<p class="lead">Chart colors serve data visualization. Brand applications use the identity accent and the neutral surfaces. Each chart color is derived from the accent, clears 4.5:1 on its surface, and remains separate from warning and failure states.</p>
+<p class="lead">Chart colors serve data visualization. Each is derived from the accent and measured against its surface. Use labels or shapes so chart meaning does not depend on hue alone.</p>
 <div class="theme-wells"><div class="theme-well" style="%(dark_vars)s"><div class="eyebrow">Dark</div><h3>Heading and controls</h3><p>Body text on the generated dark surface.</p><div class="row"><button class="btn btn-primary">Primary</button><button class="btn btn-secondary">Secondary</button></div><div class="mini-bars">%(mini_bars)s</div></div>
 <div class="theme-well" style="%(light_vars)s"><div class="eyebrow">Light</div><h3>Heading and controls</h3><p>Body text on the generated light surface.</p><div class="row"><button class="btn btn-primary">Primary</button><button class="btn btn-secondary">Secondary</button></div><div class="mini-bars">%(mini_bars_light)s</div></div></div>
 </section>
@@ -622,8 +655,7 @@ if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),
         "idea": copy_for(B, "idea", B.get("brand_idea", title)),
         "descriptor": copy_for(B, "descriptor", B.get("descriptor", "")),
-        "sepline": ("Hue %s in OKLCH." % M.get("identity_hue", "?")) + (
-            "" if near is None else " %.1f degrees clear of the nearest sibling identity accent." % near),
+        "sepline": "Identity accent hue %s in OKLCH. Palette selection is independent of ownership and sibling hues." % M.get("identity_hue", "?"),
         "A": A, "AL": AL, "on_light": on_light, "acc_light": acc_light,
         "fgc": fg.get("color", "?"), "fgr": fg.get("ratio", "?"),
         "canvas_width": canvas_width,
@@ -636,6 +668,7 @@ if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;
         "cspct": 100.0 * cs / artwork_width,
         "clear_space_guidance": clear_space_guidance(B, cs),
         "color_reference_html": color_reference_html,
+        "color_role_html": color_role_html,
         "catalog": catalog,
         "dark_vars": escape(";".join("--%s:%s" % item for item in D.items()), quote=True),
         "light_vars": escape(";".join("--%s:%s" % item for item in L.items()), quote=True),

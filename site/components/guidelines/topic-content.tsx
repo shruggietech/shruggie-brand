@@ -45,7 +45,7 @@ export function TopicContent({ portal, topic }: { portal: GuidelinePortal; topic
   if (topic.key === 'overview') return <Overview portal={portal} />;
   if (topic.key === 'voice') return <Voice portal={portal} />;
   if (topic.key === 'logos') return <Logos portal={portal} />;
-  if (topic.key === 'color') return <ColorReference palettes={portal.palettes} />;
+  if (topic.key === 'color') return <ColorReference palettes={portal.palettes} roles={portal.color_roles} />;
   if (topic.key === 'typography') return <Typography portal={portal} />;
   if (topic.key === 'components') return <Components portal={portal} />;
   if (topic.key === 'expressions') return <Expressions portal={portal} />;

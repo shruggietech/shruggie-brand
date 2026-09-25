@@ -38,7 +38,7 @@ deliberately few.
 
 Every brand explicitly declares ownership, showcase permission, parentage, inheritance, endorsement, and service credit before creative work. These facts are independent. Third-party ownership does not imply public showcase permission, ShruggieTech parentage, house inheritance, or a service credit.
 
-`shruggietech-house` inheritance adopts the house semantic orange and the house typography option. `independent` inheritance requires brand-specific emphasis and action colors. A fixed-font requirement is selected through the separate typography contract. Missing or contradictory declarations stop generation.
+`shruggietech-house` is an explicit selection of the historical house orange emphasis/action pair. `independent` requires brand-specific emphasis and action colors. Either choice is available to an owned brand; a third-party brand may deliberately share a color without acquiring ownership or endorsement. Typography uses its separate `house` or `fixed` mode and never selects colors. Missing or contradictory declarations stop generation.
 
 ## Immutable
 
@@ -83,9 +83,9 @@ permitted.
 Icon set is the single largest source of agent drift and standardising it costs
 nothing. Two ShruggieTech products must not read as two companies.
 
-### The inherited orange
+### The optional shared orange
 
-`#FF5300` and its CTA-safe form `#C24000` are carried by brands that explicitly select `shruggietech-house` inheritance. An independently themed third-party identity declares its own emphasis and action colors and does not receive this pair.
+`#FF5300` and its CTA-safe form `#C24000` are carried by brands that explicitly select `shruggietech-house` inheritance. An independent palette declares its own emphasis and action colors regardless of ownership. A color match does not imply the same palette contract or parentage.
 
 `#C24000` is fill-only. As text on the dark base it measures 4.03:1 and fails
 AA for normal text. With white text on top of it, 5.21:1.
@@ -165,23 +165,17 @@ older, more broken copy.
 
 ### Identity accent
 
-The one real decision a sub-brand makes. Five checks, all machine-checkable:
+Identity colors are approved separately from interface cues. The accent has three measured checks:
+
+Record each approved combination of formal colors with its intended application and exact artwork reference. A shared interface cue remains separately named and measured.
 
 | Check | Rule |
 | --- | --- |
-| Hue separation | At least 30° in OKLCH from every existing sibling **identity** accent |
-| Orange distance | At least 30° from house orange at 38.3° when house inheritance is selected |
 | Dark contrast | At least 4.5:1 on the dark base |
 | Light variant | A separate accessible variant clearing 4.5:1 on the light base must exist |
 | Foreground pairing | The legal text color on the accent fill is measured and recorded |
 
-Current identity accents: ShruggieTech green 153.0°, fragcap cyan 215.7°,
-go-schedule Anchor Blue 253.3°. Closest pair is 37.6° apart, so the 30° rule
-passes all three approved kits with margin.
-
-Scope note that matters: go-schedule's Interval Mint sits 18.8° from green,
-which would fail the rule. Mint is a semantic success color there, and Anchor
-Blue is the identity accent. The check applies to identity accents only.
+Another brand's hue is context for a creative choice, not a qualification rule. A chosen palette may intentionally share a hue while preserving its own source record and measured interface pairings.
 
 The light variant is not optional bookkeeping. fragcap's Signal Cyan measures
 1.89:1 on its light surface, and ShruggieTech's own bright green measures
@@ -211,8 +205,7 @@ magenta that reads as a paler accent and sits 15° from the failure red.
 A brand hitting that declares `chart_palette.hue_rotations` in `brand.json` with
 its reasoning. Only the offsets may change. Chroma stays at 0.92×, lightness is
 still solved against the real surface, every entry still clears 4.5:1, minimum
-pairwise separation is at least 50°, and no entry comes within 40° of the
-inherited orange or 60° of the fault red. It must remain a formula, stated, not
+pairwise separation is at least 50°. Charts use labels or shapes so meaning does not depend on hue alone. The set must remain a formula, stated, not
 five hues somebody liked. Covarity's `[0, −57, −113, −170, −226]` is the worked
 example: the same arc, swept one direction, evenly spaced.
 

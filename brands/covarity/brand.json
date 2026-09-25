@@ -49,6 +49,12 @@
     "The register is precise-dry and the shruggie flourish is off, because a product whose entire claim is provenance should not wink.",
     "Covarity holds two products, covarity-knowledge and covarity-context, under one identity. Neither gets its own accent."
   ],
+  "color_roles": {"identity": [
+    {"id": "primary", "label": "Covariance Purple", "source": "brand.accent.bright", "use": "Primary mark arc and identity applications"},
+    {"id": "terminal", "label": "Terminal Orange", "source": "brand.logo.role_colors.color.emphasis", "use": "Approved short mark terminal only"}
+  ], "combinations": [
+    {"id": "core-mark", "label": "Covarity mark", "colors": ["primary", "terminal"], "artwork": "logo.full", "use": "Purple arc with the short orange terminal in the approved full mark"}
+  ]},
   "accent": {
     "bright": "#C659FF",
     "deep": "#BF36FF",
@@ -220,7 +226,7 @@
     "written_form": "<span class=\"m\">Covarity</span> in title case in prose. <span class=\"m\">covarity</span> in lowercase for technical identifiers, repositories and package names. <span class=\"m\">covarity.ai</span> in a URL, and anywhere an unrelated company of the same name could be confused with this one. Never set <span class=\"m\">Covarity.ai</span> in a wordmark or a headline: a top-level domain is an address, and it dates a mark.",
     "named": "18 March 2026"
   },
-  "canon": "1.4.0",
+  "canon": "1.5.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

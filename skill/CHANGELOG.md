@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 2.2.0 - 2026-09-25
+
+- Added formal identity colors, approved artwork combinations, correct-use examples, and measured interface cue records for action, warning, error, success, information, focus, selection, and disabled states in both themes.
+- Removed mandatory parent and sibling hue exclusion from palette qualification while preserving measured WCAG AA foreground and focus pairings.
+- Allowed independent palettes for owned brands and explicit shared-color choices for unrelated brands without changing ownership or typography.
+- Advanced Brand Canon to 1.5.0 and BrandBuilder to 2.2.0. Regenerate and repin kits to adopt the new role metadata; approved color values and logo geometry remain unchanged.
+
 ## 2.1.0 - 2026-09-25
 
 - Added compatible light-guide source declarations and governed optional custom assets, including eligible expression delivery in generated guides and the hosted site.
