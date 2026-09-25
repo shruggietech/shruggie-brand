@@ -342,58 +342,85 @@ class PipelineTests(unittest.TestCase):
             validate_brief(missing_source)
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            brand_root = ROOT / "brands" / "i-heart-pr-tours"
+            canonical = json.loads((brand_root / "brand.json").read_text(encoding="utf-8"))[
+                "approval_ledger"]["gate_1"]["canonical_source_sha256"]
             roles = ("full-mark", "reduced-mark", "wide-lockup", "stacked-lockup",
                      "social-share-image", "formal-palette", "interface-cues", "typography",
                      "representative-application", "derivative-manifest")
             assets = {}
-            for role in roles:
+            for index, role in enumerate(roles):
                 target = root / (role + (".png" if role in roles[:5] or role == "representative-application" else ".txt"))
                 if target.suffix == ".png":
-                    Image.new("RGBA", (2, 2), (0, 0, 0, 255)).save(target)
+                    Image.new("RGBA", (2, 2), (index * 20, 0, 0, 255)).save(target)
                 else:
                     target.write_text(role, encoding="utf-8")
                 assets[role] = {"path": target.name, "sha256": hashlib.sha256(target.read_bytes()).hexdigest()}
-            packet = {"schema_version": 1, "gate_1": {"status": "approved", "source_sha256": "a" * 64},
+            packet = {"schema_version": 1, "gate_1": {"status": "approved", "source_sha256": canonical},
                       "gate_2": {"status": "pending"}, "public_projection_enabled": False,
                       "social_copy": social, "assets": assets}
-            validate_gate_2_packet(brief, packet, root)
+            validate_gate_2_packet(brief, packet, root, brand_root)
+            stale_gate = copy.deepcopy(packet)
+            stale_gate["gate_1"]["source_sha256"] = "0" * 64
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, stale_gate, root, brand_root)
+            drift_root = root / "drift-brand"
+            shutil.copytree(brand_root, drift_root)
+            drift_brand_path = drift_root / "brand.json"
+            drift_brand = json.loads(drift_brand_path.read_text(encoding="utf-8"))
+            drift_brand["logo"]["canvas_width"] += 1
+            drift_brand_path.write_text(json.dumps(drift_brand), encoding="utf-8")
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, packet, root, drift_root)
+            ledger_drift = json.loads((brand_root / "brand.json").read_text(encoding="utf-8"))
+            ledger_drift["approval_ledger"]["gate_1"]["canonical_source_sha256"] = "0" * 64
+            drift_brand_path.write_text(json.dumps(ledger_drift), encoding="utf-8")
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, packet, root, drift_root)
             svg = root / "full-mark.svg"
             svg.write_text('<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2"><rect width="2" height="2"/></svg>', encoding="utf-8")
             svg_packet = copy.deepcopy(packet)
             svg_packet["assets"]["full-mark"] = {"path": svg.name, "sha256": hashlib.sha256(svg.read_bytes()).hexdigest()}
-            validate_gate_2_packet(brief, svg_packet, root)
+            validate_gate_2_packet(brief, svg_packet, root, brand_root)
             svg.write_text('<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.com/mark.png"/></svg>', encoding="utf-8")
             svg_packet["assets"]["full-mark"]["sha256"] = hashlib.sha256(svg.read_bytes()).hexdigest()
             with self.assertRaises(BriefError):
-                validate_gate_2_packet(brief, svg_packet, root)
+                validate_gate_2_packet(brief, svg_packet, root, brand_root)
             wrong = copy.deepcopy(packet)
             wrong["social_copy"]["slogan"] = "Invented line."
             with self.assertRaises(BriefError):
-                validate_gate_2_packet(brief, wrong, root)
+                validate_gate_2_packet(brief, wrong, root, brand_root)
             missing = copy.deepcopy(packet)
             del missing["assets"]["social-share-image"]
             with self.assertRaises(BriefError):
-                validate_gate_2_packet(brief, missing, root)
+                validate_gate_2_packet(brief, missing, root, brand_root)
             public = copy.deepcopy(packet)
             public["public_projection_enabled"] = True
             with self.assertRaises(BriefError):
-                validate_gate_2_packet(brief, public, root)
+                validate_gate_2_packet(brief, public, root, brand_root)
             stale = copy.deepcopy(packet)
             stale["assets"]["social-share-image"]["sha256"] = "0" * 64
             with self.assertRaises(BriefError):
-                validate_gate_2_packet(brief, stale, root)
+                validate_gate_2_packet(brief, stale, root, brand_root)
             escaping = copy.deepcopy(packet)
             escaping["assets"]["social-share-image"]["path"] = "../outside.png"
             with self.assertRaises(BriefError):
-                validate_gate_2_packet(brief, escaping, root)
+                validate_gate_2_packet(brief, escaping, root, brand_root)
             shared = copy.deepcopy(packet)
             shared["assets"]["social-share-image"] = copy.deepcopy(shared["assets"]["wide-lockup"])
             with self.assertRaises(BriefError):
-                validate_gate_2_packet(brief, shared, root)
+                validate_gate_2_packet(brief, shared, root, brand_root)
+            duplicate_path = root / "social-copy.png"
+            shutil.copyfile(root / "wide-lockup.png", duplicate_path)
+            duplicate = copy.deepcopy(packet)
+            duplicate["assets"]["social-share-image"] = {
+                "path": duplicate_path.name, "sha256": hashlib.sha256(duplicate_path.read_bytes()).hexdigest()}
+            with self.assertRaises(BriefError):
+                validate_gate_2_packet(brief, duplicate, root, brand_root)
             unresolved = copy.deepcopy(brief)
             unresolved["topics"]["social_copy"]["unresolved"] = ["Which line breaks are approved?"]
             with self.assertRaises(BriefError):
-                validate_gate_2_packet(unresolved, packet, root)
+                validate_gate_2_packet(unresolved, packet, root, brand_root)
 
     def test_adaptive_brief_keeps_sparse_choices_unresolved(self):
         from authoring_brief import BriefError, validate_brief

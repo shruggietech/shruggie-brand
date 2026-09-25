@@ -12,6 +12,7 @@
 - Public documentation source audit: zero problems.
 - UTF-8 without BOM, LF line endings, and mojibake scan of changed source and specification text: passed.
 - Focused adaptive workflow tests: three passed. The Gate 2 packet test also accepts a valid SVG review asset and rejects an external-reference SVG.
+- The Gate 2 packet test rejects an invented Gate 1 digest, changed source geometry, stale approval-ledger binding, and duplicate preview content stored under distinct filenames.
 - Release contract tests: 27 passed.
 - Interface contract tests: 19 passed.
 - Documentation publication tests: five passed.

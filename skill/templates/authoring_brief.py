@@ -100,7 +100,26 @@ def _contained_file(root, relative):
     return resolved
 
 
-def validate_gate_2_packet(brief, packet, root):
+def _canonical_gate_1_digest(brand_root):
+    """Read and validate the current production source approval before review."""
+    source = Path(brand_root)
+    require(source.is_dir() and not source.is_symlink(), "approved brand source root is missing or unsafe")
+    brand_file = source / "brand.json"
+    require(brand_file.is_file() and not brand_file.is_symlink(), "approved brand source is missing or unsafe")
+    try:
+        from brand_contract import approval_ledger, canonical_gate_binding
+        from identity_continuity import validate_brand_continuity
+        brand = json.loads(brand_file.read_text(encoding="utf-8"))
+        continuity = validate_brand_continuity(brand, source)
+        require(continuity["status"] == "approved-canonical", "Gate 1 has no canonical approval")
+        approval_ledger(brand)
+        canonical_gate_binding(brand, continuity)
+    except (OSError, ValueError) as error:
+        raise BriefError("Gate 1 source evidence is invalid: %s" % error) from error
+    return continuity["canonical_source_sha256"]
+
+
+def validate_gate_2_packet(brief, packet, root, brand_root):
     """Require a complete, checksummed, private review packet before Gate 2."""
     validate_brief(brief)
     require(brief["social_copy"]["status"] == "approved", "social copy is unresolved")
@@ -121,6 +140,8 @@ def validate_gate_2_packet(brief, packet, root):
             and gate_1["status"] == "approved" and isinstance(gate_1["source_sha256"], str)
             and DIGEST.fullmatch(gate_1["source_sha256"]),
             "Gate 2 requires approved source-bound Gate 1 evidence")
+    require(gate_1["source_sha256"] == _canonical_gate_1_digest(brand_root),
+            "Gate 2 source hash differs from current canonical Gate 1 approval")
     require(packet["gate_2"] == {"status": "pending"},
             "pre-approval Gate 2 packet must remain pending")
     assets = packet["assets"]
@@ -151,6 +172,9 @@ def validate_gate_2_packet(brief, packet, root):
         paths[role] = path
     require(len({paths["wide-lockup"], paths["stacked-lockup"], paths["social-share-image"]}) == 3,
             "wide, stacked, and social review images must be separate compositions")
+    require(len({assets[role]["sha256"] for role in
+                 ("wide-lockup", "stacked-lockup", "social-share-image")}) == 3,
+            "wide, stacked, and social review images have duplicate content")
     return packet
 
 
@@ -158,12 +182,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("brief", type=Path, help="private authoring brief JSON")
     parser.add_argument("--gate-2", dest="packet", type=Path, help="private pending Gate 2 packet JSON")
+    parser.add_argument("--brand-root", type=Path, help="approved brand source directory for Gate 1 binding")
     args = parser.parse_args()
+    require(bool(args.packet) == bool(args.brand_root), "Gate 2 packet and approved brand root must be supplied together")
     brief = json.loads(args.brief.read_text(encoding="utf-8"))
     validate_brief(brief)
     if args.packet:
         packet = json.loads(args.packet.read_text(encoding="utf-8"))
-        validate_gate_2_packet(brief, packet, args.packet.parent)
+        validate_gate_2_packet(brief, packet, args.packet.parent, args.brand_root)
     print("private authoring evidence valid")
 
 
