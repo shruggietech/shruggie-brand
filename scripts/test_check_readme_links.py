@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Isolated contract tests for the README publication-link audit."""
+"""Isolated contract tests for the evergreen README audit."""
 
 from __future__ import annotations
 
@@ -33,105 +33,57 @@ class ReadmeLinkAuditTests(unittest.TestCase):
 <picture><source media="(prefers-color-scheme: dark)" srcset="brand.png"><img src="brand.png" alt="Brand"></picture>
 [![Build status](https://github.com/example/repo/actions/workflows/build.yml/badge.svg)](https://github.com/example/repo/actions/workflows/build.yml)
 [Latest official release](https://github.com/shruggietech/shruggie-brand/releases/latest)
-[Alpha](https://brand.shruggie.tech/alpha/guidelines/)
-[Beta](https://brand.shruggie.tech/beta/guidelines/)
+[Brand site](https://brand.shruggie.tech/)
 [License](LICENSE#terms)
 """
 
     def problems(self, readme: str):
         return audit(self.root, readme, ROUTES)
 
-    def test_valid_links_images_and_badge(self) -> None:
+    def test_valid_front_door_does_not_require_each_brand(self) -> None:
         self.assertEqual([], self.problems(self.valid))
 
-    def test_missing_local_target_fails(self) -> None:
+    def test_portfolio_snapshots_are_rejected(self) -> None:
+        for addition in ("Eight production brand kits exist.\n", "8 brands are published.\n",
+                         "## Brand kits\n", "[Alpha](https://brand.shruggie.tech/alpha/guidelines/)\n",
+                         "python scripts/build_all.py alpha\n", "Beta is a sample brand.\n"):
+            with self.subTest(addition=addition):
+                self.assertIn("portfolio snapshot", "\n".join(self.problems(self.valid + addition)))
+
+    def test_technical_counts_and_project_identity_are_allowed(self) -> None:
+        self.assertEqual([], self.problems(self.valid + "WCAG 2.1 AA, 4px spacing, and ShruggieTech identity.\n"))
+
+    def test_local_paths_and_traversal(self) -> None:
         self.assertIn("missing local target", "\n".join(self.problems(self.valid + "[Missing](gone.md)\n")))
-
-    def test_encoded_traversal_fails(self) -> None:
         self.assertIn("unsafe local target", "\n".join(self.problems(self.valid + "[Escape](%2e%2e/secret.txt)\n")))
-
-    def test_noncanonical_brand_route_fails(self) -> None:
-        text = self.valid.replace("/alpha/guidelines/", "/alpha/")
-        self.assertIn("undeclared site route", "\n".join(self.problems(text)))
-
-    def test_lookalike_host_fails(self) -> None:
-        text = self.valid.replace("brand.shruggie.tech/alpha", "brand.shruggie.tech.evil/alpha")
-        self.assertIn("untrusted site host", "\n".join(self.problems(text)))
-
-    def test_omitted_brand_fails(self) -> None:
-        text = self.valid.replace("[Beta](https://brand.shruggie.tech/beta/guidelines/)\n", "")
-        self.assertIn("missing brand overview", "\n".join(self.problems(text)))
-
-    def test_html_image_target_is_checked(self) -> None:
-        text = self.valid.replace('src="brand.png"', 'src="missing.png"')
-        self.assertIn("missing local target", "\n".join(self.problems(text)))
-
-    def test_unsafe_scheme_fails(self) -> None:
-        self.assertIn("unsupported URL scheme", "\n".join(self.problems(self.valid + "[Bad](javascript:alert)\n")))
-
-    def test_reference_definition_target_is_checked(self) -> None:
-        self.assertIn("missing local target", "\n".join(self.problems(self.valid + "[Guide][manual]\n\n[manual]: missing.md\n")))
-
-    def test_local_query_is_not_treated_as_a_file(self) -> None:
         self.assertIn("unsafe local target", "\n".join(self.problems(self.valid + "[License](LICENSE?raw=1)\n")))
-
-    def test_same_document_fragment_is_allowed(self) -> None:
         self.assertEqual([], self.problems(self.valid + "[Top](#front-door)\n"))
 
-    def test_second_srcset_candidate_is_checked(self) -> None:
-        text = self.valid.replace('srcset="brand.png"', 'srcset="brand.png 1x, missing.png 2x"')
-        self.assertIn("missing local target", "\n".join(self.problems(text)))
-
-    def test_latest_official_release_destination_is_required(self) -> None:
-        text = self.valid.replace("https://github.com/shruggietech/shruggie-brand/releases/latest", "https://github.com/shruggietech/shruggie-brand/releases")
-        self.assertIn("missing latest official release", "\n".join(self.problems(text)))
-
-    def test_versioned_builder_artifact_name_fails(self) -> None:
-        self.assertIn("versioned BrandBuilder asset", "\n".join(self.problems(self.valid + "Get shruggie-brandbuilder-2.0.0.skill\n")))
-
-    def test_markdown_autolink_is_audited(self) -> None:
-        self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "<https://brand.shruggie.tech/not-a-route/>\n")))
-
-    def test_bare_github_autolink_is_audited(self) -> None:
-        self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "See https://brand.shruggie.tech/not-a-route/.\n")))
-
-    def test_bare_github_autolink_counts_as_navigation(self) -> None:
-        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "https://brand.shruggie.tech/alpha/guidelines/")
-        self.assertEqual([], self.problems(text))
-
-    def test_percent_encoded_authority_is_rejected(self) -> None:
+    def test_site_route_and_host(self) -> None:
+        self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "[Bad](https://brand.shruggie.tech/alpha/)\n")))
+        self.assertIn("untrusted site host", "\n".join(self.problems(self.valid + "[Bad](https://brand.shruggie.tech.evil/alpha/)\n")))
+        self.assertIn("unsupported URL scheme", "\n".join(self.problems(self.valid + "[Bad](javascript:alert)\n")))
         self.assertIn("unsupported URL scheme or authority", "\n".join(self.problems(self.valid + "[Bad](https://%62rand.shruggie.tech/not-a-route/)\n")))
 
-    def test_markdown_image_cannot_satisfy_brand_navigation(self) -> None:
-        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "![Alpha](https://brand.shruggie.tech/alpha/guidelines/)")
-        self.assertIn("missing brand overview", "\n".join(self.problems(text)))
+    def test_authoritative_destinations_are_navigable(self) -> None:
+        self.assertIn("missing brand site", "\n".join(self.problems(self.valid.replace("[Brand site](https://brand.shruggie.tech/)", "![Brand site](https://brand.shruggie.tech/)"))))
+        self.assertIn("missing latest official release", "\n".join(self.problems(self.valid.replace("[Latest official release](https://github.com/shruggietech/shruggie-brand/releases/latest)", "![Release](https://github.com/shruggietech/shruggie-brand/releases/latest)"))))
+        self.assertEqual([], self.problems(self.valid.replace("[Brand site](https://brand.shruggie.tech/)", '<a href="https://brand.shruggie.tech/">Brand site</a>')))
+        self.assertEqual([], self.problems(self.valid.replace("[Brand site](https://brand.shruggie.tech/)", "[Site][site]\n\n[site]: https://brand.shruggie.tech/")))
 
-    def test_markdown_image_cannot_satisfy_release_navigation(self) -> None:
-        text = self.valid.replace("[Latest official release](https://github.com/shruggietech/shruggie-brand/releases/latest)", "![Latest official release](https://github.com/shruggietech/shruggie-brand/releases/latest)")
-        self.assertIn("missing latest official release", "\n".join(self.problems(text)))
+    def test_images_require_alt_and_valid_targets(self) -> None:
+        self.assertIn("missing image alt", "\n".join(self.problems(self.valid + '<img src="brand.png">\n')))
+        self.assertIn("missing image alt", "\n".join(self.problems(self.valid + '![](brand.png)\n')))
+        self.assertIn("missing local target", "\n".join(self.problems(self.valid + '<img src="missing.png" alt="Brand">\n')))
+        self.assertIn("missing local target", "\n".join(self.problems(self.valid.replace('srcset="brand.png"', 'srcset="brand.png 1x, missing.png 2x"'))))
 
-    def test_html_image_cannot_satisfy_brand_navigation(self) -> None:
-        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", '<img src="https://brand.shruggie.tech/alpha/guidelines/" alt="Alpha">')
-        self.assertIn("missing brand overview", "\n".join(self.problems(text)))
-
-    def test_html_anchor_can_satisfy_brand_navigation(self) -> None:
-        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", '<a href="https://brand.shruggie.tech/alpha/guidelines/">Alpha</a>')
-        self.assertEqual([], self.problems(text))
-
-    def test_angle_bracket_image_target_is_not_an_autolink(self) -> None:
-        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "![Alpha](<https://brand.shruggie.tech/alpha/guidelines/>)")
-        self.assertIn("missing brand overview", "\n".join(self.problems(text)))
-
-    def test_reference_link_can_satisfy_brand_navigation(self) -> None:
-        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "[Alpha][alpha]\n\n[alpha]: https://brand.shruggie.tech/alpha/guidelines/")
-        self.assertEqual([], self.problems(text))
-
-    def test_reference_image_cannot_satisfy_brand_navigation(self) -> None:
-        text = self.valid.replace("[Alpha](https://brand.shruggie.tech/alpha/guidelines/)", "![Alpha][alpha]\n\n[alpha]: https://brand.shruggie.tech/alpha/guidelines/")
-        self.assertIn("missing brand overview", "\n".join(self.problems(text)))
-
-    def test_fenced_example_links_are_not_public_destinations(self) -> None:
+    def test_autolinks_and_fenced_examples(self) -> None:
+        self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "<https://brand.shruggie.tech/not-a-route/>\n")))
+        self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "See https://brand.shruggie.tech/not-a-route/.\n")))
         self.assertEqual([], self.problems(self.valid + "\n```md\n[Example](missing.md)\n```\n"))
+
+    def test_versioned_builder_asset_rejected(self) -> None:
+        self.assertIn("versioned BrandBuilder asset", "\n".join(self.problems(self.valid + "Get shruggie-brandbuilder-2.0.0.skill\n")))
 
 
 if __name__ == "__main__":

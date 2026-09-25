@@ -25,16 +25,22 @@ REFERENCE_TARGET = re.compile(r"(?m)^ {0,3}\[(?P<id>[^\]]+)\]:[ \t]*(?:<(?P<angl
 REFERENCE_USE = re.compile(r"(?P<image>!)?\[[^\]]+\]\[(?P<id>[^\]]+)\]")
 FENCE = re.compile(r"^ {0,3}(```|~~~)")
 VERSIONED_BUILDER_ASSET = re.compile(r"shruggie-brandbuilder-\d+\.\d+\.\d+(?:-portable)?\.(?:skill|zip)")
+PORTFOLIO_COUNT = re.compile(r"\b(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|several|many)\s+(?:(?:production|showcased|subordinate|released|current)\s+)?(?:sub-?brands|brand kits|brands|kits)\b", re.IGNORECASE)
+PORTFOLIO_HEADING = re.compile(r"(?im)^#{1,6}\s+(?:brand kits|brands|portfolio)\s*$")
+EMPTY_MARKDOWN_IMAGE = re.compile(r"!\[\s*\]\(")
 
 
 class _HtmlTargets(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.targets: list[tuple[str, bool]] = []
+        self.images_without_alt = 0
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag not in {"a", "img", "source"}:
             return
+        if tag == "img" and not any(name == "alt" and value and value.strip() for name, value in attrs):
+            self.images_without_alt += 1
         for name, value in attrs:
             if not value:
                 continue
@@ -102,7 +108,7 @@ def _site_routes(contract: dict) -> tuple[set[str], set[str]]:
             if not isinstance(slug, str) or path != "/" + slug + "/guidelines/":
                 raise ValueError("invalid generated brand overview route")
             brands.add(url)
-    if not brands:
+    if not brands or SITE_ORIGIN + "/" not in canonical:
         raise ValueError("generated site contract has no brand overview routes")
     return canonical, brands
 
@@ -124,7 +130,6 @@ def _local_problem(root: Path, target: str, path: str) -> str | None:
 
 def audit(root: Path, markdown: str, contract: dict) -> list[str]:
     canonical, brands = _site_routes(contract)
-    seen_brands: set[str] = set()
     problems: list[str] = []
     targets = destinations(markdown)
     for target, navigable in targets:
@@ -140,8 +145,6 @@ def audit(root: Path, markdown: str, contract: dict) -> list[str]:
             url = SITE_ORIGIN + parsed.path
             if parsed.query or url not in canonical:
                 problems.append("undeclared site route: " + target)
-            elif url in brands and navigable:
-                seen_brands.add(url)
         elif parsed.scheme:
             if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
                 problems.append("unsupported URL scheme or authority: " + target)
@@ -155,9 +158,27 @@ def audit(root: Path, markdown: str, contract: dict) -> list[str]:
                 problems.append(problem)
     if not any(target == LATEST_RELEASE and navigable for target, navigable in targets):
         problems.append("missing latest official release: " + LATEST_RELEASE)
+    if not any(target == SITE_ORIGIN + "/" and navigable for target, navigable in targets):
+        problems.append("missing brand site: " + SITE_ORIGIN + "/")
     if VERSIONED_BUILDER_ASSET.search(markdown):
         problems.append("versioned BrandBuilder asset name in README")
-    problems.extend("missing brand overview: " + url for url in sorted(brands - seen_brands))
+    if PORTFOLIO_COUNT.search(markdown) or PORTFOLIO_HEADING.search(markdown):
+        problems.append("portfolio snapshot in README")
+    if any(url in markdown for url in brands):
+        problems.append("portfolio snapshot in README: brand route")
+    if EMPTY_MARKDOWN_IMAGE.search(markdown):
+        problems.append("missing image alt in README")
+    html = _HtmlTargets()
+    html.feed(markdown)
+    if html.images_without_alt:
+        problems.append("missing image alt in README")
+    for url in brands:
+        slug = url[len(SITE_ORIGIN) + 1:].split("/", 1)[0]
+        if slug == "shruggietech":
+            continue
+        names = {slug, slug.replace("-", " ")}
+        if any(re.search(r"\b" + re.escape(name) + r"\b", markdown, re.IGNORECASE) for name in names):
+            problems.append("portfolio snapshot in README: brand slug " + slug)
     return problems
 
 

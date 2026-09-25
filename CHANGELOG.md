@@ -11,11 +11,13 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - Added source-referenced formal identity colors, approved artwork combinations, correct-use examples, and measured dark/light interface cues to every production kit, hosted color guide, portable guide, and PDF.
 - Allowed owned sub-brands to choose independent palettes and unrelated brands to opt into shared colors without changing parentage or endorsement. Removed mandatory sibling and parent-orange hue exclusion while retaining WCAG AA pairings.
 - Advanced BrandBuilder to 2.2.0 and Brand Canon to 1.5.0. Existing approved brand hex values, logo path bytes, and adapter APIs remain unchanged.
+- Corrected the main manual's stale portfolio and kit-anatomy claims, made the repository README evergreen, and bound the generated manual to exact reference and release-candidate bytes.
 
 ### Decisions
 
 - On 2026-09-25, retained `shruggietech-house` as an explicit compatibility choice for the historical shared orange pair, independent of ownership and typography. Generated color role records reference approved values instead of copying them into a second source.
 - On 2026-09-25, rejected role-only cue overrides until all token and adapter generators can emit them consistently; approved accent and semantic source choices remain the way to set cue colors. Contrast floors use unrounded measurements.
+- On 2026-09-25, kept S054's documentation corrections in the still-unpublished v2.2.0 candidate and derived manual identity from existing publication facts. Tagged preflight now checks exact reference and prepared-page hashes rather than trusting a visible version label.
 
 ## [2.1.0] - 2026-09-25
 

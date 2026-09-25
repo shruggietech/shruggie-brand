@@ -8,6 +8,7 @@
 - Removed mandatory parent and sibling hue exclusion from palette qualification while preserving measured WCAG AA foreground and focus pairings.
 - Allowed independent palettes for owned brands and explicit shared-color choices for unrelated brands without changing ownership or typography.
 - Advanced Brand Canon to 1.5.0 and BrandBuilder to 2.2.0. Regenerate and repin kits to adopt the new role metadata; approved color values and logo geometry remain unchanged.
+- Replaced stale main-manual portfolio and kit-anatomy narrative with current source-mode and delivery guidance. Every generated manual page now identifies its BrandBuilder release candidate or exact formal release; a content inventory binds packaged references to the site output.
 
 ## 2.1.0 - 2026-09-25
 

@@ -4,8 +4,18 @@ import documentation from '../generated/documentation.json' with { type: 'json' 
 import routeContract from '../generated/routes.json' with { type: 'json' };
 import conformanceRecords from '../generated/conformance.json' with { type: 'json' };
 import publication from '../generated/publication.json' with { type: 'json' };
+import documentationPublication from '../generated/documentation-publication.json' with { type: 'json' };
 import canon from '../../skill/references/01-canon.json' with { type: 'json' };
 import { existsSync, readFileSync } from 'node:fs';
+
+if (documentationPublication.version !== publication.version || documentationPublication.sourceRevision !== publication.sourceRevision || documentationPublication.status !== publication.status) throw new Error('manual identity differs from publication identity');
+if (JSON.stringify(documentationPublication) !== JSON.stringify(JSON.parse(readFileSync(new URL('../out/docs/publication.json', import.meta.url), 'utf8')))) throw new Error('exported manual publication record differs');
+for (const page of documentationPublication.pages) {
+  const html = readFileSync(new URL(`../out${page.path}index.html`, import.meta.url), 'utf8');
+  if (!html.includes(`Documentation for BrandBuilder ${publication.version}`)) throw new Error(`${page.path} lacks visible exact manual version`);
+  if (!html.includes(publication.status === 'release' ? 'Official release' : 'Review candidate')) throw new Error(`${page.path} misstates release status`);
+  if (!html.includes(publication.releaseUrl) || !html.includes(publication.skillUrl)) throw new Error(`${page.path} lacks exact release and skill links`);
+}
 
 const assetLibrarySource = readFileSync(new URL('../components/guidelines/asset-library-client.tsx', import.meta.url), 'utf8');
 const topicContentSource = readFileSync(new URL('../components/guidelines/topic-content.tsx', import.meta.url), 'utf8');
@@ -217,7 +227,7 @@ for (const route of routeRecords.filter((route) => route.brandSlug === 'eso-weav
 if (routeRecords.some((route) => route.kind === 'brand' || brands.some((brand) => route.pathname === `/${brand.slug}/`) || route.pathname.endsWith('/guidelines/assets/'))) throw new Error('route contract retains a removed brand root or duplicate Assets route');
 export const brandRoutes = routeRecords.filter((route) => ['downloads', 'guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
 export const docRoutes = routeRecords.filter((route) => ['docs-index', 'docs-page'].includes(route.kind)).map((route) => route.pathname);
-export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolchain', '05-shadcn-binding', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability'].map((slug) => `/docs/${slug}/`);
+export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolchain', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability'].map((slug) => `/docs/${slug}/`);
 export const htmlRoutes = routeRecords.map((route) => route.pathname);
 export const conformanceRoutes = routeRecords.filter((route) => route.kind === 'conformance').map((route) => route.pathname);
 export const guidelineRoutes = routeRecords.filter((route) => ['guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);

@@ -27,13 +27,15 @@ SITE_URL = "https://brand.shruggie.tech"
 ORGANIZATION_URL = "https://shruggie.tech"
 SITE_DESCRIPTION = "Explore ShruggieTech brand identities, standards, assets, and the repeatable system behind them."
 SOCIAL_SIZE = (1280, 640)
-ALERT_TYPES = {"NOTE": "info", "WARNING": "warn", "CAUTION": "error"}
 sys.path.insert(0, str(TEMPLATES))
 from brand_contract import affiliation, custom_assets, guide_surface_mode, public_showcase, showcase_surface, vendor_boundary
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from package_release import write_brand_archive
 from release_contract import PRODUCTION
+from documentation_publication import build_record as documentation_publication_record
+from documentation_render import (OVERVIEW_DESCRIPTION, convert_documentation_alerts,
+                                  derive_public_markdown, render_index, render_page)
 from interface_contract import package_identity
 from registry_contract import validate_registry as validate_registry_delivery
 DOCUMENTATION_CONTRACT = load_documentation_contract()
@@ -708,110 +710,9 @@ def copy_kit(source: Path, brand: dict) -> dict:
     return record
 
 
-def convert_documentation_alerts(content: str) -> str:
-    """Convert explicit GitHub alert blockquotes into Fumadocs callouts."""
-    lines = content.splitlines()
-    output: list[str] = []
-    index = 0
-    fenced = False
-    marker = re.compile(r"^>\s*\[!([A-Z]+)\]\s*$")
-    while index < len(lines):
-        line = lines[index]
-        if line.lstrip().startswith("```"):
-            fenced = not fenced
-            output.append(line)
-            index += 1
-            continue
-        match = marker.match(line) if not fenced else None
-        if not match:
-            output.append(line)
-            index += 1
-            continue
-        name = match.group(1)
-        if name not in ALERT_TYPES:
-            raise ValueError(f"unsupported documentation alert: {name}")
-        body: list[str] = []
-        index += 1
-        while index < len(lines) and lines[index].startswith(">"):
-            quoted = lines[index][1:]
-            if quoted.startswith(" "):
-                quoted = quoted[1:]
-            body.append(quoted)
-            index += 1
-        if not any(part.strip() for part in body):
-            raise ValueError(f"documentation alert {name} has no body")
-        output.extend([f'<Callout type="{ALERT_TYPES[name]}">', *body, "</Callout>"])
-    return "\n".join(output)
-
-
-def derive_public_markdown(content: str) -> tuple[str, str]:
-    lines = content.splitlines()
-    title = next((line[2:].strip() for line in lines if line.startswith("# ")), "Brand system")
-    pattern = re.compile(r"\b(?:Brand|Interface) Canon\b|\bcanon\b", re.IGNORECASE)
-
-    def public_term(match: re.Match[str]) -> str:
-        value = match.group(0)
-        if value.lower() in {"brand canon", "interface canon"}:
-            return value
-        return "Brand system" if value[0].isupper() else "brand system"
-
-    title = pattern.sub(public_term, title)
-    removed_heading = False
-    fenced = False
-    output: list[str] = []
-    retired_endorsement = re.compile(r"a shruggietech project", re.IGNORECASE)
-    for line in lines:
-        if not removed_heading and line.startswith("# "):
-            removed_heading = True
-            continue
-        if line.lstrip().startswith("```"):
-            fenced = not fenced
-            output.append(line)
-            continue
-        if fenced:
-            output.append(line)
-            continue
-        parts = re.split(r"(`[^`]*`)", line)
-        for index in range(0, len(parts), 2):
-            parts[index] = pattern.sub(public_term, parts[index])
-            parts[index] = retired_endorsement.sub("Brand system by ShruggieTech", parts[index])
-        output.append("".join(parts))
-    normalized: list[str] = []
-    index = 0
-    fenced = False
-    while index < len(output):
-        line = output[index]
-        if line.lstrip().startswith("```"):
-            fenced = not fenced
-            normalized.append(line)
-            index += 1
-            continue
-        if not fenced and line.startswith("    "):
-            block: list[str] = []
-            while index < len(output):
-                candidate = output[index]
-                if candidate.startswith("    "):
-                    block.append(candidate[4:])
-                    index += 1
-                elif not candidate.strip() and index + 1 < len(output) and output[index + 1].startswith("    "):
-                    block.append("")
-                    index += 1
-                else:
-                    break
-            normalized.extend(["```text", *block, "```"])
-            continue
-        if not fenced:
-            parts = re.split(r"(`[^`]*`)", line)
-            for part_index in range(0, len(parts), 2):
-                parts[part_index] = re.sub(r"<([^>]+)>", r"&lt;\1&gt;", parts[part_index])
-            line = "".join(parts)
-        normalized.append(line)
-        index += 1
-    return title, convert_documentation_alerts("\n".join(normalized)).strip() + "\n"
-
-
 def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DOC_DESCRIPTIONS,
-               navigation: dict[str, tuple[str, int, str, int]] = DOC_NAVIGATION) -> list[dict[str, Any]]:
+               navigation: dict[str, tuple[str, int, str, int]] = DOC_NAVIGATION,
+               publication: Optional[dict[str, Any]] = None) -> list[dict[str, Any]]:
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
@@ -823,31 +724,26 @@ def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DO
     actual_sources = {path.name for path in references.glob("*.md")}
     if set(expected_sources) != actual_sources:
         raise ValueError(f"documentation source inventory differs: missing {sorted(set(expected_sources) - actual_sources)}, unexpected {sorted(actual_sources - set(expected_sources))}")
+    release_version = (publication or {}).get("version") or json.loads((REFERENCES / "release-impact.json").read_text(encoding="utf-8"))["brandbuilder_version"]
+    publication = publication or {
+        "version": release_version,
+        "status": "candidate",
+        "skillUrl": f"https://github.com/ShruggieTech/shruggie-brand/releases/download/v{release_version}/shruggie-brandbuilder-{release_version}.skill",
+        "releaseUrl": f"https://github.com/ShruggieTech/shruggie-brand/releases/tag/v{release_version}",
+    }
     for pagination_order, source_name in enumerate(expected_sources, 1):
         path = references / source_name
-        title, body = derive_public_markdown(path.read_text(encoding="utf-8"))
+        title, _ = derive_public_markdown(path.read_text(encoding="utf-8"))
         description = descriptions.get(path.stem, f"ShruggieTech guidance for {title.lower()}.")
-        frontmatter = f"---\ntitle: {json.dumps(title)}\ndescription: {json.dumps(description)}\n---\n\n"
-        write_utf8(output / f"{path.stem}.mdx", frontmatter + body)
+        write_utf8(output / f"{path.stem}.mdx", render_page(path.read_text(encoding="utf-8"), description, publication))
         if path.stem not in navigation:
             raise ValueError(f"documentation page lacks a navigation assignment: {path.stem}")
         section, section_order, label, order = navigation[path.stem]
         records.append({"slug": path.stem, "title": title, "description": description, "navigation": {"section": section, "sectionOrder": section_order, "label": label, "order": order, "path": f"/docs/{path.stem}/", "paginationOrder": pagination_order}})
         pages.append(path.stem)
-    release_version = json.loads((REFERENCES / "release-impact.json").read_text(encoding="utf-8"))["brandbuilder_version"]
-    skill_url = f"https://github.com/ShruggieTech/shruggie-brand/releases/download/v{release_version}/shruggie-brandbuilder-{release_version}.skill"
-    index = f"""---
-title: "Documentation"
-description: "The repeatable ShruggieTech system for building complete, usable brand identities."
----
-
-We turn strategy into a complete identity, then package the standards, assets, and implementation tools that keep it coherent in real work.
-
-[Download the ShruggieTech brand skill]({skill_url}) or explore each part of the system below.
-"""
-    write_utf8(output / "index.mdx", index)
+    write_utf8(output / "index.mdx", render_index(publication))
     write_utf8(output / "meta.json", json.dumps({"title": "Documentation", "pages": pages}, indent=2) + "\n")
-    overview = {"slug": "index", "title": "Documentation", "description": "The repeatable ShruggieTech system for building complete, usable brand identities.", "navigation": {"section": "Overview", "sectionOrder": 0, "label": "Overview", "order": 0, "path": "/docs/", "paginationOrder": 0}}
+    overview = {"slug": "index", "title": "Documentation", "description": OVERVIEW_DESCRIPTION, "navigation": {"section": "Overview", "sectionOrder": 0, "label": "Overview", "order": 0, "path": "/docs/", "paginationOrder": 0}}
     navigation_records = sorted([overview, *records], key=lambda record: (record["navigation"]["sectionOrder"], record["navigation"]["order"]))
     identities = [(record["navigation"]["sectionOrder"], record["navigation"]["order"]) for record in navigation_records]
     if len(identities) != len(set(identities)):
@@ -990,9 +886,15 @@ def main() -> int:
         shutil.rmtree(generated_fonts)
     shutil.copytree(ROOT / "assets" / "fonts" / "woff2", generated_fonts)
     write_utf8(GENERATED / "brands.json", json.dumps(brands, indent=2) + "\n")
-    write_utf8(GENERATED / "publication.json", json.dumps(publication_record([source for source, _ in public_sources], set(PRODUCTION)), indent=2) + "\n")
+    publication = publication_record([source for source, _ in public_sources], set(PRODUCTION))
+    write_utf8(GENERATED / "publication.json", json.dumps(publication, indent=2) + "\n")
     write_utf8(GENERATED / "guidelines.json", json.dumps(portals, ensure_ascii=False, indent=2) + "\n")
-    docs = write_docs(REFERENCES, GENERATED / "docs")
+    docs = write_docs(REFERENCES, GENERATED / "docs", publication=publication)
+    docs_publication = documentation_publication_record(REFERENCES, GENERATED / "docs", publication)
+    docs_publication_bytes = json.dumps(docs_publication, indent=2) + "\n"
+    write_utf8(GENERATED / "documentation-publication.json", docs_publication_bytes)
+    (PUBLIC / "docs").mkdir(parents=True, exist_ok=True)
+    write_utf8(PUBLIC / "docs" / "publication.json", docs_publication_bytes)
     routes = build_routes(brands, docs, portals)
     write_utf8(GENERATED / "routes.json", json.dumps({"siteUrl": SITE_URL, "routes": routes}, indent=2, ensure_ascii=False) + "\n")
     generate_social_previews(

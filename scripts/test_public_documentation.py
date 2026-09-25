@@ -15,6 +15,14 @@ class PublicDocumentationAuditTests(unittest.TestCase):
         problems = audit.scan_text("manual.md", text)
         self.assertTrue(any("S007" in problem for problem in problems))
         self.assertTrue(any("Spec Kit" in problem for problem in problems))
+        self.assertTrue(any("work-slice code" in problem for problem in audit.scan_text("manual.md", "Work slice S54 changed this.")))
+
+    def test_rejects_portfolio_counts_only_in_main_manual(self):
+        for phrase in ("8 production brand kits exist", "Eight brands are live", "the first four kits", "brand count: 8"):
+            with self.subTest(phrase=phrase):
+                problems = audit.scan_text("skill/references/02-kit-anatomy.md", phrase)
+                self.assertTrue(any("portfolio count" in problem for problem in problems))
+        self.assertEqual([], audit.scan_text("skill/references/operating-modes.md", "Three operating modes use a 4px spacing scale."))
 
     def test_rejects_known_historical_and_vague_prose(self):
         text = "Fragcap 1.0.0 once said this. It is genuinely good at opening up a concept space quickly.\n"
@@ -44,7 +52,7 @@ class PublicDocumentationAuditTests(unittest.TestCase):
             refs = root / "skill" / "references"
             refs.mkdir(parents=True)
             (refs / "documentation-contract.json").write_text(
-                json.dumps({"manual_pages": [{"source": "guide.md"}]}), encoding="utf-8"
+                json.dumps({"manual_pages": [{"source": "guide.md", "slug": "guide", "title": "Guide", "description": "Guide", "label": "Guide", "section": "Manual"}]}), encoding="utf-8"
             )
             (refs / "guide.md").write_text("Current manual\n", encoding="utf-8")
             brand = root / "brands" / "alpha"
@@ -67,6 +75,25 @@ class PublicDocumentationAuditTests(unittest.TestCase):
             outside = root.parent / "not-in-kit.md"
             with self.assertRaisesRegex(ValueError, "outside publication root"):
                 audit.require_contained(root, outside)
+
+    def test_catalog_description_and_prepared_inventory_are_gated(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            refs = root / "skill" / "references"
+            refs.mkdir(parents=True)
+            (refs / "documentation-contract.json").write_text(json.dumps({"manual_pages": [
+                {"source": "guide.md", "slug": "guide", "title": "Guide", "description": "Eight brand kits are current", "label": "Guide", "section": "Manual"}
+            ]}), encoding="utf-8")
+            (refs / "guide.md").write_text("# Guide\nCurrent instructions.\n", encoding="utf-8")
+            brand = root / "brands" / "alpha"
+            brand.mkdir(parents=True)
+            (brand / "brand.json").write_text('{"slug":"alpha"}', encoding="utf-8")
+            self.assertTrue(any("portfolio count" in problem for problem in audit.audit(root, sources=True, prepared=False)))
+            docs = root / "site" / "generated" / "docs"
+            docs.mkdir(parents=True)
+            (docs / "guide.mdx").write_text("Current instructions\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "prepared manual inventory differs"):
+                list(audit.prepared_documents(root, brands=("alpha",)))
 
 
 if __name__ == "__main__":

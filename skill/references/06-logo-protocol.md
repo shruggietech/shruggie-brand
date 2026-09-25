@@ -25,13 +25,7 @@ Never switch construction methods after canonical approval. Promotion copies the
 
 ## Construction
 
-**The procedure lives in `08-glyph-construction.md`, and it is not optional.**
-This file says what a mark must BE. That one says how to produce one without the
-result being wrong, and it is where the runs that fail, fail. The short version:
-the agent never types path data. It writes a parametric `build/mk_paths.py`
-against `templates/glyphkit.py`, then proves the result with
-`templates/validate_glyph.py`, which measures the geometry with no renderer and
-no vision. Zero failures is the stopping condition.
+**The applicable source-mode procedure lives in `08-glyph-construction.md`.** A newly constructed mark uses a parametric `build/mk_paths.py` against `templates/glyphkit.py`; an authoritative supplied master binds its approved source bytes and forbids that helper. `templates/validate_glyph.py` applies the checks appropriate to the declared provenance. Zero failures is the stopping condition.
 
 Every mark is built on a **declared square grid**, stated in the kit README.
 fragcap uses 512 units. Pick one and write it down; a grid that lives only in
@@ -148,7 +142,7 @@ Read `identity-continuity.md` before requesting approval. Canonical approval req
 | Check | Fails when |
 | --- | --- |
 | `svg-no-live-text` | any shipped SVG contains a `<text>` element or a font dependency |
-| `glyph-geometry` | commands outside absolute M/L/C/Z, ink outside the grid, bad centring, thin strokes, or a piece or counter that changes at 16 px |
+| `glyph-geometry` | a newly constructed mark violates absolute M/L/C/Z or measured geometry rules; imported and legacy constructed paths retain their provenance-specific warning boundary |
 | `svg-viewbox` | any path geometry falls outside its own viewBox |
 | `logo-filled-paths` | a wordmark ships as strokes rather than filled outlines |
 | `ico-entries` | the ICO carries fewer entries than declared |
@@ -157,10 +151,9 @@ Read `identity-continuity.md` before requesting approval. Canonical approval req
 | `logo-provenance` | a source binding, passive SVG payload, rendered placement, derivative PNG, or approved raster mask changes |
 | `icon-source-masters` | a favicon, platform PNG, ICO frame, or ICNS frame differs from its declared Full, Reduced, or monochrome master |
 
-## The 1.1.0 checklist
+## Preflight checklist
 
-fragcap's changelog is the best available list of what goes wrong. Every item
-became a verify check:
+Review the generated proof and verifier results for these recurring defects:
 
 - Wordmark shipped as strokes rather than filled outlines
 - Wordmark clipped by its own viewBox
@@ -173,4 +166,4 @@ became a verify check:
 - ICO carrying one real entry instead of seven
 - Lockups not optically aligned
 
-Read that list before authoring a mark. It is cheaper than rediscovering it.
+Use the current source-mode rules and generated measurements rather than an older kit as authority.

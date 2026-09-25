@@ -1,14 +1,10 @@
 # The shadcn Binding
 
-**This is the layer that closes the gap. Everything else in a kit describes the
-brand; this makes the brand the path of least resistance.**
+**This layer maps approved brand decisions into the names a shadcn consumer uses.**
 
-An agent working in a Next.js project reaches for `--primary`, `bg-card`,
-`text-muted-foreground`, `--ring`. A kit that publishes only `--brand-green`
-gets read, agreed with, and then bypassed. Mapping canon onto shadcn's own slot
-names is the whole fix.
+An agent working in a Next.js project reaches for `--primary`, `bg-card`, `text-muted-foreground`, and `--ring`. The generated binding gives those slots approved source values and measurable pairings instead of leaving a consumer to choose a substitute.
 
-Generator: `templates/gen_nextjs.py`. Worked output: `examples/shruggietech/`.
+Generator: `templates/gen_nextjs.py`. Inspect the exact generated `nextjs/` directory in the selected kit for delivered values.
 
 ## What gets emitted
 
@@ -65,35 +61,19 @@ programmatic derivation sane. The comment lets a human read the file and lets
 
 `--primary` in `.dark` is the bright accent. `--primary` in `:root` is the
 **accessible** variant. This is not a nicety. ShruggieTech's bright green
-measures 1.98:1 on the light surface and is currently set as the light-mode
-link colour on the live site. The generator makes that mistake unrepresentable.
+does not automatically clear the light-surface contrast floor. The generator
+derives and measures the accessible light variant before publication.
 
 `--primary-foreground` is measured, never assumed. White on ShruggieTech green
 is 2.10:1; black is 9.99:1.
 
-## The chart formula, and two ways it goes wrong
+## The chart formula and its checks
 
 Rotate hue by 0, -52, +52, -104, +104 off the identity accent, hold chroma at
 0.92x for entries two through five, then **solve lightness against the actual
 surface**, taking the value closest to the target that still clears 4.5:1.
 
-Both failure modes were hit while building this and both are now guarded:
-
-- **Tuning for one surface.** A palette solved against black is too pale to
-  read on near-white. The first generated light palette measured 3.79 to 4.21
-  and failed. Solve against the real surface.
-- **Overshooting.** A naive solve walks lightness to whichever extreme passes
-  first and produces near-monochrome entries at 9:1 that satisfy the check and
-  lose the brand entirely. Take the closest passing value, not the first.
-- **Double-darkening.** The light path already receives the accessible variant.
-  Darkening it again reproduces the overshoot.
-
-Current output for ShruggieTech:
-
-| Surface | Entries | Ratios |
-| --- | --- | --- |
-| dark | `#2BCC73 #C2AE00 #00C3D3 #FE8840 #75AEFF` | 9.99 · 9.35 · 9.75 · 8.81 · 9.25 |
-| light | `#037B40 #746700 #00747E #9C4E1C #3566AA` | 5.05 · 5.36 · 5.20 · 5.61 · 5.44 |
+Solve against the real surface in each theme. A value that passes on black may fail on a light ground. Take the nearest passing lightness rather than pushing every entry to an extreme, and do not darken a value twice after the light-theme variant has already been derived. Read measured current entries from the selected kit's tokens and `VERIFY.md`.
 
 ## Distribution
 
