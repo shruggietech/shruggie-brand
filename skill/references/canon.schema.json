@@ -41,6 +41,7 @@
         "action": {"$ref": "#/$defs/hexColor"}
       }
     },
+    "color_roles": {"$ref": "#/$defs/colorRoles"},
     "typography": {"$ref": "#/$defs/typography"},
     "authoritative_inputs": {
       "type": "array",
@@ -89,7 +90,7 @@
   "allOf": [
     {
       "if": {"properties": {"kind": {"not": {"const": "canon"}}}, "required": ["kind"]},
-      "then": {"required": ["title", "slug", "affiliation", "typography", "accent", "logo", "identity_continuity"]}
+      "then": {"required": ["title", "slug", "affiliation", "typography", "accent", "logo", "identity_continuity", "color_roles"]}
     },
     {
       "if": {"properties": {"kind": {"const": "parent-brand"}}, "required": ["kind"]},
@@ -99,7 +100,6 @@
             "properties": {
               "ownership": {"const": "shruggietech-owned"},
               "parent": {"type": "null"},
-              "inheritance": {"const": "shruggietech-house"},
               "endorsement": {"const": "none"},
               "service_credit": {"const": "none"}
             }
@@ -129,6 +129,21 @@
   ],
   "$defs": {
     "hexColor": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+    "colorRoles": {
+      "type": "object",
+      "required": ["identity", "combinations"],
+      "additionalProperties": false,
+      "properties": {
+        "identity": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "label", "source", "use"], "additionalProperties": false,
+          "properties": {"id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"}, "label": {"type": "string", "minLength": 1},
+            "source": {"type": "string", "pattern": "^(brand\\.accent\\.(bright|deep|accessible|dim)|brand\\.logo\\.role_colors\\.color\\.[a-z][a-z0-9_]*|brand\\.legacy_palette\\.[0-9]+|semantic\\.(action|emphasis))$"},
+            "use": {"type": "string", "minLength": 1}}}},
+        "combinations": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "label", "colors", "artwork", "use"], "additionalProperties": false,
+          "properties": {"id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"}, "label": {"type": "string", "minLength": 1},
+            "colors": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"}},
+            "artwork": {"enum": ["logo.full", "logo.reduced", "brand.applications"]}, "use": {"type": "string", "minLength": 1}}}}
+      }
+    },
     "customAsset": {
       "type": "object",
       "required": ["id", "title", "description", "role", "source", "provenance", "approval", "transformations", "usage", "accessibility", "credit", "preview"],
@@ -394,7 +409,7 @@
         "oklch_roles": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}}},
         "checks": {
           "type": "object",
-          "required": ["contrast", "sibling_separation", "color_vision", "semantic_roles", "surfaces", "single_ink", "rendered_color"],
+          "required": ["contrast", "color_vision", "semantic_roles", "surfaces", "single_ink", "rendered_color"],
           "additionalProperties": false,
           "properties": {
             "contrast": {"const": true}, "sibling_separation": {"const": true},
@@ -479,7 +494,6 @@
           "properties": {
             "ownership": {"const": "shruggietech-owned"},
             "parent": {"const": "ShruggieTech"},
-            "inheritance": {"const": "shruggietech-house"},
             "endorsement": {"const": "shruggietech-project"},
             "service_credit": {"const": "none"}
           }
@@ -488,7 +502,6 @@
           "properties": {
             "ownership": {"const": "shruggietech-owned"},
             "parent": {"type": "null"},
-            "inheritance": {"const": "shruggietech-house"},
             "endorsement": {"const": "none"},
             "service_credit": {"const": "none"}
           }

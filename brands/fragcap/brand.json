@@ -35,6 +35,12 @@
     "The existing mark and custom outlined wordmark are authoritative and must not be redrawn.",
     "The product rejects the parent brand's verbal flourish because its technical boundaries should remain literal."
   ],
+  "color_roles": {"identity": [
+    {"id": "primary", "label": "Fragcap accent", "source": "brand.accent.bright", "use": "Primary mark and identity applications"},
+    {"id": "mark-emphasis", "label": "Mark emphasis", "source": "brand.logo.role_colors.color.emphasis", "use": "Approved emphasis segment in the mark"}
+  ], "combinations": [
+    {"id": "core-mark", "label": "Fragcap mark", "colors": ["primary", "mark-emphasis"], "artwork": "logo.full", "use": "Signal Cyan with the approved scarce orange capture segment"}
+  ]},
   "accent": {
     "bright": "#27C7E7",
     "deep": "#006F82",
@@ -156,7 +162,7 @@
     "specimen_line": "See what your game is actually saying.",
     "specimen_body": "Every captured row is a packet that crossed the wire, timestamped and attributed to a process."
   },
-  "canon": "1.4.0",
+  "canon": "1.5.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

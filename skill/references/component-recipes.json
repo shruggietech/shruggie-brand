@@ -3,7 +3,7 @@
   "id": "shruggie-component-recipes",
   "kind": "component-recipe-catalog",
   "version": "1.1.0",
-  "interface_canon_compatibility": ["1.0.0"],
+  "interface_canon_compatibility": ["1.0.0", "1.0.1"],
   "grammar": {
     "expresses": ["bounded-component-recipes"],
     "forbids": ["application-screens", "product-navigation", "route-trees", "renderer-property-bags", "raw-visual-values", "free-form-nesting"]

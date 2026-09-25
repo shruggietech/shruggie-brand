@@ -160,12 +160,10 @@ def affiliation(brand):
         _require(value["parent"] is None, "third-party brands cannot declare a ShruggieTech parent")
         _require(value["endorsement"] == "none", "third-party brands cannot use the owned-project endorsement")
     elif brand.get("kind") == "parent-brand":
-        _require(value["inheritance"] == "shruggietech-house", "the ShruggieTech parent brand uses the house inheritance contract")
         _require(value["parent"] is None, "a parent brand cannot be its own parent")
         _require(value["endorsement"] == "none", "a parent brand cannot endorse itself as a project")
         _require(value["service_credit"] == "none", "owned brands cannot use a service credit")
     else:
-        _require(value["inheritance"] == "shruggietech-house", "owned child brands must explicitly use ShruggieTech house inheritance")
         _require(value["parent"] == "ShruggieTech", "owned child brands must explicitly declare the ShruggieTech parent")
         _require(value["endorsement"] == "shruggietech-project", "owned child brands must explicitly select the project endorsement")
         _require(value["service_credit"] == "none", "owned brands cannot use a service credit")
@@ -1358,6 +1356,13 @@ def validate_brand(brand, kit):
         colors = brand.get("semantic_colors")
         _require(isinstance(colors, dict) and set(colors) == {"emphasis", "action"}, "independent inheritance requires semantic_colors.emphasis and semantic_colors.action")
         _require(all(isinstance(value, str) and HEX.fullmatch(value) for value in colors.values()), "independent semantic colors must be six-digit hex values")
+    if "color_roles" in brand:
+        from color_roles import ColorRoleError, resolve_color_roles
+        from interface_contract import load_brand_canon
+        try:
+            resolve_color_roles(brand, load_brand_canon())
+        except ColorRoleError as error:
+            raise ContractError(str(error)) from error
     validate_typography(brand, kit)
     application_icon_profile(brand)
     validate_supplied_icon_dimensions(brand, kit)
@@ -1393,6 +1398,7 @@ def validate_brand_file(path):
     brand = load_brand(path)
     _require("identity_continuity" in brand,
              "identity_continuity is required for every production brand source")
+    _require("color_roles" in brand, "color_roles is required for every production brand source")
     evidence = validate_brand(brand, path.parent)
     resolve_interface_contract(brand)
     return brand, evidence

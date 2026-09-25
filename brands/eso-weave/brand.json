@@ -63,6 +63,12 @@
     "The authoritative badge-less glyph and badged mark remain byte-for-byte source data.",
     "Users remain responsible for game terms, account consequences, and automation choices."
   ],
+  "color_roles": {"identity": [
+    {"id": "primary", "label": "ESO Weave accent", "source": "brand.accent.bright", "use": "Primary identity accent"},
+    {"id": "wordmark-accent", "label": "Wordmark accent", "source": "brand.logo.role_colors.color.wordmark_accent", "use": "Approved wordmark accent"}
+  ], "combinations": [
+    {"id": "core-mark", "label": "ESO Weave identity", "colors": ["primary", "wordmark-accent"], "artwork": "logo.full", "use": "Approved identity accent with its separate wordmark accent"}
+  ]},
   "accent": {
     "bright": "#2DD4BF",
     "deep": "#F2B03C",
@@ -173,7 +179,7 @@
     "specimen_line": "Unofficial automation for ESO",
     "specimen_body": "Combat weaving, fishing assistance, Auto Potion, and live status stay visible and operator-controlled without reading game memory or network traffic."
   },
-  "canon": "1.4.0",
+  "canon": "1.5.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

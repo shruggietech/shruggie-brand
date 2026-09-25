@@ -44,7 +44,7 @@ Written form: `Covarity` in title case in prose, `covarity` in lowercase for tec
 | Fault | `#E9505F` | Failure state on dark surfaces |
 | Fault Deep | `#C0293A` | Failure state on light surfaces |
 
-The accent clears every check in the canon's `identity_accent` rule: 58.5 degrees from go-schedule Anchor Blue, 86.5 from the inherited orange, and further still from ShruggieTech green, fragcap cyan and Glitchpad sulfur. Measured contrast values and legal foreground pairings live in `brand.json` and `VERIFY.md`. Regenerate those numbers through the build scripts rather than editing them.
+The accent clears the canon's measured contrast and foreground-pairing checks. Its separation from neighboring brand hues is recorded as creative context. Eligibility follows the measured pairings in `brand.json` and `VERIFY.md`. Regenerate those numbers through the build scripts rather than editing them.
 
 Surfaces run a purple-tinted near-black rather than a neutral one, so the accent sits on a related ground. Every surface stays inside the canon's dark-temperature rule (OKLCH lightness 0.10 to 0.22, chroma at or below 0.030).
 

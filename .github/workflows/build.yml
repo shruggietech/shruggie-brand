@@ -42,6 +42,7 @@ jobs:
           python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
           python skill/templates/test_brand_contract.py
+          python skill/templates/test_color_roles.py
           python skill/templates/test_interface_contract.py
           python skill/templates/test_documentation_contract.py
           python skill/templates/test_component_contract.py
@@ -141,6 +142,7 @@ jobs:
           python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
           python skill/templates/test_brand_contract.py
+          python skill/templates/test_color_roles.py
           python skill/templates/test_interface_contract.py
           python skill/templates/test_documentation_contract.py
           python skill/templates/test_component_contract.py

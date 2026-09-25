@@ -33,6 +33,7 @@ REQUIRED_HISTORY = {
     "2.0.2": ("documentation", "preview", "pagination"),
     "2.0.3": ("native", "maskable", "Windows", "egui"),
     "2.1.0": ("light-first", "custom assets", "shadcn registry", "Brand Canon"),
+    "2.2.0": ("formal identity", "interface cue", "independent palettes", "Brand Canon"),
 }
 MIGRATIONS = {
     "1.2.0": (
@@ -77,6 +78,12 @@ MIGRATIONS = {
         "custom assets, and valid shadcn catalog and direct item delivery. Copy bundled local fonts "
         "through the documented manual setup; they are not an installable registry font item. "
         "Approved logo geometry and existing adapter APIs are unchanged."
+    ),
+    "2.2.0": (
+        "Existing kits need migration: **yes to adopt explicit color roles and independent palette policy**. "
+        "Regenerate and repin kits with v2.2.0 to receive formal identity-color references, measured "
+        "interface cues, and corrected authoring guidance. Previously approved palette values and logo "
+        "geometry remain unchanged; new independent choices require their own approval."
     ),
 }
 

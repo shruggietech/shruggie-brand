@@ -68,18 +68,6 @@ def main():
     for k, hx in (B.get("surfaces") or {}).items():
         color["surface-" + k] = tok(hx, "dark surface: %s" % k, dark, light)
 
-    # sibling separation, measured now rather than asserted later
-    sibs = canon["color"]["constrained_rules"]["identity_accent"]["checks"][0]["current_siblings"]
-    sep = {}
-    for name, s in sibs.items():
-        if name == B.get("slug"): continue
-        x, y = HUE(acc["bright"]), HUE(s["hex"])
-        if x is not None and y is not None:
-            dd = abs(x - y); sep[name] = round(min(dd, 360 - dd), 1)
-    if aff["inheritance"] == "shruggietech-house":
-        x, y = HUE(acc["bright"]), HUE(canon["color"]["immutable"]["orange"]["hex"])
-        sep["inherited-orange"] = round(min(abs(x - y), 360 - abs(x - y)), 1)
-
     B["canon"] = canon["version"]
     B["measured"] = {
         "generated_by": "shruggie-brandbuilder/enrich_brand.py",
@@ -87,13 +75,12 @@ def main():
                 "Regenerate rather than edit; verify.py re-derives all of it.",
         "dark_base": dark, "light_base": light,
         "identity_hue": HUE(acc["bright"]),
-        "hue_separation_deg": sep,
     }
     B["color"] = color
     with open(a.brand, "w", encoding="utf-8", newline="\n") as f:
         json.dump(B, f, indent=2, ensure_ascii=False); f.write("\n")
-    print("enriched %s: %d colour tokens with measured contrast, %d separations"
-          % (a.brand, len(color), len(sep)))
+    print("enriched %s: %d colour tokens with measured contrast"
+          % (a.brand, len(color)))
     return 0
 
 if __name__ == "__main__":

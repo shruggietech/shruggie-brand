@@ -111,9 +111,9 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_release_impact_is_closed_and_rejects_downstream_evidence_fields(self):
         impact = load_release_impact()
-        self.assertEqual("2.1.0", impact["brandbuilder_version"])
+        self.assertEqual("2.2.0", impact["brandbuilder_version"])
         self.assertFalse(impact["identity_redesign"])
-        self.assertIn("I Heart PR Tours 1.1.0", impact["surfaces"]["identity"]["summary"])
+        self.assertIn("Approved logo geometry", impact["surfaces"]["identity"]["summary"])
         self.assertEqual(
             {"identity", "palette", "typography", "platform_assets", "web_react", "egui", "documentation", "recovery"},
             set(impact["surfaces"]),
@@ -178,7 +178,9 @@ class InterfaceCanonTests(unittest.TestCase):
         tour_roles = resolve_interface_contract(tour, canon=self.canon)["roles_by_theme"]["light"]
         self.assertEqual(tour["accent"]["accessible"], tour_roles["text.muted"])
         self.assertNotEqual(tour["accent"]["dim"], tour_roles["text.muted"])
-        self.assertEqual("#000000", tour_roles["text.on_destructive"])
+        self.assertEqual(tour["semantic_colors"]["action"], tour_roles["action.emphasis"])
+        self.assertEqual("#C0293A", tour_roles["action.destructive"])
+        self.assertEqual("#FFFFFF", tour_roles["text.on_destructive"])
 
         glitchpad = read_json(ROOT / "brands" / "glitchpad" / "brand.json")
         glitchpad_roles = resolve_interface_contract(glitchpad, canon=self.canon)["roles_by_theme"]["dark"]
@@ -215,8 +217,8 @@ class InterfaceCanonTests(unittest.TestCase):
             resolve_interface_contract(brand, canon=self.canon)
 
         brand["interface"]["overrides"] = {"action.primary": "$brand_canon.color.immutable.orange-cta.hex"}
-        with self.assertRaisesRegex(InterfaceContractError, "crosses affiliation"):
-            resolve_interface_contract(brand, canon=self.canon)
+        shared = resolve_interface_contract(brand, canon=self.canon)
+        self.assertEqual("#C24000", shared["roles_by_theme"]["dark"]["action.primary"])
 
         inaccessible = copy.deepcopy(self.canon)
         inaccessible["aliases"]["text.primary"] = "$alias.surface.background"
@@ -344,7 +346,7 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual("1.0.2", first["versions"]["egui_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertNotIn("adoption_status", first["compatibility"])
-            expected_package = "shruggietech-brand-%s-bb2.1.0" % brand["version"]
+            expected_package = "shruggietech-brand-%s-bb2.2.0" % brand["version"]
             self.assertEqual(expected_package, first["bundle"]["package"]["id"])
             self.assertEqual(expected_package + ".zip", first["bundle"]["package"]["filename"])
             self.assertEqual(brand["version"], first["bundle"]["package"]["brand_version"])

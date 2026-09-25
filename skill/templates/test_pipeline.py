@@ -786,6 +786,35 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("prefers-reduced-motion:reduce", html)
             self.assertEqual(2, html.count("--brand-cta-foreground:#FFFFFF"))
 
+    def test_color_role_values_match_portable_and_pdf_guides(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "guide"
+            brand, dark, light = self.i_heart_pr_tours_guide_fixture(kit)
+            (kit / "enforcement").mkdir()
+            write_utf8(kit / "enforcement" / "documentation-facts.json", "{}\n")
+            portal = gen_guidelines.portal_payload(brand, kit)
+            roles = portal["color_roles"]
+            portable = gen_guidelines.build(brand, kit)
+            pdf = gen_guide_pdf.build(brand, kit)
+            self.assertEqual(brand["accent"]["bright"], roles["identity"][0]["hex"])
+            for formal in roles["identity"]:
+                self.assertIn(formal["source"], pdf)
+            for combination in roles["identity_combinations"]:
+                self.assertIn(combination["label"], portable)
+                self.assertIn(combination["label"], pdf)
+                self.assertIn(combination["artwork"], portable)
+                self.assertIn(combination["artwork"], pdf)
+            for theme, tokens in (("dark", dark), ("light", light)):
+                cues = {row["id"]: row for row in roles["interface"][theme]}
+                self.assertEqual(tokens["brand-cta"], cues["action"]["hex"])
+                self.assertEqual(tokens["ring"], cues["focus"]["hex"])
+                for row in roles["interface"][theme]:
+                    self.assertIn(row["hex"], portable)
+                    self.assertIn(row["hex"], pdf)
+                    self.assertIn(row["source"], pdf)
+                    self.assertIn(row["non_color_cue"], portable)
+                    self.assertIn(row["non_color_cue"], pdf)
+
     def test_light_guide_is_declared_in_portable_and_pdf_copy_is_surface_aware(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "guide"

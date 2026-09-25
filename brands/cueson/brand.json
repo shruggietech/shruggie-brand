@@ -56,6 +56,12 @@
     "The exact Gate 2 retry spread was approved on 2026-09-09; publication is limited to the eight recorded surfaces.",
     "Standalone export padding preserves the approved 512-unit Gate 1 composition independently of the 48-unit external clear-space requirement."
   ],
+  "color_roles": {"identity": [
+    {"id": "primary", "label": "Cueson accent", "source": "brand.accent.bright", "use": "Primary cue mark and brand applications"},
+    {"id": "ink", "label": "Cueson mark ink", "source": "brand.logo.role_colors.color.ink", "use": "Approved mark and wordmark ink"}
+  ], "combinations": [
+    {"id": "core-mark", "label": "Cueson mark", "colors": ["primary", "ink"], "artwork": "logo.full", "use": "Teal cue geometry with the approved light mark ink"}
+  ]},
   "accent": {
     "bright": "#62BEB2",
     "deep": "#2F9388",
@@ -352,7 +358,7 @@
       ]
     }
   },
-  "canon": "1.4.0",
+  "canon": "1.5.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

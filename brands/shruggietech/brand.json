@@ -107,6 +107,11 @@
       "approved_on": "2026-09-03"
     }
   ],
+  "color_roles": {"identity": [
+    {"id": "primary", "label": "ShruggieTech green", "source": "brand.accent.bright", "use": "Approved parent identity accent"}
+  ], "combinations": [
+    {"id": "core-mark", "label": "ShruggieTech mark", "colors": ["primary"], "artwork": "logo.full", "use": "Approved parent identity accent in the full mark"}
+  ]},
   "accent": {
     "bright": "#2BCC73",
     "deep": "#00AB21",
@@ -238,7 +243,7 @@
     "specimen_line": "Smart, practical, confidently scrappy.",
     "specimen_body": "You have a business to run. We handle the technology that makes it grow."
   },
-  "canon": "1.4.0",
+  "canon": "1.5.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

@@ -49,6 +49,12 @@
     "The product name is written as Glitchpad in prose and lowercase only in technical identifiers.",
     "Pure sulfur is the identity accent; muddy and darkened yellow variants are prohibited, while inherited orange remains reserved for emphasis and warning states."
   ],
+  "color_roles": {"identity": [
+    {"id": "primary", "label": "Glitchpad yellow", "source": "brand.accent.bright", "use": "Primary frame and identity applications"},
+    {"id": "mark-accent", "label": "Mark accent", "source": "brand.logo.role_colors.color.accent", "use": "Approved internal mark accent"}
+  ], "combinations": [
+    {"id": "core-mark", "label": "Glitchpad mark", "colors": ["primary", "mark-accent"], "artwork": "logo.full", "use": "Sulfur frame with the approved internal accent"}
+  ]},
   "accent": {
     "bright": "#FFD900",
     "deep": "#667788",
@@ -232,7 +238,7 @@
     "logo": "The rectangular paper and G share one protected construction inside a permanent square. On dark surfaces the square is sulfur with a charcoal page; on light surfaces the square is charcoal with a sulfur page. The slate fold stays consistent across both contexts.",
     "palette": "Near-black surfaces keep controls visually secondary to file content. Pure sulfur provides identity, focus, and selection; cool slate supplies the fold and subdued states. Muddy and darkened yellows are prohibited."
   },
-  "canon": "1.4.0",
+  "canon": "1.5.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

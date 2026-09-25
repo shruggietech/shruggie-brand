@@ -18,10 +18,12 @@ import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
 from brand_contract import _image_dimensions, affiliation, application_icon_profile, logo_source_contract, sha256_file, specimen_mark_paths
+from color_roles import ColorRoleError, resolve_color_roles
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
-from interface_contract import verify_consumer_contract
+from interface_contract import resolve_interface_contract, verify_consumer_contract
 from gen_egui import verify_egui_adapter
+from gen_nextjs import oklch
 from gen_conformance import verify_conformance
 from component_contract import COMPONENT_IDS, ComponentContractError, validate_app_frame_profiles, validate_component_catalog
 
@@ -102,18 +104,7 @@ def c_accent(canon, brand, rep):
     if not acc.get("bright"): return rep.skip("accent-rule", "brand.json declares no accent")
     a, al = acc["bright"], acc.get("accessible")
     base = brand.get("surfaces", {}).get("base", "#000000")
-    sibs = canon["color"]["constrained_rules"]["identity_accent"]["checks"][0]["current_siblings"]
     fails = []
-    # Fixtures exercise the pipeline and do not claim a sibling identity slot.
-    # They still have to pass every contrast and accessibility requirement.
-    inherits_house = affiliation(brand)["inheritance"] == "shruggietech-house"
-    if brand.get("kind") != "fixture" and inherits_house:
-        for name, s in sibs.items():
-            if name == brand.get("slug"): continue
-            g = hue_gap(a, s["hex"])
-            if g is not None and g < 30: fails.append("hue %s from %s (needs 30)" % (g, name))
-        g = hue_gap(a, canon["color"]["immutable"]["orange"]["hex"])
-        if g is not None and g < 30: fails.append("hue %s from inherited orange (needs 30)" % g)
     r = R(a, base)
     if r < 4.5: fails.append("accent %s on base = %s (needs 4.5)" % (a, r))
     if not al: fails.append("no accessible light-surface variant declared")
@@ -122,9 +113,69 @@ def c_accent(canon, brand, rep):
         rl = R(al, light)
         if rl < 4.5: fails.append("light variant %s = %s on %s (needs 4.5)" % (al, rl, light))
     rep.bad("accent-rule", "; ".join(fails)) if fails else \
-        rep.ok("accent-rule", "%s%s:1 on base, light variant %s at %s:1"
-               % (("fixture hue exempt, " if brand.get("kind") == "fixture" else "hue %s, " % hue(a)),
-                  r, al, R(al, light_base(brand))))
+        rep.ok("accent-rule", "%s:1 on base, light variant %s at %s:1"
+               % (r, al, R(al, light_base(brand))))
+
+
+def c_color_roles(kit, canon, brand, rep):
+    if "color_roles" not in brand:
+        return rep.bad("color-roles", "brand source has no authored role model")
+    path = os.path.join(kit, "color-roles.json")
+    if not os.path.isfile(path):
+        return rep.bad("color-roles", "generated color-roles.json is missing")
+    try:
+        actual = json.loads(Path(path).read_text(encoding="utf-8"))
+        expected = resolve_color_roles(brand, canon)
+        if actual != expected:
+            return rep.bad("color-roles", "generated roles differ from measured source contract")
+        portal = os.path.join(kit, "guidelines", "portal.json")
+        if os.path.isfile(portal) and json.loads(Path(portal).read_text(encoding="utf-8")).get("color_roles") != expected:
+            return rep.bad("color-roles", "guideline roles differ from measured source contract")
+        adapters = (("web/adapter.json", "../color-roles.json"),
+                    ("native/egui/adapter.json", "../../color-roles.json"))
+        for relative, pointer in adapters:
+            adapter_path = os.path.join(kit, *relative.split("/"))
+            if not os.path.isfile(adapter_path) or json.loads(Path(adapter_path).read_text(encoding="utf-8")).get("color_roles") != pointer:
+                return rep.bad("color-roles", "%s lacks the kit role-record pointer" % relative)
+        web_tokens = os.path.join(kit, "tokens", "interface.css")
+        if not os.path.isfile(web_tokens):
+            return rep.bad("color-roles", "Web interface tokens are missing")
+        css = Path(web_tokens).read_text(encoding="utf-8")
+        resolved = resolve_interface_contract(brand, brand_canon=canon)["roles_by_theme"]
+        adapter_by_cue = {"action": "action.primary", "warning": "action.emphasis",
+                          "error": "action.destructive", "focus": "focus.ring"}
+        for surface, selector in (("dark", ":root"), ("light", ".bb-light")):
+            block = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", css, re.S)
+            if not block:
+                return rep.bad("color-roles", "%s Web token block is missing" % surface)
+            for cue in expected["interface"][surface]:
+                role = adapter_by_cue.get(cue["id"])
+                if not role:
+                    continue
+                token = "--bb-" + role.replace(".", "-")
+                emitted = re.search(r"(?:^|;)\s*" + re.escape(token) + r":\s*(#[0-9A-Fa-f]{6})\s*;", block.group(1))
+                if resolved[surface][role] != cue["hex"] or not emitted or emitted.group(1).upper() != cue["hex"]:
+                    return rep.bad("color-roles", "%s Web %s differs from %s cue" %
+                                   (surface, token, cue["id"]))
+        registry = os.path.join(kit, "nextjs", "registry", "theme.json")
+        if not os.path.isfile(registry):
+            return rep.bad("color-roles", "registry theme is missing")
+        theme_item = json.loads(Path(registry).read_text(encoding="utf-8"))
+        if "color-roles.json" not in theme_item.get("docs", ""):
+            return rep.bad("color-roles", "registry theme omits the role-record guidance")
+        slot_by_cue = {"action": "brand-cta", "warning": "brand-emphasis", "error": "destructive",
+                       "focus": "ring", "selection": "primary"}
+        for surface in ("dark", "light"):
+            slots = theme_item["cssVars"][surface]
+            for cue in expected["interface"][surface]:
+                slot = slot_by_cue.get(cue["id"])
+                if slot and slots.get(slot) != oklch(cue["hex"]):
+                    return rep.bad("color-roles", "%s registry %s differs from %s cue" %
+                                   (surface, slot, cue["id"]))
+    except (ColorRoleError, OSError, ValueError, TypeError, KeyError) as error:
+        return rep.bad("color-roles", str(error))
+    rep.ok("color-roles", "%d formal colors and %d cues in both themes match source and guide" %
+           (len(expected["identity"]), len(expected["interface"]["dark"])))
 
 def c_immutables(canon, brand, rep):
     drift = []
@@ -2279,6 +2330,7 @@ def main():
     c_contrast(kit, brand, rep)
     c_aa_floor(kit, canon, brand, rep)
     c_accent(canon, brand, rep)
+    c_color_roles(kit, canon, brand, rep)
     c_immutables(canon, brand, rep)
     c_radius(kit, canon, rep)
     c_globals(kit, rep)

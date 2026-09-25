@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, custom_assets, derivative_configuration_sha256, guide_surface_mode, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, custom_assets, derivative_configuration_sha256, guide_surface_mode, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_brand_file, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
 from identity_continuity import canonical_digest, identity_snapshot, record_digest
 from ingest_font import ingest_font
 
@@ -390,6 +390,9 @@ class IdentityContinuityIntegrationTests(unittest.TestCase):
             kit = Path(temporary)
             stage_house_fonts(kit)
             brand = owned_brand()
+            brand["accent"]["dim"] = "#A0B0A0"
+            brand["color_roles"] = {"identity": [{"id": "primary", "label": "Example green", "source": "brand.accent.bright", "use": "Approved mark"}],
+                                    "combinations": [{"id": "core-mark", "label": "Example mark", "colors": ["primary"], "artwork": "logo.full", "use": "Approved full mark"}]}
             brand_path = kit / "brand.json"
             brand_path.write_text(json.dumps(brand), encoding="utf-8")
             with self.assertRaisesRegex(ContractError, "identity_continuity"):
@@ -471,6 +474,54 @@ class SourceInventoryTests(unittest.TestCase):
 
 
 class AffiliationTests(unittest.TestCase):
+    def test_production_source_requires_authored_color_roles(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = json.loads((ROOT / "brands" / "covarity" / "brand.json").read_text(encoding="utf-8"))
+            del source["color_roles"]
+            path = Path(temporary) / "brand.json"
+            path.write_text(json.dumps(source), encoding="utf-8")
+            with self.assertRaisesRegex(ContractError, "color_roles is required"):
+                validate_brand_file(path)
+
+    def test_owned_child_can_select_independent_palette_without_losing_parentage(self):
+        brand = owned_brand()
+        brand["affiliation"]["inheritance"] = "independent"
+        brand["semantic_colors"] = {"emphasis": "#2BCC73", "action": "#037B40"}
+        self.assertEqual("A ShruggieTech project", affiliation_text(brand))
+        from brand_contract import semantic_colors
+        canon = json.loads((ROOT / "skill" / "references" / "01-canon.json").read_text(encoding="utf-8"))
+        self.assertEqual(brand["semantic_colors"], semantic_colors(brand, canon))
+
+    def test_owned_independent_palette_validates_and_generates_sibling_hue_tokens(self):
+        from color_roles import resolve_color_roles
+        from gen_nextjs import build_slots
+
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            stage_house_fonts(kit)
+            sibling = json.loads((ROOT / "brands" / "go-schedule" / "brand.json").read_text(encoding="utf-8"))
+            brand = owned_brand()
+            brand["affiliation"]["inheritance"] = "independent"
+            brand["semantic_colors"] = {"emphasis": "#A1CFF4", "action": "#1C5B8D"}
+            brand["accent"] = dict(sibling["accent"])
+            brand["color_roles"] = {
+                "identity": [{"id": "primary", "label": "Example blue", "source": "brand.accent.bright", "use": "Approved fixture mark"}],
+                "combinations": [{"id": "core-mark", "label": "Example mark", "colors": ["primary"], "artwork": "logo.full", "use": "Approved fixture mark"}],
+            }
+            self.assertEqual([], validate_brand(brand, kit))
+            canon = json.loads((ROOT / "skill" / "references" / "01-canon.json").read_text(encoding="utf-8"))
+            dark, light = build_slots(canon, brand)
+            roles = resolve_color_roles(brand, canon)
+            self.assertEqual(sibling["accent"]["bright"], dark["primary"])
+            self.assertEqual(sibling["accent"]["accessible"], light["primary"])
+            self.assertEqual("#A1CFF4", roles["interface"]["dark"][1]["hex"])
+            self.assertNotIn("#FF5300", {row["hex"] for row in roles["identity"]})
+
+    def test_third_party_can_explicitly_choose_house_palette_without_endorsement(self):
+        brand = owned_brand()
+        brand["affiliation"].update({"ownership": "third-party", "parent": None, "endorsement": "none"})
+        self.assertEqual("", affiliation_text(brand))
+
     def test_missing_affiliation_fails_closed(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary)

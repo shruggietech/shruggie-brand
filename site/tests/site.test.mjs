@@ -4,10 +4,12 @@ import documentation from '../generated/documentation.json' with { type: 'json' 
 import routeContract from '../generated/routes.json' with { type: 'json' };
 import conformanceRecords from '../generated/conformance.json' with { type: 'json' };
 import publication from '../generated/publication.json' with { type: 'json' };
+import canon from '../../skill/references/01-canon.json' with { type: 'json' };
 import { existsSync, readFileSync } from 'node:fs';
 
 const assetLibrarySource = readFileSync(new URL('../components/guidelines/asset-library-client.tsx', import.meta.url), 'utf8');
 const topicContentSource = readFileSync(new URL('../components/guidelines/topic-content.tsx', import.meta.url), 'utf8');
+const colorReferenceSource = readFileSync(new URL('../components/guidelines/color-reference.tsx', import.meta.url), 'utf8');
 const footerSource = readFileSync(new URL('../components/footer.tsx', import.meta.url), 'utf8');
 const brandPortfolioSource = readFileSync(new URL('../components/brand-portfolio.tsx', import.meta.url), 'utf8');
 const homepageSource = readFileSync(new URL('../app/(site)/page.tsx', import.meta.url), 'utf8');
@@ -80,6 +82,17 @@ if (interactionStyleProblems(globalStyles).length > 0) throw new Error(`interact
 
 export const routeRecords = routeContract.routes;
 const expectedBrandSlugs = ['covarity', 'cueson', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'i-heart-pr-tours', 'shruggietech'];
+export function formalSourceHex(brand, reference) {
+  const [root, ...path] = reference.split('.');
+  const semantic = brand.affiliation?.inheritance === 'shruggietech-house'
+    ? { action: canon.color.immutable['orange-cta'].hex, emphasis: canon.color.immutable.orange.hex }
+    : brand.semantic_colors;
+  const source = root === 'brand' ? brand : root === 'semantic' ? semantic : undefined;
+  return path.reduce((node, key) => node?.[key], source);
+}
+const independentFormalSource = { affiliation: { inheritance: 'independent' }, semantic_colors: { action: '#123456', emphasis: '#ABCDEF' } };
+if (formalSourceHex(independentFormalSource, 'semantic.action') !== '#123456' || formalSourceHex(independentFormalSource, 'semantic.emphasis') !== '#ABCDEF') throw new Error('independent semantic formal-color sources are unresolved');
+if (formalSourceHex({ affiliation: { inheritance: 'shruggietech-house' } }, 'semantic.action') !== canon.color.immutable['orange-cta'].hex) throw new Error('house semantic formal-color source is unresolved');
 if (JSON.stringify(brands.map((brand) => brand.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated brand inventory does not contain the eight production brands');
 if (JSON.stringify(conformanceRecords.map((record) => record.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated conformance inventory does not contain the eight production brands');
 for (const record of conformanceRecords) {
@@ -129,11 +142,34 @@ for (const portal of guidelinePortals) {
   if (portal.brand.version !== brands.find((brand) => brand.slug === portal.brand.slug)?.version) throw new Error(`${portal.brand.slug} portal omits the brand version needed by the consolidated Overview`);
   if (portal.brand.surface_mode !== brands.find((brand) => brand.slug === portal.brand.slug)?.guideSurfaceMode || portal.presentation?.background !== (portal.brand.surface_mode === 'light' ? portal.palettes.light : portal.palettes.dark).find((entry) => entry.token === 'background')?.hex) throw new Error(`${portal.brand.slug} declared guide mode and selected palette disagree`);
   if (JSON.stringify(portal.presentation) !== JSON.stringify(portal.presentations?.[portal.brand.surface_mode])) throw new Error(`${portal.brand.slug} selected guide tokens differ from its full mode palette`);
+  const source = JSON.parse(readFileSync(new URL(`../../brands/${portal.brand.slug}/brand.json`, import.meta.url), 'utf8'));
+  const roles = portal.color_roles;
+  if (!roles?.identity?.length || roles.interface?.dark?.length !== 8 || roles.interface?.light?.length !== 8) throw new Error(`${portal.brand.slug} color roles are incomplete`);
+  for (const formal of roles.identity) {
+    if (!formal.label || !formal.use || !/^(brand|semantic)\./.test(formal.source)) throw new Error(`${portal.brand.slug} formal color lacks source or purpose`);
+    const value = formalSourceHex(source, formal.source);
+    if (formal.hex !== value) throw new Error(`${portal.brand.slug} formal color differs from its approved source`);
+  }
+  if (!roles.identity_combinations?.length) throw new Error(`${portal.brand.slug} lacks approved identity combinations`);
+  for (const combination of roles.identity_combinations) {
+    if (!combination.use || !combination.artwork || !combination.colors?.length || combination.colors.some((id) => !roles.identity.some((color) => color.id === id))) throw new Error(`${portal.brand.slug} has an invalid formal color combination`);
+  }
+  for (const theme of ['dark', 'light']) {
+    const cues = Object.fromEntries(roles.interface[theme].map((cue) => [cue.id, cue]));
+    const tokens = portal.presentations[theme];
+    for (const [cue, token] of [['action', 'brand-cta'], ['warning', 'brand-emphasis'], ['error', 'destructive'], ['focus', 'ring'], ['selection', 'primary']]) {
+      if (cues[cue]?.hex !== tokens[token]) throw new Error(`${portal.brand.slug} ${theme} ${cue} differs from ${token}`);
+    }
+    for (const cue of Object.values(cues)) {
+      if (!cue.use || !cue.non_color_cue || cue.foreground_contrast < 4.5 || (['focus', 'selection'].includes(cue.id) && cue.surface_contrast < 3)) throw new Error(`${portal.brand.slug} ${theme} ${cue.id} lacks accessible role guidance`);
+    }
+  }
   if (portal.implementation?.schema_version !== 1 || portal.implementation.brand.slug !== portal.brand.slug || portal.implementation.versions.brand_version !== portal.brand.version) throw new Error(`${portal.brand.slug} hosted implementation facts are missing or inconsistent`);
   if (portal.implementation.hosted.manual_path !== '/docs/' || portal.implementation.bundled.latest_substitution_allowed !== false) throw new Error(`${portal.brand.slug} documentation authority boundaries are invalid`);
   const assets = portal.topics.find((topic) => topic.key === 'assets');
   if (assets?.path !== `/${portal.brand.slug}/downloads/`) throw new Error(`${portal.brand.slug} Assets does not use the stable downloads route`);
 }
+if (!topicContentSource.includes('<ColorReference') || !colorReferenceSource.includes('roles.identity.map') || !colorReferenceSource.includes('roles.identity_combinations.map') || !colorReferenceSource.includes('<CueRows')) throw new Error('hosted color guide does not render formal and interface roles');
 const expectedDocumentationNavigation = [
   ['Overview', 'Overview', '/docs/'], ['Foundation', 'Contract', '/docs/00-variance-contract/'], ['Foundation', 'Kit', '/docs/02-kit-anatomy/'],
   ['Discovery', 'Interview', '/docs/03-interview/'], ['Identity', 'Logo', '/docs/06-logo-protocol/'], ['Identity', 'Glyphs', '/docs/08-glyph-construction/'],

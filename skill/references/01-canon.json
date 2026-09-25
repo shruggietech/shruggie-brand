@@ -1,10 +1,10 @@
 {
   "id": "shruggietech",
   "kind": "canon",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "generated": "2026-09-25",
   "generator": "shruggie-brandbuilder/gen_canon.py",
-  "summary": "The ShruggieTech brand-system root. Every brand explicitly declares affiliation, inheritance, typography mode, and authoritative inputs. House values are copied only when house inheritance or house typography is selected. Constrained values remain machine-checkable.",
+  "summary": "The ShruggieTech brand-system root. Every brand explicitly declares affiliation, palette choice, typography mode, and authoritative inputs. Shared colors are selected explicitly and never inferred from ownership or typography. Accessible pairings remain machine-checkable.",
   "provenance": {
     "primary_source": "shruggie-web styles/globals.css, lifted into shruggietech-brand/tokens/*.css",
     "verified_against": [
@@ -19,7 +19,7 @@
     }
   },
   "tiers": {
-    "immutable": "Inherited verbatim. A sub-brand that changes one of these is not a ShruggieTech sub-brand.",
+    "immutable": "Shared values are copied only when explicitly selected. Ownership does not require the shared color palette.",
     "constrained": "Chosen per sub-brand, must satisfy the attached machine-checkable rule.",
     "free": "Entirely the sub-brand's own."
   },
@@ -34,8 +34,8 @@
     ],
     "rule": "Every field is explicit and fail-closed. Ownership, publication permission, parentage, inheritance, endorsement, and service credit are independent facts.",
     "inheritance": {
-      "shruggietech-house": "Adopts the house semantic orange pair and permits house typography mode.",
-      "independent": "Requires explicit brand-specific emphasis and action colors and does not receive house orange."
+      "shruggietech-house": "Explicitly adopts the historical house semantic orange pair; typography remains a separate choice.",
+      "independent": "Requires explicit brand-specific emphasis and action colors, regardless of ownership."
     },
     "approved_outputs": {
       "owned_endorsement": "A ShruggieTech project",
@@ -280,7 +280,20 @@
     }
   },
   "color": {
-    "tier_note": "The identity accent is constrained. Everything else here is immutable.",
+    "tier_note": "Approved identity colors and interface cues are separate roles. Shared values are an explicit palette choice, not an ownership rule.",
+    "role_model": {
+      "version": 1,
+      "interface_cues": {
+        "action": {"label": "Action", "use": "Primary interactive action", "non_color_cue": "A descriptive button or link label", "dark": "semantic.action", "light": "semantic.action"},
+        "warning": {"label": "Warning", "use": "Attention or recoverable risk", "non_color_cue": "Warning text and icon", "dark": "semantic.emphasis", "light": "semantic.action"},
+        "error": {"label": "Error", "use": "Failure or destructive action", "non_color_cue": "Error text and icon", "dark": "canon.color.immutable.fault.hex", "light": "canon.color.immutable.fault-deep.hex"},
+        "success": {"label": "Success", "use": "Completed operation", "non_color_cue": "Success text and icon", "dark": "brand.accent.bright", "light": "brand.accent.accessible"},
+        "information": {"label": "Information", "use": "Neutral information or help", "non_color_cue": "Information label and icon", "dark": "brand.accent.deep", "light": "brand.accent.accessible"},
+        "focus": {"label": "Focus", "use": "Keyboard focus ring", "non_color_cue": "Visible outline and keyboard focus order", "dark": "brand.accent.bright", "light": "brand.accent.accessible"},
+        "selection": {"label": "Selection", "use": "Selected control or item", "non_color_cue": "Selected label or checked state", "dark": "brand.accent.bright", "light": "brand.accent.accessible"},
+        "disabled": {"label": "Disabled", "use": "Unavailable control", "non_color_cue": "Disabled attribute and text", "dark": "brand.accent.dim", "light": "brand.accent.dim"}
+      }
+    },
     "immutable": {
       "black": {
         "hex": "#000000",
@@ -332,7 +345,7 @@
           "color": "#000000",
           "ratio": 6.49
         },
-        "note": "The lineage thread. Every sub-brand inherits this exact value even when it shares no other color with the parent. fragcap kept it while sharing zero else.",
+        "note": "Historical house emphasis value. Existing house-inheritance brands retain it by explicit palette choice; ownership does not require it.",
         "aa": {
           "as_text_on": "dark",
           "as_fill": true
@@ -658,34 +671,6 @@
         "tier": "constrained",
         "checks": [
           {
-            "id": "hue-separation",
-            "rule": "OKLCH hue at least 30 degrees from every existing sibling IDENTITY accent.",
-            "current_siblings": {
-              "shruggietech": {
-                "hex": "#2BCC73",
-                "hue": 153.0
-              },
-              "fragcap": {
-                "hex": "#27C7E7",
-                "hue": 215.7
-              },
-              "go-schedule": {
-                "hex": "#58A6FF",
-                "hue": 253.3
-              },
-              "glitchpad": {
-                "hex": "#FFD900",
-                "hue": 96.2
-              },
-              "covarity": {
-                "hex": "#C659FF",
-                "hue": 311.8
-              }
-            },
-            "minimum_observed_separation_deg": 37.6,
-            "scope_note": "Compare identity accents only. go-schedule's Interval Mint sits 18.8 degrees from green but is a semantic success color, not the identity accent, so it is out of scope for this check."
-          },
-          {
             "id": "contrast-dark",
             "rule": "At least 4.5:1 against the dark base."
           },
@@ -696,10 +681,6 @@
           {
             "id": "foreground-pairing",
             "rule": "The legal text color on top of the accent fill must be measured and recorded, never assumed."
-          },
-          {
-            "id": "orange-distance",
-            "rule": "At least 30 degrees from the inherited orange at hue 38.3, so emphasis stays distinguishable from identity."
           }
         ]
       },
@@ -717,13 +698,12 @@
         ],
         "reference_implementation": "templates/gen_nextjs.py charts()",
         "hue_rotation_escape": {
-          "when": "The default rotation set wraps an entry into the red and orange band, where it collides with the inherited orange at 38.3 or the fault red at 18.6, or produces an entry within about 55 degrees of the accent itself.",
+          "when": "The default rotation set places chart entries too close to one another or to the accent for a useful data series.",
           "why": "The default is symmetric about the accent. From green at 153 it spans 49 to 257 and behaves. From an accent near the ends of the hue circle it wraps: +52 off purple at 311.8 lands on 3.7, a magenta that reads as a paler accent and sits 15 degrees from the failure red.",
           "what_may_change": "The rotation offsets only. Chroma stays at 0.92x for entries 2-5, lightness is still solved against the real surface, and every entry still clears 4.5:1.",
           "constraints": [
             "Minimum pairwise hue separation across the five entries at least 50 degrees.",
-            "No entry within 40 degrees of the inherited orange at 38.3.",
-            "No entry within 60 degrees of the fault red at 18.6.",
+            "Charts use labels, legends, or shapes so data meaning never depends on hue alone.",
             "The set must be a formula, stated in chart_palette.rationale, not five hand-picked hues."
           ],
           "worked_example": "Covarity, accent 311.8, declares [0, -57, -113, -170, -226]: the same arc swept one direction at an even 57 degrees, giving purple, blue, teal, green and amber."

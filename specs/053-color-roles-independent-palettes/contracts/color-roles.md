@@ -1,0 +1,8 @@
+# Color Role Contract
+
+1. Resolve every formal identity reference from approved brand source. Reject missing, non-hex, duplicate, or unsupported references. Validate approved combinations against formal IDs and allowed artwork references. The source entry's use text describes brand applications, not an interface state.
+2. Resolve all eight interface cues for dark and light themes from the canon role model and the approved brand accent and semantic fields. Return exact source reference, hex, role meaning, non-color cue, best black/white foreground, measured foreground ratio, theme surface, and measured surface ratio. Reject separate cue overrides because the current token and adapter generators cannot emit them consistently.
+3. Action, warning, error, success, and information examples must include a word or icon. Focus and selection must have a visible outline/border or text state, and disabled must include a disabled attribute or explicit status. Color alone is never a state signal.
+4. `color-roles.json`, generated token/adapter metadata, hosted guideline JSON, portable HTML, and PDF use the same resolver. Each guide shows a concrete correct use and misuse example. Renderers may transform layout, not silently substitute hex values or role meaning.
+5. Existing brand source hexes and logo path data are immutable through the S053 migration. Legacy token aliases and explicitly selected house colors retain their exact values.
+6. A source or resolved role failure stops kit generation before publication. Full kit/glyph, site, encoding, and repository-hygiene gates remain required.

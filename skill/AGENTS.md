@@ -217,6 +217,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `references/identity-continuity.md` | direction selection, canonical approval, byte-copy promotion, proof comparison, and invalidation |
 | `templates/probe.py` | what this machine can do, as JSON the pipeline reads |
 | `templates/brand_contract.py` | shared fail-closed affiliation, supplied-input, palette, and typography contract |
+| `templates/color_roles.py` | resolves formal identity colors, approved artwork combinations, and measured interface cues |
 | `templates/interface_contract.py` | Interface Canon validation, runtime profiles, contextual routing, deterministic consumer contracts, and offline recovery |
 | `templates/component_contract.py` | bounded recipe validation, semantic role checks, override boundaries, and AppFrame ownership |
 | `templates/schema_validation.py` | offline JSON Schema validation for delivered consumer and interface contracts |
@@ -232,6 +233,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/gen_vanilla.py` | tokens, styles.css and components, generated rather than hand-written |
 | `templates/gen_web_react.py` | framework-neutral semantic tokens, typed server/client React adapter, AppFrame, host profiles, and specimen |
 | `templates/gen_nextjs.py` | the whole `nextjs/` layer |
+| `templates/gen_color_roles.py` | emits the shared `color-roles.json` kit record before guide generation |
 | `templates/gen_enforcement.py` | governed `AGENTS.md`, consumer implementation guidance, and lint configs |
 | `templates/gen_logo.py` | colourways, outlined wordmark, lockups, rasters, categorized application icons |
 | `templates/iconkit.py` | platform matrices, composition, native containers, manifests, and compatibility aliases |
@@ -239,7 +241,7 @@ stated assumptions beats a half kit waiting on a question nobody is reading.
 | `templates/gen_guide_pdf.py` | the brand guide PDF, full-page declared light or default dark |
 | `templates/build_specimen.py` | the outlined type specimen, driven by brand.json |
 | `templates/_guidekit.py` | shared token, font and copy helpers for the document generators |
-| `templates/enrich_brand.py` | writes measured contrast and hue separation back into brand.json |
+| `templates/enrich_brand.py` | writes measured contrast and identity hue back into brand.json |
 | `templates/verify.py` | the check list, measured at run time |
 | `templates/qc_render.py` | rasterises a PDF, measures what only pixels show, writes a contact sheet |
 | `templates/qc_images.py` | contact sheets for the logo and every HTML page, desktop and mobile |

@@ -29,6 +29,7 @@ PRE = [
 STEPS = [
     ("authoritative input evidence",            ["analyze_inputs.py", "{brand}", "{kit}"]),
     ("enrich brand.json with measured values", ["enrich_brand.py", "{brand}"]),
+    ("measured identity and interface roles", ["gen_color_roles.py", "{brand}", "{kit}"]),
     ("outlined type specimen",                      ["build_specimen.py", "{brand}"]),
     ("vanilla tokens, styles.css, components",     ["gen_vanilla.py", "{brand}", "{kit}"]),
     ("semantic web tokens and React adapter",      ["gen_web_react.py", "{brand}", "{kit}"]),

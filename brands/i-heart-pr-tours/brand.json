@@ -103,6 +103,14 @@
     "Single-ink marks are deterministic mask derivatives of the approved light-surface sources.",
     "No public showcase, registry, hosted guide, release, or deployment is authorized."
   ],
+  "color_roles": {"identity": [
+    {"id": "primary", "label": "Tour Blue", "source": "brand.accent.bright", "use": "Approved digital identity accent"},
+    {"id": "heart-blue", "label": "Heart Blue", "source": "brand.accent.deep", "use": "Approved blue in the authoritative heart mark"},
+    {"id": "heart-red", "label": "Heart Red", "source": "brand.legacy_palette.3", "use": "Approved red in the authoritative heart mark, intentionally reused for action"}
+  ], "combinations": [
+    {"id": "core-mark", "label": "I Heart PR Tours mark", "colors": ["heart-blue", "heart-red"], "artwork": "logo.full", "use": "Approved blue and red in the full heart mark"},
+    {"id": "digital-accent", "label": "Digital identity accent", "colors": ["primary"], "artwork": "brand.applications", "use": "Tour Blue in approved digital brand applications"}
+  ]},
   "accent": {
     "bright": "#68A9DD",
     "deep": "#1C5B8D",
@@ -535,7 +543,7 @@
       "preview": {"well": "light", "fit": "contain"}
     }
   ],
-  "canon": "1.4.0",
+  "canon": "1.5.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "approved-canonical"

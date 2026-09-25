@@ -2,8 +2,8 @@
   "$schema": "interface-canon.schema.json",
   "id": "shruggie-interface-canon",
   "kind": "interface-canon",
-  "version": "1.0.0",
-  "brand_canon_compatibility": ["1.2.1", "1.3.0", "1.4.0"],
+  "version": "1.0.1",
+  "brand_canon_compatibility": ["1.2.1", "1.3.0", "1.4.0", "1.5.0"],
   "summary": "Renderer-neutral semantic interface roles, logical measures, observed runtime capabilities, accessibility invariants, and bounded brand expression for BrandBuilder consumers.",
   "units": {
     "logical_ui_unit": "lu",
@@ -102,7 +102,8 @@
       "surface.card": "$brand.light_surfaces.card",
       "surface.overlay": "$brand.light_surfaces.popover",
       "text.primary": "$brand_canon.color.immutable.black.hex",
-      "text.muted": "$resolved.muted"
+      "text.muted": "$resolved.muted",
+      "action.destructive": "$brand_canon.color.immutable.fault-deep.hex"
     }
   },
   "runtime": {

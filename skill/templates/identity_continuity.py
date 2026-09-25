@@ -37,7 +37,7 @@ ALLOWED_GLYPHKIT_PRIMITIVES = {
     "translate", "scale", "center_ink",
 }
 PALETTE_CHECKS = {
-    "contrast", "sibling_separation", "color_vision", "semantic_roles", "surfaces", "single_ink",
+    "contrast", "color_vision", "semantic_roles", "surfaces", "single_ink",
     "rendered_color",
 }
 LIFECYCLE_TRANSITIONS = {
@@ -369,7 +369,8 @@ def validate_palette_qualification(value, governed_palette=None):
             _require(hue_delta <= 0.00001,
                      "palette qualification OKLCH hue does not match sRGB: %s" % role)
     checks = value["checks"]
-    _require(isinstance(checks, dict) and set(checks) == PALETTE_CHECKS,
+    _require(isinstance(checks, dict) and PALETTE_CHECKS.issubset(checks)
+             and set(checks).issubset(PALETTE_CHECKS | {"sibling_separation"}),
              "palette qualification checks are incomplete")
     _require(all(item is True for item in checks.values()), "every palette qualification check must pass")
     expected = dict(value)
