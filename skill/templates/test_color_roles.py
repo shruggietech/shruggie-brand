@@ -2,12 +2,15 @@
 """Source-to-guide color role contract regressions."""
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
+from coloraide import Color
+
 from color_roles import ColorRoleError, resolve_color_roles
 from gen_nextjs import build_slots, emit_theme_item, oklch
-from verify import Report, c_accent
+from verify import Report, c_accent, c_color_roles
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -75,7 +78,7 @@ class ColorRoleTests(unittest.TestCase):
         self.assertEqual({"heart-blue", "heart-red"}, set(roles["identity_combinations"][0]["colors"]))
 
     def test_existing_theme_tokens_agree_with_explicit_interface_roles(self):
-        for slug in ("covarity", "i-heart-pr-tours", "shruggietech"):
+        for slug in (path.parent.name for path in sorted((ROOT / "brands").glob("*/brand.json"))):
             source = brand(slug)
             roles = resolve_color_roles(source, CANON)
             dark, light = build_slots(CANON, source)
@@ -93,6 +96,27 @@ class ColorRoleTests(unittest.TestCase):
                                        ("selection", "primary")):
                         self.assertEqual(oklch(cues[cue]["hex"]), registry[token])
 
+    def test_verifier_rejects_registry_cue_drift(self):
+        source = brand("covarity")
+        roles = resolve_color_roles(source, CANON)
+        dark, light = build_slots(CANON, source)
+        theme = emit_theme_item(CANON, source, dark, light)
+        theme["cssVars"]["dark"]["brand-cta"] = oklch("#000000")
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            (kit / "color-roles.json").write_text(json.dumps(roles), encoding="utf-8")
+            for relative, pointer in (("web/adapter.json", "../color-roles.json"),
+                                      ("native/egui/adapter.json", "../../color-roles.json")):
+                path = kit / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps({"color_roles": pointer}), encoding="utf-8")
+            registry = kit / "nextjs" / "registry" / "theme.json"
+            registry.parent.mkdir(parents=True)
+            registry.write_text(json.dumps(theme), encoding="utf-8")
+            report = Report()
+            c_color_roles(str(kit), CANON, source, report)
+            self.assertTrue(any("dark registry brand-cta differs" in problem for problem in report.problems))
+
     def test_owned_child_sibling_hue_is_allowed_but_contrast_still_fails(self):
         source = brand("cueson")
         sibling = brand("go-schedule")
@@ -109,10 +133,17 @@ class ColorRoleTests(unittest.TestCase):
         c_accent(CANON, source, weak)
         self.assertTrue(any("needs 4.5" in problem for problem in weak.problems))
 
-    def test_invalid_weak_surface_cue_fails(self):
+    def test_unemitted_interface_override_is_rejected(self):
         source = brand("covarity")
-        source["color_roles"]["interface_overrides"] = {"focus": {"dark": "brand.surfaces.base", "light": "brand.light_surfaces.base"}}
-        with self.assertRaisesRegex(ColorRoleError, "surface contrast"):
+        source["color_roles"]["interface_overrides"] = {"action": {"dark": "brand.accent.deep", "light": "brand.accent.accessible"}}
+        with self.assertRaisesRegex(ColorRoleError, "without independent cue overrides"):
+            resolve_color_roles(source, CANON)
+
+    def test_unrounded_surface_contrast_below_three_fails(self):
+        source = brand("covarity")
+        source["accent"]["bright"] = "#595959"
+        self.assertLess(Color("#595959").contrast("#000000", method="wcag21"), 3.0)
+        with self.assertRaisesRegex(ColorRoleError, "surface contrast below 3.0"):
             resolve_color_roles(source, CANON)
 
     def test_status_requires_non_color_cue_and_valid_formal_combination(self):

@@ -797,6 +797,8 @@ class PipelineTests(unittest.TestCase):
             portable = gen_guidelines.build(brand, kit)
             pdf = gen_guide_pdf.build(brand, kit)
             self.assertEqual(brand["accent"]["bright"], roles["identity"][0]["hex"])
+            for formal in roles["identity"]:
+                self.assertIn(formal["source"], pdf)
             for combination in roles["identity_combinations"]:
                 self.assertIn(combination["label"], portable)
                 self.assertIn(combination["label"], pdf)
@@ -809,6 +811,7 @@ class PipelineTests(unittest.TestCase):
                 for row in roles["interface"][theme]:
                     self.assertIn(row["hex"], portable)
                     self.assertIn(row["hex"], pdf)
+                    self.assertIn(row["source"], pdf)
                     self.assertIn(row["non_color_cue"], portable)
                     self.assertIn(row["non_color_cue"], pdf)
 

@@ -53,7 +53,7 @@ def _source_value(source, brand, canon):
 
 
 def _ratio(first, second):
-    return round(Color(first).contrast(second, method="wcag21"), 2)
+    return Color(first).contrast(second, method="wcag21")
 
 
 def _foreground(fill):
@@ -64,8 +64,8 @@ def _foreground(fill):
 def resolve_color_roles(brand, canon):
     """Return JSON-ready role records without changing any approved input color."""
     declaration = brand.get("color_roles")
-    _require(isinstance(declaration, dict) and set(declaration).issubset({"identity", "combinations", "interface_overrides"}),
-             "color_roles must declare identity and combinations with optional interface_overrides")
+    _require(isinstance(declaration, dict) and set(declaration) == {"identity", "combinations"},
+             "color_roles must declare identity and combinations without independent cue overrides")
     identity = declaration.get("identity")
     _require(isinstance(identity, list) and identity, "color_roles.identity requires at least one formal color")
     formal, seen = [], set()
@@ -105,9 +105,6 @@ def resolve_color_roles(brand, canon):
 
     model = ((canon.get("color") or {}).get("role_model") or {}).get("interface_cues")
     _require(isinstance(model, dict) and set(model) == set(CUES), "canon interface cue model must define eight roles")
-    overrides = declaration.get("interface_overrides") or {}
-    _require(isinstance(overrides, dict) and set(overrides).issubset(set(CUES)),
-             "unsupported interface cue override")
     surfaces = {"dark": (brand.get("surfaces") or {}).get("base", "#000000"),
                 "light": (brand.get("light_surfaces") or {}).get("base", "#F8F8F6")}
     interface = {"dark": [], "light": []}
@@ -118,12 +115,8 @@ def resolve_color_roles(brand, canon):
         _require(all(isinstance(definition[key], str) and definition[key].strip()
                      for key in ("label", "use", "non_color_cue")),
                  "interface cue needs meaning and non-color cue: %s" % cue)
-        override = overrides.get(cue) or {}
-        if cue in overrides:
-            _require(isinstance(override, dict) and set(override) == {"dark", "light"},
-                     "interface cue override needs dark and light sources: %s" % cue)
         for theme in ("dark", "light"):
-            source = override.get(theme, definition[theme])
+            source = definition[theme]
             value = _source_value(source, brand, canon)
             surface = surfaces[theme]
             _require(isinstance(surface, str) and HEX.fullmatch(surface), "invalid %s surface" % theme)
@@ -135,8 +128,8 @@ def resolve_color_roles(brand, canon):
             interface[theme].append({"id": cue, "label": definition["label"], "source": source,
                                      "hex": value, "use": definition["use"],
                                      "non_color_cue": definition["non_color_cue"],
-                                     "foreground": foreground, "foreground_contrast": foreground_ratio,
-                                     "surface": surface.upper(), "surface_contrast": surface_ratio,
+                                     "foreground": foreground, "foreground_contrast": round(foreground_ratio, 2),
+                                     "surface": surface.upper(), "surface_contrast": round(surface_ratio, 2),
                                      "theme": theme})
     return {"schema_version": 1, "identity": formal, "identity_combinations": combinations, "interface": interface}
 

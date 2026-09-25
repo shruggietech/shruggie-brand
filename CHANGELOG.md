@@ -15,6 +15,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 ### Decisions
 
 - On 2026-09-25, retained `shruggietech-house` as an explicit compatibility choice for the historical shared orange pair, independent of ownership and typography. Generated color role records reference approved values instead of copying them into a second source.
+- On 2026-09-25, rejected role-only cue overrides until all token and adapter generators can emit them consistently; approved accent and semantic source choices remain the way to set cue colors. Contrast floors use unrounded measurements.
 
 ## [2.1.0] - 2026-09-25
 

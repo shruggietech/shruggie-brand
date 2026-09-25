@@ -43,7 +43,7 @@ site/{lib/guidelines.ts,components/guidelines/color-reference.tsx}
 skill/templates/test_*.py
 ```
 
-**Structure Decision**: One resolver owns role references and measurements. Existing token names remain compatibility outputs. Brand source declares formal colors by reference; shared cue defaults live in canon data with optional explicit brand overrides.
+**Structure Decision**: One resolver owns role references and measurements. Existing token names remain compatibility outputs. Brand source declares formal colors by reference; shared cue definitions live in canon data and read approved accent and semantic fields. Independent role-only overrides are rejected because they would disagree with current token and adapter output.
 
 ## Design Sequence
 

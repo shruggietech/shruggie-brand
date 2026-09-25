@@ -4,7 +4,7 @@
 
 `color_roles.identity[]` has `id`, `label`, `source`, and `use`. `source` is a restricted reference into approved brand source (`accent.*`, `logo.role_colors.color.*`, legacy approved palette indices, or explicitly selected `semantic_colors.*`). Duplicate IDs, unresolved paths, non-hex targets, and empty usage fail. `color_roles.combinations[]` names an approved combination of formal IDs, its intended use, and its `logo.full`, `logo.reduced`, or `brand.applications` artwork reference. Unknown formal IDs and duplicate combination IDs fail.
 
-`color_roles.interface_overrides` is an optional mapping from a declared cue role to dark/light source references. It changes only the role mapping, never an approved source value. Overrides require explicit human approval evidence when they alter an existing production brand.
+Interface cue values derive from approved accent and semantic source fields. A separate `color_roles.interface_overrides` mapping is rejected until every token and adapter generator can emit the same changed values; a role record may not document a value that the consumers do not receive.
 
 ## Canon role model
 

@@ -23,6 +23,7 @@ from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
 from interface_contract import verify_consumer_contract
 from gen_egui import verify_egui_adapter
+from gen_nextjs import oklch
 from gen_conformance import verify_conformance
 from component_contract import COMPONENT_IDS, ComponentContractError, validate_app_frame_profiles, validate_component_catalog
 
@@ -123,23 +124,35 @@ def c_color_roles(kit, canon, brand, rep):
     if not os.path.isfile(path):
         return rep.bad("color-roles", "generated color-roles.json is missing")
     try:
-        actual = json.load(open(path, encoding="utf-8"))
+        actual = json.loads(Path(path).read_text(encoding="utf-8"))
         expected = resolve_color_roles(brand, canon)
         if actual != expected:
             return rep.bad("color-roles", "generated roles differ from measured source contract")
         portal = os.path.join(kit, "guidelines", "portal.json")
-        if os.path.isfile(portal) and json.load(open(portal, encoding="utf-8")).get("color_roles") != expected:
+        if os.path.isfile(portal) and json.loads(Path(portal).read_text(encoding="utf-8")).get("color_roles") != expected:
             return rep.bad("color-roles", "guideline roles differ from measured source contract")
         adapters = (("web/adapter.json", "../color-roles.json"),
                     ("native/egui/adapter.json", "../../color-roles.json"))
         for relative, pointer in adapters:
             adapter_path = os.path.join(kit, *relative.split("/"))
-            if not os.path.isfile(adapter_path) or json.load(open(adapter_path, encoding="utf-8")).get("color_roles") != pointer:
+            if not os.path.isfile(adapter_path) or json.loads(Path(adapter_path).read_text(encoding="utf-8")).get("color_roles") != pointer:
                 return rep.bad("color-roles", "%s lacks the kit role-record pointer" % relative)
         registry = os.path.join(kit, "nextjs", "registry", "theme.json")
-        if not os.path.isfile(registry) or "color-roles.json" not in json.load(open(registry, encoding="utf-8")).get("docs", ""):
+        if not os.path.isfile(registry):
+            return rep.bad("color-roles", "registry theme is missing")
+        theme_item = json.loads(Path(registry).read_text(encoding="utf-8"))
+        if "color-roles.json" not in theme_item.get("docs", ""):
             return rep.bad("color-roles", "registry theme omits the role-record guidance")
-    except (ColorRoleError, OSError, ValueError) as error:
+        slot_by_cue = {"action": "brand-cta", "warning": "brand-emphasis", "error": "destructive",
+                       "focus": "ring", "selection": "primary"}
+        for surface in ("dark", "light"):
+            slots = theme_item["cssVars"][surface]
+            for cue in expected["interface"][surface]:
+                slot = slot_by_cue.get(cue["id"])
+                if slot and slots.get(slot) != oklch(cue["hex"]):
+                    return rep.bad("color-roles", "%s registry %s differs from %s cue" %
+                                   (surface, slot, cue["id"]))
+    except (ColorRoleError, OSError, ValueError, TypeError, KeyError) as error:
         return rep.bad("color-roles", str(error))
     rep.ok("color-roles", "%d formal colors and %d cues in both themes match source and guide" %
            (len(expected["identity"]), len(expected["interface"]["dark"])))

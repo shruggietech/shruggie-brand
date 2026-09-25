@@ -460,15 +460,15 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
                      ("Palette", palette_choice), ("Typography", typography_choice))
         decision_rows = "".join('<tr><th scope="row">%s</th><td>%s</td></tr>' %
                                 (escape(label), escape(value)) for label, value in decisions)
-        formal_rows = "".join('<tr><th scope="row">%s</th><td>%s</td><td>%s</td></tr>' %
-                              (escape(row["label"]), escape(row["hex"]), escape(row["use"]))
+        formal_rows = "".join('<tr><th scope="row">%s</th><td>%s</td><td>%s</td><td>%s</td></tr>' %
+                              (escape(row["label"]), escape(row["hex"]), escape(row["source"]), escape(row["use"]))
                               for row in roles["identity"])
         combination_rows = "".join('<tr><th scope="row">%s</th><td>%s in %s</td><td>%s</td></tr>' %
                                    (escape(row["label"]), escape(", ".join(row["colors"])),
                                     escape(row["artwork"]), escape(row["use"]))
                                    for row in roles["identity_combinations"])
         formal_detail = ('<h3>Formal identity colors</h3>'
-                         '<table><tr><th>Color</th><th>HEX</th><th>Use</th></tr>%s</table>'
+                         '<table><tr><th>Color</th><th>HEX</th><th>Source</th><th>Use</th></tr>%s</table>'
                          '<h3>Approved combinations and artwork</h3>'
                          '<table><tr><th>Application</th><th>Colors and artwork</th><th>Use</th></tr>%s</table>'
                          % (formal_rows, combination_rows))
@@ -511,8 +511,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             pairing = ('Dark: %s, %s text %.2f:1; surface %.2f:1<br>Light: %s, %s text %.2f:1; surface %.2f:1' %
                        (escape(dark["hex"]), escape(dark["foreground"]), dark["foreground_contrast"], dark["surface_contrast"],
                         escape(light["hex"]), escape(light["foreground"]), light["foreground_contrast"], light["surface_contrast"]))
-            if not compact:
-                pairing += '<br>Source: %s / %s' % (escape(dark["source"]), escape(light["source"]))
+            pairing += '<br>Source: %s / %s' % (escape(dark["source"]), escape(light["source"]))
             rows.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
                         (escape(dark["label"]), escape(dark["use"]), pairing,
                          escape(dark["non_color_cue"])))

@@ -141,9 +141,7 @@
         "combinations": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "label", "colors", "artwork", "use"], "additionalProperties": false,
           "properties": {"id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"}, "label": {"type": "string", "minLength": 1},
             "colors": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"}},
-            "artwork": {"enum": ["logo.full", "logo.reduced", "brand.applications"]}, "use": {"type": "string", "minLength": 1}}}},
-        "interface_overrides": {"type": "object", "additionalProperties": {"type": "object", "required": ["dark", "light"], "additionalProperties": false,
-          "properties": {"dark": {"type": "string", "minLength": 1}, "light": {"type": "string", "minLength": 1}}}}
+            "artwork": {"enum": ["logo.full", "logo.reduced", "brand.applications"]}, "use": {"type": "string", "minLength": 1}}}}
       }
     },
     "customAsset": {
