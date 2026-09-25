@@ -148,7 +148,7 @@ class ComponentCatalogTests(unittest.TestCase):
         second = resolve_component_catalog(brand, self.catalog, self.interface)
         self.assertEqual(first, second)
         self.assertEqual("1.1.0", first["version"])
-        self.assertEqual("1.0.0", first["interface_canon_version"])
+        self.assertEqual("1.0.1", first["interface_canon_version"])
         self.assertEqual(brand["slug"], first["brand"])
 
         unsafe = copy.deepcopy(brand)

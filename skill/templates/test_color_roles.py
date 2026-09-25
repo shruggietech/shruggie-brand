@@ -10,6 +10,8 @@ from coloraide import Color
 
 from color_roles import ColorRoleError, resolve_color_roles
 from gen_nextjs import build_slots, emit_theme_item, oklch
+from gen_web_react import emit_tokens
+from interface_contract import resolve_interface_contract
 from verify import Report, c_accent, c_color_roles
 
 
@@ -95,6 +97,11 @@ class ColorRoleTests(unittest.TestCase):
                                        ("error", "destructive"), ("focus", "ring"),
                                        ("selection", "primary")):
                         self.assertEqual(oklch(cues[cue]["hex"]), registry[token])
+                    adapter = resolve_interface_contract(source, brand_canon=CANON)["roles_by_theme"][theme]
+                    for cue, role in (("action", "action.primary"), ("warning", "action.emphasis"),
+                                      ("error", "action.destructive"), ("focus", "focus.ring")):
+                        self.assertEqual(cues[cue]["hex"], adapter[role])
+                    self.assertEqual(cues["error"]["foreground"], adapter["text.on_destructive"])
 
     def test_verifier_rejects_registry_cue_drift(self):
         source = brand("covarity")
@@ -110,12 +117,41 @@ class ColorRoleTests(unittest.TestCase):
                 path = kit / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(json.dumps({"color_roles": pointer}), encoding="utf-8")
+            web_tokens = kit / "tokens" / "interface.css"
+            web_tokens.parent.mkdir(parents=True)
+            web_tokens.write_text(emit_tokens(resolve_interface_contract(source, brand_canon=CANON)), encoding="utf-8")
             registry = kit / "nextjs" / "registry" / "theme.json"
             registry.parent.mkdir(parents=True)
             registry.write_text(json.dumps(theme), encoding="utf-8")
             report = Report()
             c_color_roles(str(kit), CANON, source, report)
             self.assertTrue(any("dark registry brand-cta differs" in problem for problem in report.problems))
+
+    def test_verifier_rejects_web_adapter_cue_drift(self):
+        source = brand("covarity")
+        roles = resolve_color_roles(source, CANON)
+        dark, light = build_slots(CANON, source)
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            (kit / "color-roles.json").write_text(json.dumps(roles), encoding="utf-8")
+            for relative, pointer in (("web/adapter.json", "../color-roles.json"),
+                                      ("native/egui/adapter.json", "../../color-roles.json")):
+                path = kit / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps({"color_roles": pointer}), encoding="utf-8")
+            registry = kit / "nextjs" / "registry" / "theme.json"
+            registry.parent.mkdir(parents=True)
+            registry.write_text(json.dumps(emit_theme_item(CANON, source, dark, light)), encoding="utf-8")
+            web_tokens = kit / "tokens" / "interface.css"
+            web_tokens.parent.mkdir(parents=True)
+            css = emit_tokens(resolve_interface_contract(source, brand_canon=CANON))
+            warning = next(cue["hex"] for cue in roles["interface"]["light"] if cue["id"] == "warning")
+            needle = "--bb-action-emphasis: %s;" % warning
+            self.assertIn(needle, css)
+            web_tokens.write_text(css.replace(needle, "--bb-action-emphasis: #000000;"), encoding="utf-8")
+            report = Report()
+            c_color_roles(str(kit), CANON, source, report)
+            self.assertTrue(any("light Web --bb-action-emphasis differs" in problem for problem in report.problems))
 
     def test_owned_child_sibling_hue_is_allowed_but_contrast_still_fails(self):
         source = brand("cueson")

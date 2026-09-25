@@ -21,7 +21,7 @@ from brand_contract import _image_dimensions, affiliation, application_icon_prof
 from color_roles import ColorRoleError, resolve_color_roles
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
-from interface_contract import verify_consumer_contract
+from interface_contract import resolve_interface_contract, verify_consumer_contract
 from gen_egui import verify_egui_adapter
 from gen_nextjs import oklch
 from gen_conformance import verify_conformance
@@ -137,6 +137,26 @@ def c_color_roles(kit, canon, brand, rep):
             adapter_path = os.path.join(kit, *relative.split("/"))
             if not os.path.isfile(adapter_path) or json.loads(Path(adapter_path).read_text(encoding="utf-8")).get("color_roles") != pointer:
                 return rep.bad("color-roles", "%s lacks the kit role-record pointer" % relative)
+        web_tokens = os.path.join(kit, "tokens", "interface.css")
+        if not os.path.isfile(web_tokens):
+            return rep.bad("color-roles", "Web interface tokens are missing")
+        css = Path(web_tokens).read_text(encoding="utf-8")
+        resolved = resolve_interface_contract(brand, brand_canon=canon)["roles_by_theme"]
+        adapter_by_cue = {"action": "action.primary", "warning": "action.emphasis",
+                          "error": "action.destructive", "focus": "focus.ring"}
+        for surface, selector in (("dark", ":root"), ("light", ".bb-light")):
+            block = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", css, re.S)
+            if not block:
+                return rep.bad("color-roles", "%s Web token block is missing" % surface)
+            for cue in expected["interface"][surface]:
+                role = adapter_by_cue.get(cue["id"])
+                if not role:
+                    continue
+                token = "--bb-" + role.replace(".", "-")
+                emitted = re.search(r"(?:^|;)\s*" + re.escape(token) + r":\s*(#[0-9A-Fa-f]{6})\s*;", block.group(1))
+                if resolved[surface][role] != cue["hex"] or not emitted or emitted.group(1).upper() != cue["hex"]:
+                    return rep.bad("color-roles", "%s Web %s differs from %s cue" %
+                                   (surface, token, cue["id"]))
         registry = os.path.join(kit, "nextjs", "registry", "theme.json")
         if not os.path.isfile(registry):
             return rep.bad("color-roles", "registry theme is missing")

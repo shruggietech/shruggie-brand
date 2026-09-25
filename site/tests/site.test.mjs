@@ -4,6 +4,7 @@ import documentation from '../generated/documentation.json' with { type: 'json' 
 import routeContract from '../generated/routes.json' with { type: 'json' };
 import conformanceRecords from '../generated/conformance.json' with { type: 'json' };
 import publication from '../generated/publication.json' with { type: 'json' };
+import canon from '../../skill/references/01-canon.json' with { type: 'json' };
 import { existsSync, readFileSync } from 'node:fs';
 
 const assetLibrarySource = readFileSync(new URL('../components/guidelines/asset-library-client.tsx', import.meta.url), 'utf8');
@@ -81,6 +82,17 @@ if (interactionStyleProblems(globalStyles).length > 0) throw new Error(`interact
 
 export const routeRecords = routeContract.routes;
 const expectedBrandSlugs = ['covarity', 'cueson', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'i-heart-pr-tours', 'shruggietech'];
+export function formalSourceHex(brand, reference) {
+  const [root, ...path] = reference.split('.');
+  const semantic = brand.affiliation?.inheritance === 'shruggietech-house'
+    ? { action: canon.color.immutable['orange-cta'].hex, emphasis: canon.color.immutable.orange.hex }
+    : brand.semantic_colors;
+  const source = root === 'brand' ? brand : root === 'semantic' ? semantic : undefined;
+  return path.reduce((node, key) => node?.[key], source);
+}
+const independentFormalSource = { affiliation: { inheritance: 'independent' }, semantic_colors: { action: '#123456', emphasis: '#ABCDEF' } };
+if (formalSourceHex(independentFormalSource, 'semantic.action') !== '#123456' || formalSourceHex(independentFormalSource, 'semantic.emphasis') !== '#ABCDEF') throw new Error('independent semantic formal-color sources are unresolved');
+if (formalSourceHex({ affiliation: { inheritance: 'shruggietech-house' } }, 'semantic.action') !== canon.color.immutable['orange-cta'].hex) throw new Error('house semantic formal-color source is unresolved');
 if (JSON.stringify(brands.map((brand) => brand.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated brand inventory does not contain the eight production brands');
 if (JSON.stringify(conformanceRecords.map((record) => record.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated conformance inventory does not contain the eight production brands');
 for (const record of conformanceRecords) {
@@ -134,8 +146,8 @@ for (const portal of guidelinePortals) {
   const roles = portal.color_roles;
   if (!roles?.identity?.length || roles.interface?.dark?.length !== 8 || roles.interface?.light?.length !== 8) throw new Error(`${portal.brand.slug} color roles are incomplete`);
   for (const formal of roles.identity) {
-    if (!formal.label || !formal.use || !formal.source.startsWith('brand.')) throw new Error(`${portal.brand.slug} formal color lacks source or purpose`);
-    const value = formal.source.split('.').slice(1).reduce((node, key) => node?.[key], source);
+    if (!formal.label || !formal.use || !/^(brand|semantic)\./.test(formal.source)) throw new Error(`${portal.brand.slug} formal color lacks source or purpose`);
+    const value = formalSourceHex(source, formal.source);
     if (formal.hex !== value) throw new Error(`${portal.brand.slug} formal color differs from its approved source`);
   }
   if (!roles.identity_combinations?.length) throw new Error(`${portal.brand.slug} lacks approved identity combinations`);

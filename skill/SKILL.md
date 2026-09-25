@@ -6,7 +6,7 @@ compatibility: Python 3.8 or newer. `coloraide` is required for color work, font
 metadata:
   version: 2.2.0
   canon: 1.5.0
-  interface-canon: 1.0.0
+  interface-canon: 1.0.1
   component-recipes: 1.1.0
   web-react-adapter: 1.1.0
   egui-adapter: 1.0.2

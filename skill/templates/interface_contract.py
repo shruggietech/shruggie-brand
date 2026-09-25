@@ -519,11 +519,12 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
         surface = "light_surfaces.base" if theme == "light" else "surfaces.base"
         background = _lookup_brand(brand, surface)
         accent = _lookup_brand(brand, "accent.accessible" if theme == "light" else "accent.bright")
+        destructive = brand_canon["color"]["immutable"]["fault-deep" if theme == "light" else "fault"]["hex"]
         resolved_context = {
             "action": semantic["action"],
-            "emphasis": semantic["emphasis"],
+            "emphasis": semantic["action" if theme == "light" else "emphasis"],
             "action_foreground": _legal_foreground(semantic["action"]),
-            "destructive_foreground": _legal_foreground(brand_canon["color"]["immutable"]["fault"]["hex"]),
+            "destructive_foreground": _legal_foreground(destructive),
             "accent": accent,
             "accent_foreground": _legal_foreground(accent),
             "muted": _legal_muted(brand, background, theme, canon["invariants"]["minimum_text_contrast"]),
