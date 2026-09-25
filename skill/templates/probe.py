@@ -11,7 +11,7 @@ facts rather than assumptions.
 
 The tiers are defined in references/09-portability.md:
 
-    core    Python 3.8 and the standard library. Tokens, bindings, enforcement,
+    core    Python 3.8, coloraide, jsonschema, and the standard library. Tokens, bindings, enforcement,
             guidelines, specimen, manifest, verify, and the whole glyph gate.
     raster  core plus an SVG rasteriser and an ICO writer. PNGs and favicons.
     full    raster plus headless Chromium. The brand guide PDF and QC sheets.
@@ -48,7 +48,8 @@ CLI = [
 ]
 
 PY = [
-    ("coloraide", "colour maths and contrast. The only hard dependency beyond stdlib."),
+    ("coloraide", "colour maths and contrast; required for core builds"),
+    ("jsonschema", "shadcn registry validation; required for core builds"),
     ("fontTools", "wordmark and specimen outlining"),
     ("PIL", "raster compositing, contact sheets, ICO fallback"),
     ("playwright", "headless Chromium for the PDF and page screenshots"),
@@ -176,7 +177,8 @@ def main():
     renderer = svg_renderer_capability(found_cli, node_resvg)
     raster, raster_reason = raster_capability(renderer, found_py.get("PIL"))
     ico = found_cli["magick"] or found_cli["convert"] or found_py.get("PIL")
-    tier = "full" if (raster and chrome) else ("raster" if raster else "core")
+    core_ready = bool(found_py.get("coloraide") and found_py.get("jsonschema"))
+    tier = "blocked" if not core_ready else ("full" if (raster and chrome) else ("raster" if raster else "core"))
 
     caps = {
         "tier": tier,
@@ -198,6 +200,11 @@ def main():
         print("BLOCKED      coloraide is missing. Contrast numbers are measured, never")
         print("             typed, so no colour work can proceed. Try:")
         print("               %s -m pip install --user coloraide" % os.path.basename(sys.executable))
+    if not found_py.get("jsonschema"):
+        print("BLOCKED      jsonschema is missing. Registry items cannot be validated. Try:")
+        print("               %s -m pip install --user jsonschema==4.17.3" % os.path.basename(sys.executable))
+    if not core_ready:
+        return 1
     if tier == "core":
         print("NOTE         %s. Vector masters, tokens, bindings, the" % raster_reason)
         print("             guidelines page and the glyph gate all still run. PNGs,")
@@ -218,7 +225,7 @@ def main():
         print("")
         print("wrote        %s" % os.path.join(d, "probe.json"))
 
-    return 0 if found_py.get("coloraide") else 1
+    return 0
 
 
 if __name__ == "__main__":

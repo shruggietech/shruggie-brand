@@ -14,9 +14,8 @@ Before anything else:
 
     python3 templates/probe.py <kit-dir>
 
-If `python3` is not on PATH, try `python`. If `coloraide` will not import, stop
-and say so: contrast numbers are measured rather than typed, so no colour work
-can proceed without it.
+If `python3` is not on PATH, try `python`. If `coloraide` or `jsonschema` will
+not import, stop and follow the probe's dependency instructions before building.
 
 ---
 

@@ -12,7 +12,7 @@ handful of constrained choices, then writes:
     nextjs/providers.tsx            next-themes, dark by default
     nextjs/registry/registry.json   the catalog
     nextjs/registry/theme.json      registry:theme carrying cssVars
-    nextjs/registry/fonts.json      registry:font
+    nextjs/registry/<component>.json  installable UI item where declared
     nextjs/README.md                install instructions
 
 Every colour is converted to OKLCH here. Hex stays canonical in brand.json for
@@ -277,19 +277,6 @@ def emit_theme_item(canon, brand, dark, light):
                  "block already substitutes the accessible variant.")
     }
 
-def emit_font_item(brand):
-    families = typography_families(brand)
-    return {
-        "$schema": "https://ui.shadcn.com/schema/registry-item.json",
-        "name": "fonts", "type": "registry:font",
-        "title": "%s Typography" % brand["title"],
-        "description": governed_description(brand, "%s display, %s body, %s code." % (
-            families["display"]["name"], families["body"]["name"], families["mono"]["name"])),
-        "font": {"family": "'%s', system-ui, sans-serif" % families["body"]["name"],
-                 "provider": "local", "variable": "--font-body"},
-        "docs": "Use the bundled local files through nextjs/fonts.ts. Routine builds make no font-network requests."
-    }
-
 def emit_fonts_ts(brand):
     families = typography_families(brand)
     all_faces = font_faces(brand)
@@ -366,21 +353,25 @@ def domain_row_items(brand):
     items, pfx = [], brand["slug"][:2].lower()
     for comp, props in (brand.get("domain_components") or {}).items():
         kebab = re.sub(r"(?<!^)(?=[A-Z])", "-", comp).lower()
-        cells = "".join('<div className="%s-%s__%s" role="cell">{%s}</div>'
+        cells = "".join('<div className="%s-%s__%s" role="cell">{props["%s"]}</div>'
                         % (pfx, kebab, p, p) for p in props if p != "selected")
-        sel = ' aria-selected={selected}' if "selected" in props else ""
-        args = ", ".join(("%s = false" % p) if p == "selected" else p for p in props)
-        jsx = ('export function %s({ %s }) {\n'
+        sel = ' aria-selected={props.selected ?? false}' if "selected" in props else ""
+        declarations = "\n".join('  "%s"%s: %s;' % (
+            p, "?" if p == "selected" else "", "boolean" if p == "selected" else "ReactNode") for p in props)
+        jsx = ('import type { ReactNode } from "react";\n\n'
+               'export type %sProps = {\n%s\n};\n\n'
+               'export function %s(props: %sProps) {\n'
                '  return <div className="%s-%s" role="row"%s>%s</div>;\n}\n'
-               % (comp, args, pfx, kebab, sel, cells))
+               % (comp, declarations, comp, comp, pfx, kebab, sel, cells))
         items.append((kebab, {
             "$schema": "https://ui.shadcn.com/schema/registry-item.json",
             "name": kebab,
             "type": "registry:ui",
             "title": "%s %s" % (brand["title"], re.sub(r"(?<!^)(?=[A-Z])", " ", comp)),
             "description": governed_description(
-                brand, "A dense, keyboard-friendly row for %s surfaces." % brand["slug"]),
-            "files": [{"path": "components/%s/%s.jsx" % (brand["slug"], kebab),
+                brand, "A static data row for %s surfaces. Place it in a suitable grid or table." % brand["slug"]),
+            "files": [{"path": "components/%s/%s.tsx" % (brand["slug"], kebab),
+                       "target": "@components/%s/%s.tsx" % (brand["slug"], kebab),
                        "type": "registry:ui", "content": jsx}],
         }))
     return items
@@ -410,21 +401,23 @@ def main():
         "slug": brand["slug"],
         "alt": "%s, %s" % (brand["title"], brand.get("functional_descriptor",
                                                      brand.get("descriptor", "")).rstrip("."))})
-    wj(os.path.join(rd, "theme.json"), emit_theme_item(canon, brand, dark, light))
-    wj(os.path.join(rd, "fonts.json"), emit_font_item(brand))
+    items = [emit_theme_item(canon, brand, dark, light)]
     domain_items = domain_row_items(brand)
-    for kebab, item in domain_items:
-        wj(os.path.join(rd, "%s.json" % kebab), item)
+    items.extend(item for _, item in domain_items)
+    for name in os.listdir(rd):
+        if name.endswith(".json"):
+            os.unlink(os.path.join(rd, name))
+    for item in items:
+        wj(os.path.join(rd, "%s.json" % item["name"]), item)
 
     wj(os.path.join(rd, "registry.json"), {
         "$schema": "https://ui.shadcn.com/schema/registry.json",
         "name": brand["slug"],
         "homepage": brand.get("homepage", "https://shruggie.tech"),
         "description": governed_description(brand, "%s registry." % brand["title"]),
-        "items": [
-            {"name": "theme", "type": "registry:theme", "files": []},
-            {"name": "fonts", "type": "registry:font", "files": []},
-        ] + [{"name": k, "type": "registry:ui", "files": []} for k, _ in domain_items]})
+        "items": items})
+    from registry_contract import validate_registry
+    validate_registry(rd, brand["slug"])
     wj(os.path.join(nd, "components.json.snippet"), {
         "registries": {"@%s" % brand["slug"]:
                        "%s/r/{name}.json" % brand.get("registry_base",
@@ -432,15 +425,26 @@ def main():
     w(os.path.join(nd, "README.md"),
       "# %s: Next.js binding\n\n"
       "GENERATED by shruggie-brandbuilder. Regenerate this binding after changing the source spec.\n\n"
+      "Use the registry route if your project uses Next.js, Tailwind v4, and shadcn.\n"
+      "Other sites can use the kit's vanilla CSS and asset files directly.\n\n"
       "## Install into a project\n\n"
       "```bash\n"
-      "npx shadcn@latest init\n"
-      "npx shadcn@latest registry add @%s=%s/r/{name}.json\n"
-      "npx shadcn@latest add @%s/theme @%s/fonts%s\n"
+      "npx shadcn@4.21.0 init\n"
+      "npx shadcn@4.21.0 registry add @%s=%s/r/{name}.json\n"
+      "npx shadcn@4.21.0 add @%s/theme%s\n"
       "npm i next-themes\n"
       "```\n\n"
+      "The public `registry.json` is a discovery catalog. The CLI installs the individual\n"
+      "`/r/{name}.json` items. The catalog does not install local fonts.\n\n"
+      "Confirm installation by finding light and dark `--background` in your\n"
+      "global stylesheet and the requested component files under `components/`.\n\n"
+      "## Install bundled local fonts\n\n"
+      "Copy `nextjs/fonts.ts` and the kit's `fonts/` tree together into your project,\n"
+      "keeping their relative paths. Import `fontVariables` from `fonts.ts` and apply\n"
+      "it to `<html>`. Inspect the copied face paths before building. These fonts\n"
+      "never require `next/font/google` or a runtime font request.\n\n"
       "## Or wire it by hand\n\n"
-      "Copy `globals.css` over your own, keep `fonts.ts` beside the kit's `fonts/` tree,\n"
+      "Copy `globals.css` over your own, keep `nextjs/fonts.ts` one level below `fonts/`,\n"
       "copy `providers.tsx`,\n"
       "apply `fontVariables` to `<html>`, wrap the tree in `<Providers>`.\n\n"
       "## Rules that outlive this file\n\n"
@@ -452,7 +456,7 @@ def main():
       "  sandbox and the failure only surfaces after the CSS step appears to work.\n"
       % (brand["title"], brand["slug"],
          brand.get("registry_base", brand.get("homepage", "https://shruggie.tech").rstrip("/") + "/brand"),
-         brand["slug"], brand["slug"],
+         brand["slug"],
          "".join(" @%s/%s" % (brand["slug"], k) for k, _ in domain_items)))
     print("wrote %s" % nd)
 

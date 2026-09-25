@@ -459,25 +459,27 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         '<p class="dim">The approved mono family, uppercase, positive tracking. Visually subordinate and outside the '
         'logo clear space. Never a combined parent-product lockup.</p><div class="rule"></div>'
         '<h3>Load the system</h3><div class="card"><div class="code-block" style="line-height:2">'
-        'npx shadcn@latest registry add @%s=%s/r/{name}.json<br>'
-        'npx shadcn@latest add @%s/theme @%s/fonts<br>npm i geist next-themes</div></div>'
+        'npx shadcn@4.21.0 registry add @%s=%s/r/{name}.json<br>'
+        'npx shadcn@4.21.0 add @%s/theme<br>npm i next-themes</div></div>'
+        '<p class="dim">The catalog lists installable theme and component items. For offline fonts, copy nextjs/fonts.ts and fonts/ together from the kit.</p>'
         '%s' % (
             title, OR, OR,
             ("" if near is None else
              " The identity accent sits %.1f degrees from its nearest sibling." % near),
-            MU, endorsement, slug, B.get("registry_base", B.get("homepage", "https://shruggie.tech").rstrip("/") + "/brand"), slug, slug,
+            MU, endorsement, slug, B.get("registry_base", B.get("homepage", "https://shruggie.tech").rstrip("/") + "/brand"), slug,
             _ships(kit) + '<div style="position:absolute;left:16mm;bottom:20mm">%s</div>'
             % img(mono_logo, "", "height:8mm")), affiliation_page))
     else:
         pages.append(pg("Affiliation", "Independent identity",
             '<p>This brand has no ShruggieTech parent or ownership endorsement.</p>%s%s'
             '<div class="rule"></div><h3>Load the system</h3><div class="card"><div class="code-block" style="line-height:2">'
-            'npx shadcn@latest registry add @%s=%s/r/{name}.json<br>'
-            'npx shadcn@latest add @%s/theme @%s/fonts<br>npm i next-themes</div></div>%s' % (
+            'npx shadcn@4.21.0 registry add @%s=%s/r/{name}.json<br>'
+            'npx shadcn@4.21.0 add @%s/theme<br>npm i next-themes</div></div>'
+            '<p class="dim">The catalog lists installable theme and component items. For offline fonts, copy nextjs/fonts.ts and fonts/ together from the kit.</p>%s' % (
                 (('<div class="card" style="text-align:center;padding:7mm;margin:4mm 0"><div class="m" '
                   'style="letter-spacing:.2em;text-transform:uppercase;color:%s">%s</div></div>' % (MU, endorsement)) if endorsement else ""),
                 (('<div class="callout acc"><div class="ey">Vendor and trademark boundary</div><p style="margin:0" class="dim">%s</p></div>' % boundary["notice"]) if boundary else ""),
-                slug, B.get("registry_base", B.get("homepage", "").rstrip("/") + "/brand"), slug, slug,
+                slug, B.get("registry_base", B.get("homepage", "").rstrip("/") + "/brand"), slug,
                 _ships(kit)), affiliation_page))
 
     html = ("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>%s brand guide"

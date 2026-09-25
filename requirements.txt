@@ -10,3 +10,4 @@ pikepdf==10.13.0.post1; python_version >= "3.10"
 playwright==1.48.0; python_version < "3.10"
 playwright==1.63.0; python_version >= "3.10"
 svgelements==1.9.6
+jsonschema==4.17.3

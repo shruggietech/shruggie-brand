@@ -2,7 +2,7 @@
 name: shruggie-brandbuilder
 description: Build or audit a complete brand kit for a ShruggieTech-owned or third-party identity. Generates design tokens, local typography bindings, a Tailwind v4 and shadcn layer, governed constructed or authoritative supplied marks, measured verification, and ownership-safe public metadata.
 license: Apache-2.0. The code, templates and reference documentation are licensed under the Apache License 2.0. Apache-2.0 section 6 grants no trademark rights, and the ShruggieTech and sub-brand names, wordmarks and logo geometry are additionally reserved: see LICENSE-BRAND.md. Bundled fonts keep their own SIL Open Font License 1.1.
-compatibility: Python 3.8 or newer. `coloraide` is required for color work, fontTools is required for generated and fixed typography, Pillow is required when raster supplied inputs request palette evidence, and Brotli lets fontTools inspect WOFF2 metadata. Render-only capabilities still degrade to named skips. Run `templates/probe.py` first and route off its report.
+compatibility: Python 3.8 or newer. `coloraide` is required for color work, fontTools is required for generated and fixed typography, Pillow is required when raster supplied inputs request palette evidence, Brotli lets fontTools inspect WOFF2 metadata, and jsonschema validates shadcn registry payloads. Render-only capabilities still degrade to named skips. Run `templates/probe.py` first and route off its report.
 metadata:
   version: 2.0.3
   canon: 1.3.0

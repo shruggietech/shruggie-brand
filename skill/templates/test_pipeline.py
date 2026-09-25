@@ -3,9 +3,11 @@
 
 import json
 import base64
+import builtins
 import copy
 import hashlib
-from io import BytesIO
+from contextlib import redirect_stdout
+from io import BytesIO, StringIO
 import os
 import re
 import shutil
@@ -978,7 +980,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(kwargs["stdin"], subprocess.DEVNULL)
         self.assertEqual(kwargs["creationflags"], getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000))
 
-    def test_generated_nextjs_binding_uses_local_fonts_and_plural_registry_name(self):
+    def test_generated_nextjs_binding_uses_local_fonts_without_unsupported_registry_item(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp) / "input"
             self.copy_production_test_input(kit)
@@ -990,14 +992,21 @@ class PipelineTests(unittest.TestCase):
                 sys.argv = old_argv
             registry = Path(tmp) / "nextjs" / "registry"
             fonts_ts = (Path(tmp) / "nextjs" / "fonts.ts").read_text(encoding="utf-8")
-            self.assertTrue((registry / "fonts.json").is_file())
-            self.assertFalse((registry / "font.json").exists())
+            self.assertFalse((registry / "fonts.json").exists())
+            self.assertNotIn('"name": "fonts"', (registry / "registry.json").read_text(encoding="utf-8"))
             self.assertIn('from "next/font/local"', fonts_ts)
             self.assertNotIn("next/font/google", fonts_ts)
             for name in ("Geist-Regular.woff2", "Geist-Medium.woff2",
                          "GeistMono-Regular.woff2", "SpaceGrotesk-Medium.woff2",
                          "SpaceGrotesk-Bold.woff2"):
                 self.assertIn(name, fonts_ts)
+
+    def test_generated_registry_component_accepts_reserved_property_name(self):
+        rows = gen_nextjs.domain_row_items({"slug": "fragcap", "title": "Fragcap", "domain_components": {"SessionRow": ["interface"]}})
+        source = rows[0][1]["files"][0]["content"]
+        self.assertIn('"interface": ReactNode', source)
+        self.assertIn('props["interface"]', source)
+        self.assertNotIn("{ interface }", source)
 
     def test_third_party_fixed_font_pipeline_is_offline_and_ownership_safe(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1697,6 +1706,43 @@ class PipelineTests(unittest.TestCase):
         found["magick"] = False
         found["convert"] = True
         self.assertFalse(probe.svg_renderer_capability(found, False))
+
+    def test_probe_blocks_when_jsonschema_is_missing(self):
+        original_import = builtins.__import__
+
+        def missing_jsonschema(name, *args, **kwargs):
+            if name == "jsonschema":
+                raise ModuleNotFoundError("No module named 'jsonschema'")
+            return original_import(name, *args, **kwargs)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            output = StringIO()
+            with mock.patch.object(builtins, "__import__", side_effect=missing_jsonschema), \
+                    mock.patch.object(probe, "CLI", [("magick", "ImageMagick"), ("convert", "ImageMagick")]), \
+                    mock.patch.object(probe, "which", return_value=None), \
+                    mock.patch.object(probe, "node_resvg_ok", return_value=False), \
+                    mock.patch.object(probe, "chromium_ok", return_value=(False, "not tested")), \
+                    mock.patch.object(sys, "argv", ["probe.py", str(kit)]), redirect_stdout(output):
+                self.assertEqual(probe.main(), 1)
+            self.assertRegex(output.getvalue(), r"jsonschema\s+MISSING")
+            self.assertIn("tier         blocked", output.getvalue())
+            self.assertIn("jsonschema==4.17.3", output.getvalue())
+            self.assertFalse((kit / "qc" / "probe.json").exists())
+
+    def test_build_stops_when_core_probe_fails(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            kit.mkdir()
+            write_utf8(kit / "brand.json", "{}\n")
+            output = StringIO()
+            with mock.patch.object(build_kit, "PRE", [("probe the toolchain", ["probe.py", "{kit}"])]), \
+                    mock.patch.object(build_kit, "run", return_value=(1, "jsonschema missing")) as run, \
+                    mock.patch.object(sys, "argv", ["build_kit.py", str(kit)]), redirect_stdout(output):
+                self.assertEqual(build_kit.main(), 1)
+            run.assert_called_once()
+            self.assertIn("required core capability probe failed", output.getvalue())
+            self.assertFalse((kit / "manifest.json").exists())
 
     def test_windows_convert_utility_is_not_imagemagick(self):
         windows_result = types.SimpleNamespace(

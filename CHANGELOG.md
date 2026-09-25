@@ -6,12 +6,14 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- Repaired S052 shadcn registry catalogs and installable endpoints, added pinned schema and clean-consumer gates, and documented the bundled local-font setup.
 - Prepared the S049 repository front door with approved theme-aware branding, canonical brand destinations, stable latest-release guidance, and release/status badges.
 - Completed S050 light-first guide and hosted presentation across PDF, portable, cards, and download surfaces with measured contrast gates.
 - Governed optional S051 custom assets with provenance, approval, rights, accessibility and publication metadata; projected eligible expressions into guides, hosted navigation, asset library, and downloads.
 
 ### Decisions
 
+- On 2026-09-25, treated the public registry as a discovery catalog plus direct install endpoints and removed its unsupported local-font item; the complete kit remains the authority for bundled offline fonts.
 - On 2026-09-23, made README link validation consume the generated route contract after site preparation, using isolated negative fixtures instead of a duplicated slug list or live HTTP checks in CI.
 - On 2026-09-23, kept public README downloads on the latest published release rather than naming an unpublished 2.0.3 candidate; exact-version assets remain governed by release metadata and checksums.
 - On 2026-09-23, kept custom expressions separate from canonical logo authority and excluded non-public source bytes from public archives; the supplied I Heart PR Tours sand SVGs remain unchanged.

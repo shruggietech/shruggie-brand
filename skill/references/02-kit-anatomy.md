@@ -53,7 +53,7 @@ because that is what the agent's hands already know.
     registry/
       registry.json                 the catalog
       theme.json                    registry:theme carrying cssVars
-      fonts.json                    registry:font
+      (local fonts use fonts.ts and bundled fonts/, outside shadcn CLI)
       <component>.json              registry:ui, ONLY where the brand
                                     genuinely diverges from stock shadcn
 
@@ -148,11 +148,7 @@ records the deviation and the reason.
 
 ### `nextjs/registry/`
 
-Publish the catalog and let a consuming project install with
-`npx shadcn add @<brand>/theme`. Registries can also carry `AGENTS.md` and
-agent rule files, so the enforcement layer ships through the same pipe as the
-tokens. That is the whole trick: the brand arrives by the same command the
-agent was already going to run.
+The public catalog describes available theme and UI items. A Next.js/Tailwind v4 consumer uses the pinned `shadcn@4.21.0` CLI with the direct `/r/{name}.json` endpoints, such as `@<brand>/theme` after configuring the namespace. The registry does not deliver the full enforcement layer or bundled fonts; download the complete kit for those files.
 
 Only write a `registry:ui` override where the brand genuinely diverges. A kit
 that forks all forty shadcn components has created a maintenance burden and
