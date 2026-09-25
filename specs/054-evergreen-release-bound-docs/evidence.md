@@ -45,4 +45,8 @@ The audit also scans the catalog's titles/descriptions, generated navigation and
 | `python scripts/check_readme_links.py`, `python scripts/check_markdown.py`, `git diff --check`, `python -m compileall -q scripts` | PASS, zero link, Markdown, whitespace, or compile problems. |
 | `python dist/s053_pinned_node.py pnpm --dir site test` | PASS, 12 payload/origin tests and 91 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations. The first run exposed a stale test expectation for a fixed color table intentionally removed from `05-shadcn-binding.md`; the table-route list was corrected and the complete test rerun passed. |
 | Changed text encoding and corruption scan | PASS, no UTF-8 BOM, carriage returns, or common mojibake markers in changed text and S054 Spec Kit records. |
+
+## First PR review correction
+
+Codex review on PR #279 identified an empty-alt gap for reference-style Markdown images such as `![][logo]`. The README audit now rejects empty and whitespace-only reference labels, and its isolated image test covers both failures and a descriptive reference label. The affected tests, live README audit, Markdown policy, and diff hygiene checks passed before the correction was pushed.
 | Live deployed routes and formal release asset comparison | Pending authorized post-merge v2.2.0 publication. No live pass is claimed in the PR. |

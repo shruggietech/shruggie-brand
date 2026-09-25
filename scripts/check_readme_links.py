@@ -28,6 +28,7 @@ VERSIONED_BUILDER_ASSET = re.compile(r"shruggie-brandbuilder-\d+\.\d+\.\d+(?:-po
 PORTFOLIO_COUNT = re.compile(r"\b(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|several|many)\s+(?:(?:production|showcased|subordinate|released|current)\s+)?(?:sub-?brands|brand kits|brands|kits)\b", re.IGNORECASE)
 PORTFOLIO_HEADING = re.compile(r"(?im)^#{1,6}\s+(?:brand kits|brands|portfolio)\s*$")
 EMPTY_MARKDOWN_IMAGE = re.compile(r"!\[\s*\]\(")
+EMPTY_REFERENCE_IMAGE = re.compile(r"!\[\s*\]\[[^\]]+\]")
 
 
 class _HtmlTargets(HTMLParser):
@@ -166,7 +167,7 @@ def audit(root: Path, markdown: str, contract: dict) -> list[str]:
         problems.append("portfolio snapshot in README")
     if any(url in markdown for url in brands):
         problems.append("portfolio snapshot in README: brand route")
-    if EMPTY_MARKDOWN_IMAGE.search(markdown):
+    if EMPTY_MARKDOWN_IMAGE.search(markdown) or EMPTY_REFERENCE_IMAGE.search(markdown):
         problems.append("missing image alt in README")
     html = _HtmlTargets()
     html.feed(markdown)

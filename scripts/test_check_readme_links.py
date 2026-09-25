@@ -74,6 +74,9 @@ class ReadmeLinkAuditTests(unittest.TestCase):
     def test_images_require_alt_and_valid_targets(self) -> None:
         self.assertIn("missing image alt", "\n".join(self.problems(self.valid + '<img src="brand.png">\n')))
         self.assertIn("missing image alt", "\n".join(self.problems(self.valid + '![](brand.png)\n')))
+        self.assertIn("missing image alt", "\n".join(self.problems(self.valid + '![][logo]\n[logo]: brand.png\n')))
+        self.assertIn("missing image alt", "\n".join(self.problems(self.valid + '![   ][logo]\n[logo]: brand.png\n')))
+        self.assertEqual([], self.problems(self.valid + '![Brand mark][logo]\n[logo]: brand.png\n'))
         self.assertIn("missing local target", "\n".join(self.problems(self.valid + '<img src="missing.png" alt="Brand">\n')))
         self.assertIn("missing local target", "\n".join(self.problems(self.valid.replace('srcset="brand.png"', 'srcset="brand.png 1x, missing.png 2x"'))))
 
