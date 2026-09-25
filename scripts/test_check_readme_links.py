@@ -83,7 +83,7 @@ class ReadmeLinkAuditTests(unittest.TestCase):
     def test_autolinks_and_fenced_examples(self) -> None:
         self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "<https://brand.shruggie.tech/not-a-route/>\n")))
         self.assertIn("undeclared site route", "\n".join(self.problems(self.valid + "See https://brand.shruggie.tech/not-a-route/.\n")))
-        self.assertEqual([], self.problems(self.valid + "\n```md\n[Example](missing.md)\n```\n"))
+        self.assertEqual([], self.problems(self.valid + "\n```md\n[Example](missing.md)\n![](example.png)\n![][logo]\n<img src=\"example.png\">\n```\n"))
 
     def test_versioned_builder_asset_rejected(self) -> None:
         self.assertIn("versioned BrandBuilder asset", "\n".join(self.problems(self.valid + "Get shruggie-brandbuilder-2.0.0.skill\n")))

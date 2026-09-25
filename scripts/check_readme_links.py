@@ -53,8 +53,8 @@ class _HtmlTargets(HTMLParser):
                 self.targets.extend((candidate.strip().split()[0], False) for candidate in value.split(",") if candidate.strip())
 
 
-def destinations(markdown: str) -> list[tuple[str, bool]]:
-    """Collect destinations and whether each is a navigable link."""
+def _visible_markdown(markdown: str) -> str:
+    """Remove fenced examples before checking rendered links or images."""
     visible: list[str] = []
     fence: str | None = None
     for line in markdown.splitlines():
@@ -68,7 +68,12 @@ def destinations(markdown: str) -> list[tuple[str, bool]]:
             continue
         if fence is None:
             visible.append(line)
-    content = "\n".join(visible)
+    return "\n".join(visible)
+
+
+def destinations(markdown: str) -> list[tuple[str, bool]]:
+    """Collect destinations and whether each is a navigable link."""
+    content = _visible_markdown(markdown)
     inline = list(MARKDOWN_TARGET.finditer(content))
     images = list(MARKDOWN_IMAGE.finditer(content))
     references = list(REFERENCE_TARGET.finditer(content))
@@ -167,10 +172,11 @@ def audit(root: Path, markdown: str, contract: dict) -> list[str]:
         problems.append("portfolio snapshot in README")
     if any(url in markdown for url in brands):
         problems.append("portfolio snapshot in README: brand route")
-    if EMPTY_MARKDOWN_IMAGE.search(markdown) or EMPTY_REFERENCE_IMAGE.search(markdown):
+    visible = _visible_markdown(markdown)
+    if EMPTY_MARKDOWN_IMAGE.search(visible) or EMPTY_REFERENCE_IMAGE.search(visible):
         problems.append("missing image alt in README")
     html = _HtmlTargets()
-    html.feed(markdown)
+    html.feed(visible)
     if html.images_without_alt:
         problems.append("missing image alt in README")
     for url in brands:

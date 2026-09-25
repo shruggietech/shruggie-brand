@@ -49,4 +49,6 @@ The audit also scans the catalog's titles/descriptions, generated navigation and
 ## First PR review correction
 
 Codex review on PR #279 identified an empty-alt gap for reference-style Markdown images such as `![][logo]`. The README audit now rejects empty and whitespace-only reference labels, and its isolated image test covers both failures and a descriptive reference label. The affected tests, live README audit, Markdown policy, and diff hygiene checks passed before the correction was pushed.
+
+The second and final Codex review found that raw alt-text scanning also flagged fenced Markdown and HTML examples. Link and image checks now use the same fence-filtered text. The isolated test includes fenced link, inline image, reference image, and HTML image examples, while rendered empty-alt cases still fail. No further Codex review is requested.
 | Live deployed routes and formal release asset comparison | Pending authorized post-merge v2.2.0 publication. No live pass is claimed in the PR. |
