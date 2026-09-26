@@ -128,7 +128,8 @@ class PackageReleaseTests(unittest.TestCase):
             "compatibility": {
                 "policy_version": policy["version"], "status": "compatible",
                 "validated_versions": {"brand_canon": "1.2.1", "interface_canon": "1.0.0", "component_recipes": "1.0.0", "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "2.0.0", "brand": "1.0.0"},
-                "rules_checked": len(policy["compatibility_rules"]),
+                "rules_checked": len({(rule["dependent"], rule["dependency"])
+                                      for rule in policy["compatibility_rules"]}),
             },
             "environment": {
                 "renderer": "renderer-neutral", "host": "none", "supported_targets": ["web"],

@@ -16,4 +16,4 @@ the rules in `README.md`.
 - **Accents:** Interval Mint `#62D9B7` (recurrence/success) · Anchor Blue `#58A6FF` (run point/links/focus) · Hold Amber `#F2B84B` (rare) · Stop Red `#E05F5F` (failure only). On Paper, use the Deep variants.
 - **Type:** Space Grotesk (display 500/700, tracking -0.025em) · Geist (body 400/500) · Geist Mono (commands, schedules, labels).
 - **Voice:** operator explaining a runbook. Exact nouns, explicit policy. Cron is a reference frame, never the punchline. Endorsement: "A ShruggieTech project" in mono.
-- **Logo:** wordmark is outlined Space Grotesk Bold (never re-typeset). Mark = terminal prompt over five cron cells. Load the system by linking `styles.css`.
+- **Logo:** wordmark is outlined Space Grotesk Bold (never re-typeset). Current primary mark = the exact existing reduced prompt and cursor elements from the shipped favicon. Load the system by linking `styles.css`.

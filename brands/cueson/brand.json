@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "Cueson",
   "slug": "cueson",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "showcase_surface": "card",
   "affiliation": {
     "ownership": "shruggietech-owned",
@@ -343,24 +343,25 @@
     },
     "gate_2": {
       "status": "approved",
-      "approved_by": "identity owner",
-      "approved_on": "2026-09-09",
-      "derivative_manifest_sha256": "e9f3aef341ed8910426abd6d7876dac1f39f69afe370efc9c1cddb7af41f9dc5",
-      "surfaces": [
-        "showcase-card",
-        "brand-landing-page",
-        "guideline-topics",
-        "downloads",
-        "registry-endpoints",
-        "public-metadata",
-        "structured-data",
-        "social-preview"
-      ]
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-26",
+      "derivative_manifest_sha256": "b68a1d19e1e5033c353b23807b02fbcc9486d9dd74660d5d93be42d919297451",
+      "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]
     }
   },
-  "canon": "1.5.0",
+  "canon": "1.6.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "social_copy": {
+    "slogan": "Universal captions and subtitles",
+    "layout": "slogan-description",
+    "description_lines": ["A lossless, structured interchange layer", "for subtitle and caption content."],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-11",
+      "source": "Cueson README and Gate 2 approval notes"
+    }
   }
 }

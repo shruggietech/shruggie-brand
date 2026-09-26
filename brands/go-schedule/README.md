@@ -2,7 +2,7 @@
 
 # go-schedule Brand & Design System
 
-**Status:** Source of truth, version 1.0.0\
+**Status:** Source of truth, version 2.0.0\
 **Parent:** ShruggieTech\
 **Repository:** `shruggietech/go-schedule`\
 **Audience:** Product, engineering, documentation, and communications teams
@@ -45,10 +45,9 @@ less cron ambiguity without giving up control.\
 
 ### Brand idea
 
-**Schedules as fields and run points.** Anchor Blue marks exact run times. Interval
-Mint marks recurrence and readable schedule intent. Neutral rails keep the mark
-quiet and technical. The system privileges explicit policy (timezone, catch-up,
-overlap) over convenience claims.
+**Schedules as fields and run points.** Anchor Blue draws the prompt and Interval
+Mint draws the cursor. The compact mark remains legible at icon scale. The system
+privileges explicit policy (timezone, catch-up, overlap) over convenience claims.
 
 ### Personality
 
@@ -71,11 +70,10 @@ overlap) over convenience claims.
 
 ### Mark construction
 
-The mark is a compact terminal and cron-field symbol: a prompt chevron, a command
-cursor line, and five schedule cells rendered as asterisks over a dashed rail. It
-is technical enough for cron users while remaining legible as a general scheduling
-mark. The five cells map to the five cron fields; the Anchor Blue cell marks a
-selected field.
+The current primary mark is the prompt chevron and command cursor from the
+shipped favicon. The exact two existing reduced path elements now serve both Full
+and Reduced roles. The earlier terminal frame, cron-field asterisks, and rails
+are retired from current presentation and remain in repository history.
 
 The wordmark is Space Grotesk Bold **outlined to vector paths**. It does not depend
 on any installed or web-loaded font at render time, so it reproduces identically in
@@ -92,7 +90,7 @@ establishes product identity.
 
 ### Clear space and minimum size
 
-Maintain clear space equal to the width of one schedule cell around any lockup. No
+Maintain the source-defined 54-unit clear space around any lockup. No
 text, border, icon, or crop may enter that area.
 
 | Asset | Minimum digital size |
@@ -103,8 +101,8 @@ text, border, icon, or crop may enter that area.
 | Wordmark | 120 px wide |
 
 Below 32 px, use the supplied favicon exports rather than downscaling a full
-lockup. The favicon uses a reduced mark (prompt and cursor only) so it stays
-legible in a browser tab.
+lockup. The favicon and current primary master share the same prompt and cursor
+geometry, sized separately for their delivery roles.
 
 ### Backgrounds
 
@@ -115,7 +113,7 @@ where reproduction supports only one ink.
 ### Prohibited treatments
 
 - Do not rotate, skew, stretch, outline, bevel, or add glow.
-- Do not recolor individual schedule cells or lanes.
+- Do not recolor individual prompt or cursor elements.
 - Do not set the wordmark in live text or a substitute typeface.
 - Do not add a tagline inside the horizontal lockup.
 - Do not place the logo over busy imagery.
@@ -281,7 +279,7 @@ state change. Interface text should meet WCAG AA contrast at its rendered size.
 | Directory | Contents |
 | --- | --- |
 | `logos/svg/` | Vector masters and all approved lockups (font-proof) |
-| `logos/png/` | High-resolution raster exports and social preview |
+| `logos/png/` | High-resolution raster exports and a dedicated 1280 by 640 social image |
 | `favicons/` | Browser, Apple, Android, SVG, ICO, and manifest assets |
 | `fonts/` | WOFF2, TTF, CSS declarations, and OFL licenses |
 | `tokens/` | CSS and JSON design tokens (colors, type, spacing, base) |
@@ -295,4 +293,5 @@ state change. Interface text should meet WCAG AA contrast at its rendered size.
 
 Treat the files in `logos/svg/` as the source of truth. Use SVG in product
 interfaces and documentation wherever the surface supports it; use PNG for social
-platforms and raster-only systems.
+platforms and raster-only systems. The `social-image` file is a separate sharing
+composition with the approved slogan, not a horizontal or stacked logo lockup.

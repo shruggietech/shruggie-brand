@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "Glitchpad",
   "slug": "glitchpad",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "showcase_surface": "card",
   "affiliation": {
     "ownership": "shruggietech-owned",
@@ -238,9 +238,19 @@
     "logo": "The rectangular paper and G share one protected construction inside a permanent square. On dark surfaces the square is sulfur with a charcoal page; on light surfaces the square is charcoal with a sulfur page. The slate fold stays consistent across both contexts.",
     "palette": "Near-black surfaces keep controls visually secondary to file content. Pure sulfur provides identity, focus, and selection; cool slate supplies the fold and subdued states. Muddy and darkened yellows are prohibited."
   },
-  "canon": "1.5.0",
+  "canon": "1.6.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "social_copy": {
+    "slogan": "View your files.",
+    "layout": "slogan-only",
+    "description_lines": [],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-25",
+      "source": "S057 owner clarification"
+    }
   }
 }

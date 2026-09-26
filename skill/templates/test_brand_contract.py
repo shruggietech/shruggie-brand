@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, custom_assets, derivative_configuration_sha256, guide_surface_mode, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, square_enclosure_profile, validate_brand, validate_brand_file, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, custom_assets, derivative_configuration_sha256, guide_surface_mode, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, social_copy, square_enclosure_profile, validate_brand, validate_brand_file, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
 from identity_continuity import canonical_digest, identity_snapshot, record_digest
 from ingest_font import ingest_font
 
@@ -223,7 +223,7 @@ class ApprovalLedgerTests(unittest.TestCase):
             ledger["gate_1"]["derivative_config_sha256"],
         )
         self.assertEqual(
-            "e9f3aef341ed8910426abd6d7876dac1f39f69afe370efc9c1cddb7af41f9dc5",
+            "b68a1d19e1e5033c353b23807b02fbcc9486d9dd74660d5d93be42d919297451",
             ledger["gate_2"]["derivative_manifest_sha256"],
         )
 
@@ -1221,6 +1221,37 @@ class FixedFontTests(unittest.TestCase):
             with self.assertRaisesRegex(ContractError, "SHA-256"):
                 ingest_font(str(source), "assets/fonts/client/Geist-Regular.ttf", "0" * 64, "Geist", 400, "normal", "OFL-1.1", "Test", repo_root=repo)
             self.assertEqual(existing, target.read_bytes())
+
+
+class SocialCopyTests(unittest.TestCase):
+    def test_exact_production_copy_decisions(self):
+        expected = {
+            "shruggietech": ("We advance your vision.", []),
+            "i-heart-pr-tours": ("Experience Puerto Rico", []),
+            "go-schedule": ("A cross-platform scheduler in Go.", []),
+            "glitchpad": ("View your files.", []),
+            "fragcap": ("See what your game is actually saying.", []),
+            "eso-weave": ("Unofficial automation for ESO", []),
+            "cueson": ("Universal captions and subtitles", ["A lossless, structured interchange layer", "for subtitle and caption content."]),
+            "covarity": ("See what is known.", []),
+        }
+        for slug, (slogan, lines) in expected.items():
+            with self.subTest(brand=slug):
+                brand = json.loads((ROOT / "brands" / slug / "brand.json").read_text(encoding="utf-8"))
+                approved = social_copy(brand)
+                self.assertEqual(slogan, approved["slogan"])
+                self.assertEqual(lines, approved["description_lines"])
+                self.assertEqual("slogan-description" if lines else "slogan-only", approved["layout"])
+
+    def test_social_copy_rejects_inferred_or_incomplete_decisions(self):
+        brand = {"brand_idea": "Candidate only"}
+        with self.assertRaisesRegex(ContractError, "social_copy"):
+            social_copy(brand)
+        brand["social_copy"] = {"slogan": "Chosen", "layout": "slogan-only",
+                                "description_lines": ["Unapproved extra"],
+                                "approval": {"approved_by": "owner", "approved_on": "2026-09-25", "source": "decision"}}
+        with self.assertRaisesRegex(ContractError, "description lines"):
+            social_copy(brand)
 
 
 if __name__ == "__main__":

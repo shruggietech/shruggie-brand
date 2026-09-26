@@ -196,9 +196,9 @@ class PrepareSiteTests(unittest.TestCase):
         self.assertEqual("public", brand["affiliation"]["showcase"])
         self.assertEqual("approved", brand["approval_ledger"]["gate_2"]["status"])
         self.assertEqual("repository owner", brand["approval_ledger"]["gate_2"]["approved_by"])
-        self.assertEqual("2026-09-11", brand["approval_ledger"]["gate_2"]["approved_on"])
+        self.assertEqual("2026-09-26", brand["approval_ledger"]["gate_2"]["approved_on"])
         self.assertEqual(
-            "9aae47141e989c34ea64e460a3594179192e2443012e15922dd3f6e49bccd41b",
+            "02dba1d8bebc4e0b404e5c534d6d8dc5d0fbf91bbfb84f3e540506dd18d04b9b",
             brand["approval_ledger"]["gate_2"]["derivative_manifest_sha256"],
         )
         self.assertEqual(
@@ -242,6 +242,8 @@ class PrepareSiteTests(unittest.TestCase):
                     "accent": {"bright": "#FFD900", "accessible": "#867100"},
                     "surfaces": {"card": "#121416"},
                     "affiliation": {"ownership": "shruggietech-owned", "showcase": "public", "parent": "ShruggieTech", "inheritance": "shruggietech-house", "endorsement": "shruggietech-project", "service_credit": "none"},
+                    "social_copy": {"slogan": "Exact alpha slogan", "layout": "slogan-only", "description_lines": [],
+                                    "approval": {"approved_by": "owner", "approved_on": "2026-09-25", "source": "test fixture"}},
                 }
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual("#121416", record["portfolioSurface"])
@@ -254,7 +256,8 @@ class PrepareSiteTests(unittest.TestCase):
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchiveFilename"])
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0", record["packageId"])
                 self.assertEqual("2.0.0", record["brandbuilderVersion"])
-                self.assertEqual("1.5.0", archive_writer.call_args.kwargs["expected_canon"])
+                self.assertEqual("1.6.0", archive_writer.call_args.kwargs["expected_canon"])
+                self.assertEqual("Exact alpha slogan", record["socialSlogan"])
                 brand["showcase_surface"] = "card"
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual("#121416", record["showcaseSurface"])
@@ -464,7 +467,7 @@ class PrepareSiteTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp) / "index.html"
             page.write_text("<html><head><title>Guide</title></head><body><span data-host-exit></span></body></html>", encoding="utf-8")
-            brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "One & only.", "icon": "/alpha/mark.svg", "accent": "#2BCC73"}]
+            brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "One & only.", "icon": "/alpha/mark.svg", "accent": "#2BCC73", "socialSlogan": "Exact alpha slogan"}]
             route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "guidelines")
             prepare_site.add_guideline_metadata(page, route)
             content = page.read_text(encoding="utf-8")
@@ -472,7 +475,7 @@ class PrepareSiteTests(unittest.TestCase):
             self.assertIn('rel="canonical" href="https://brand.shruggie.tech/alpha/guidelines/"', content)
             self.assertIn('property="og:title"', content)
             self.assertIn('property="og:image:width" content="1280"', content)
-            self.assertIn('property="og:image:alt" content="Alpha guidelines page preview on Brands | ShruggieTech"', content)
+            self.assertIn('property="og:image:alt" content="Alpha logo with slogan: Exact alpha slogan"', content)
             self.assertIn('name="twitter:card"', content)
             self.assertIn('type="application/ld+json"', content)
             self.assertIn('"BreadcrumbList"', content)
@@ -662,6 +665,27 @@ class PrepareSiteTests(unittest.TestCase):
             with Image.open(preview) as image:
                 self.assertEqual((1280, 640), image.size)
                 self.assertEqual("RGBA", image.mode)
+
+    def test_brand_landing_social_bytes_come_from_verified_kit(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            public = root / "public"
+            kit_image = root / "kits" / "alpha" / "logos" / "png" / "alpha-social-image-1280.png"
+            kit_image.parent.mkdir(parents=True)
+            Image.new("RGBA", (1280, 640), (10, 20, 30, 255)).save(kit_image)
+            mark = root / "mark.png"
+            Image.new("RGBA", (80, 80), (43, 204, 115, 255)).save(mark)
+            fonts = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "ttf"
+            brand = prepare_site.make_route("guidelines-alpha", "guidelines", "/alpha/guidelines/",
+                                            "Alpha guidelines", "Approved brand.", "Brand guidelines", [], brand_slug="alpha")
+            home = prepare_site.make_route("home", "home", "/", "Brands", "Other route.", "Portfolio", [])
+            prepare_site.generate_social_previews([brand, home], public, mark,
+                                                  fonts / "SpaceGrotesk-Bold.ttf", fonts / "Geist-Medium.ttf",
+                                                  kits_root=root / "kits")
+            published = public / brand["social"]["path"].lstrip("/")
+            self.assertEqual(kit_image.read_bytes(), published.read_bytes())
+            self.assertEqual("Alpha guidelines page preview on Brands | ShruggieTech", brand["social"]["alt"])
+            self.assertNotEqual(kit_image.read_bytes(), (public / home["social"]["path"].lstrip("/")).read_bytes())
 
     def test_active_source_paths_do_not_reference_retired_fixture(self):
         root = Path(__file__).resolve().parents[1]

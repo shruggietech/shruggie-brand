@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "Covarity",
   "slug": "covarity",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",
@@ -226,9 +226,19 @@
     "written_form": "<span class=\"m\">Covarity</span> in title case in prose. <span class=\"m\">covarity</span> in lowercase for technical identifiers, repositories and package names. <span class=\"m\">covarity.ai</span> in a URL, and anywhere an unrelated company of the same name could be confused with this one. Never set <span class=\"m\">Covarity.ai</span> in a wordmark or a headline: a top-level domain is an address, and it dates a mark.",
     "named": "18 March 2026"
   },
-  "canon": "1.5.0",
+  "canon": "1.6.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "social_copy": {
+    "slogan": "See what is known.",
+    "layout": "slogan-only",
+    "description_lines": [],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-25",
+      "source": "S057 owner clarification"
+    }
   }
 }

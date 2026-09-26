@@ -64,6 +64,35 @@ def derivative_configuration_sha256(brand):
     return hashlib.sha256(encoded).hexdigest()
 
 
+def social_copy(brand):
+    """Return the explicitly approved words for the generated social image."""
+    value = brand.get("social_copy")
+    _require(isinstance(value, dict) and set(value) == {"slogan", "layout", "description_lines", "approval"},
+             "social_copy must declare slogan, layout, description_lines, and approval")
+    slogan = value["slogan"]
+    _require(isinstance(slogan, str) and slogan.strip() == slogan and slogan,
+             "social_copy.slogan must be exact nonempty approved text")
+    _require("\n" not in slogan and "\r" not in slogan,
+             "social_copy.slogan must use one approved line")
+    layout = value["layout"]
+    lines = value["description_lines"]
+    _require(layout in {"slogan-only", "slogan-description"}, "social_copy.layout is invalid")
+    _require(isinstance(lines, list) and all(isinstance(line, str) and line.strip() == line
+                                           and line and "\n" not in line and "\r" not in line for line in lines),
+             "social_copy.description_lines are invalid")
+    _require((not lines) if layout == "slogan-only" else bool(lines),
+             "social_copy description lines disagree with selected layout")
+    approval = value["approval"]
+    _require(isinstance(approval, dict) and set(approval) == {"approved_by", "approved_on", "source"},
+             "social_copy.approval is incomplete")
+    _require(isinstance(approval["approved_by"], str) and approval["approved_by"].strip()
+             and isinstance(approval["source"], str) and approval["source"].strip()
+             and isinstance(approval["approved_on"], str)
+             and re.fullmatch(r"\d{4}-\d{2}-\d{2}", approval["approved_on"]),
+             "social_copy.approval lacks exact owner decision evidence")
+    return value
+
+
 class ContractError(ValueError):
     pass
 
@@ -1350,6 +1379,8 @@ def validate_palette_approvals(brand, evidence):
 
 def validate_brand(brand, kit):
     _require(isinstance(brand.get("slug"), str) and ID.fullmatch(brand["slug"]), "brand slug is missing or invalid")
+    if "social_copy" in brand:
+        social_copy(brand)
     guide_surface_mode(brand)
     aff = affiliation(brand)
     if aff["inheritance"] == "independent":

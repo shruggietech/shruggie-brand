@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "fragcap",
   "slug": "fragcap",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",
@@ -162,9 +162,19 @@
     "specimen_line": "See what your game is actually saying.",
     "specimen_body": "Every captured row is a packet that crossed the wire, timestamped and attributed to a process."
   },
-  "canon": "1.5.0",
+  "canon": "1.6.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "social_copy": {
+    "slogan": "See what your game is actually saying.",
+    "layout": "slogan-only",
+    "description_lines": [],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-25",
+      "source": "S057 owner clarification"
+    }
   }
 }

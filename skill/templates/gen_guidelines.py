@@ -89,7 +89,8 @@ def group_asset_deliveries(deliveries):
         rows.sort(key=lambda item: item["path"])
         previews = [item for item in rows if item.get("format") in {"svg", "png"}]
         representative = max(previews or rows, key=lambda item: (
-            item.get("format") == "svg", int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
+            not item.get("alias_of"), item.get("format") == "svg",
+            int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
         result.append({"id": "asset-" + re.sub(r"[^a-z0-9]+", "-", "-".join(key).lower()).strip("-"),
                        "key": key, "representative": representative, "deliveries": rows})
     return sorted(result, key=lambda item: item["id"])
@@ -111,6 +112,8 @@ def portal_colors(values):
 
 def _asset_family(item):
     if item.get("family") == "logo":
+        if item.get("kind") == "social-image":
+            return "social"
         return "marks" if item.get("kind") == "mark" else "logos"
     platform = item.get("platform") or "integration"
     return {"web": "web", "android": "android", "apple-ios": "ios", "apple-macos": "macos", "windows": "windows"}.get(platform, "integration")
@@ -139,11 +142,11 @@ def portal_assets(deliveries, kit=None):
             })
         if not previews:
             continue
-        representative = max(previews, key=lambda item: (item.get("format") == "svg", int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
+        representative = max(previews, key=lambda item: (not item.get("alias_of"), item.get("format") == "svg", int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
         family_key = _asset_family(representative)
         family = families.setdefault(family_key, {
             "key": family_key,
-            "title": {"logos": "Logos and lockups", "marks": "Marks", "web": "Web icons", "android": "Android", "ios": "iOS", "macos": "macOS", "windows": "Windows", "integration": "Integration resources"}[family_key],
+            "title": {"logos": "Logos and lockups", "marks": "Marks", "social": "Social images", "web": "Web icons", "android": "Android", "ios": "iOS", "macos": "macOS", "windows": "Windows", "integration": "Integration resources"}[family_key],
             "summary": "Choose by purpose, then open details for every delivered size and format.",
             "assets": [],
         })
@@ -161,7 +164,7 @@ def portal_assets(deliveries, kit=None):
             "variants": sorted({str(item.get("source_variant") or item.get("variant") or "default") for item in records}),
             "preview": _delivery_record(representative, kit), "deliveries": records,
         })
-    order = ["logos", "marks", "web", "android", "ios", "macos", "windows", "integration"]
+    order = ["logos", "marks", "social", "web", "android", "ios", "macos", "windows", "integration"]
     return [families[key] for key in order if key in families], sorted(resources, key=lambda item: item["path"])
 
 def portal_payload(B, kit):
@@ -277,7 +280,8 @@ def asset_deliveries(kit):
         rows.append({"family": "logo", "platform": "identity", "kind": item["kind"], "variant": item["variant"],
                      "colourway": item["colourway"], "role": item["kind"], "appearance": item["colourway"],
                      "source_variant": item["variant"], "format": path.suffix[1:], "width": width, "height": height,
-                     "destination": "Brand identity", "path": item["path"]})
+                     "destination": "Social sharing" if item["kind"] == "social-image" else "Brand identity",
+                     "alias_of": item.get("alias_of"), "path": item["path"]})
     icons = json.loads(Path(kit, "icons", "manifest.json").read_text(encoding="utf-8"))
     icon_rows = {}
     for item in icons["artifacts"]:

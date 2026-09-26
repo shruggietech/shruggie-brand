@@ -101,8 +101,10 @@ class InterfaceCanonTests(unittest.TestCase):
         with self.assertRaisesRegex(InterfaceContractError, "incompatible.*supported"):
             validate_version_combination(incompatible, policy)
         incompatible_adapter = dict(versions, egui_adapter="2.0.0")
-        with self.assertRaisesRegex(InterfaceContractError, "policy major 1.*migrate"):
+        with self.assertRaisesRegex(InterfaceContractError, "policy major 2.*migrate"):
             validate_version_combination(incompatible_adapter, policy)
+        promoted_identity = dict(versions, brand="2.0.0", brand_canon="1.6.0", interface_canon="1.0.1")
+        self.assertEqual("compatible", validate_version_combination(promoted_identity, policy)["status"])
 
         incomplete = copy.deepcopy(policy)
         incomplete["domains"]["egui_adapter"]["major"] = []
@@ -111,9 +113,9 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_release_impact_is_closed_and_rejects_downstream_evidence_fields(self):
         impact = load_release_impact()
-        self.assertEqual("2.3.0", impact["brandbuilder_version"])
-        self.assertFalse(impact["identity_redesign"])
-        self.assertIn("Approved logo geometry", impact["surfaces"]["identity"]["summary"])
+        self.assertEqual("2.4.0", impact["brandbuilder_version"])
+        self.assertTrue(impact["identity_redesign"])
+        self.assertIn("Go Schedule", impact["surfaces"]["identity"]["summary"])
         self.assertEqual(
             {"identity", "palette", "typography", "platform_assets", "web_react", "egui", "documentation", "recovery"},
             set(impact["surfaces"]),
@@ -346,7 +348,7 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual("1.0.2", first["versions"]["egui_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertNotIn("adoption_status", first["compatibility"])
-            expected_package = "shruggietech-brand-%s-bb2.3.0" % brand["version"]
+            expected_package = "shruggietech-brand-%s-bb2.4.0" % brand["version"]
             self.assertEqual(expected_package, first["bundle"]["package"]["id"])
             self.assertEqual(expected_package + ".zip", first["bundle"]["package"]["filename"])
             self.assertEqual(brand["version"], first["bundle"]["package"]["brand_version"])
@@ -368,7 +370,7 @@ class ConsumerContractTests(unittest.TestCase):
                 (kit / "enforcement" / "release-impact.schema.json").read_bytes(),
             )
             self.assertIn("Exact versions", (kit / "enforcement" / "IMPLEMENTATION.md").read_text(encoding="utf-8"))
-            self.assertIn("No approved identity redesign", (kit / "enforcement" / "MIGRATION.md").read_text(encoding="utf-8"))
+            self.assertIn("approved identity redesign", (kit / "enforcement" / "MIGRATION.md").read_text(encoding="utf-8"))
             self.assertEqual(before, after)
             self.assertEqual([], verify_consumer_contract(kit))
 

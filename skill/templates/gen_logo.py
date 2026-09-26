@@ -9,6 +9,7 @@ fallback remains fully compatible with the stock scalar ``logo.grid`` schema.
 import binascii
 import base64
 import hashlib
+from html import escape
 import json
 import os
 import pathlib
@@ -21,7 +22,7 @@ import tempfile
 import zlib
 
 from svgelements import Path
-from brand_contract import _image_dimensions, font_face_path, logo_source_contract, semantic_colors, square_enclosure_profile, typography_families
+from brand_contract import _image_dimensions, font_face_path, logo_source_contract, semantic_colors, social_copy, square_enclosure_profile, typography_families
 from capabilities import load_capabilities
 from iconkit import contain_visible, generate_icon_suites
 from process_utils import hidden_process_kwargs
@@ -286,9 +287,12 @@ def wordmark_outline(text, ttf, size=200, x_offset=0.0):
 def main():
     spec_path, kit = sys.argv[1], sys.argv[2]
     proof_stage_only = "--proof-stage-only" in sys.argv[3:]
+    provisional_review = "--provisional-review" in sys.argv[3:]
+    if provisional_review:
+        print("PROVISIONAL REVIEW: approval-bound continuity verification is deferred; output is not publishable")
     with open(spec_path, encoding="utf-8") as handle:
         brand = json.load(handle)
-    if not proof_stage_only:
+    if not proof_stage_only and not provisional_review:
         from identity_continuity import validate_continuity_report, write_continuity_report
 
         continuity_report = os.path.join(kit, "identity-continuity-report.json")
@@ -514,7 +518,7 @@ def main():
             record = source["record"]
             base_transform = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
             transformations = [base_transform, "resize"]
-            if kind == "lockup" and source_override is None:
+            if kind in {"lockup", "social-image"} and source_override is None:
                 transformations.append("place-in-lockup")
             input_id = record["id"]
             source_sha256 = record["sha256"]
@@ -561,6 +565,7 @@ def main():
             "schema_version": 1,
             "brand": slug,
             "source_mode": authority["source_mode"],
+            "geometry_aliases": {"full": "reduced"} if paths.get("full") == paths.get("reduced") else {},
             "derivatives": sorted(derivatives, key=lambda item: item["path"]),
         }
         write(os.path.join(kit, "logos", "provenance.json"), json.dumps(payload, indent=2, sort_keys=True) + "\n")
@@ -836,73 +841,48 @@ def main():
             write(os.path.join(svg_dir, filename), svg(stacked_width, stacked_height, stacked, svg_metadata(record)))
             written.append(filename)
 
-    if wordmark_d or supplied_wordmark:
-        roles = role_maps["color"]
-        preview_width, preview_height = 1280, 640
-        preview_lockup_center_y = 245.0
-        preview_word_scale = 1.0
-        horizontal_spec = lockup_specs.get("horizontal") or {}
-        horizontal_word_scale = float(horizontal_spec.get("wordmark_scale", 0.62))
-        preview_mark_height = float(horizontal_spec.get("mark_height_units", 160.0)) / horizontal_word_scale
-        mark_scale = preview_mark_height / mark_height
-        preview_mark_width = mark_width * mark_scale
-        preview_gap = float(horizontal_spec.get("gap_units", 34.0)) / horizontal_word_scale
-        preview_word_width = wordmark_ink_width_raw * preview_word_scale
-        preview_word_height = wordmark_ink_height_raw * preview_word_scale
-        preview_lockup_width = preview_mark_width + preview_gap + preview_word_width
-        preview_fit = min(1.0, (preview_width - 128.0) / preview_lockup_width)
-        if preview_fit < 1.0:
-            preview_word_scale *= preview_fit
-            preview_mark_height *= preview_fit
-            mark_scale *= preview_fit
-            preview_mark_width *= preview_fit
-            preview_gap *= preview_fit
-            preview_word_width *= preview_fit
-            preview_word_height *= preview_fit
-            preview_lockup_width = preview_mark_width + preview_gap + preview_word_width
-        preview_x = (preview_width - preview_lockup_width) / 2
-        preview_mark_top = preview_lockup_center_y - preview_mark_height / 2.0
-        horizontal_height = float(horizontal_spec.get("canvas_height_units", 200.0))
-        horizontal_baseline = float(horizontal_spec.get(
-            "wordmark_baseline_units",
-            horizontal_height / 2.0 + 200.0 * horizontal_word_scale * 0.36,
-        ))
-        normalized_baseline_offset = (
-            horizontal_baseline - horizontal_height / 2.0
-        ) / horizontal_word_scale
-        preview_baseline = preview_lockup_center_y + normalized_baseline_offset * preview_word_scale
-        preview_word_top = preview_lockup_center_y - preview_word_height / 2.0
-        tagline_ttf, _ = font_face_path(brand, kit, "display", min(families["display"]["weights"]), outline=True)
-        tagline_ttf = str(tagline_ttf)
-        tagline_d, _ = wordmark_outline(brand.get("brand_idea", "View your files."), tagline_ttf, 56)
-        tagline_box = tuple(float(v) for v in Path(tagline_d).bbox())
-        tagline_top = preview_lockup_center_y + preview_mark_height / 2.0 + 38.0
-        tagline_left = preview_x + preview_mark_width + preview_gap
-        tagline_width = tagline_box[2] - tagline_box[0]
-        tagline_scale = min(1.0, (preview_width - 64.0 - tagline_left) / tagline_width)
-        tagline_baseline = tagline_top - tagline_box[1] * tagline_scale
-        tagline_x = tagline_left - tagline_box[0] * tagline_scale
-        mark_group = render_mark(paths["full"], roles, "color", "      ")
-        preview_word = word_group(
-            "color",
-            roles,
-            preview_x + preview_mark_width + preview_gap if supplied_wordmark else preview_x + preview_mark_width + preview_gap - wordmark_box[0] * preview_word_scale,
-            preview_word_top if supplied_wordmark else preview_baseline,
-            preview_word_scale,
-        )
-        preview = (
-            '  <rect width="1280" height="640" fill="%s"/>\n'
-            '  <g transform="translate(%g,%g) scale(%g) translate(%g,%g)">\n%s\n  </g>\n'
-            '%s\n'
-            '  <g transform="translate(%g,%g) scale(%g)"><path d="%s" fill="%s"/></g>'
-            % (base, preview_x, preview_mark_top, mark_scale, -mark_box[0], -mark_box[1], mark_group,
-               preview_word,
-               tagline_x, tagline_baseline, tagline_scale, tagline_d, roles["neutral"])
-        )
-        filename = "%s-social-preview.svg" % slug
-        record = derivative_record(filename, "lockup", "full", "color")
-        write(os.path.join(svg_dir, filename), svg(preview_width, preview_height, preview, svg_metadata(record)))
-        written.append(filename)
+    alias_record = None
+    if "social_copy" in brand:
+        copy = social_copy(brand)
+        horizontal = os.path.join(svg_dir, "%s-horizontal-color.svg" % slug)
+        if not os.path.isfile(horizontal):
+            raise ValueError("approved horizontal color lockup is required for a social image")
+        lockup_width, lockup_height = _image_dimensions(pathlib.Path(horizontal))
+        lockup_scale = min(1080.0 / lockup_width, 320.0 / lockup_height)
+        shown_width, shown_height = lockup_width * lockup_scale, lockup_height * lockup_scale
+        lockup_x, lockup_y = (1280.0 - shown_width) / 2.0, 70.0 + (320.0 - shown_height) / 2.0
+        with open(horizontal, encoding="utf-8") as handle:
+            lockup_markup = handle.read()
+        lines = [(copy["slogan"], 430.0, 60)]
+        lines.extend((line, 515.0 + index * 42.0, 34)
+                     for index, line in enumerate(copy["description_lines"]))
+        text_shapes = []
+        for value, top, size in lines:
+            face, _ = font_face_path(brand, kit, "display", min(families["display"]["weights"]), outline=True)
+            outline, _ = wordmark_outline(value, str(face), size)
+            bounds = tuple(float(v) for v in Path(outline).bbox())
+            text_scale = min(1.0, 1120.0 / (bounds[2] - bounds[0]))
+            center_x = 640.0 - (bounds[0] + bounds[2]) * text_scale / 2.0
+            baseline_y = top - bounds[1] * text_scale
+            text_shapes.append('  <path d="%s" fill="#F5F5F5" transform="translate(%g,%g) scale(%g)"/>'
+                               % (outline, center_x, baseline_y, text_scale))
+        social_body = ('  <title>%s</title>\n  <desc>%s</desc>\n'
+                       '  <rect width="1280" height="640" fill="%s"/>\n'
+                       '  <g transform="translate(%g,%g) scale(%g)">\n%s\n  </g>\n%s'
+                       % (escape(copy["slogan"]), escape(" ".join(copy["description_lines"])),
+                          base, lockup_x, lockup_y, lockup_scale,
+                          lockup_markup, "\n".join(text_shapes)))
+        canonical_name = "%s-social-image.svg" % slug
+        record = derivative_record(canonical_name, "social-image", None, "color")
+        record["composed_from"] = "logos/svg/%s-horizontal-color.svg" % slug
+        canonical_svg = os.path.join(svg_dir, canonical_name)
+        write(canonical_svg, svg(1280, 640, social_body, svg_metadata(record)))
+        written.append(canonical_name)
+        legacy_name = "%s-social-preview.svg" % slug
+        alias_record = derivative_record(legacy_name, "social-image", None, "color")
+        alias_record["composed_from"] = record["composed_from"]
+        alias_record["alias_of"] = "logos/svg/%s" % canonical_name
+        shutil.copyfile(canonical_svg, os.path.join(svg_dir, legacy_name))
 
     capabilities = load_capabilities(kit)
     icon_full_svg = os.path.join(svg_dir, "%s-mark-color.svg" % slug)
@@ -954,7 +934,7 @@ def main():
                 raise ValueError("rasterized identity asset has no visible pixels: %s" % path)
 
     for filename in written:
-        width = 1280 if "social-preview" in filename else 1024
+        width = 1280 if "social-image" in filename else 1024
         source = os.path.join(svg_dir, filename)
         output = os.path.join(png_dir, filename[:-4] + "-%d.png" % width)
         standalone_mark = filename.startswith(slug + "-mark-")
@@ -975,6 +955,16 @@ def main():
         png_record["path"] = "logos/png/%s" % os.path.basename(output)
         png_record["embedded_metadata"] = False
         derivatives.append(png_record)
+
+    if alias_record is not None:
+        canonical_png = os.path.join(png_dir, "%s-social-image-1280.png" % slug)
+        legacy_png = os.path.join(png_dir, "%s-social-preview-1280.png" % slug)
+        shutil.copyfile(canonical_png, legacy_png)
+        alias_png = dict(alias_record)
+        alias_png["path"] = "logos/png/%s" % os.path.basename(legacy_png)
+        alias_png["alias_of"] = "logos/png/%s" % os.path.basename(canonical_png)
+        alias_png["embedded_metadata"] = False
+        derivatives.append(alias_png)
 
     write_provenance()
 

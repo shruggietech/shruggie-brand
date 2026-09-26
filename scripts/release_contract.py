@@ -98,6 +98,13 @@ MIGRATIONS = {
         "creative approval stops. Existing approved logo geometry, Brand Canon 1.5.0, and adapter "
         "APIs remain unchanged. The generated social-image migration is tracked separately in #281."
     ),
+    "2.4.0": (
+        "Existing kits need migration: **yes to adopt current Go Schedule identity and brand social images**. "
+        "Regenerate and repin Go Schedule 2.0.0 to use its existing simplified prompt and cursor as the "
+        "primary mark in all current outputs. Regenerate each other production kit to receive approved "
+        "social-image masters and upload-ready PNGs, with legacy social-preview links retained. "
+        "The hosted brand landing metadata now consumes exact kit image bytes. Adapter APIs are unchanged."
+    ),
 }
 
 

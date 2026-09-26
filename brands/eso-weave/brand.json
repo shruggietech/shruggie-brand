@@ -4,7 +4,7 @@
   "kind": "independent-brand",
   "title": "ESO Weave",
   "slug": "eso-weave",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "showcase_surface": "card",
   "affiliation": {
     "ownership": "third-party",
@@ -28,9 +28,9 @@
     },
     "gate_2": {
       "status": "approved",
-      "approved_by": "identity owner",
-      "approved_on": "2026-09-07",
-      "derivative_manifest_sha256": "86ead2c4f4dae3d065045db4cbe292db8ee05cf8fad7a5b819a6610bce6c906b",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-26",
+      "derivative_manifest_sha256": "21dc36d5580ddbfa93164c28d8d2c9a16cc234be84066ff850eb540f0348e8bd",
       "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]
     }
   },
@@ -179,9 +179,19 @@
     "specimen_line": "Unofficial automation for ESO",
     "specimen_body": "Combat weaving, fishing assistance, Auto Potion, and live status stay visible and operator-controlled without reading game memory or network traffic."
   },
-  "canon": "1.5.0",
+  "canon": "1.6.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "social_copy": {
+    "slogan": "Unofficial automation for ESO",
+    "layout": "slogan-only",
+    "description_lines": [],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-25",
+      "source": "S057 owner clarification"
+    }
   }
 }

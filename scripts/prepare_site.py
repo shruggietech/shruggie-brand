@@ -28,7 +28,7 @@ ORGANIZATION_URL = "https://shruggie.tech"
 SITE_DESCRIPTION = "Explore ShruggieTech brand identities, standards, assets, and the repeatable system behind them."
 SOCIAL_SIZE = (1280, 640)
 sys.path.insert(0, str(TEMPLATES))
-from brand_contract import affiliation, custom_assets, guide_surface_mode, public_showcase, showcase_surface, vendor_boundary
+from brand_contract import affiliation, custom_assets, guide_surface_mode, public_showcase, showcase_surface, social_copy, vendor_boundary
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from package_release import write_brand_archive
@@ -173,7 +173,7 @@ def remove_stale_public_brands(public: Path, expected: set[str]) -> list[str]:
 def make_route(key: str, kind: str, pathname: str, title: str, description: str, eyebrow: str,
                breadcrumbs: list[dict[str, str]], brand_slug: Optional[str] = None,
                docs_slug: Optional[str] = None, guide_topic: Optional[str] = None,
-               vendor_notice: Optional[str] = None) -> dict[str, Any]:
+               vendor_notice: Optional[str] = None, social_alt: Optional[str] = None) -> dict[str, Any]:
     canonical = f"{SITE_URL}{pathname}"
     social_path = f"/social/{key}.png"
     return {
@@ -190,7 +190,7 @@ def make_route(key: str, kind: str, pathname: str, title: str, description: str,
             "width": SOCIAL_SIZE[0],
             "height": SOCIAL_SIZE[1],
             "type": "image/png",
-            "alt": f"{title} page preview on Brands | ShruggieTech" + (", independent third-party project" if vendor_notice else ""),
+            "alt": (social_alt or f"{title} page preview on Brands | ShruggieTech") + (", independent third-party project" if vendor_notice else ""),
             "eyebrow": eyebrow,
         },
         "breadcrumbs": breadcrumbs,
@@ -287,7 +287,7 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
         overview = topics[0]
         routes.extend([
             make_route(f"downloads-{slug}", "downloads", f"/{slug}/downloads/", f"{brand['title']} assets", f"Browse and download the complete {brand['title']} brand asset collection.", "Brand assets", [home, brand_crumb, {"name": "Assets", "url": f"{SITE_URL}/{slug}/downloads/"}], brand_slug=slug, guide_topic="assets", vendor_notice=vendor_notice),
-            make_route(f"guidelines-{slug}", "guidelines", guidelines_path, f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice),
+            make_route(f"guidelines-{slug}", "guidelines", guidelines_path, f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice, social_alt=(f"{brand['title']} logo with slogan: {brand['socialSlogan']}" if brand.get("socialSlogan") else None)),
             make_route(f"conformance-{slug}", "conformance", f"/conformance/{slug}/", f"{brand['title']} interface conformance", f"Inspect the generated browser reference and cross-host evidence boundary for {brand['title']}.", "Interface conformance", [home, conformance_root, {"name": brand["title"], "url": f"{SITE_URL}/conformance/{slug}/"}], brand_slug=slug, vendor_notice=vendor_notice),
         ])
         for topic in topics[1:]:
@@ -454,7 +454,8 @@ def project_portal(source: Path, payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def generate_social_previews(routes: list[dict[str, Any]], public: Path, mark_path: Path,
-                             display_font_path: Path, body_font_path: Path) -> None:
+                             display_font_path: Path, body_font_path: Path,
+                             kits_root: Path = DIST) -> None:
     social_root = public / "social"
     resolved = social_root.resolve()
     try:
@@ -477,6 +478,20 @@ def generate_social_previews(routes: list[dict[str, Any]], public: Path, mark_pa
             destination.resolve().relative_to(social_root.resolve())
         except ValueError as error:
             raise ValueError(f"unsafe social preview destination: {destination}") from error
+        if route["kind"] == "guidelines":
+            slug = route["brandSlug"]
+            source = kits_root / slug / "logos" / "png" / f"{slug}-social-image-1280.png"
+            if not source.is_file():
+                raise ValueError(f"verified kit social image is missing: {source}")
+            with Image.open(source) as image:
+                if image.size != SOCIAL_SIZE:
+                    raise ValueError(f"kit social image has wrong dimensions: {source}")
+            if source.stat().st_size >= 1000000:
+                raise ValueError(f"kit social image exceeds 1 MB: {source}")
+            shutil.copyfile(source, destination)
+            if hashlib.sha256(destination.read_bytes()).digest() != hashlib.sha256(source.read_bytes()).digest():
+                raise ValueError(f"site social image bytes differ from kit: {slug}")
+            continue
         canvas = Image.new("RGBA", SOCIAL_SIZE, (0, 0, 0, 255))
         draw = ImageDraw.Draw(canvas)
         draw.rounded_rectangle((38, 38, 1242, 602), radius=28, fill=(13, 15, 18, 255), outline=(38, 38, 38, 255), width=2)
@@ -680,6 +695,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "kind": brand.get("kind", "sub-brand"),
         "descriptor": brand["descriptor"],
         "idea": brand["brand_idea"],
+        "socialSlogan": social_copy(brand)["slogan"],
         "version": brand["version"],
         "accent": brand["accent"]["bright"],
         "accentAccessible": brand["accent"]["accessible"],

@@ -106,7 +106,8 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
                 "brand_canon": canon, "interface_canon": "1.0.0", "component_recipes": "1.0.0",
                 "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "2.0.0", "brand": version,
             },
-            "rules_checked": len(policy["compatibility_rules"]),
+            "rules_checked": sum(bool(domain["compatibility_keys"]) * len(domain["compatibility_keys"])
+                                 for domain in policy["domains"].values()),
         },
         "environment": {
             "renderer": "renderer-neutral", "host": "none", "supported_targets": ["web"],
@@ -248,7 +249,7 @@ class ReleaseContractTests(unittest.TestCase):
             "covarity": ("constructed", "b9846d9b00e393092678164a7d5f1c24cfd4186e2d2490b3d8a87be8e3b8e40c"),
             "fragcap": ("constructed", "47877d1667ac44ab6c81ed41ab675cf8831b7644e4926c4df93eeca024805e3b"),
             "glitchpad": ("constructed", "3115a137763ff75ab64a036282f9bc5bf683a3b4d68ffda6d0d5839da030c95e"),
-            "go-schedule": ("constructed", "95ce6d68210a79672af6d639a4610070e61269842d414de63194fd0ed25fb5a6"),
+            "go-schedule": ("constructed", "81ebe959d63cbca08b8fcea88b008121cdc24ec25e4b16b82560b4ad3e0ecf14"),
             "shruggietech": ("authoritative", "da15b5819b777ff3c1323d801b52333b0fd8015bbe08443bd7bc53085616cad7"),
         }
         for slug, (mode, fingerprint) in expected.items():
@@ -268,47 +269,47 @@ class ReleaseContractTests(unittest.TestCase):
             self.assertEqual("Repository owner via S016 approval", inputs[input_id]["mask_approved_by"])
             self.assertEqual("2026-09-07", inputs[input_id]["mask_approved_on"])
 
-    def test_repository_metadata_and_notes_agree_for_2_3_0(self):
-        metadata = release_contract.load_metadata(ROOT, "2.3.0")
+    def test_repository_metadata_and_notes_agree_for_2_4_0(self):
+        metadata = release_contract.load_metadata(ROOT, "2.4.0")
         notes = release_contract.render_notes(metadata)
 
-        self.assertEqual(metadata["skill_version"], "2.3.0")
-        self.assertEqual(metadata["canon_version"], "1.5.0")
-        self.assertEqual(metadata["site_version"], "2.3.0")
-        self.assertEqual(release_contract.current_version(ROOT), "2.3.0")
-        self.assertIn("Skill version: `2.3.0`", notes)
-        self.assertIn("Canon version: `1.5.0`", notes)
-        self.assertIn("Existing kits need migration: **no asset migration**", notes)
-        self.assertIn("adaptive brief", notes)
+        self.assertEqual(metadata["skill_version"], "2.4.0")
+        self.assertEqual(metadata["canon_version"], "1.6.0")
+        self.assertEqual(metadata["site_version"], "2.4.0")
+        self.assertEqual(release_contract.current_version(ROOT), "2.4.0")
+        self.assertIn("Skill version: `2.4.0`", notes)
+        self.assertIn("Canon version: `1.6.0`", notes)
+        self.assertIn("Existing kits need migration: **yes", notes)
+        self.assertIn("social image", notes)
         self.assertIn("## Governed release impact", notes)
-        self.assertIn("No approved identity redesign is included.", notes)
-        self.assertIn("web/React adapter and existing kit tokens remain unchanged", notes)
+        self.assertIn("approved identity redesign", notes)
+        self.assertIn("Go Schedule", notes)
         self.assertNotIn("## [Unreleased]", notes)
 
     def test_expected_assets_are_exact_and_use_embedded_brand_versions(self):
-        metadata = release_contract.load_metadata(ROOT, "2.3.0")
+        metadata = release_contract.load_metadata(ROOT, "2.4.0")
 
         self.assertEqual(set(release_contract.expected_assets(metadata)), {
-            "shruggie-brandbuilder-2.3.0.skill",
-            "shruggie-brandbuilder-2.3.0-portable.zip",
-            "shruggietech-brand-1.0.0-bb2.3.0.zip",
-            "fragcap-brand-1.1.1-bb2.3.0.zip",
-            "go-schedule-brand-1.0.0-bb2.3.0.zip",
-            "glitchpad-brand-1.1.1-bb2.3.0.zip",
-            "covarity-brand-1.0.0-bb2.3.0.zip",
-            "eso-weave-brand-1.0.2-bb2.3.0.zip",
-            "cueson-brand-1.0.1-bb2.3.0.zip",
+            "shruggie-brandbuilder-2.4.0.skill",
+            "shruggie-brandbuilder-2.4.0-portable.zip",
+            "shruggietech-brand-1.1.0-bb2.4.0.zip",
+            "fragcap-brand-1.2.0-bb2.4.0.zip",
+            "go-schedule-brand-2.0.0-bb2.4.0.zip",
+            "glitchpad-brand-1.2.0-bb2.4.0.zip",
+            "covarity-brand-1.1.0-bb2.4.0.zip",
+            "eso-weave-brand-1.1.0-bb2.4.0.zip",
+            "cueson-brand-1.1.0-bb2.4.0.zip",
         })
         self.assertEqual(
             {slug: values["version"] for slug, values in metadata["brands"].items()},
             {
-                "shruggietech": "1.0.0",
-                "fragcap": "1.1.1",
-                "go-schedule": "1.0.0",
-                "glitchpad": "1.1.1",
-                "covarity": "1.0.0",
-                "eso-weave": "1.0.2",
-                "cueson": "1.0.1",
+                "shruggietech": "1.1.0",
+                "fragcap": "1.2.0",
+                "go-schedule": "2.0.0",
+                "glitchpad": "1.2.0",
+                "covarity": "1.1.0",
+                "eso-weave": "1.1.0",
+                "cueson": "1.1.0",
             },
         )
 
@@ -356,9 +357,9 @@ class ReleaseContractTests(unittest.TestCase):
             release_contract, "read_text", side_effect=read_with_stale_site
         ):
             with self.assertRaisesRegex(
-                ValueError, "site package version 1.1.2 does not match release 2.3.0"
+                ValueError, "site package version 1.1.2 does not match release 2.4.0"
             ):
-                release_contract.load_metadata(ROOT, "2.3.0")
+                release_contract.load_metadata(ROOT, "2.4.0")
 
     def test_compiler_release_and_brand_canon_versions_can_diverge(self):
         original_read_text = release_contract.read_text
@@ -366,7 +367,7 @@ class ReleaseContractTests(unittest.TestCase):
         def read_with_supported_older_canon(path):
             value = original_read_text(path)
             if path == ROOT / "skill" / "SKILL.md":
-                return value.replace("  canon: 1.5.0", "  canon: 1.2.0")
+                return value.replace("  canon: 1.6.0", "  canon: 1.2.0")
             if path == ROOT / "skill" / "references" / "01-canon.json":
                 payload = json.loads(value)
                 payload["version"] = "1.2.0"
@@ -380,10 +381,10 @@ class ReleaseContractTests(unittest.TestCase):
         with mock.patch.object(
             release_contract, "read_text", side_effect=read_with_supported_older_canon
         ):
-            metadata = release_contract.load_metadata(ROOT, "2.3.0")
-            self.assertEqual("2.3.0", metadata["skill_version"])
+            metadata = release_contract.load_metadata(ROOT, "2.4.0")
+            self.assertEqual("2.4.0", metadata["skill_version"])
             self.assertEqual("1.2.0", metadata["canon_version"])
-            self.assertEqual("2.3.0", release_contract.current_version(ROOT))
+            self.assertEqual("2.4.0", release_contract.current_version(ROOT))
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:
