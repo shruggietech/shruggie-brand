@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, custom_assets, derivative_configuration_sha256, guide_surface_mode, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, social_copy, square_enclosure_profile, validate_brand, validate_brand_file, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
+from brand_contract import ContractError, SERVICE_CREDIT, _font_metadata, affiliation_text, analyze_authoritative_inputs, application_icon_profile, approval_ledger, canonical_gate_binding, current_mark_approval, custom_assets, derivative_configuration_sha256, guide_surface_mode, logo_source_contract, public_showcase, scan_affiliation_output, sha256_file, showcase_surface, social_copy, social_image_approval, square_enclosure_profile, validate_brand, validate_brand_file, validate_source_inventory, validate_supplied_icon_dimensions, vendor_boundary, wordmark_role_colors
 from identity_continuity import canonical_digest, identity_snapshot, record_digest
 from ingest_font import ingest_font
 
@@ -1242,6 +1242,7 @@ class SocialCopyTests(unittest.TestCase):
                 self.assertEqual(slogan, approved["slogan"])
                 self.assertEqual(lines, approved["description_lines"])
                 self.assertEqual("slogan-description" if lines else "slogan-only", approved["layout"])
+                self.assertEqual("repository owner", social_image_approval(brand)["approved_by"])
 
     def test_social_copy_rejects_inferred_or_incomplete_decisions(self):
         brand = {"brand_idea": "Candidate only"}
@@ -1252,6 +1253,46 @@ class SocialCopyTests(unittest.TestCase):
                                 "approval": {"approved_by": "owner", "approved_on": "2026-09-25", "source": "decision"}}
         with self.assertRaisesRegex(ContractError, "description lines"):
             social_copy(brand)
+
+    def test_social_copy_rejects_lines_that_exceed_the_canvas(self):
+        brand = {"social_copy": {"slogan": "Chosen", "layout": "slogan-description",
+                                 "description_lines": ["one", "two", "three", "four"],
+                                 "approval": {"approved_by": "owner", "approved_on": "2026-09-26", "source": "decision"}}}
+        with self.assertRaisesRegex(ContractError, "more than three lines"):
+            social_copy(brand)
+
+    def test_social_image_approval_rejects_missing_and_changed_artifacts(self):
+        brand = {"slug": "example"}
+        with self.assertRaisesRegex(ContractError, "social_image_approval"):
+            social_image_approval(brand)
+        public = json.loads((ROOT / "brands" / "covarity" / "brand.json").read_text(encoding="utf-8"))
+        del public["social_image_approval"]
+        with self.assertRaisesRegex(ContractError, "social_image_approval"):
+            public_showcase(public)
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            svg = kit / "logos" / "svg" / "example-social-image.svg"
+            png = kit / "logos" / "png" / "example-social-image-1280.png"
+            svg.parent.mkdir(parents=True)
+            png.parent.mkdir(parents=True)
+            svg.write_bytes(b"approved vector")
+            png.write_bytes(b"approved raster")
+            brand["social_image_approval"] = {
+                "approved_by": "repository owner", "approved_on": "2026-09-26", "source": "image proof",
+                "svg_sha256": sha256_file(svg), "png_sha256": sha256_file(png),
+            }
+            social_image_approval(brand, kit)
+            png.write_bytes(b"changed raster")
+            with self.assertRaisesRegex(ContractError, "stale"):
+                social_image_approval(brand, kit)
+
+    def test_go_schedule_current_mark_approval_binds_exact_snapshot(self):
+        root = ROOT / "brands" / "go-schedule"
+        brand = json.loads((root / "brand.json").read_text(encoding="utf-8"))
+        current_mark_approval(brand, root)
+        brand["current_mark_approval"]["identity_snapshot_sha256"] = "0" * 64
+        with self.assertRaisesRegex(ContractError, "stale"):
+            current_mark_approval(brand, root)
 
 
 if __name__ == "__main__":

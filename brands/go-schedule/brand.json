@@ -303,5 +303,18 @@
       "approved_on": "2026-09-25",
       "source": "GitHub issue #281 owner decision"
     }
+  },
+  "social_image_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-26",
+    "source": "S057 assembled social image approval",
+    "svg_sha256": "7dd087f4aeaaf70ae99ff30afe89acd864cdd371f0372b32ad1b3460f5452e59",
+    "png_sha256": "283f793332e498479e03d2682ae660d862fe82080841f7c65185c84b8f441b73"
+  },
+  "current_mark_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-26",
+    "source": "S057 Gate 1 owner approval of the current go-schedule proof and issue #282",
+    "identity_snapshot_sha256": "a93ab69568c9b2b1b592af37501a4d0c9341d2b6a0ae218b302cd04a9c7106ee"
   }
 }

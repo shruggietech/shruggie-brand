@@ -363,5 +363,12 @@
       "approved_on": "2026-09-11",
       "source": "Cueson README and Gate 2 approval notes"
     }
+  },
+  "social_image_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-26",
+    "source": "S057 assembled social image approval",
+    "svg_sha256": "db4293358f89e5821bb08727244895c41572f481594a1f00410193a0fe24132b",
+    "png_sha256": "2ed7c1d8d5561d2b6d655ecdddb6778bd244b3c6d6a092da86a3c2b08e201040"
   }
 }

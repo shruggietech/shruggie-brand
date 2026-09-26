@@ -615,6 +615,10 @@ class PipelineTests(unittest.TestCase):
                  "fragcap", "eso-weave", "cueson", "covarity")
         for slug in slugs:
             with self.subTest(slug=slug), tempfile.TemporaryDirectory() as temporary:
+                if slug == "i-heart-pr-tours":
+                    from probe import node_resvg_ok
+                    if not any(shutil.which(name) for name in ("rsvg-convert", "resvg", "inkscape")) and not node_resvg_ok():
+                        self.skipTest("supplied I Heart PR Tours SVG needs the optional raster renderer")
                 kit = Path(temporary) / slug
                 shutil.copytree(ROOT / "brands" / slug, kit)
                 shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts", dirs_exist_ok=True)
@@ -1243,6 +1247,8 @@ class PipelineTests(unittest.TestCase):
             brand["title"] = "Client Brand"
             brand["kind"] = "fixture"
             brand["affiliation"] = {"ownership": "third-party", "showcase": "private", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "brand-system-by-shruggietech"}
+            brand.pop("social_copy", None)
+            brand.pop("social_image_approval", None)
             brand["semantic_colors"] = {"emphasis": "#C659FF", "action": "#A000EC"}
             brand["guide"].pop("logo", None)
             brand["guide"].pop("palette", None)
@@ -1642,6 +1648,8 @@ class PipelineTests(unittest.TestCase):
             reduced.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><circle cx="1" cy="1" r="1"/></svg>\n', encoding="utf-8")
             brand_path = kit / "brand.json"
             brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand.pop("social_copy", None)
+            brand.pop("social_image_approval", None)
             brand["logo"]["source_mode"] = "authoritative"
             brand["logo"]["geometry_provenance"] = "imported"
             brand["logo"]["geometry_provenance_reason"] = "Passive SVG test masters are imported unchanged."

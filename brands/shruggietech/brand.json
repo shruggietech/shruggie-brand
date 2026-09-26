@@ -257,5 +257,12 @@
       "approved_on": "2026-09-25",
       "source": "S057 owner clarification"
     }
+  },
+  "social_image_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-26",
+    "source": "S057 assembled social image approval",
+    "svg_sha256": "2d6e58629477e4a1270e45fb0e634cdf9f08dcf7977f3f6fcbe5cb19580c5a46",
+    "png_sha256": "f47b14aa588c53eed0b5b5a9ad6637be45d56fbae130c1491385c4f0b047a3cf"
   }
 }

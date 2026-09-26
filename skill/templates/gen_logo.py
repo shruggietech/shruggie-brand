@@ -862,6 +862,8 @@ def main():
             outline, _ = wordmark_outline(value, str(face), size)
             bounds = tuple(float(v) for v in Path(outline).bbox())
             text_scale = min(1.0, 1120.0 / (bounds[2] - bounds[0]))
+            if top + (bounds[3] - bounds[1]) * text_scale > 640.0:
+                raise ValueError("approved social copy exceeds the 640-pixel canvas")
             center_x = 640.0 - (bounds[0] + bounds[2]) * text_scale / 2.0
             baseline_y = top - bounds[1] * text_scale
             text_shapes.append('  <path d="%s" fill="#F5F5F5" transform="translate(%g,%g) scale(%g)"/>'

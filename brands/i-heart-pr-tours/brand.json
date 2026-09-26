@@ -38,7 +38,7 @@
         "wordmark-only": "No standalone wordmark source exists in the approved package."
       },
       "derivative_config_sha256": "467bdbdd790721c2968df37881f4df2b95f90caaeded74b99184d05ce5c411cb",
-      "canonical_source_sha256": "02e0d9688f8dc1bc92c8687696e2d7d9f61217fdb6e95c63569267527482e724"
+      "canonical_source_sha256": "c9220a6fb404350b25b8594f96fb7f3fc41e32db986d7cb4bec06fc36ed081a4"
     },
     "gate_2": {
       "status": "approved",
@@ -548,5 +548,12 @@
       "approved_on": "2026-09-25",
       "source": "S057 owner clarification"
     }
+  },
+  "social_image_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-26",
+    "source": "S057 assembled social image approval",
+    "svg_sha256": "f8392e7da3a1e4e8a4ab5dcb79fc725d537ba3d1fc6082f124671390e5495cb5",
+    "png_sha256": "40dde413672a99f2556fc2719d80479f2c40932bcdb6cb18c8297a66e241629c"
   }
 }

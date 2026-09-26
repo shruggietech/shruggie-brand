@@ -18,6 +18,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - On 2026-09-25, the owner approved six exact slogans with slogan-only layouts. Go Schedule uses its issue-approved slogan, and Cueson retains its earlier approved two-line description. The separate image approval gate remains source-bound.
 - On 2026-09-25, kept the go-schedule continuity record's historical construction classification while documenting the new owner-directed role change. This does not assert retrospective canonical approval.
 - On 2026-09-25, required new Gate 2 review for changed social-image pixels and refreshed I Heart PR Tours Gate 1 renderer proof before publication. Existing kits must be regenerated and repinned to adopt the new assets.
+- On 2026-09-26, the owner approved the current go-schedule proof and all eight assembled social images. The current mark decision is bound to its identity snapshot separately from the historical baseline, and every social image is bound to its approved vector and raster digests. Description copy that exceeds the canvas now fails before publication.
 
 ## [2.3.0] - 2026-09-25
 

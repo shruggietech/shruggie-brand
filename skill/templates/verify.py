@@ -17,7 +17,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
-from brand_contract import _image_dimensions, affiliation, application_icon_profile, logo_source_contract, sha256_file, social_copy, specimen_mark_paths
+from brand_contract import _image_dimensions, affiliation, application_icon_profile, current_mark_approval, logo_source_contract, sha256_file, social_copy, social_image_approval, specimen_mark_paths
 from color_roles import ColorRoleError, resolve_color_roles
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
@@ -2204,6 +2204,11 @@ def c_logo_provenance(kit, brand, rep):
                     problems.append("Gate 2 approval is stale because derivative provenance changed (%s)" % reason)
     except Exception as error:
         problems.append("logos/approval.json cannot be verified: %s" % error)
+    if "social_copy" in brand:
+        try:
+            social_image_approval(brand, kit, raster_required=bool(capabilities.get("svg_raster")))
+        except Exception as error:
+            problems.append(str(error))
     if authority["source_mode"] == "authoritative" and checked_sources != {"full", "reduced"}:
         problems.append("authoritative Full and Reduced sources were not both verified")
     if problems:
@@ -2216,6 +2221,8 @@ def c_logo_provenance(kit, brand, rep):
 def c_identity_continuity(kit, brand, rep):
     try:
         report = validate_continuity_report(brand, kit)
+        if brand.get("slug") == "go-schedule":
+            current_mark_approval(brand, kit)
     except (ContinuityError, OSError, ValueError) as error:
         return rep.bad("identity-continuity", str(error))
     rep.ok("identity-continuity", "%s %s source and generated report agree" %

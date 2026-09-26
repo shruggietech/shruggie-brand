@@ -74,6 +74,7 @@ The current primary mark is the prompt chevron and command cursor from the
 shipped favicon. The exact two existing reduced path elements now serve both Full
 and Reduced roles. The earlier terminal frame, cron-field asterisks, and rails
 are retired from current presentation and remain in repository history.
+The `current_mark_approval` record binds the owner's approval of the current mark to the identity snapshot; the historical continuity baseline still describes the earlier migration and does not claim retroactive canonical approval.
 
 The wordmark is Space Grotesk Bold **outlined to vector paths**. It does not depend
 on any installed or web-loaded font at render time, so it reproduces identically in

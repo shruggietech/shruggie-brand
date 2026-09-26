@@ -37,6 +37,9 @@ The design meets all six principles. Recheck after implementation and creative g
 4. Brand landing pages retain stable `/social/guidelines-<slug>.png` URLs, populated from verified kit PNG bytes. Other routes retain generated cards.
 5. Source or rendered composition changes invalidate historical Gate 2 digests. Capture new owner review evidence before rebinding approval.
 6. Go-schedule continuity remains a historical constructed baseline with a new current snapshot and explicit owner decision; it does not claim retrospective canonical approval.
+7. The S057 Gate 1 decision is now a separate `current_mark_approval` bound to the current identity snapshot. This preserves the historical baseline's explicit non-approval of the old migration while making the new owner decision machine-checkable.
+8. Every brand has a `social_image_approval` that binds the assembled SVG and PNG. Existing Gate 2 brands retain their full derivative-manifest approval and cross-platform semantic fallback. Core-tier vector checks omit the PNG when its optional renderer is unavailable.
+9. The social-copy contract caps description lines at three, and the renderer measures the final outline bounds before accepting the composition.
 
 ## Project Structure
 

@@ -32,5 +32,11 @@
 
 - [x] T015 Update usage, release notes, migration contract, and repository Social Preview upload inventory in docs and `scripts/release_contract.py`.
 - [x] T016 Run full documented Python, kit, glyph, site, accessibility, source continuity, release, and publication gates; record results in `specs/057-social-identity/verification.md`.
-- [ ] T017 Run read-only Spec Kit cross-artifact analysis, resolve findings, verify UTF-8/LF and mojibake, commit without `dist/`, push and open an official issue-linked PR.
+- [x] T017 Run read-only Spec Kit cross-artifact analysis, resolve findings, verify UTF-8/LF and mojibake, commit without `dist/`, push and open an official issue-linked PR.
 - [ ] T018 Resolve every CI and reviewer finding; request at most one additional review round, then hand off the green PR for owner merge.
+
+## Phase 6: First review corrections (2026-09-26)
+
+- [x] T019 Bind all eight assembled social images to owner-approved SVG and PNG digests; fail publication and verification when an ungoverned image changes.
+- [x] T020 Bind go-schedule's newly approved current mark to its exact identity snapshot without relabeling the historical migration as canonically approved.
+- [x] T021 Reject social description lines that exceed the measured canvas and keep the minimum-Python core test explicit about its unavailable optional raster renderer.
