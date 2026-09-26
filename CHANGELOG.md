@@ -4,6 +4,22 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-09-25
+
+### Changed
+
+- Promoted the exact existing go-schedule reduced prompt and cursor elements to the current primary mark. The former terminal frame, asterisks, and rails remain in Git history and are absent from current marks, lockups, icons, and previews.
+- Added explicit approved social copy and dedicated social-image masters and upload-ready PNGs for all eight production brands. I Heart PR Tours uses its unchanged supplied horizontal lockup, and compatibility social-preview links remain available.
+- Bound each brand landing page Open Graph and Twitter image to the exact verified kit image bytes while retaining route-specific cards elsewhere. Downloads classify social images separately from logo lockups.
+- Advanced Brand Canon to 1.6.0, BrandBuilder and site to 2.4.0, and version policy to 2.1.0. Go Schedule advances to brand version 2.0.0; the other brands add assets under minor versions.
+
+### Decisions
+
+- On 2026-09-25, the owner approved six exact slogans with slogan-only layouts. Go Schedule uses its issue-approved slogan, and Cueson retains its earlier approved two-line description. The separate image approval gate remains source-bound.
+- On 2026-09-25, kept the go-schedule continuity record's historical construction classification while documenting the new owner-directed role change. This does not assert retrospective canonical approval.
+- On 2026-09-25, required new Gate 2 review for changed social-image pixels and refreshed I Heart PR Tours Gate 1 renderer proof before publication. Existing kits must be regenerated and repinned to adopt the new assets.
+- On 2026-09-26, the owner approved the current go-schedule proof and all eight assembled social images. The current mark decision is bound to its identity snapshot separately from the historical baseline, and every social image is bound to its exact approved vector and raster bytes. Description copy that exceeds the canvas or uses unsupported font glyphs now fails before publication.
+
 ## [2.3.0] - 2026-09-25
 
 ### Changed

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 2.4.0 - 2026-09-25
+
+- Promoted the exact existing go-schedule reduced path elements into the primary mark role and updated current lockups, icons, and identity guidance without redrawing paths.
+- Added governed exact social copy, distinct 1280 by 640 social-image masters and upload-ready PNGs for all eight brands, and retained direct social-preview aliases.
+- Composed I Heart PR Tours from its unchanged approved supplied horizontal lockup; separated social-image downloads from logo lockups and bound hosted brand-page metadata to kit image bytes.
+- Advanced Brand Canon to 1.6.0 and BrandBuilder to 2.4.0. Existing kits need regeneration and exact repinning to adopt current Go Schedule identity and new social assets; adapter APIs are unchanged.
+- Bound each owner's assembled social-image approval to exact canonical SVG and PNG bytes, using the pinned renderer for social PNGs. Reject description layouts that overflow the canvas and copy containing unsupported font glyphs. Removed the provisional generator bypass; internal proof staging remains available.
+
 ## 2.3.0 - 2026-09-25
 
 - Replaced the minimal-input interview with an adaptive, reusable brief and exactly two explicit creative approval stops: production logo source and assembled brand fundamentals before final kit compilation.

@@ -64,6 +64,91 @@ def derivative_configuration_sha256(brand):
     return hashlib.sha256(encoded).hexdigest()
 
 
+def social_copy(brand):
+    """Return the explicitly approved words for the generated social image."""
+    value = brand.get("social_copy")
+    _require(isinstance(value, dict) and set(value) == {"slogan", "layout", "description_lines", "approval"},
+             "social_copy must declare slogan, layout, description_lines, and approval")
+    slogan = value["slogan"]
+    _require(isinstance(slogan, str) and slogan.strip() == slogan and slogan,
+             "social_copy.slogan must be exact nonempty approved text")
+    _require("\n" not in slogan and "\r" not in slogan,
+             "social_copy.slogan must use one approved line")
+    layout = value["layout"]
+    lines = value["description_lines"]
+    _require(layout in {"slogan-only", "slogan-description"}, "social_copy.layout is invalid")
+    _require(isinstance(lines, list) and all(isinstance(line, str) and line.strip() == line
+                                           and line and "\n" not in line and "\r" not in line for line in lines),
+             "social_copy.description_lines are invalid")
+    _require((not lines) if layout == "slogan-only" else bool(lines),
+             "social_copy description lines disagree with selected layout")
+    _require(len(lines) <= 3, "social_copy.description_lines cannot fit more than three lines")
+    approval = value["approval"]
+    _require(isinstance(approval, dict) and set(approval) == {"approved_by", "approved_on", "source"},
+             "social_copy.approval is incomplete")
+    _require(isinstance(approval["approved_by"], str) and approval["approved_by"].strip()
+             and isinstance(approval["source"], str) and approval["source"].strip()
+             and isinstance(approval["approved_on"], str)
+             and re.fullmatch(r"\d{4}-\d{2}-\d{2}", approval["approved_on"]),
+             "social_copy.approval lacks exact owner decision evidence")
+    return value
+
+
+def social_image_approval(brand, kit=None, raster_required=True):
+    """Bind an owner-approved assembled social image to its exact SVG and PNG."""
+    value = brand.get("social_image_approval")
+    required = {"approved_by", "approved_on", "source", "svg_sha256", "png_sha256"}
+    _require(isinstance(value, dict) and set(value) == required,
+             "social_image_approval must bind the assembled SVG and PNG")
+    _require(isinstance(value["approved_by"], str) and value["approved_by"].strip()
+             and isinstance(value["source"], str) and value["source"].strip()
+             and isinstance(value["approved_on"], str)
+             and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value["approved_on"] or ""),
+             "social_image_approval lacks an exact owner decision")
+    _require(all(isinstance(value[key], str) and DIGEST.fullmatch(value[key])
+                 for key in ("svg_sha256", "png_sha256")),
+             "social_image_approval has invalid artifact digests")
+    if kit is not None:
+        slug = brand["slug"]
+        for suffix, expected in (("logos/svg/%s-social-image.svg" % slug, "svg_sha256"),
+                                 ("logos/png/%s-social-image-1280.png" % slug, "png_sha256")):
+            if not raster_required and expected == "png_sha256":
+                continue
+            path = os.path.join(kit, suffix)
+            _require(os.path.isfile(path), "social_image_approval is missing %s" % suffix)
+            _require(sha256_file(path) == value[expected],
+                     "social_image_approval is stale for %s" % suffix)
+    return value
+
+
+def current_mark_approval(brand, kit):
+    """Bind an explicitly approved current role change without rewriting its historical baseline."""
+    value = brand.get("current_mark_approval")
+    required = {"approved_by", "approved_on", "source", "identity_snapshot_sha256"}
+    _require(isinstance(value, dict) and set(value) == required,
+             "current_mark_approval must bind the current identity snapshot")
+    _require(isinstance(value["approved_by"], str) and value["approved_by"].strip()
+             and isinstance(value["source"], str) and value["source"].strip()
+             and isinstance(value["approved_on"], str)
+             and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value["approved_on"] or "")
+             and isinstance(value["identity_snapshot_sha256"], str)
+             and DIGEST.fullmatch(value["identity_snapshot_sha256"] or ""),
+             "current_mark_approval lacks exact owner and source evidence")
+    paths = (brand.get("logo") or {}).get("paths") or {}
+    _require(paths.get("full") and paths.get("full") == paths.get("reduced"),
+             "current_mark_approval requires identical Full and Reduced source elements")
+    reference = (brand.get("identity_continuity") or {}).get("record")
+    _require(isinstance(reference, str) and reference == "identity-continuity.json",
+             "current_mark_approval requires a governed identity record")
+    record_path = os.path.join(kit, reference)
+    _require(os.path.isfile(record_path), "current_mark_approval identity record is missing")
+    with open(record_path, encoding="utf-8") as handle:
+        record = json.load(handle)
+    _require((record.get("identity_snapshot") or {}).get("sha256") == value["identity_snapshot_sha256"],
+             "current_mark_approval is stale because the identity snapshot changed")
+    return value
+
+
 class ContractError(ValueError):
     pass
 
@@ -682,12 +767,18 @@ def public_showcase(brand, kit=None):
     showcase = affiliation(brand)["showcase"]
     ledger = brand.get("approval_ledger")
     if ledger is None:
-        return showcase == "public"
+        if showcase != "public":
+            return False
+        if "social_copy" in brand:
+            social_image_approval(brand, kit=kit)
+        return True
     gate_2 = approval_ledger(brand, kit=kit)["gate_2"]
     if showcase != "public":
         return False
     if gate_2["status"] != "approved":
         return False
+    if "social_copy" in brand:
+        social_image_approval(brand, kit=kit)
     _require(set(gate_2["surfaces"]) == PUBLICATION_SURFACES,
              "Gate 2 approval does not authorize the complete public surface set")
     return True
@@ -1350,6 +1441,12 @@ def validate_palette_approvals(brand, evidence):
 
 def validate_brand(brand, kit):
     _require(isinstance(brand.get("slug"), str) and ID.fullmatch(brand["slug"]), "brand slug is missing or invalid")
+    if "social_copy" in brand:
+        social_copy(brand)
+    if "social_image_approval" in brand:
+        social_image_approval(brand)
+    if "current_mark_approval" in brand:
+        current_mark_approval(brand, kit)
     guide_surface_mode(brand)
     aff = affiliation(brand)
     if aff["inheritance"] == "independent":

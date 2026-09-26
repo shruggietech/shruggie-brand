@@ -17,6 +17,7 @@ FONTS = ROOT / "assets" / "fonts"
 TEMPLATES = ROOT / "skill" / "templates"
 BUILDER = TEMPLATES / "build_kit.py"
 sys.path.insert(0, str(TEMPLATES))
+from brand_contract import current_mark_approval, social_copy, social_image_approval
 from process_utils import hidden_process_kwargs
 
 
@@ -43,9 +44,13 @@ def clean_destination(destination: Path) -> None:
 
 
 def stage(source: Path, destination: Path) -> None:
+    brand = json.loads((source / "brand.json").read_text(encoding="utf-8"))
+    social_copy(brand)
+    social_image_approval(brand)
+    if brand["slug"] == "go-schedule":
+        current_mark_approval(brand, source)
     clean_destination(destination)
     shutil.copytree(source, destination)
-    brand = json.loads((source / "brand.json").read_text(encoding="utf-8"))
     if (brand.get("typography") or {}).get("mode") == "fixed":
         for face in brand["typography"].get("faces", []):
             target = destination / face["path"]

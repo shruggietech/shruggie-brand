@@ -126,8 +126,10 @@ def validate_version_policy(policy):
         _require(isinstance(rule, dict) and set(rule) == {"dependent", "dependent_major", "dependency", "supported"},
                  "version compatibility rule fields are invalid")
         edge = (rule["dependent"], rule["dependency"])
-        _require(edge not in recorded, "duplicate version compatibility rule: %s -> %s" % edge)
-        recorded.add(edge)
+        scoped_edge = edge + (rule["dependent_major"],)
+        _require(scoped_edge not in recorded,
+                 "duplicate version compatibility rule: %s -> %s major %s" % scoped_edge)
+        recorded.add(scoped_edge)
         _require(rule["dependent"] in VERSION_DOMAINS and rule["dependency"] in VERSION_DOMAINS
                  and rule["dependency"] in domains[rule["dependent"]]["compatibility_keys"],
                  "version compatibility rule has an undeclared dependency")
@@ -143,7 +145,8 @@ def validate_version_policy(policy):
         for dependent, domain in domains.items()
         for dependency in domain["compatibility_keys"]
     }
-    _require(recorded == expected_edges, "version compatibility rules do not cover every declared edge")
+    _require({edge[:2] for edge in recorded} == expected_edges,
+             "version compatibility rules do not cover every declared edge")
     states = policy["lifecycle_states"]
     _require(isinstance(states, list) and {item.get("id") for item in states if isinstance(item, dict)}
              == {"compatible", "candidate", "published"},
@@ -257,22 +260,35 @@ def validate_version_combination(versions, policy=None):
              "version combination must contain exactly %s" % ", ".join(sorted(VERSION_DOMAINS)))
     _require(all(isinstance(value, str) and SEMVER.fullmatch(value) for value in versions.values()),
              "version combination contains a non-semantic version")
+    expected = {(dependent, dependency) for dependent, domain in policy["domains"].items()
+                for dependency in domain["compatibility_keys"]}
+    for dependent, dependency in expected:
+        major = int(versions[dependent].split(".", 1)[0])
+        matching = [rule for rule in policy["compatibility_rules"]
+                    if rule["dependent"] == dependent and rule["dependency"] == dependency
+                    and rule["dependent_major"] == major]
+        _require(bool(matching),
+                 "%s %s is incompatible with policy major %d; migrate or publish a matching compatibility rule" % (
+                     dependent, versions[dependent], major))
+    checked = set()
     for rule in policy["compatibility_rules"]:
         dependent_version = versions[rule["dependent"]]
         dependent_major = int(dependent_version.split(".", 1)[0])
-        _require(dependent_major == rule["dependent_major"],
-                 "%s %s is incompatible with policy major %d; migrate or publish a matching compatibility rule" % (
-                     rule["dependent"], dependent_version, rule["dependent_major"]))
+        if dependent_major != rule["dependent_major"]:
+            continue
+        checked.add((rule["dependent"], rule["dependency"]))
         actual = versions[rule["dependency"]]
         _require(actual in rule["supported"],
                  "%s %s is incompatible with %s %s; supported %s" % (
                      rule["dependent"], versions[rule["dependent"]], rule["dependency"], actual,
                      ", ".join(rule["supported"])))
+    _require(checked == expected,
+             "version combination lacks a matching compatibility rule for a dependent major")
     return {
         "policy_version": policy["version"],
         "status": "compatible",
         "validated_versions": dict(sorted(versions.items())),
-        "rules_checked": len(policy["compatibility_rules"]),
+        "rules_checked": len(checked),
     }
 
 

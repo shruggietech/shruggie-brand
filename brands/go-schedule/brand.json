@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "go-schedule",
   "slug": "go-schedule",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",
@@ -51,12 +51,34 @@
     "The existing mark and outlined wordmark are authoritative geometry and must not be redrawn.",
     "The register is operational and calm, so the ShruggieTech verbal flourish is off."
   ],
-  "color_roles": {"identity": [
-    {"id": "primary", "label": "Schedule anchor", "source": "brand.accent.bright", "use": "Primary identity anchor"},
-    {"id": "interval", "label": "Interval Mint", "source": "brand.logo.role_colors.color.interval", "use": "Approved interval segment in the mark"}
-  ], "combinations": [
-    {"id": "core-mark", "label": "Go Schedule mark", "colors": ["primary", "interval"], "artwork": "logo.full", "use": "Anchor blue with the approved interval segment"}
-  ]},
+  "color_roles": {
+    "identity": [
+      {
+        "id": "primary",
+        "label": "Schedule anchor",
+        "source": "brand.accent.bright",
+        "use": "Primary identity anchor"
+      },
+      {
+        "id": "interval",
+        "label": "Interval Mint",
+        "source": "brand.logo.role_colors.color.interval",
+        "use": "Approved interval segment in the mark"
+      }
+    ],
+    "combinations": [
+      {
+        "id": "core-mark",
+        "label": "Go Schedule mark",
+        "colors": [
+          "primary",
+          "interval"
+        ],
+        "artwork": "logo.full",
+        "use": "Anchor blue with the approved interval segment"
+      }
+    ]
+  },
   "accent": {
     "bright": "#58A6FF",
     "deep": "#1160C6",
@@ -182,114 +204,23 @@
         "neutral": "#000000"
       }
     },
-    "construction": "The imported 512-unit mark is a rounded terminal frame containing a prompt, cursor, five cron-field asterisks, and five neutral rails. The reduced mark preserves the exact prompt and cursor from the shipped favicon and drops the frame and schedule fields.",
+    "construction": "The current primary mark uses the exact existing reduced prompt and cursor elements from the shipped favicon. The former terminal frame, schedule-field asterisks, and rails are retired from current presentation by owner decision in issue #282.",
     "paths": {
       "full": [
         {
-          "element": "rect",
-          "role": "neutral",
-          "x": 78,
-          "y": 102,
-          "width": 356,
-          "height": 308,
-          "rx": 54,
-          "fill": "none",
-          "stroke_width": 20
-        },
-        {
           "role": "anchor",
-          "d": "M124 174l42 38-42 38",
+          "d": "M156 168l86 88-86 88",
           "fill": "none",
-          "stroke_width": 22,
+          "stroke_width": 50,
           "stroke_linecap": "round",
           "stroke_linejoin": "round"
         },
         {
           "role": "interval",
-          "d": "M194 250h172",
+          "d": "M280 344h108",
           "fill": "none",
-          "stroke_width": 22,
+          "stroke_width": 50,
           "stroke_linecap": "round"
-        },
-        {
-          "role": "interval",
-          "d": "M134.0 309.0L134.0 339.0 M121.0 316.5L147.0 331.5 M147.0 316.5L121.0 331.5",
-          "fill": "none",
-          "stroke_width": 7,
-          "stroke_linecap": "round"
-        },
-        {
-          "role": "interval",
-          "d": "M195.0 309.0L195.0 339.0 M182.0 316.5L208.0 331.5 M208.0 316.5L182.0 331.5",
-          "fill": "none",
-          "stroke_width": 7,
-          "stroke_linecap": "round"
-        },
-        {
-          "role": "anchor",
-          "d": "M256.0 309.0L256.0 339.0 M243.0 316.5L269.0 331.5 M269.0 316.5L243.0 331.5",
-          "fill": "none",
-          "stroke_width": 7,
-          "stroke_linecap": "round"
-        },
-        {
-          "role": "interval",
-          "d": "M317.0 309.0L317.0 339.0 M304.0 316.5L330.0 331.5 M330.0 316.5L304.0 331.5",
-          "fill": "none",
-          "stroke_width": 7,
-          "stroke_linecap": "round"
-        },
-        {
-          "role": "interval",
-          "d": "M378.0 309.0L378.0 339.0 M365.0 316.5L391.0 331.5 M391.0 316.5L365.0 331.5",
-          "fill": "none",
-          "stroke_width": 7,
-          "stroke_linecap": "round"
-        },
-        {
-          "element": "rect",
-          "role": "neutral",
-          "x": 118,
-          "y": 360,
-          "width": 32,
-          "height": 10,
-          "rx": 5
-        },
-        {
-          "element": "rect",
-          "role": "neutral",
-          "x": 179,
-          "y": 360,
-          "width": 32,
-          "height": 10,
-          "rx": 5
-        },
-        {
-          "element": "rect",
-          "role": "neutral",
-          "x": 240,
-          "y": 360,
-          "width": 32,
-          "height": 10,
-          "rx": 5
-        },
-        {
-          "element": "rect",
-          "role": "neutral",
-          "x": 301,
-          "y": 360,
-          "width": 32,
-          "height": 10,
-          "rx": 5
-        },
-        {
-          "element": "rect",
-          "role": "neutral",
-          "x": 362,
-          "y": 360,
-          "width": 32,
-          "height": 10,
-          "rx": 5
         }
       ],
       "reduced": [
@@ -312,7 +243,7 @@
     },
     "prohibitions": [
       "Do not rotate, skew, stretch, outline, bevel, or add glow.",
-      "Do not recolor individual schedule cells or lanes.",
+      "Do not recolor individual prompt or cursor elements.",
       "Do not set the wordmark in live text or a substitute typeface.",
       "Do not add a tagline inside the horizontal lockup.",
       "Do not place the logo over busy imagery.",
@@ -353,14 +284,37 @@
       "The same schedule store backs the CLI, desktop app, and service."
     ],
     "sharp_edge": "go-schedule makes scheduling policy readable, but it does not hide operational tradeoffs or claim that cron is obsolete.",
-    "logo": "The terminal prompt sits over five cron fields. Anchor Blue marks exact run points, Interval Mint marks recurrence, and neutral rails keep the construction quiet and technical. The reduced master retains only the prompt and cursor.",
+    "logo": "The current primary mark is the exact prompt and cursor geometry from the shipped favicon. Anchor Blue draws the prompt and Interval Mint draws the cursor. Pair it with the outlined go-schedule wordmark in horizontal and stacked lockups.",
     "palette": "Night, Panel, and Line provide the infrastructure surface. Anchor Blue carries identity, links, focus, and exact run points. Interval Mint carries recurrence and success. Hold Amber and Stop Red remain scarce operational signals.",
     "specimen_line": "A cross-platform scheduler in Go.",
     "specimen_body": "Readable schedules with timezone, catch-up, and overlap policy stated plainly."
   },
-  "canon": "1.5.0",
+  "canon": "1.6.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "social_copy": {
+    "slogan": "A cross-platform scheduler in Go.",
+    "layout": "slogan-only",
+    "description_lines": [],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-25",
+      "source": "GitHub issue #281 owner decision"
+    }
+  },
+  "social_image_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-26",
+    "source": "S057 assembled social image approval",
+    "svg_sha256": "7dd087f4aeaaf70ae99ff30afe89acd864cdd371f0372b32ad1b3460f5452e59",
+    "png_sha256": "283f793332e498479e03d2682ae660d862fe82080841f7c65185c84b8f441b73"
+  },
+  "current_mark_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-26",
+    "source": "S057 Gate 1 owner approval of the current go-schedule proof and issue #282",
+    "identity_snapshot_sha256": "a93ab69568c9b2b1b592af37501a4d0c9341d2b6a0ae218b302cd04a9c7106ee"
   }
 }

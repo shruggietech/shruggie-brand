@@ -4,7 +4,7 @@
   "kind": "independent-brand",
   "title": "I Heart PR Tours",
   "slug": "i-heart-pr-tours",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "showcase_surface": "light.card",
   "affiliation": {
     "ownership": "third-party",
@@ -38,23 +38,14 @@
         "wordmark-only": "No standalone wordmark source exists in the approved package."
       },
       "derivative_config_sha256": "467bdbdd790721c2968df37881f4df2b95f90caaeded74b99184d05ce5c411cb",
-      "canonical_source_sha256": "5ccb1f368bc70c250e4fe7a93528f93e6b21d77afc59c561c1b0e09953f5e7c8"
+      "canonical_source_sha256": "a4e41e93dc1df76bef76754eda6cead0502f294663dbdf292319c1566c877cdd"
     },
     "gate_2": {
       "status": "approved",
       "approved_by": "repository owner",
-      "approved_on": "2026-09-11",
-      "derivative_manifest_sha256": "9aae47141e989c34ea64e460a3594179192e2443012e15922dd3f6e49bccd41b",
-      "surfaces": [
-        "showcase-card",
-        "brand-landing-page",
-        "guideline-topics",
-        "downloads",
-        "registry-endpoints",
-        "public-metadata",
-        "structured-data",
-        "social-preview"
-      ]
+      "approved_on": "2026-09-26",
+      "derivative_manifest_sha256": "02dba1d8bebc4e0b404e5c534d6d8dc5d0fbf91bbfb84f3e540506dd18d04b9b",
+      "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]
     }
   },
   "homepage": "https://iheartprtours.com",
@@ -543,9 +534,26 @@
       "preview": {"well": "light", "fit": "contain"}
     }
   ],
-  "canon": "1.5.0",
+  "canon": "1.6.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "approved-canonical"
+  },
+  "social_copy": {
+    "slogan": "Experience Puerto Rico",
+    "layout": "slogan-only",
+    "description_lines": [],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-25",
+      "source": "S057 owner clarification"
+    }
+  },
+  "social_image_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-26",
+    "source": "S057 assembled social image approval",
+    "svg_sha256": "f8392e7da3a1e4e8a4ab5dcb79fc725d537ba3d1fc6082f124671390e5495cb5",
+    "png_sha256": "40dde413672a99f2556fc2719d80479f2c40932bcdb6cb18c8297a66e241629c"
   }
 }

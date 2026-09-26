@@ -42,6 +42,49 @@
       }
     },
     "color_roles": {"$ref": "#/$defs/colorRoles"},
+    "social_copy": {
+      "type": "object",
+      "required": ["slogan", "layout", "description_lines", "approval"],
+      "additionalProperties": false,
+      "properties": {
+        "slogan": {"type": "string", "minLength": 1, "pattern": "^[^\\r\\n]+$"},
+        "layout": {"enum": ["slogan-only", "slogan-description"]},
+        "description_lines": {"type": "array", "maxItems": 3, "items": {"type": "string", "minLength": 1, "pattern": "^[^\\r\\n]+$"}},
+        "approval": {
+          "type": "object",
+          "required": ["approved_by", "approved_on", "source"],
+          "additionalProperties": false,
+          "properties": {
+            "approved_by": {"type": "string", "minLength": 1},
+            "approved_on": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+            "source": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "social_image_approval": {
+      "type": "object",
+      "required": ["approved_by", "approved_on", "source", "svg_sha256", "png_sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "approved_by": {"type": "string", "minLength": 1},
+        "approved_on": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        "source": {"type": "string", "minLength": 1},
+        "svg_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "png_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "current_mark_approval": {
+      "type": "object",
+      "required": ["approved_by", "approved_on", "source", "identity_snapshot_sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "approved_by": {"type": "string", "minLength": 1},
+        "approved_on": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        "source": {"type": "string", "minLength": 1},
+        "identity_snapshot_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
     "typography": {"$ref": "#/$defs/typography"},
     "authoritative_inputs": {
       "type": "array",

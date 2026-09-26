@@ -28,7 +28,7 @@ For a richly specified job, fill the brief from supplied material first and ask 
 
 ## Social-copy decision record
 
-Record the exact approved slogan, its source and approver, the explicit `slogan-only` or `slogan-and-description` choice, and any exact approved description and line breaks. Leave missing fields unresolved. Neither `descriptor` nor `brand_idea` is automatically a slogan. A social share image is its own composition, not a wide or stacked logo lockup. Show the chosen composition in the Gate 2 packet before final kit compilation. Existing generated social images require a separate governed source migration; do not claim that historical copy has been approved merely because it exists in a brand file.
+Record the exact approved slogan, its source and approver, the explicit `slogan-only` or `slogan-description` choice, and up to three exact approved description lines in `brand.json.social_copy`. Leave missing fields unresolved. Neither `descriptor` nor `brand_idea` is automatically a slogan. A social share image is its own composition, not a wide or stacked logo lockup. Show the chosen composition in the Gate 2 packet before final kit compilation, then record the owner's assembled-image decision and canonical SVG and PNG digests in `brand.json.social_image_approval`. The build and verifier reject missing or stale approval, and the generator rejects outlined copy that exceeds the canvas. The canonical `social-image` SVG and PNG are separate deliveries; old `social-preview` paths are compatibility aliases.
 
 ## Work before creative approval
 

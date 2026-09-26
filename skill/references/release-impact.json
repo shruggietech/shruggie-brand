@@ -1,16 +1,16 @@
 {
   "$schema": "release-impact.schema.json",
   "schema_version": 1,
-  "brandbuilder_version": "2.3.0",
-  "identity_redesign": false,
+  "brandbuilder_version": "2.4.0",
+  "identity_redesign": true,
   "surfaces": {
-    "identity": {"classification": "unaffected", "summary": "Approved logo geometry, affiliation facts, and existing formal color values remain unchanged."},
-    "palette": {"classification": "unaffected", "summary": "Existing approved formal and interface colors remain unchanged. The adaptive interview discusses these palettes as separate design decisions."},
-    "typography": {"classification": "unaffected", "summary": "Existing local fonts and typography bindings remain authoritative; typography mode never selects a palette."},
-    "platform_assets": {"classification": "unaffected", "summary": "Canonical logo and platform icon source geometry and colors remain unchanged."},
-    "web_react": {"classification": "unaffected", "summary": "The web/React adapter and existing kit tokens remain unchanged by the authoring workflow revision."},
-    "egui": {"classification": "unaffected", "summary": "The egui adapter and existing approved color values remain unchanged."},
-    "documentation": {"classification": "optional", "summary": "Brand authors should adopt the adaptive brief and two source-bound creative approval stops. Existing approved kit assets remain unchanged."},
-    "recovery": {"classification": "optional", "summary": "Consumers who repin the 2.3.0 package must retain its exact checksummed recovery bytes and immutable package identity; existing 2.2.1 kits remain valid."}
+    "identity": {"classification": "required", "summary": "Go Schedule 2.0.0 promotes the existing reduced prompt and cursor paths to the current primary mark. Other approved mark geometry remains unchanged."},
+    "palette": {"classification": "unaffected", "summary": "Existing approved formal and interface colors remain unchanged."},
+    "typography": {"classification": "unaffected", "summary": "Existing local fonts and outlined wordmarks remain authoritative."},
+    "platform_assets": {"classification": "required", "summary": "Go Schedule marks, paired lockups, icons, and previews use the simplified primary mark. Every brand gains a distinct approved social image and legacy direct-link aliases."},
+    "web_react": {"classification": "unaffected", "summary": "The Web and React adapter API and token roles remain unchanged."},
+    "egui": {"classification": "unaffected", "summary": "The egui adapter API and approved values remain unchanged."},
+    "documentation": {"classification": "required", "summary": "Brand guides and the hosted site distinguish social images from logo lockups. Brand landing metadata uses exact verified kit image bytes."},
+    "recovery": {"classification": "required", "summary": "Regenerate and repin affected kits with exact 2.4.0 package checksums. Go Schedule 2.0.0 is an identity migration; other brands gain social assets under their minor versions."}
   }
 }

@@ -1,7 +1,7 @@
 {
   "id": "shruggietech",
   "kind": "canon",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "generated": "2026-09-25",
   "generator": "shruggie-brandbuilder/gen_canon.py",
   "summary": "The ShruggieTech brand-system root. Every brand explicitly declares affiliation, palette choice, typography mode, and authoritative inputs. Shared colors are selected explicitly and never inferred from ownership or typography. Accessible pairings remain machine-checkable.",

@@ -84,7 +84,7 @@ class DocumentationContractTests(unittest.TestCase):
             self.assertIn("[/docs/](https://brand.shruggie.tech/docs/)", rendered)
             self.assertNotIn("[/docs/](/docs/)", rendered)
             self.assertEqual(render_migration_summary(facts), render_migration_summary(facts))
-            self.assertIn("No approved identity redesign", rendered)
+            self.assertIn(impact["surfaces"]["identity"]["summary"], rendered)
             self.assertNotIn("adoption status", rendered.lower())
             verify_rendered_implementation(rendered, facts)
             drifted = copy.deepcopy(facts); drifted["versions"]["compiler_version"] = "9.9.9"

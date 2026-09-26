@@ -17,7 +17,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
-from brand_contract import _image_dimensions, affiliation, application_icon_profile, logo_source_contract, sha256_file, specimen_mark_paths
+from brand_contract import _image_dimensions, affiliation, application_icon_profile, current_mark_approval, logo_source_contract, sha256_file, social_copy, social_image_approval, specimen_mark_paths
 from color_roles import ColorRoleError, resolve_color_roles
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
@@ -1967,6 +1967,9 @@ def c_logo_provenance(kit, brand, rep):
         problems.append("index identity or schema version is invalid")
     if provenance.get("source_mode") != authority["source_mode"]:
         problems.append("index source mode disagrees with brand contract")
+    aliases = {"full": "reduced"} if (brand.get("logo") or {}).get("paths", {}).get("full") == (brand.get("logo") or {}).get("paths", {}).get("reduced") else {}
+    if provenance.get("geometry_aliases") != aliases:
+        problems.append("geometry role alias disagrees with source paths")
     records = provenance.get("derivatives")
     if not isinstance(records, list):
         return rep.bad("logo-provenance", "derivatives must be an array")
@@ -1995,11 +1998,35 @@ def c_logo_provenance(kit, brand, rep):
         for entry in mapping.values()
     }
     checked_sources = set()
+    by_path = {item.get("path"): item for item in records if isinstance(item, dict)}
     for item in records:
-        if not isinstance(item, dict) or set(item) != expected_keys:
+        if not isinstance(item, dict) or not expected_keys.issubset(set(item)) or set(item) - expected_keys - {"alias_of", "composed_from"}:
             problems.append("derivative record has invalid fields")
             continue
         relative = item["path"]
+        if item.get("alias_of"):
+            target = by_path.get(item["alias_of"])
+            if target is None or target.get("kind") != item["kind"]:
+                problems.append("%s compatibility alias has no canonical target" % relative)
+            elif os.path.isfile(os.path.join(kit, relative)) and os.path.isfile(os.path.join(kit, item["alias_of"])):
+                if sha256_file(os.path.join(kit, relative)) != sha256_file(os.path.join(kit, item["alias_of"])):
+                    problems.append("%s compatibility alias bytes differ from canonical image" % relative)
+        if item["kind"] == "social-image":
+            expected_source = "logos/svg/%s-horizontal-color.svg" % brand["slug"]
+            if item.get("composed_from") != expected_source:
+                problems.append("%s social image has stale lockup binding" % relative)
+            if relative.endswith(".png") and os.path.isfile(os.path.join(kit, relative)):
+                try:
+                    from PIL import Image
+                    with Image.open(os.path.join(kit, relative)) as image:
+                        if image.size != (1280, 640):
+                            problems.append("%s social PNG dimensions are invalid" % relative)
+                        if image.convert("RGBA").getchannel("A").getextrema() != (255, 255):
+                            problems.append("%s social PNG is not opaque" % relative)
+                    if os.path.getsize(os.path.join(kit, relative)) >= 1000000:
+                        problems.append("%s social PNG exceeds 1 MB" % relative)
+                except Exception as error:
+                    problems.append("%s social PNG is unreadable: %s" % (relative, error))
         variant = item["variant"]
         source = authority.get("inputs", {}).get(item.get("input_id"))
         if source is None and variant in {"full", "reduced"}:
@@ -2053,6 +2080,19 @@ def c_logo_provenance(kit, brand, rep):
             continue
         try:
             root = ET.parse(output).getroot()
+            if item["kind"] == "social-image":
+                title = next((node.text for node in root if node.tag.rsplit("}", 1)[-1] == "title"), None)
+                approved_copy = social_copy(brand)
+                if title != approved_copy["slogan"]:
+                    problems.append("%s social image slogan differs from approved copy" % relative)
+                description = next((node.text or "" for node in root if node.tag.rsplit("}", 1)[-1] == "desc"), None)
+                if description != " ".join(approved_copy["description_lines"]):
+                    problems.append("%s social image description differs from approved copy" % relative)
+                if root.get("width") != "1280" or root.get("height") != "640":
+                    problems.append("%s social SVG dimensions are invalid" % relative)
+                bound = os.path.join(kit, item["composed_from"])
+                if Path(bound).read_bytes() not in Path(output).read_bytes():
+                    problems.append("%s does not embed the exact generated color lockup" % relative)
             if root.get("data-logo-source-mode") != item["source_mode"]:
                 problems.append("%s source-mode metadata disagrees with index" % relative)
             expected_variant = item["variant"]
@@ -2164,6 +2204,11 @@ def c_logo_provenance(kit, brand, rep):
                     problems.append("Gate 2 approval is stale because derivative provenance changed (%s)" % reason)
     except Exception as error:
         problems.append("logos/approval.json cannot be verified: %s" % error)
+    if "social_copy" in brand:
+        try:
+            social_image_approval(brand, kit, raster_required=bool(capabilities.get("svg_raster")))
+        except Exception as error:
+            problems.append(str(error))
     if authority["source_mode"] == "authoritative" and checked_sources != {"full", "reduced"}:
         problems.append("authoritative Full and Reduced sources were not both verified")
     if problems:
@@ -2176,6 +2221,8 @@ def c_logo_provenance(kit, brand, rep):
 def c_identity_continuity(kit, brand, rep):
     try:
         report = validate_continuity_report(brand, kit)
+        if brand.get("slug") == "go-schedule":
+            current_mark_approval(brand, kit)
     except (ContinuityError, OSError, ValueError) as error:
         return rep.bad("identity-continuity", str(error))
     rep.ok("identity-continuity", "%s %s source and generated report agree" %

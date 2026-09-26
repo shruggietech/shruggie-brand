@@ -53,6 +53,18 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_go_schedule_current_primary_is_exact_shipped_reduced_geometry(self):
+        brand = json.loads((ROOT / "brands" / "go-schedule" / "brand.json").read_text(encoding="utf-8"))
+        paths = brand["logo"]["paths"]
+        expected = [
+            {"d": "M156 168l86 88-86 88", "fill": "none", "role": "anchor",
+             "stroke_linecap": "round", "stroke_linejoin": "round", "stroke_width": 50},
+            {"d": "M280 344h108", "fill": "none", "role": "interval",
+             "stroke_linecap": "round", "stroke_width": 50},
+        ]
+        self.assertEqual(expected, paths["reduced"])
+        self.assertEqual(expected, paths["full"])
+
     def test_pdf_ground_gate_rejects_wrong_or_mixed_declared_modes(self):
         light = (255, 255, 255)
         dark = (12, 15, 18)
@@ -288,10 +300,18 @@ class PipelineTests(unittest.TestCase):
                 sys.argv = ["gen_logo.py", str(brand_path), str(kit)]
                 with self.assertRaisesRegex(ContinuityError, "snapshot drift"):
                     gen_logo.main()
+                sys.argv = ["gen_logo.py", str(brand_path), str(kit), "--provisional-review"]
+                with self.assertRaisesRegex(ValueError, "unsupported gen_logo option"):
+                    gen_logo.main()
                 sys.argv = ["gen_logo.py", str(brand_path), str(kit), "--proof-stage-only"]
                 self.assertEqual(0, gen_logo.main())
             finally:
                 sys.argv = old_argv
+
+    def test_outline_rejects_missing_glyphs_in_approved_copy(self):
+        font = ROOT / "assets" / "fonts" / "ttf" / "SpaceGrotesk-Bold.ttf"
+        with self.assertRaisesRegex(ValueError, r"U\+10FFFF"):
+            gen_logo.wordmark_outline("Approved" + chr(0x10FFFF), str(font), 64)
 
     def test_identity_workflow_docs_preserve_the_two_approval_boundaries(self):
         skill = (ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8")
@@ -454,7 +474,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(derivative_configuration_sha256(brand), ledger["gate_1"]["derivative_config_sha256"])
         self.assertEqual("approved", ledger["gate_2"]["status"])
         self.assertEqual(
-            "e9f3aef341ed8910426abd6d7876dac1f39f69afe370efc9c1cddb7af41f9dc5",
+            "b68a1d19e1e5033c353b23807b02fbcc9486d9dd74660d5d93be42d919297451",
             ledger["gate_2"]["derivative_manifest_sha256"],
         )
         self.assertEqual(
@@ -586,6 +606,56 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(1, len(groups))
         self.assertEqual(2, len(groups[0]["deliveries"]))
         self.assertEqual("icons/web/favicon-32x32.png", groups[0]["representative"]["path"])
+
+    def test_social_image_is_separate_from_logo_and_prefers_canonical_preview(self):
+        social = {"family": "logo", "platform": "identity", "kind": "social-image", "variant": None,
+                  "colourway": "color", "role": "social-image", "appearance": "color", "source_variant": None,
+                  "format": "svg", "width": 1280, "height": 640, "destination": "Social sharing"}
+        items = [dict(social, path="logos/svg/alpha-social-image.svg"),
+                 dict(social, path="logos/svg/alpha-social-preview.svg", alias_of="logos/svg/alpha-social-image.svg")]
+        groups = gen_guidelines.group_asset_deliveries(items)
+        self.assertEqual(1, len(groups))
+        self.assertEqual("logos/svg/alpha-social-image.svg", groups[0]["representative"]["path"])
+        self.assertEqual("social", gen_guidelines._asset_family(groups[0]["representative"]))
+
+    def test_all_brand_social_vectors_embed_their_exact_generated_lockups(self):
+        slugs = ("shruggietech", "i-heart-pr-tours", "go-schedule", "glitchpad",
+                 "fragcap", "eso-weave", "cueson", "covarity")
+        for slug in slugs:
+            with self.subTest(slug=slug), tempfile.TemporaryDirectory() as temporary:
+                if slug == "i-heart-pr-tours":
+                    from probe import node_resvg_ok
+                    if not any(shutil.which(name) for name in ("rsvg-convert", "resvg", "inkscape")) and not node_resvg_ok():
+                        self.skipTest("supplied I Heart PR Tours SVG needs the optional raster renderer")
+                kit = Path(temporary) / slug
+                shutil.copytree(ROOT / "brands" / slug, kit)
+                shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts", dirs_exist_ok=True)
+                self.write_probe(kit)
+                brand = json.loads((kit / "brand.json").read_text(encoding="utf-8"))
+                old_argv = sys.argv
+                try:
+                    args = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
+                    sys.argv = args
+                    self.assertEqual(0, gen_logo.main())
+                finally:
+                    sys.argv = old_argv
+                svg_dir = kit / "logos" / "svg"
+                canonical = svg_dir / (slug + "-social-image.svg")
+                alias = svg_dir / (slug + "-social-preview.svg")
+                lockup = svg_dir / (slug + "-horizontal-color.svg")
+                self.assertEqual(canonical.read_bytes(), alias.read_bytes())
+                self.assertIn(lockup.read_bytes(), canonical.read_bytes())
+                self.assertIn(("<title>" + brand["social_copy"]["slogan"] + "</title>").encode("utf-8"),
+                              canonical.read_bytes())
+                self.assertIn(("<desc>" + " ".join(brand["social_copy"]["description_lines"]) + "</desc>").encode("utf-8"),
+                              canonical.read_bytes())
+                provenance = json.loads((kit / "logos" / "provenance.json").read_text(encoding="utf-8"))
+                by_path = {item["path"]: item for item in provenance["derivatives"]}
+                canonical_path = "logos/svg/" + canonical.name
+                alias_path = "logos/svg/" + alias.name
+                self.assertEqual("social-image", by_path[canonical_path]["kind"])
+                self.assertEqual("logos/svg/" + lockup.name, by_path[canonical_path]["composed_from"])
+                self.assertEqual(canonical_path, by_path[alias_path]["alias_of"])
 
     def test_guideline_asset_groups_merge_macos_integration_roles_without_losing_role_data(self):
         deliveries = [
@@ -1183,6 +1253,8 @@ class PipelineTests(unittest.TestCase):
             brand["title"] = "Client Brand"
             brand["kind"] = "fixture"
             brand["affiliation"] = {"ownership": "third-party", "showcase": "private", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "brand-system-by-shruggietech"}
+            brand.pop("social_copy", None)
+            brand.pop("social_image_approval", None)
             brand["semantic_colors"] = {"emphasis": "#C659FF", "action": "#A000EC"}
             brand["guide"].pop("logo", None)
             brand["guide"].pop("palette", None)
@@ -1582,6 +1654,8 @@ class PipelineTests(unittest.TestCase):
             reduced.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><circle cx="1" cy="1" r="1"/></svg>\n', encoding="utf-8")
             brand_path = kit / "brand.json"
             brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand.pop("social_copy", None)
+            brand.pop("social_image_approval", None)
             brand["logo"]["source_mode"] = "authoritative"
             brand["logo"]["geometry_provenance"] = "imported"
             brand["logo"]["geometry_provenance_reason"] = "Passive SVG test masters are imported unchanged."
@@ -1637,6 +1711,9 @@ class PipelineTests(unittest.TestCase):
             kit = Path(tmp) / "shruggietech"
             shutil.copytree(ROOT / "brands" / "shruggietech", kit)
             shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            fixture_brand = json.loads((kit / "brand.json").read_text(encoding="utf-8"))
+            fixture_brand.pop("social_copy", None)
+            (kit / "brand.json").write_text(json.dumps(fixture_brand), encoding="utf-8")
             self.write_probe(kit, tier="full", raster=True, chromium=True, ico=True)
 
             def fake_raster(args):

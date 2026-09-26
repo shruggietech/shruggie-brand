@@ -4,8 +4,8 @@ description: Build or audit a complete brand kit for a ShruggieTech-owned or thi
 license: Apache-2.0. The code, templates and reference documentation are licensed under the Apache License 2.0. Apache-2.0 section 6 grants no trademark rights, and the ShruggieTech and sub-brand names, wordmarks and logo geometry are additionally reserved: see LICENSE-BRAND.md. Bundled fonts keep their own SIL Open Font License 1.1.
 compatibility: Python 3.8 or newer. `coloraide` is required for color work, fontTools is required for generated and fixed typography, Pillow is required when raster supplied inputs request palette evidence, Brotli lets fontTools inspect WOFF2 metadata, and jsonschema validates shadcn registry payloads. Render-only capabilities still degrade to named skips. Run `templates/probe.py` first and route off its report.
 metadata:
-  version: 2.3.0
-  canon: 1.5.0
+  version: 2.4.0
+  canon: 1.6.0
   interface-canon: 1.0.1
   component-recipes: 1.1.0
   web-react-adapter: 1.1.0
@@ -44,7 +44,7 @@ Mode inference never authorizes source changes, identity redesign, consumer muta
 
 That reports the available capabilities. Then follow `references/03-interview.md` to build an adaptive brief. Invite all existing material and constraints, reuse the information supplied, and ask follow-ups that inform a stated design decision. Do not impose a question ceiling or infer identity decisions from a name and sentence. Ownership, showcase permission, source rights, and creative approval have no inferred default.
 
-There are exactly two mandatory creative approval stops: Gate 1 binds the actual production logo source and proofs; Gate 2 binds assembled brand fundamentals, including a distinct social share image with exact approved copy, before final kit compilation. Discussion and automated checks are not extra creative gates. Silence is never approval.
+There are exactly two mandatory creative approval stops: Gate 1 binds the actual production logo source and proofs; Gate 2 binds assembled brand fundamentals, including a distinct social share image with exact approved copy, before final kit compilation. Record the assembled image approval and exact canonical SVG and PNG digests in `brand.json.social_image_approval`; later output drift fails verification. Discussion and automated checks are not extra creative gates. Silence is never approval.
 
 ## Routing
 

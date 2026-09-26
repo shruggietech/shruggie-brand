@@ -41,7 +41,7 @@ Mode inference never authorizes source changes, identity redesign, consumer muta
 
 That reports the available capabilities. Then follow `references/03-interview.md` to build an adaptive brief. Invite all existing material and constraints, reuse the information supplied, and ask follow-ups that inform a stated design decision. Do not impose a question ceiling or infer identity decisions from a name and sentence. Ownership, showcase permission, source rights, and creative approval have no inferred default.
 
-There are exactly two mandatory creative approval stops: Gate 1 binds the actual production logo source and proofs; Gate 2 binds assembled brand fundamentals, including a distinct social share image with exact approved copy, before final kit compilation. Discussion and automated checks are not extra creative gates. Silence is never approval.
+There are exactly two mandatory creative approval stops: Gate 1 binds the actual production logo source and proofs; Gate 2 binds assembled brand fundamentals, including a distinct social share image with exact approved copy, before final kit compilation. Record the assembled image approval and exact canonical SVG and PNG digests in `brand.json.social_image_approval`; later output drift fails verification. Discussion and automated checks are not extra creative gates. Silence is never approval.
 
 ## Routing
 
