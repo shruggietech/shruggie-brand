@@ -8,7 +8,7 @@
 - Added governed exact social copy, distinct 1280 by 640 social-image masters and upload-ready PNGs for all eight brands, and retained direct social-preview aliases.
 - Composed I Heart PR Tours from its unchanged approved supplied horizontal lockup; separated social-image downloads from logo lockups and bound hosted brand-page metadata to kit image bytes.
 - Advanced Brand Canon to 1.6.0 and BrandBuilder to 2.4.0. Existing kits need regeneration and exact repinning to adopt current Go Schedule identity and new social assets; adapter APIs are unchanged.
-- Bound each owner's assembled social-image approval to canonical SVG and PNG output, preserved semantic Gate 2 comparison across operating systems, and reject description layouts that overflow the canvas.
+- Bound each owner's assembled social-image approval to exact canonical SVG and PNG bytes, using the pinned renderer for social PNGs. Reject description layouts that overflow the canvas and copy containing unsupported font glyphs. Removed the provisional generator bypass; internal proof staging remains available.
 
 ## 2.3.0 - 2026-09-25
 

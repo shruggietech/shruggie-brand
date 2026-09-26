@@ -8,7 +8,7 @@
 ## Source and continuity evidence
 
 - The go-schedule Full source elements were copied from its existing Reduced path list without normalization. The source comparison test pins the prior Reduced path fingerprint and rejects divergence of the two current roles.
-- I Heart PR Tours' supplied heart and lockup sources were unchanged. The current Node 24.11.0 proof renderer reproduced all 32 previously approved identity proof PNG SHA-256 values exactly after the review correction. Its continuity record now binds generator settings digest `f9483478d47000d29cca6fcf75fda9715e0b3977d7d321743a2c078aeff1adff` and source record digest `5e8bd52f3335e1a51aa1e7e7634338345f8f82dd2fdca940962d59f4bda811fd`.
+- I Heart PR Tours' supplied heart and lockup sources were unchanged. The current Node 24.11.0 proof renderer reproduced all 32 previously approved identity proof PNG SHA-256 values exactly after both review corrections. The second correction binds the same approved proof set to generator settings digest `e4116cff4a8eb177248b7533ac2f13935111de1506cff0e2c7d2425b95938a36` and source record digest `8db6682819514194b35241379181f1b2f6b0fd670a1da798dbed59e82b381f7d`.
 - The go-schedule `current_mark_approval` binds the owner's Gate 1 decision to identity snapshot SHA-256 `a93ab69568c9b2b1b592af37501a4d0c9341d2b6a0ae218b302cd04a9c7106ee`. The historical baseline still records the earlier migration without retrospective canonical approval.
 - Core-tier vector generation for all eight brands passed. Each canonical social SVG embeds the exact generated horizontal color lockup, carries the approved slogan in its title, and has an identical legacy `social-preview` SVG alias with a provenance pointer.
 
@@ -26,8 +26,9 @@ Read-only cross-artifact analysis found no CRITICAL, HIGH, MEDIUM, or LOW incons
 
 ## Pull request review
 
-- PR #287 first Codex code review on `0457014` raised three findings: missing per-brand assembled-image binding, missing source-bound record for the new go-schedule current approval, and potential clipping of four description lines. T019-T021 address these findings. The exact social approval check permits an explicit raster skip only in the core tier, and preserves the existing manifest-level semantic comparison for approved Gate 2 outputs on another operating system.
+- PR #287 first Codex code review on `0457014` raised three findings: missing per-brand assembled-image binding, missing source-bound record for the new go-schedule current approval, and potential clipping of four description lines. T019-T021 address these findings. The exact social approval check permits an explicit raster skip only in the core tier.
 - The initial Python 3.8 CI job failed because its core-tier vector test attempted to rasterize an I Heart PR Tours supplied SVG without the optional renderer. That subtest now records an explicit skip when the renderer is absent; the full verified-build job still exercises the supplied source with pinned resvg.
+- The single authorized second Codex review on `9825d95` raised three new findings: a semantic waiver could accept changed PNG bytes, a provisional generator mode could skip continuity while emitting publishable assets, and unsupported font glyphs could silently disappear from approved copy. T022-T024 remove the waiver and provisional mode, pin social PNG rendering, and reject absent glyphs. The second correction passed all 85 pipeline tests, 76 brand-contract tests, and the full eight-kit rebuild with zero reported problems. No further review request will be made.
 
 ## Remaining gates
 

@@ -208,6 +208,13 @@ def raster(args):
     subprocess.run(command, check=True, **hidden_process_kwargs())
 
 
+def raster_approved_social(args):
+    """Use the pinned renderer for byte-bound, owner-approved social rasters."""
+    if not NODE or not os.path.isfile(RESVG):
+        raise RuntimeError("approved social PNGs require the pinned Node resvg renderer")
+    subprocess.run([NODE, RESVG] + args, check=True, **hidden_process_kwargs())
+
+
 def path_bbox(d):
     box = Path(d).bbox()
     if box is None:
@@ -274,7 +281,7 @@ def wordmark_outline(text, ttf, size=200, x_offset=0.0):
     for character in text:
         name = cmap.get(ord(character))
         if name is None:
-            continue
+            raise ValueError("font %s cannot outline U+%04X in text" % (ttf, ord(character)))
         pen = SVGPathPen(glyphs)
         transform = Transform(scale, 0, 0, -scale, x_offset + advance * scale, 0)
         glyphs[name].draw(TransformPen(pen, transform))
@@ -286,13 +293,13 @@ def wordmark_outline(text, ttf, size=200, x_offset=0.0):
 
 def main():
     spec_path, kit = sys.argv[1], sys.argv[2]
-    proof_stage_only = "--proof-stage-only" in sys.argv[3:]
-    provisional_review = "--provisional-review" in sys.argv[3:]
-    if provisional_review:
-        print("PROVISIONAL REVIEW: approval-bound continuity verification is deferred; output is not publishable")
+    options = sys.argv[3:]
+    if set(options) - {"--proof-stage-only"}:
+        raise ValueError("unsupported gen_logo option")
+    proof_stage_only = "--proof-stage-only" in options
     with open(spec_path, encoding="utf-8") as handle:
         brand = json.load(handle)
-    if not proof_stage_only and not provisional_review:
+    if not proof_stage_only:
         from identity_continuity import validate_continuity_report, write_continuity_report
 
         continuity_report = os.path.join(kit, "identity-continuity-report.json")
@@ -950,7 +957,8 @@ def main():
             with Image.open(output) as squared:
                 assert squared.size == (width, width), "%s is not square" % output
         else:
-            raster(["-w", str(width), source, "-o", output])
+            args = ["-w", str(width), source, "-o", output]
+            (raster_approved_social if "social-image" in filename else raster)(args)
         assert_visible_raster(output)
         svg_record = svg_records[filename]
         png_record = dict(svg_record)

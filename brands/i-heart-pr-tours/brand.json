@@ -38,7 +38,7 @@
         "wordmark-only": "No standalone wordmark source exists in the approved package."
       },
       "derivative_config_sha256": "467bdbdd790721c2968df37881f4df2b95f90caaeded74b99184d05ce5c411cb",
-      "canonical_source_sha256": "c9220a6fb404350b25b8594f96fb7f3fc41e32db986d7cb4bec06fc36ed081a4"
+      "canonical_source_sha256": "a4e41e93dc1df76bef76754eda6cead0502f294663dbdf292319c1566c877cdd"
     },
     "gate_2": {
       "status": "approved",

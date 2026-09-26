@@ -300,10 +300,18 @@ class PipelineTests(unittest.TestCase):
                 sys.argv = ["gen_logo.py", str(brand_path), str(kit)]
                 with self.assertRaisesRegex(ContinuityError, "snapshot drift"):
                     gen_logo.main()
+                sys.argv = ["gen_logo.py", str(brand_path), str(kit), "--provisional-review"]
+                with self.assertRaisesRegex(ValueError, "unsupported gen_logo option"):
+                    gen_logo.main()
                 sys.argv = ["gen_logo.py", str(brand_path), str(kit), "--proof-stage-only"]
                 self.assertEqual(0, gen_logo.main())
             finally:
                 sys.argv = old_argv
+
+    def test_outline_rejects_missing_glyphs_in_approved_copy(self):
+        font = ROOT / "assets" / "fonts" / "ttf" / "SpaceGrotesk-Bold.ttf"
+        with self.assertRaisesRegex(ValueError, r"U\+10FFFF"):
+            gen_logo.wordmark_outline("Approved" + chr(0x10FFFF), str(font), 64)
 
     def test_identity_workflow_docs_preserve_the_two_approval_boundaries(self):
         skill = (ROOT / "skill" / "SKILL.md").read_text(encoding="utf-8")
@@ -627,8 +635,6 @@ class PipelineTests(unittest.TestCase):
                 old_argv = sys.argv
                 try:
                     args = ["gen_logo.py", str(kit / "brand.json"), str(kit)]
-                    if slug == "i-heart-pr-tours":
-                        args.append("--provisional-review")
                     sys.argv = args
                     self.assertEqual(0, gen_logo.main())
                 finally:

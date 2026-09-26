@@ -1282,6 +1282,7 @@ class SocialCopyTests(unittest.TestCase):
                 "svg_sha256": sha256_file(svg), "png_sha256": sha256_file(png),
             }
             social_image_approval(brand, kit)
+            brand["approval_ledger"] = {"gate_2": {"status": "approved", "derivative_manifest_sha256": "0" * 64}}
             png.write_bytes(b"changed raster")
             with self.assertRaisesRegex(ContractError, "stale"):
                 social_image_approval(brand, kit)

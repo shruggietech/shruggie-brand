@@ -40,3 +40,9 @@
 - [x] T019 Bind all eight assembled social images to owner-approved SVG and PNG digests; fail publication and verification when an ungoverned image changes.
 - [x] T020 Bind go-schedule's newly approved current mark to its exact identity snapshot without relabeling the historical migration as canonically approved.
 - [x] T021 Reject social description lines that exceed the measured canvas and keep the minimum-Python core test explicit about its unavailable optional raster renderer.
+
+## Phase 7: Second review corrections (2026-09-26)
+
+- [x] T022 Enforce exact assembled-image hashes without a Gate 2 semantic waiver and use the pinned renderer for production social PNG bytes.
+- [x] T023 Remove the newly introduced provisional generator bypass and keep proof staging on the existing internal path.
+- [x] T024 Reject missing font glyphs before outlining approved copy, then rerun the source-bound proofs and full publication gates.

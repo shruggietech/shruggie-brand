@@ -110,23 +110,14 @@ def social_image_approval(brand, kit=None, raster_required=True):
              "social_image_approval has invalid artifact digests")
     if kit is not None:
         slug = brand["slug"]
-        mismatches = []
         for suffix, expected in (("logos/svg/%s-social-image.svg" % slug, "svg_sha256"),
                                  ("logos/png/%s-social-image-1280.png" % slug, "png_sha256")):
             if not raster_required and expected == "png_sha256":
                 continue
             path = os.path.join(kit, suffix)
             _require(os.path.isfile(path), "social_image_approval is missing %s" % suffix)
-            if sha256_file(path) != value[expected]:
-                mismatches.append(suffix)
-        if mismatches:
-            gate_2 = ((brand.get("approval_ledger") or {}).get("gate_2") or {})
-            _require(gate_2.get("status") == "approved", "social_image_approval is stale for %s" % ", ".join(mismatches))
-            from verify import portable_gate_2_matches
-            approval_path = os.path.join(kit, "logos", "approval.json")
-            matched, reason = portable_gate_2_matches(kit, brand, approval_path,
-                                                       gate_2["derivative_manifest_sha256"])
-            _require(matched, "social_image_approval is stale for %s (%s)" % (", ".join(mismatches), reason))
+            _require(sha256_file(path) == value[expected],
+                     "social_image_approval is stale for %s" % suffix)
     return value
 
 
