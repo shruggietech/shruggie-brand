@@ -16,7 +16,7 @@ follows from it.
 | Prove the mark | `templates/validate_glyph.py` | a pass or a numbered failure |
 | Export | `rsvg-convert`, `resvg`, Inkscape, Node resvg, `oxipng`; ImageMagick only for ICO assembly | rasters derived from the vector master |
 
-Generated images are how the operator and the agent agree on direction. They are nonbinding input to a conversation. After direction selection, the agent builds clean production geometry and presents that exact source through the canonical approval packet before promotion or derivatives.
+Generated images are how the operator and the agent agree on direction. They are nonbinding input to a conversation, not an approval gate. After direction selection, the agent builds clean production geometry and presents that exact source through the Gate 1 canonical approval packet before promotion or derivatives. Gate 2 then reviews provisional assembled fundamentals, including the distinct social share image and exact approved copy, before final kit compilation. Silence is never approval at either gate.
 
 Never trace a diffusion output into shipped artwork. Never rasterise a large
 logo down at runtime to produce a favicon.
@@ -124,7 +124,7 @@ When the operator brings a logo idea:
    does not override any canon check.
 3. Rebuild the geometry on the declared grid. Trace output is a measuring
    tool.
-4. Show the rebuild next to the original at three sizes and ask whether the character survived. This selects a direction only.
+4. Show the rebuild next to the original at three sizes and discuss whether the character survived. This selects a direction only and does not constitute Gate 1 approval.
 5. Construct and present the complete production proof matrix before asking for canonical approval.
 
 ## Handling an authoritative supplied master

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 2.3.0 - 2026-09-25
+
+- Replaced the minimal-input interview with an adaptive, reusable brief and exactly two explicit creative approval stops: production logo source and assembled brand fundamentals before final kit compilation.
+- Required exact approved slogan and optional description choices in discovery and a distinct social-share preview in the provisional Gate 2 packet. Existing social-image source migration remains in #281.
+- Added a private brief and Gate 2 packet validator that checks explicit copy approval, complete review roles, contained files, and checksums before an operator reviews provisional output.
+- Existing approved kits require no asset migration. Authors should repin BrandBuilder 2.3.0 to adopt the revised workflow; approved logo geometry and Brand Canon 1.5.0 remain unchanged.
+
 ## 2.2.1 - 2026-09-25
 
 - Corrected the hosted homepage portfolio to use each brand's approved dark card surface and reduced-color mark, including the I Heart PR Tours heart. The brand's own light showcase and shipped logo geometry remain unchanged.

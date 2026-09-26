@@ -4,6 +4,18 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-25
+
+### Changed
+
+- Replaced minimal-input brand authoring with an adaptive brief that retains supplied facts, constraints, proposals, unresolved choices, and exact social-copy decisions. The skill and hosted manual now require only two explicit creative approvals: production logo source, then assembled fundamentals before final kit compilation.
+- Updated the generated agent entry point, logo protocol, and continuity guidance to reject silent approval and to distinguish provisional social-image review from wide and stacked lockups. Existing approved brand sources and generated social assets are unchanged pending #281.
+- Added a private authoring-brief and Gate 2 packet validator that rejects missing or stale evidence, unresolved social copy, and public projection during review.
+
+### Decisions
+
+- On 2026-09-25, advanced BrandBuilder and the hosted site to 2.3.0 for a changed authoring workflow while leaving Brand Canon and approved geometry unchanged. Existing kits need no asset migration; authors should repin the skill to adopt the new interview and approval guidance.
+
 ## [2.2.1] - 2026-09-25
 
 ### Fixed

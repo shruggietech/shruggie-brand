@@ -92,6 +92,12 @@ MIGRATIONS = {
         "repinning 2.2.1 packages should retain their exact checksummed recovery bytes. Approved logo "
         "geometry, palette values, and adapter APIs remain unchanged."
     ),
+    "2.3.0": (
+        "Existing kits need migration: **no asset migration**. Brand authors should repin the "
+        "2.3.0 skill to adopt the adaptive brief, exact social-copy discovery, and two explicit "
+        "creative approval stops. Existing approved logo geometry, Brand Canon 1.5.0, and adapter "
+        "APIs remain unchanged. The generated social-image migration is tracked separately in #281."
+    ),
 }
 
 
