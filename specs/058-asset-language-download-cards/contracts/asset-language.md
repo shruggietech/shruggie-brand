@@ -1,0 +1,9 @@
+# Asset Language and Downloads Contract
+
+1. The canonical identity tuple is `(purpose, form, layout, treatment, background, surface, ink, platform, platform-role, source-variant)` with explicit `none` values where an axis does not apply. `size` and `format` identify deliveries, not designs.
+2. Public labels use ordinary terms without repeating synonyms. `Wide logo lockup`, `Stacked logo lockup`, and `Social share image` are distinct. `Full color` and `monochrome` describe artwork; `clear`, `light`, and `dark` describe background; `black` and `white` describe ink.
+3. A preferred filename uses lowercase hyphenated terms in role, layout, detail where applicable, treatment, background, optional ink, intended surface, size, and format order. Original approved files keep their paths and Gate 2 status; preferred names are additional publication aliases.
+4. The generated old-to-new map identifies exact paths, SHA-256 digests, semantic axes, and titles. Each preferred alias is byte-identical to its approved source; a mismatch or missing path fails verification.
+5. Hosted `portal.json` and portable HTML receive one card per design identity. A card contains size/format renditions and true aliases only. Title, hint, preview, search terms, and file list refer to that identity.
+6. When the web icon generator reuses a rendered image at several size-specific delivery roles, favicon, touch, and installable files of the same source variant share one `web-icon` card. Delivery roles and destinations remain individually visible. Maskable artwork and full/reduced source variants stay separate. The card face uses vector artwork when present or a bounded sharp raster as specified in the data model.
+7. The main glossary provides stable anchors. Brand guides give first-use meaning and a local offline explanation plus a hosted glossary link. Existing guideline page routes remain unchanged.

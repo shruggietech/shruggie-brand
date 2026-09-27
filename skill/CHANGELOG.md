@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.5.0 - 2026-09-26
+
+- Added one shared asset language for form, layout, detail, color treatment, transparent background, intended viewing surface, and monochrome ink.
+- Published byte-identical descriptive aliases for approved logo derivatives, with exact old-to-new mapping and verification; retained approved provenance and direct paths.
+- Separated distinct designs into individual hosted and portable download cards. Brand Canon 1.6.0, approved geometry, and adapter APIs remain unchanged; repin generated kits to adopt BrandBuilder 2.5.0 output.
+
 ## 2.4.0 - 2026-09-25
 
 - Promoted the exact existing go-schedule reduced path elements into the primary mark role and updated current lockups, icons, and identity guidance without redrawing paths.

@@ -140,6 +140,24 @@ const expectedBrandNavigation = [
   ['typography', 'Typography', 'Identity', 2], ['components', 'Components', 'Components', 0], ['assets', 'Assets', 'Assets', 0], ['integration', 'Integration', 'Integration', 0],
 ];
 for (const portal of guidelinePortals) {
+  const visualAssets = portal.asset_families.flatMap((family) => family.assets).filter((asset) => asset.design);
+  if (new Set(visualAssets.map((asset) => asset.id)).size !== visualAssets.length) throw new Error(`${portal.brand.slug} repeats a design card`);
+  for (const form of ['social-image', 'lockup']) if (!visualAssets.some((asset) => asset.design.form === form)) throw new Error(`${portal.brand.slug} lacks ${form} card`);
+  for (const layout of ['wide', 'stacked']) if (!visualAssets.some((asset) => asset.design.form === 'lockup' && asset.design.layout === layout)) throw new Error(`${portal.brand.slug} lacks ${layout} lockup card`);
+  const reusedWebIcon = visualAssets.find((asset) => asset.design.platform_role === 'web-icon' && ['favicon', 'apple-touch', 'installable'].every((role) => asset.deliveries.some((delivery) => delivery.role === role)));
+  if (!reusedWebIcon) throw new Error(`${portal.brand.slug} splits reused web artwork across cards`);
+  if (![180, 192].every((size) => reusedWebIcon.deliveries.some((delivery) => delivery.width === size))) throw new Error(`${portal.brand.slug} omits web icon size options`);
+  if (portal.brand.slug === 'i-heart-pr-tours') {
+    if (reusedWebIcon.title !== 'Web icon, supplied artwork' || reusedWebIcon.preview.format !== 'png' || reusedWebIcon.preview.width !== 192) throw new Error('I Heart PR Tours supplied web icon card does not use its sharpest approved face');
+  } else if (!reusedWebIcon.deliveries.some((delivery) => delivery.width === 512) || reusedWebIcon.preview.format !== 'svg') throw new Error(`${portal.brand.slug} does not use a scalable web icon face with its large size option`);
+  if (portal.brand.slug === 'i-heart-pr-tours' && visualAssets.some((asset) => asset.design.form === 'wordmark')) throw new Error('I Heart PR Tours has an invented standalone wordmark card');
+  for (const asset of visualAssets) {
+    if (!asset.title || !asset.summary || !asset.search_terms || !asset.preview.url) throw new Error(`${portal.brand.slug} has an incomplete asset card`);
+    for (const delivery of asset.deliveries) {
+      if (!delivery.url || !delivery.sha256) throw new Error(`${portal.brand.slug} has an incomplete download`);
+      if (delivery.preferred && !asset.deliveries.some((source) => source.path === delivery.alias_of && source.sha256 === delivery.sha256)) throw new Error(`${portal.brand.slug} has an unbound descriptive alias`);
+    }
+  }
   const actual = portal.topics.map(({ key, label, section, order }) => [key, label, section, order]);
   const expected = [...expectedBrandNavigation];
   if (portal.brand.slug === 'i-heart-pr-tours') expected.splice(6, 0, ['expressions', 'Expressions', 'Identity', 3]);
@@ -183,7 +201,7 @@ for (const portal of guidelinePortals) {
 }
 if (!topicContentSource.includes('<ColorReference') || !colorReferenceSource.includes('roles.identity.map') || !colorReferenceSource.includes('roles.identity_combinations.map') || !colorReferenceSource.includes('<CueRows')) throw new Error('hosted color guide does not render formal and interface roles');
 const expectedDocumentationNavigation = [
-  ['Overview', 'Overview', '/docs/'], ['Foundation', 'Contract', '/docs/00-variance-contract/'], ['Foundation', 'Kit', '/docs/02-kit-anatomy/'],
+  ['Overview', 'Overview', '/docs/'], ['Foundation', 'Contract', '/docs/00-variance-contract/'], ['Foundation', 'Kit', '/docs/02-kit-anatomy/'], ['Foundation', 'Assets', '/docs/asset-glossary/'],
   ['Discovery', 'Interview', '/docs/03-interview/'], ['Identity', 'Logo', '/docs/06-logo-protocol/'], ['Identity', 'Glyphs', '/docs/08-glyph-construction/'],
   ['Identity', 'Continuity', '/docs/identity-continuity/'], ['Identity', 'Voice', '/docs/07-voice/'], ['Implementation', 'Toolchain', '/docs/04-toolchain/'], ['Implementation', 'shadcn', '/docs/05-shadcn-binding/'],
   ['Implementation', 'Portability', '/docs/09-portability/'], ['Implementation', 'Modes', '/docs/operating-modes/'],
@@ -191,7 +209,7 @@ const expectedDocumentationNavigation = [
   ['System', 'Verification', '/docs/12-verification-versioning/'], ['System', 'Agents', '/docs/13-agent-integration/'],
 ];
 if (JSON.stringify(documentation.map((record) => [record.navigation.section, record.navigation.label, record.navigation.path])) !== JSON.stringify(expectedDocumentationNavigation)) throw new Error('documentation hierarchy differs from the approved contract');
-if (JSON.stringify([...documentation].sort((left, right) => left.navigation.paginationOrder - right.navigation.paginationOrder).map((record) => record.slug)) !== JSON.stringify(['index', '00-variance-contract', '02-kit-anatomy', '03-interview', '06-logo-protocol', '08-glyph-construction', 'identity-continuity', '07-voice', '04-toolchain', '05-shadcn-binding', '09-portability', 'operating-modes', '10-system-architecture', '11-interface-implementation', '12-verification-versioning', '13-agent-integration'])) throw new Error('documentation pagination no longer preserves the governed sequence');
+if (JSON.stringify([...documentation].sort((left, right) => left.navigation.paginationOrder - right.navigation.paginationOrder).map((record) => record.slug)) !== JSON.stringify(['index', '00-variance-contract', '02-kit-anatomy', 'asset-glossary', '03-interview', '06-logo-protocol', '08-glyph-construction', 'identity-continuity', '07-voice', '04-toolchain', '05-shadcn-binding', '09-portability', 'operating-modes', '10-system-architecture', '11-interface-implementation', '12-verification-versioning', '13-agent-integration'])) throw new Error('documentation pagination no longer preserves the governed sequence');
 if (!guidelineLayoutSource.includes('tree={guidelineTree(portal)}') || !guidelinePageSource.includes('<GuidelineNoScriptNav')) throw new Error('brand routes do not share the generated hierarchy and no-script fallback');
 if (!documentationLayoutSource.includes('tree={documentationTree()}') || !noScriptHierarchySource.includes('DocumentationNoScriptNav')) throw new Error('documentation routes do not share the generated hierarchy and no-script fallback');
 if (!documentationTreeSource.includes("type: 'folder' as const") || !documentationTreeSource.includes('paginationOrder') || !noScriptHierarchySource.includes('<ul>') || !noScriptHierarchySource.includes('aria-current=') || !globalStyles.includes(".hierarchy-noscript-nav a[aria-current='page']")) throw new Error('grouped navigation lacks semantic nested structure, stable pagination, or a visibly styled no-script current state');

@@ -326,7 +326,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             ] if v), type_["display_regular"], A, B.get("brand_idea", title), _personality(B)), 2))
 
     pages.append(pg("Logo system", "Marks and lockups",
-        '<p>%s</p><div class="card" style="text-align:center;padding:9mm 4mm;margin:4mm 0">%s</div>'
+        '<p>%s Mark means symbol; wide and stacked lockups are separate. Clear means transparent; light and dark name the viewing surface. See Asset Language in the main manual.</p><div class="card" style="text-align:center;padding:9mm 4mm;margin:4mm 0">%s</div>'
         '<div class="two"><div><h3 style="margin-top:0">Clear space</h3>'
         '<p class="dim">One clear-space unit on every side: %d units on the %d × %d canvas, '
         '%.1f percent of artwork width. No text, border, icon or crop enters that band.</p></div>'

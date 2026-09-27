@@ -105,6 +105,12 @@ MIGRATIONS = {
         "social-image masters and upload-ready PNGs, with legacy social-preview links retained. "
         "The hosted brand landing metadata now consumes exact kit image bytes. Adapter APIs are unchanged."
     ),
+    "2.5.0": (
+        "Existing kits need migration: **yes to adopt descriptive asset names and distinct download cards**. "
+        "Regenerate and repin each kit with exact checksums. Existing approved derivative and platform "
+        "paths remain available with unchanged bytes; logos/asset-aliases.json maps them to descriptive "
+        "publication copies. Brand source geometry, Brand Canon 1.6.0, and adapter APIs are unchanged."
+    ),
 }
 
 

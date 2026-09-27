@@ -3,6 +3,8 @@
 Build the same kit from the same source on Claude, Codex, and a bare checkout.
 Probe local capabilities first and record explicit skips for optional renderers.
 
+For asset handoff, use the [Asset Language](/docs/asset-glossary/) terms and `logos/asset-aliases.json`: preferred descriptive names and approved original paths deliver identical bytes. Keep the original paths when migrating consumers that pin direct asset URLs.
+
 ## The capability model
 
 Do not assume. Probe once, at the start, and record what you found:

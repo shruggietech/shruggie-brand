@@ -269,36 +269,36 @@ class ReleaseContractTests(unittest.TestCase):
             self.assertEqual("Repository owner via S016 approval", inputs[input_id]["mask_approved_by"])
             self.assertEqual("2026-09-07", inputs[input_id]["mask_approved_on"])
 
-    def test_repository_metadata_and_notes_agree_for_2_4_0(self):
-        metadata = release_contract.load_metadata(ROOT, "2.4.0")
+    def test_repository_metadata_and_notes_agree_for_2_5_0(self):
+        metadata = release_contract.load_metadata(ROOT, "2.5.0")
         notes = release_contract.render_notes(metadata)
 
-        self.assertEqual(metadata["skill_version"], "2.4.0")
+        self.assertEqual(metadata["skill_version"], "2.5.0")
         self.assertEqual(metadata["canon_version"], "1.6.0")
-        self.assertEqual(metadata["site_version"], "2.4.0")
-        self.assertEqual(release_contract.current_version(ROOT), "2.4.0")
-        self.assertIn("Skill version: `2.4.0`", notes)
+        self.assertEqual(metadata["site_version"], "2.5.0")
+        self.assertEqual(release_contract.current_version(ROOT), "2.5.0")
+        self.assertIn("Skill version: `2.5.0`", notes)
         self.assertIn("Canon version: `1.6.0`", notes)
         self.assertIn("Existing kits need migration: **yes", notes)
-        self.assertIn("social image", notes)
+        self.assertIn("descriptive asset names", notes)
         self.assertIn("## Governed release impact", notes)
-        self.assertIn("approved identity redesign", notes)
-        self.assertIn("Go Schedule", notes)
+        self.assertIn("unchanged", notes)
+        self.assertIn("download cards", notes)
         self.assertNotIn("## [Unreleased]", notes)
 
     def test_expected_assets_are_exact_and_use_embedded_brand_versions(self):
-        metadata = release_contract.load_metadata(ROOT, "2.4.0")
+        metadata = release_contract.load_metadata(ROOT, "2.5.0")
 
         self.assertEqual(set(release_contract.expected_assets(metadata)), {
-            "shruggie-brandbuilder-2.4.0.skill",
-            "shruggie-brandbuilder-2.4.0-portable.zip",
-            "shruggietech-brand-1.1.0-bb2.4.0.zip",
-            "fragcap-brand-1.2.0-bb2.4.0.zip",
-            "go-schedule-brand-2.0.0-bb2.4.0.zip",
-            "glitchpad-brand-1.2.0-bb2.4.0.zip",
-            "covarity-brand-1.1.0-bb2.4.0.zip",
-            "eso-weave-brand-1.1.0-bb2.4.0.zip",
-            "cueson-brand-1.1.0-bb2.4.0.zip",
+            "shruggie-brandbuilder-2.5.0.skill",
+            "shruggie-brandbuilder-2.5.0-portable.zip",
+            "shruggietech-brand-1.1.0-bb2.5.0.zip",
+            "fragcap-brand-1.2.0-bb2.5.0.zip",
+            "go-schedule-brand-2.0.0-bb2.5.0.zip",
+            "glitchpad-brand-1.2.0-bb2.5.0.zip",
+            "covarity-brand-1.1.0-bb2.5.0.zip",
+            "eso-weave-brand-1.1.0-bb2.5.0.zip",
+            "cueson-brand-1.1.0-bb2.5.0.zip",
         })
         self.assertEqual(
             {slug: values["version"] for slug, values in metadata["brands"].items()},
@@ -357,9 +357,9 @@ class ReleaseContractTests(unittest.TestCase):
             release_contract, "read_text", side_effect=read_with_stale_site
         ):
             with self.assertRaisesRegex(
-                ValueError, "site package version 1.1.2 does not match release 2.4.0"
+                ValueError, "site package version 1.1.2 does not match release 2.5.0"
             ):
-                release_contract.load_metadata(ROOT, "2.4.0")
+                release_contract.load_metadata(ROOT, "2.5.0")
 
     def test_compiler_release_and_brand_canon_versions_can_diverge(self):
         original_read_text = release_contract.read_text
@@ -381,10 +381,10 @@ class ReleaseContractTests(unittest.TestCase):
         with mock.patch.object(
             release_contract, "read_text", side_effect=read_with_supported_older_canon
         ):
-            metadata = release_contract.load_metadata(ROOT, "2.4.0")
-            self.assertEqual("2.4.0", metadata["skill_version"])
+            metadata = release_contract.load_metadata(ROOT, "2.5.0")
+            self.assertEqual("2.5.0", metadata["skill_version"])
             self.assertEqual("1.2.0", metadata["canon_version"])
-            self.assertEqual("2.4.0", release_contract.current_version(ROOT))
+            self.assertEqual("2.5.0", release_contract.current_version(ROOT))
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:

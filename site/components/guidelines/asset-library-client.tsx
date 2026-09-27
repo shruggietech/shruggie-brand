@@ -31,7 +31,7 @@ export function AssetLibraryClient({ families, resources }: { families: AssetFam
   const visible = useMemo(() => families.map((family) => ({
     ...family,
     assets: family.assets.filter((asset) => {
-      const haystack = `${family.title} ${asset.title} ${asset.summary} ${asset.role} ${asset.platform} ${asset.appearance} ${asset.formats.join(' ')} ${asset.deliveries.map((item) => item.path).join(' ')}`.toLowerCase();
+      const haystack = `${family.title} ${asset.title} ${asset.summary} ${asset.search_terms ?? ''} ${asset.role} ${asset.platform} ${asset.appearance} ${asset.formats.join(' ')} ${asset.deliveries.map((item) => item.path).join(' ')}`.toLowerCase();
       return (!query || haystack.includes(query.toLowerCase())) && (!filters.family || family.key === filters.family) && (!filters.platform || asset.platform === filters.platform) && (!filters.appearance || asset.appearance === filters.appearance) && (!filters.role || asset.role === filters.role) && (!filters.format || asset.formats.includes(filters.format));
     }),
   })).filter((family) => family.assets.length), [families, filters, query]);
@@ -52,7 +52,7 @@ export function AssetLibraryClient({ families, resources }: { families: AssetFam
         <div className="asset-summary"><h3>{asset.title}</h3><p>{asset.summary}</p><p className="asset-variants">{asset.formats.map((item) => item.toUpperCase()).join(', ')} · {asset.variants.join(', ')}</p>
           {asset.usage && <p><strong>Use:</strong> {asset.usage.use} <strong>Avoid:</strong> {asset.usage.avoid}</p>}
           {asset.credit && <p><strong>Credit:</strong> {asset.credit.attribution} · <strong>License:</strong> {asset.credit.license}</p>}
-          <details><summary>View {asset.deliveries.length} {asset.deliveries.length === 1 ? 'delivery' : 'deliveries'}</summary><ul className="delivery-list">{asset.deliveries.map((delivery) => <li key={delivery.path}><a data-kit-asset href={delivery.url}>{delivery.path.split('/').at(-1)}</a><span>{[delivery.format.toUpperCase(), delivery.width && delivery.height ? `${delivery.width} × ${delivery.height}` : delivery.embedded_sizes?.length ? `${delivery.embedded_sizes.join(', ')} px embedded` : null, delivery.destination].filter(Boolean).join(' · ')}</span><code>{delivery.path}</code></li>)}</ul></details>
+          <details><summary>View {asset.deliveries.length} {asset.deliveries.length === 1 ? 'delivery' : 'deliveries'}</summary><ul className="delivery-list">{asset.deliveries.map((delivery) => <li key={delivery.path}><a data-kit-asset href={delivery.url}>{delivery.path.split('/').at(-1)}</a><span>{[delivery.preferred ? 'Preferred name' : delivery.alias_of ? 'Existing alias' : 'Existing path', delivery.format.toUpperCase(), delivery.width && delivery.height ? `${delivery.width} × ${delivery.height}` : delivery.embedded_sizes?.length ? `${delivery.embedded_sizes.join(', ')} px embedded` : null, delivery.destination].filter(Boolean).join(' · ')}</span><code>{delivery.path}</code></li>)}</ul></details>
         </div>
       </article>)}</div>
     </section>)}

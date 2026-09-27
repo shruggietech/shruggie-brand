@@ -4,6 +4,21 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-09-26
+
+### Changed
+
+- Added a shared asset glossary, semantic design labels, and one download card per distinct form, layout, treatment, and platform destination across hosted and portable guides.
+- Added descriptive logo file aliases and `logos/asset-aliases.json` with exact byte and path verification. Existing approved derivative and direct download paths remain available unchanged.
+- Advanced BrandBuilder and site to 2.5.0. Regenerate and repin kits to adopt the new names and catalog; approved identity geometry, Brand Canon 1.6.0, and adapter APIs remain unchanged.
+
+### Decisions
+
+- On 2026-09-26, retained the Gate 2 approved derivative paths and bytes while adding descriptive, byte-identical publication aliases and a semantic companion map. Existing pinned paths remain valid; consumers can adopt the clearer names when they repin.
+- On 2026-09-26, the owner clarified that a card's options must contain size variants of its face artwork. The catalog groups reused web icon artwork across favicon, touch, and installable delivery roles only when source variant matches, and uses an SVG or appropriately sized raster on the card face.
+- On 2026-09-26, placed the new asset glossary after Kit Anatomy in the main manual's reading order and kept existing page routes stable. The browser verifier now checks the new pagination neighbors and derives no-script navigation coverage from the generated inventory.
+- On 2026-09-26, separated icon file background from intended viewing surface: transparent icon files are clear, plated files are opaque, and light/dark placement remains its own label. This prevents opaque default icons from carrying false clear-background metadata.
+
 ## [2.4.0] - 2026-09-25
 
 ### Changed

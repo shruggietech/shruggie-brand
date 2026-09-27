@@ -31,8 +31,8 @@ class DocumentationContractTests(unittest.TestCase):
         contract = load_documentation_contract()
         validate_json_schema(contract, read_json(ROOT / "skill" / "references" / "documentation-contract.schema.json"))
         pages = manual_catalog(contract)
-        self.assertEqual(15, len(pages))
-        self.assertEqual(list(range(1, 16)), [page["pagination_order"] for page in pages])
+        self.assertEqual(16, len(pages))
+        self.assertEqual(list(range(1, 17)), [page["pagination_order"] for page in pages])
         self.assertEqual(set(contract["required_topics"]), {topic for page in pages for topic in page["topics"]})
 
     def test_unlisted_source_duplicate_navigation_and_missing_topic_fail_closed(self):

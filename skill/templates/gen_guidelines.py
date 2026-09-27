@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
 from brand_contract import affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
 from color_roles import load_color_roles
+from asset_language import ALIAS_INDEX, describe, design_id, design_key, write_aliases, validate_aliases
 
 
 def role_reference_html(roles):
@@ -70,28 +71,36 @@ def color_reference(token, value):
         "print": "CMYK: output profile required",
     }
 
+def _card_preview(rows):
+    """Use a vector when available, otherwise the smallest sharp card-sized raster."""
+    vectors = [item for item in rows if item.get("format") == "svg"]
+    if vectors:
+        return max(vectors, key=lambda item: (bool(item.get("preferred")),
+                                              not bool(item.get("alias_of")), item["path"]))
+    rasters = [item for item in rows if item.get("format") == "png"]
+    if rasters:
+        # The card image is at most 9.5rem tall; 320 pixels covers a 2x display.
+        adequate = [item for item in rasters if min(int(item.get("width") or 0),
+                                                     int(item.get("height") or 0)) >= 320]
+        candidates = adequate or rasters
+        area = lambda item: int(item.get("width") or 0) * int(item.get("height") or 0)
+        target_area = min(map(area, candidates)) if adequate else max(map(area, candidates))
+        return max((item for item in candidates if area(item) == target_area),
+                   key=lambda item: (bool(item.get("preferred")),
+                                     not bool(item.get("alias_of")), item["path"]))
+    return max(rows, key=lambda item: item["path"])
+
+
 def group_asset_deliveries(deliveries):
     grouped = {}
     for item in deliveries:
-        visual_role = item.get("role")
-        if item.get("platform") == "apple-macos" and visual_role in {"asset-catalog-icon", "iconset-icon"}:
-            visual_role = "app-icon"
-        if item.get("platform") == "web" and visual_role in {"favicon", "apple-touch", "installable"}:
-            visual_role = "web-icon"
-        normalized = dict(item); normalized["role"] = visual_role
-        key = tuple(item.get(field) or "default" for field in
-                    ("family", "platform", "kind", "variant", "colourway")) + (
-                        normalized.get("role") or "default", item.get("appearance") or "default",
-                        item.get("source_variant") or "default")
+        key = design_key(item)
         grouped.setdefault(key, []).append(item)
     result = []
     for key, rows in grouped.items():
         rows.sort(key=lambda item: item["path"])
-        previews = [item for item in rows if item.get("format") in {"svg", "png"}]
-        representative = max(previews or rows, key=lambda item: (
-            not item.get("alias_of"), item.get("format") == "svg",
-            int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
-        result.append({"id": "asset-" + re.sub(r"[^a-z0-9]+", "-", "-".join(key).lower()).strip("-"),
+        representative = _card_preview(rows)
+        result.append({"id": design_id(representative),
                        "key": key, "representative": representative, "deliveries": rows})
     return sorted(result, key=lambda item: item["id"])
 
@@ -132,7 +141,10 @@ def portal_assets(deliveries, kit=None):
     for group in group_asset_deliveries(deliveries):
         previews = [item for item in group["deliveries"] if item.get("format") in visual]
         nonvisual = [item for item in group["deliveries"] if item.get("format") not in visual]
+        card_containers = [item for item in nonvisual if item.get("format") in {"ico", "icns"}] if previews else []
         for item in nonvisual:
+            if item in card_containers:
+                continue
             resources.append({
                 **_delivery_record(item, kit),
                 "id": "resource-" + re.sub(r"[^a-z0-9]+", "-", item["path"].lower()).strip("-"),
@@ -142,7 +154,7 @@ def portal_assets(deliveries, kit=None):
             })
         if not previews:
             continue
-        representative = max(previews, key=lambda item: (not item.get("alias_of"), item.get("format") == "svg", int(item.get("width") or 0) * int(item.get("height") or 0), item["path"]))
+        representative = group["representative"]
         family_key = _asset_family(representative)
         family = families.setdefault(family_key, {
             "key": family_key,
@@ -150,16 +162,25 @@ def portal_assets(deliveries, kit=None):
             "summary": "Choose by purpose, then open details for every delivered size and format.",
             "assets": [],
         })
-        records = [_delivery_record(item, kit) for item in previews]
-        title_parts = [representative.get("kind"), representative.get("variant"), representative.get("role"), representative.get("appearance") or representative.get("colourway")]
-        title = _humanize(" ".join(str(part) for part in title_parts if part and part != "default")) or _humanize(Path(representative["path"]).stem)
+        records = [_delivery_record(item, kit) for item in previews + card_containers]
+        language = describe(representative)
+        title = language["title"]
+        roles = {str(item.get("role") or "") for item in records}
+        if language["platform_role"] == "web-icon":
+            use = ", ".join(label for role, label in (("favicon", "browser favicon"),
+                                                      ("apple-touch", "touch icon"),
+                                                      ("installable", "installable web app icon")) if role in roles)
+        else:
+            use = language["usage"].lower()
         family["assets"].append({
             "id": group["id"], "title": title,
-            "role": representative.get("role") or representative.get("kind") or "asset",
+            "role": language["platform_role"] if language["platform_role"] == "web-icon" else representative.get("role") or representative.get("kind") or "asset",
             "platform": representative.get("platform") or "identity",
             "appearance": representative.get("appearance") or representative.get("colourway") or "default",
-            "surface": "light" if representative.get("colourway") in {"light", "black"} or representative.get("appearance") in {"light", "tinted", "light-unplated"} else "dark",
-            "summary": "Use this %s for %s." % (_humanize(representative.get("role") or representative.get("kind") or "asset").lower(), str(representative.get("destination") or "its declared destination").lower()),
+            "surface": language["surface"] if language["surface"] != "none" else _preview_surface(kit, representative) if kit else "dark",
+            "summary": "For %s. %s" % (use, "Place on a %s surface." % language["surface"] if language["surface"] != "none" else "Use the listed platform destination."),
+            "design": {axis: language[axis] for axis in ("purpose", "form", "layout", "treatment", "background", "surface", "ink", "platform_role")},
+            "search_terms": " ".join([title, use, representative.get("platform") or ""] + sorted(roles)),
             "formats": sorted({item["format"] for item in records}),
             "variants": sorted({str(item.get("source_variant") or item.get("variant") or "default") for item in records}),
             "preview": _delivery_record(representative, kit), "deliveries": records,
@@ -282,6 +303,22 @@ def asset_deliveries(kit):
                      "source_variant": item["variant"], "format": path.suffix[1:], "width": width, "height": height,
                      "destination": "Social sharing" if item["kind"] == "social-image" else "Brand identity",
                      "alias_of": item.get("alias_of"), "path": item["path"]})
+    alias_index = Path(kit, ALIAS_INDEX)
+    if alias_index.is_file():
+        mapping = json.loads(alias_index.read_text(encoding="utf-8"))
+        errors = validate_aliases(kit, provenance["derivatives"], mapping)
+        if errors:
+            raise ValueError("invalid descriptive aliases: " + "; ".join(errors))
+        by_source = {item["path"]: item for item in rows}
+        seen = set()
+        for alias in mapping["aliases"]:
+            preferred = alias["preferred_path"]
+            if preferred in seen:
+                continue
+            seen.add(preferred)
+            row = dict(by_source[alias["source_path"]])
+            row.update(path=preferred, alias_of=alias["source_path"], preferred=True)
+            rows.append(row)
     icons = json.loads(Path(kit, "icons", "manifest.json").read_text(encoding="utf-8"))
     icon_rows = {}
     for item in icons["artifacts"]:
@@ -359,7 +396,7 @@ def _asset_catalog(kit, title):
     cards = []
     for group in groups:
         row = group["representative"]
-        label = " ".join(str(value) for value in group["key"] if value != "default").replace("-", " ").title()
+        label = describe(row)["title"]
         entries = []
         for item in group["deliveries"]:
             if item.get("width") and item.get("height"):
@@ -369,7 +406,7 @@ def _asset_catalog(kit, title):
             else:
                 size = "container or metadata"
             entries.append('<li><a data-kit-asset href="../%s">%s</a><span>%s · %s · %s · %s</span></li>' %
-                           (escape(item["path"], quote=True), escape(item["path"]), escape(str(item.get("role") or "asset")),
+                           (escape(item["path"], quote=True), escape(Path(item["path"]).name), "Preferred name" if item.get("preferred") else "Existing path",
                             size, item["format"].upper(),
                             escape(str(item.get("destination") or "Kit delivery"))))
         light_surface = _preview_surface(kit, row) == "light"
@@ -628,6 +665,7 @@ reading surface and is never text there. The light block substitutes <code>%(AL)
 </section>
 
 <section id="assets"><div class="eyebrow">Delivery</div><h2>Complete asset catalog</h2>
+<p class="lead">A brand mark is the symbol alone; a logo lockup combines approved elements. Wide and stacked layouts are separate designs. Full and reduced identify source detail. Full color or monochrome identifies ink treatment. A clear background is transparent; for light or dark names the intended viewing surface. Social share images are separate opaque compositions. Preferred descriptive filenames and existing paths contain the same approved artwork. <a href="https://brand.shruggie.tech/docs/asset-glossary/">Full asset glossary</a>.</p>
 <p class="lead">Canvas %(canvas_width)d × %(canvas_height)d units, clear space %(cs)d units (%(cspct).1f percent of artwork width).
 Below %(red)d px the reduced master takes over.</p>
 <h3>Fixed lockup proportions</h3>
@@ -688,6 +726,8 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument("brand"); ap.add_argument("kit")
     a = ap.parse_args()
     B = json.load(open(a.brand, encoding="utf-8"))
+    provenance = json.loads(Path(a.kit, "logos", "provenance.json").read_text(encoding="utf-8"))
+    write_aliases(a.kit, B["slug"], provenance["derivatives"])
     d = os.path.join(a.kit, "guidelines"); os.makedirs(d, exist_ok=True)
     p = os.path.join(d, "index.html")
     with open(p, "w", encoding="utf-8", newline="\n") as f: f.write(build(B, a.kit))

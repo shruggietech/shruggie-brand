@@ -338,10 +338,12 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
                  else _plated(mark, size, background, ratio, vertical_offset_ratio=offset))
         images[size] = image
         writer.png(root / ("favicon-%dx%d.png" % (size, size)), image, "web", "favicon", alpha="transparent" if transparent_web else "opaque", source_variant=variant, destination="Web root")
-    writer.png(root / "apple-touch-icon.png", images[180], "web", "apple-touch", alpha="transparent" if transparent_web else "opaque", destination="Web root")
+    writer.png(root / "apple-touch-icon.png", images[180], "web", "apple-touch", alpha="transparent" if transparent_web else "opaque",
+               source_variant="reduced" if 180 <= writer.profile["reduced_below_px"] else "full", destination="Web root")
     for size in (192, 512):
-        writer.png(root / ("android-chrome-%dx%d.png" % (size, size)), images[size], "web", "installable", alpha="transparent" if transparent_web else "opaque", destination="Web root")
         variant = "reduced" if size <= writer.profile["reduced_below_px"] else "full"
+        writer.png(root / ("android-chrome-%dx%d.png" % (size, size)), images[size], "web", "installable", alpha="transparent" if transparent_web else "opaque",
+                   source_variant=variant, destination="Web root")
         mark = reduced_mark if variant == "reduced" else full_mark
         maskable = _plated(mark, size, writer.profile.get("masked_background", background), min(ratio, 0.56))
         writer.png(root / ("maskable-icon-%dx%d.png" % (size, size)), maskable, "web", "maskable", alpha="opaque", source_variant=variant, destination="Web root")
