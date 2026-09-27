@@ -10,8 +10,9 @@ import shutil
 import sys
 import zipfile
 from pathlib import Path
+from xml.etree import ElementTree
 
-from brand_contract import _validate_svg, font_faces
+from brand_contract import font_faces
 from component_contract import load_component_catalog
 from interface_contract import resolve_interface_contract, skill_metadata
 
@@ -299,7 +300,12 @@ def generate_wordpress(brand_source, kit_path):
             require(source.read_bytes().startswith(b"\x89PNG\r\n\x1a\n"),
                     "WordPress approved raster asset is missing: %s" % filename)
         else:
-            _validate_svg(source)
+            try:
+                root_element = ElementTree.parse(str(source)).getroot()
+            except ElementTree.ParseError as error:
+                raise WordPressError("WordPress generated vector asset is invalid: %s" % filename) from error
+            require(root_element.tag == "{http://www.w3.org/2000/svg}svg",
+                    "WordPress generated vector asset is invalid: %s" % filename)
         destination = theme / "assets" / "images" / filename
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, destination)

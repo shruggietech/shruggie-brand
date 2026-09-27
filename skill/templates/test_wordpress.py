@@ -89,7 +89,8 @@ class WordPressGenerationTests(unittest.TestCase):
         (self.kit / "qc" / "probe.json").write_text('{"svg_raster": false}\n', encoding="utf-8")
         svg_dir = self.kit / "logos" / "svg"
         svg_dir.mkdir()
-        svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0h10v10H0z"/></svg>\n'
+        embedded = base64.b64encode(b'<svg xmlns="http://www.w3.org/2000/svg"/>').decode("ascii")
+        svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><image href="data:image/svg+xml;base64,%s"/></svg>\n' % embedded).encode("utf-8")
         for name in ("horizontal-black", "mark-black"):
             (svg_dir / ("go-schedule-%s.svg" % name)).write_bytes(svg)
         shutil.rmtree(self.kit / "logos" / "png")
