@@ -723,7 +723,8 @@ try {
           check(await page.locator(`a[href="${factsPath}"]`).count() === 1, `${route} omits the direct public facts link`);
           const factsResponse = await page.request.get(base + factsPath);
           check(factsResponse.ok() && JSON.stringify(await factsResponse.json()) === JSON.stringify(portal.implementation), `${route} public facts do not agree with the generated portal`);
-          check((await page.locator('#implementation-authority').innerText()).includes('default rules') || Object.keys(portal.implementation.rules.overrides).length > 0, `${route} does not explain its default interface rules`);
+          const ruleExplanation = await page.locator('section[aria-labelledby="implementation-authority"]').innerText();
+          check(Object.keys(portal.implementation.rules.overrides).length ? ruleExplanation.includes('default reference') : ruleExplanation.includes('default values'), `${route} does not explain its default interface rules`);
           const versionCells = await page.locator('section[aria-labelledby="versions-and-bindings"] .metric-list > div').evaluateAll((elements) => elements.map((element) => ({ top: element.getBoundingClientRect().top, valueBottom: element.querySelector('dd').getBoundingClientRect().bottom })));
           const firstVersionRow = versionCells.filter((cell) => Math.abs(cell.top - versionCells[0].top) <= 1);
           check(firstVersionRow.length >= 2 && Math.max(...firstVersionRow.map((cell) => cell.valueBottom)) - Math.min(...firstVersionRow.map((cell) => cell.valueBottom)) <= 1, `${route} version values lose row alignment`);

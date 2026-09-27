@@ -83,3 +83,7 @@ The source library was checked against official W3C, Android Developers, WordPre
 | PR CI and external reviews | Pending |
 
 The local full shadcn consumer install attempted npm registry requests and hit this host's restricted network (`EACCES`). Its eight-catalog and local-font inventory check passed. The required GitHub CI job remains the authoritative full consumer-install gate; it has not yet been reported as passed.
+
+## PR review follow-up
+
+First-round Codex review identified a browser assertion that selected the `Implementation authority` heading rather than its containing section. The verifier now reads the section and checks the text rendered for the actual default or override state. A static-export check confirmed all eight overview sections contain the default explanation; the complete browser suite and CI remain pending.
