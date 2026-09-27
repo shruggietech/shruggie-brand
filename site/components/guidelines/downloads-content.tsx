@@ -11,6 +11,7 @@ export function DownloadsContent({ brand, portal }: { brand: Brand; portal: Guid
     <li><a href={brand.kitArchive} download={brand.kitArchiveFilename}><strong>Complete brand kit</strong><span>Verified archive containing every distributable delivery</span></a></li>
     <li><a href={`${root}/${brand.slug}-brand-guide.pdf`}><strong>Brand guide</strong><span>PDF standards and usage guidance</span></a></li>
     <li><a href={brand.portableGuide}><strong>Portable guidelines</strong><span>Standalone HTML reference for offline use</span></a></li>
+    <li><a href={`${root}/wordpress/${brand.slug}-stbb-theme.zip`} download><strong>WordPress block theme</strong><span>Installable native Site Editor starter with local fonts, templates, and patterns. Review the WordPress handoff in the complete kit before replacing a theme.</span></a> <a href="/docs/wordpress/">Install and update guide</a></li>
     <li><a href={preferredLogo('mark') ?? `${root}/logos/svg/${brand.slug}-mark-color.svg`}><strong>Brand mark</strong><span>Full-color SVG for dark backgrounds</span></a></li>
     <li><a href={preferredLogo('lockup', 'wide') ?? `${root}/logos/svg/${brand.slug}-horizontal-color.svg`}><strong>Wide logo lockup</strong><span>Full-color SVG for dark backgrounds</span></a></li>
     <li><a href={`${root}/icons/manifest.json`}><strong>Application icon suites</strong><span>Web, Android, Apple, macOS, and Windows asset index</span></a></li>

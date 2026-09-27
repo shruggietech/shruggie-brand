@@ -32,6 +32,7 @@ import gen_nextjs
 import gen_enforcement
 import gen_web_react
 import gen_egui
+import gen_wordpress
 import gen_conformance
 import build_specimen
 import build_kit
@@ -41,6 +42,8 @@ import qc_images
 import qc_render
 import verify
 from brand_contract import sha256_file
+from color_roles import resolve_color_roles
+from interface_contract import load_brand_canon
 from capabilities import load_capabilities
 from iconkit import _write_ico, generate_icon_suites
 from process_utils import hidden_process_kwargs
@@ -144,6 +147,16 @@ class PipelineTests(unittest.TestCase):
             write_utf8(enforcement / "AGENTS.md", "# Local instructions\n\nKeep this human text.\n")
             gen_web_react.generate_web_react(kit / "brand.json", kit)
             gen_egui.generate_egui(kit / "brand.json", kit)
+            brand = json.loads((kit / "brand.json").read_text(encoding="utf-8"))
+            write_utf8(kit / "color-roles.json", json.dumps(resolve_color_roles(brand, load_brand_canon())))
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            logo_dir = kit / "logos" / "png"
+            logo_dir.mkdir(parents=True)
+            tiny_png = BytesIO()
+            Image.new("RGB", (1, 1), "black").save(tiny_png, format="PNG")
+            for form in ("horizontal-black", "mark-black"):
+                (logo_dir / ("shruggietech-%s-1024.png" % form)).write_bytes(tiny_png.getvalue())
+            gen_wordpress.generate_wordpress(kit / "brand.json", kit)
             old_argv = sys.argv
             try:
                 sys.argv = ["gen_enforcement.py", str(kit / "brand.json"), str(kit)]

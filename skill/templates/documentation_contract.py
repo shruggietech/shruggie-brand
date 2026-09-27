@@ -138,6 +138,9 @@ def build_documentation_facts(contract, consumer, kit):
             "web_support_matrix": authority["support_matrix"],
             "egui_adapter": authority["egui_adapter"],
             "egui_support_matrix": authority["egui_support_matrix"],
+            "wordpress_adapter": authority["wordpress_adapter"],
+            "wordpress_support_matrix": authority["wordpress_support_matrix"],
+            "wordpress_theme_zip": authority["wordpress_theme_zip"],
         },
         "rules": {
             "inheritance": (source_brand.get("affiliation") or {}).get("inheritance", "independent"),
@@ -167,6 +170,8 @@ def verify_documentation_facts(facts, contract, consumer, kit):
         "interface_canon": authority["interface_canon"], "component_recipes": authority["component_recipes"],
         "web_adapter": authority["web_adapter"], "web_support_matrix": authority["support_matrix"],
         "egui_adapter": authority["egui_adapter"], "egui_support_matrix": authority["egui_support_matrix"],
+        "wordpress_adapter": authority["wordpress_adapter"], "wordpress_support_matrix": authority["wordpress_support_matrix"],
+        "wordpress_theme_zip": authority["wordpress_theme_zip"],
     }
     _require(facts["bindings"] == expected_bindings, "documentation binding facts disagree")
     source_brand = _read_json(_safe_kit_file(kit, authority["brand_source"]))
@@ -191,7 +196,8 @@ def render_implementation(facts, governed_rules):
     rows = "\n".join("| %s | `%s` |" % (label, versions[key]) for key, label in (
         ("canon_version", "Brand Canon"), ("interface_canon_version", "Interface Canon"),
         ("component_recipe_version", "Component recipes"), ("web_react_adapter_version", "Web/React adapter"),
-        ("egui_adapter_version", "egui adapter"), ("compiler_version", "BrandBuilder"), ("brand_version", "Brand")))
+        ("egui_adapter_version", "egui adapter"), ("wordpress_adapter_version", "WordPress adapter"),
+        ("compiler_version", "BrandBuilder"), ("brand_version", "Brand")))
     bindings = "\n".join("- **%s:** `%s`" % (name.replace("_", " ").title(), path) for name, path in facts["bindings"].items())
     overrides = facts["rules"]["overrides"]
     inheritance = facts["rules"]["inheritance"]

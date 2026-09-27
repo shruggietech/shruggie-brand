@@ -670,6 +670,7 @@ def generate_egui(brand_path, kit_path):
         "component_recipes": resolved_catalog["version"],
         "web_react_adapter": metadata["web_react_adapter"],
         "egui_adapter": ADAPTER_VERSION,
+        "wordpress_adapter": metadata["wordpress_adapter"],
         "compiler": metadata["version"],
         "brand": brand.get("version", "1.0.0"),
     }
@@ -786,6 +787,7 @@ def verify_egui_adapter(kit_path):
             "component_recipes": manifest.get("component_recipe_version"),
             "web_react_adapter": metadata["web_react_adapter"],
             "egui_adapter": manifest.get("adapter_version"),
+            "wordpress_adapter": metadata["wordpress_adapter"],
             "compiler": manifest.get("compiler_version"),
             "brand": manifest.get("brand_version"),
         }

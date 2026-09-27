@@ -28,10 +28,18 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
     brand = {"slug": slug, "title": slug.title(), "version": version, "canon": canon}
     consumer_schema = (ROOT / "skill" / "references" / "consumer-contract.schema.json").read_bytes()
     policy = json.loads((ROOT / "skill" / "references" / "version-policy.json").read_text(encoding="utf-8"))
+    # Synthetic legacy fixtures exercise archive tampering, so extend only their
+    # embedded policy to cover the fixture's historical canon and recipe versions.
+    for rule in policy["compatibility_rules"]:
+        if rule["dependent"] == "wordpress_adapter":
+            fixture_version = {"brand_canon": canon, "interface_canon": "1.0.0",
+                               "component_recipes": "1.0.0"}[rule["dependency"]]
+            if fixture_version not in rule["supported"]:
+                rule["supported"].append(fixture_version)
     bundle_buffer = io.BytesIO()
     with zipfile.ZipFile(bundle_buffer, "w") as bundle:
         bundle.writestr("SOURCE_REVISION", "a" * 40 + "\n")
-        bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 2.0.0\n  canon: %s\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n" % canon)
+        bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 2.0.0\n  canon: %s\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n  wordpress-adapter: 1.0.0\n---\n" % canon)
         bundle.writestr("AGENTS.md", "instructions\n")
         bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
         bundle.writestr("references/component-recipes.json", json.dumps({"version": "1.0.0"}))
@@ -49,7 +57,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
     begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
     end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
     distribution = "enforcement/distributions/shruggie-brandbuilder-2.0.0.skill"
-    versions = {"brand_version": version, "canon_version": canon, "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0"}
+    versions = {"brand_version": version, "canon_version": canon, "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "wordpress_adapter_version": "1.0.0", "compiler_version": "2.0.0"}
     package = {"id": "%s-brand-%s-bb2.0.0" % (slug, version), "filename": "%s-brand-%s-bb2.0.0.zip" % (slug, version), "brand_slug": slug, "brand_version": version, "brandbuilder_version": "2.0.0"}
     kit_bundle = {"schema_version": 1, "package": package, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": None}}
     values = {
@@ -76,6 +84,9 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "native/egui/adapter.json": json.dumps({"adapter_version": "1.0.0", "component_recipe_version": "1.0.0"}).encode("utf-8"),
         "native/egui/Cargo.lock": b"# deterministic lockfile\n",
         "native/egui/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode("utf-8"),
+        "wordpress/adapter.json": json.dumps({"adapter_version": "1.0.0", "entries": {"zip": "wordpress/%s-stbb-theme.zip" % slug}}).encode("utf-8"),
+        "wordpress/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode("utf-8"),
+        "wordpress/%s-stbb-theme.zip" % slug: b"fixture ZIP bytes",
         "enforcement/capability-gap.example.json": json.dumps({"submission_authorized": False}).encode("utf-8"),
         distribution: bundle,
     }
@@ -87,24 +98,25 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
         "enforcement/component-recipes.json", "enforcement/component-recipes.schema.json",
         "enforcement/version-policy.json", "web/adapter.json", "web/support-matrix.json",
         "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
+        "wordpress/adapter.json", "wordpress/support-matrix.json", "wordpress/%s-stbb-theme.zip" % slug,
         "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
         "enforcement/documentation-contract.json", "enforcement/documentation-contract.schema.json", "enforcement/documentation-facts.json",
         "enforcement/MIGRATION.md", "enforcement/bundle.json", "enforcement/release-impact.json", "enforcement/release-impact.schema.json",
     ]
     consumer = {
-        "schema_version": 4,
+        "schema_version": 5,
         "brand": {"slug": slug, "title": slug.title(), "affiliation": None, "brand_version": version},
         "bundle": kit_bundle,
         "versions": versions,
         "version_semantics": {
             "brand_version": "Brand version.", "canon_version": "Brand Canon version.",
-            "interface_canon_version": "Interface Canon version.", "component_recipe_version": "Component recipe version.", "web_react_adapter_version": "Web adapter version.", "egui_adapter_version": "egui adapter version.", "compiler_version": "Compiler version.",
+            "interface_canon_version": "Interface Canon version.", "component_recipe_version": "Component recipe version.", "web_react_adapter_version": "Web adapter version.", "egui_adapter_version": "egui adapter version.", "wordpress_adapter_version": "WordPress adapter version.", "compiler_version": "Compiler version.",
         },
         "compatibility": {
             "policy_version": policy["version"], "status": "compatible",
             "validated_versions": {
                 "brand_canon": canon, "interface_canon": "1.0.0", "component_recipes": "1.0.0",
-                "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "2.0.0", "brand": version,
+                "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "wordpress_adapter": "1.0.0", "compiler": "2.0.0", "brand": version,
             },
             "rules_checked": sum(bool(domain["compatibility_keys"]) * len(domain["compatibility_keys"])
                                  for domain in policy["domains"].values()),
@@ -114,7 +126,7 @@ def brand_archive_entries(slug="fragcap", version="1.1.0", canon="1.1.2",
             "viewport_profiles": ["compact"], "adapter_versions": {"vanilla": "2.0.0"},
         },
         "authority": {
-            "brand_source": "brand.json", "bundle": "enforcement/bundle.json", "release_impact": "enforcement/release-impact.json", "migration_summary": "enforcement/MIGRATION.md", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json",
+            "brand_source": "brand.json", "bundle": "enforcement/bundle.json", "release_impact": "enforcement/release-impact.json", "migration_summary": "enforcement/MIGRATION.md", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json", "wordpress_adapter": "wordpress/adapter.json", "wordpress_support_matrix": "wordpress/support-matrix.json", "wordpress_theme_zip": "wordpress/%s-stbb-theme.zip" % slug,
             "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"],
             "documentation_contract": "enforcement/documentation-contract.json", "documentation_facts": "enforcement/documentation-facts.json",
             "permitted_exceptions": [],
@@ -269,36 +281,36 @@ class ReleaseContractTests(unittest.TestCase):
             self.assertEqual("Repository owner via S016 approval", inputs[input_id]["mask_approved_by"])
             self.assertEqual("2026-09-07", inputs[input_id]["mask_approved_on"])
 
-    def test_repository_metadata_and_notes_agree_for_2_6_0(self):
-        metadata = release_contract.load_metadata(ROOT, "2.6.0")
+    def test_repository_metadata_and_notes_agree_for_2_7_0(self):
+        metadata = release_contract.load_metadata(ROOT, "2.7.0")
         notes = release_contract.render_notes(metadata)
 
-        self.assertEqual(metadata["skill_version"], "2.6.0")
+        self.assertEqual(metadata["skill_version"], "2.7.0")
         self.assertEqual(metadata["canon_version"], "1.6.0")
-        self.assertEqual(metadata["site_version"], "2.6.0")
-        self.assertEqual(release_contract.current_version(ROOT), "2.6.0")
-        self.assertIn("Skill version: `2.6.0`", notes)
+        self.assertEqual(metadata["site_version"], "2.7.0")
+        self.assertEqual(release_contract.current_version(ROOT), "2.7.0")
+        self.assertIn("Skill version: `2.7.0`", notes)
         self.assertIn("Canon version: `1.6.0`", notes)
         self.assertIn("Existing kits need migration: **yes", notes)
-        self.assertIn("canonical guideline page routes", notes)
+        self.assertIn("native WordPress delivery", notes)
         self.assertIn("## Governed release impact", notes)
         self.assertIn("unchanged", notes)
-        self.assertIn("guideline menu page", notes)
+        self.assertIn("WordPress adapter version: `1.0.0`", notes)
         self.assertNotIn("## [Unreleased]", notes)
 
     def test_expected_assets_are_exact_and_use_embedded_brand_versions(self):
-        metadata = release_contract.load_metadata(ROOT, "2.6.0")
+        metadata = release_contract.load_metadata(ROOT, "2.7.0")
 
         self.assertEqual(set(release_contract.expected_assets(metadata)), {
-            "shruggie-brandbuilder-2.6.0.skill",
-            "shruggie-brandbuilder-2.6.0-portable.zip",
-            "shruggietech-brand-1.1.0-bb2.6.0.zip",
-            "fragcap-brand-1.2.0-bb2.6.0.zip",
-            "go-schedule-brand-2.0.0-bb2.6.0.zip",
-            "glitchpad-brand-1.2.0-bb2.6.0.zip",
-            "covarity-brand-1.1.0-bb2.6.0.zip",
-            "eso-weave-brand-1.1.0-bb2.6.0.zip",
-            "cueson-brand-1.1.0-bb2.6.0.zip",
+            "shruggie-brandbuilder-2.7.0.skill",
+            "shruggie-brandbuilder-2.7.0-portable.zip",
+            "shruggietech-brand-1.1.0-bb2.7.0.zip",
+            "fragcap-brand-1.2.0-bb2.7.0.zip",
+            "go-schedule-brand-2.0.0-bb2.7.0.zip",
+            "glitchpad-brand-1.2.0-bb2.7.0.zip",
+            "covarity-brand-1.1.0-bb2.7.0.zip",
+            "eso-weave-brand-1.1.0-bb2.7.0.zip",
+            "cueson-brand-1.1.0-bb2.7.0.zip",
         })
         self.assertEqual(
             {slug: values["version"] for slug, values in metadata["brands"].items()},
@@ -357,11 +369,11 @@ class ReleaseContractTests(unittest.TestCase):
             release_contract, "read_text", side_effect=read_with_stale_site
         ):
             with self.assertRaisesRegex(
-                ValueError, "site package version 1.1.2 does not match release 2.6.0"
+                ValueError, "site package version 1.1.2 does not match release 2.7.0"
             ):
-                release_contract.load_metadata(ROOT, "2.6.0")
+                release_contract.load_metadata(ROOT, "2.7.0")
 
-    def test_compiler_release_and_brand_canon_versions_can_diverge(self):
+    def test_wordpress_adapter_rejects_unsupported_older_canon(self):
         original_read_text = release_contract.read_text
 
         def read_with_supported_older_canon(path):
@@ -381,10 +393,8 @@ class ReleaseContractTests(unittest.TestCase):
         with mock.patch.object(
             release_contract, "read_text", side_effect=read_with_supported_older_canon
         ):
-            metadata = release_contract.load_metadata(ROOT, "2.6.0")
-            self.assertEqual("2.6.0", metadata["skill_version"])
-            self.assertEqual("1.2.0", metadata["canon_version"])
-            self.assertEqual("2.6.0", release_contract.current_version(ROOT))
+            with self.assertRaisesRegex(ValueError, "wordpress_adapter 1.0.0 is incompatible with brand_canon 1.2.0"):
+                release_contract.load_metadata(ROOT, "2.7.0")
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -10,7 +10,7 @@ Use the [Asset Language](/docs/asset-glossary/) glossary for the meanings of bra
 | --- | --- | --- |
 | Canon | Shared constraints and version domains | `enforcement/consumer-contract.json`, `enforcement/interface-canon.json` |
 | Identity | Approved brand source and use rules | `brand.json`, `README.md`, `logos/` |
-| Bindings | Platform-ready tokens, assets, and adapters | `tokens/`, `nextjs/`, `web/`, `native/`, `icons/` |
+| Bindings | Platform-ready tokens, assets, and adapters | `tokens/`, `nextjs/`, `web/`, `native/`, `wordpress/`, `icons/` |
 | Enforcement | Exact paths, checks, and recovery | `enforcement/`, `VERIFY.md`, `manifest.json` |
 | Proof | Inspectable measurements and examples | `qc/`, `specimens/`, `guidelines/`, `conformance/` |
 
@@ -29,6 +29,7 @@ Do not replace a declared token with an arbitrary platform default. Read the exa
 | `styles.css`, `tokens/`, `components/` | Generated vanilla styles, token JSON/CSS, and component examples. |
 | `nextjs/` | Next.js and Tailwind entry points, local font wiring, app icons, and shadcn registry items. |
 | `web/`, `native/` | Renderer-neutral and platform-specific adapter contracts and support matrices. |
+| `wordpress/` | Native theme settings, support matrix, installable block-theme ZIP, exact inventory, and client handoff. |
 | `enforcement/` | Bundle identity, consumer contract, implementation guidance, migration impact, schemas, local recovery distribution, and generated checks. |
 | `logos/`, `icons/`, `favicons/` | Approved mark outputs, categorized application icons, and compatibility favicon aliases. |
 | `fonts/`, `specimens/` | Bundled faces and licenses, plus typographic specimen output. |
@@ -50,7 +51,7 @@ Authoritative brand decisions live in source `brand.json`, approved assets, and,
 
 ### Platform bindings
 
-`nextjs/globals.css` and `tokens/` project the same source colors and spacing into different consumption contexts. Use the generated `nextjs/registry/registry.json` catalog and direct item endpoints for installable shadcn resources. Local bundled fonts remain a separate setup step; they are not a registry font item. `web/support-matrix.json` and `native/egui/support-matrix.json` identify which adapter behavior is delivered and which host validation remains local.
+`nextjs/globals.css` and `tokens/` project the same source colors and spacing into different consumption contexts. Use the generated `nextjs/registry/registry.json` catalog and direct item endpoints for installable shadcn resources. Local bundled fonts remain a separate setup step; they are not a registry font item. `web/support-matrix.json`, `native/egui/support-matrix.json`, and `wordpress/support-matrix.json` identify which adapter behavior is delivered and which host validation remains local. WordPress clients install the pinned theme ZIP and retain their posts and saved Site Editor state during updates.
 
 ### Assets and accessibility
 

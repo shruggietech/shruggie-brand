@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "shruggie-version-policy",
   "kind": "version-policy",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "domains": {
     "brand_canon": {
       "meaning": "Governed identity, affiliation, inheritance, accessibility, and source-contract semantics shared by brands.",
@@ -44,12 +44,20 @@
       "compatibility_keys": ["interface_canon", "component_recipes"],
       "publication": "generated native egui adapter"
     },
+    "wordpress_adapter": {
+      "meaning": "Generated native WordPress theme.json, block-theme package, support, and update behavior.",
+      "patch": ["correct generated theme output without changing public settings", "correct support evidence for existing behavior"],
+      "minor": ["add compatible core-block mappings or patterns", "expand tested WordPress and PHP support"],
+      "major": ["remove or rename presets, patterns, or public theme hooks", "change core, PHP, or editor compatibility incompatibly"],
+      "compatibility_keys": ["brand_canon", "interface_canon", "component_recipes"],
+      "publication": "generated WordPress adapter and installable block theme"
+    },
     "compiler": {
       "meaning": "Exact BrandBuilder generator, validator, recovery, and packaging implementation.",
       "patch": ["fix deterministic output or verification without changing public contracts", "correct packaging of already-declared artifacts"],
       "minor": ["add a backward-compatible generator or verifier capability", "support another compatible contract version"],
       "major": ["remove a generator or recovery entry point", "change accepted inputs or output layout incompatibly"],
-      "compatibility_keys": ["brand_canon", "interface_canon", "component_recipes", "web_react_adapter", "egui_adapter"],
+      "compatibility_keys": ["brand_canon", "interface_canon", "component_recipes", "web_react_adapter", "egui_adapter", "wordpress_adapter"],
       "publication": "BrandBuilder skill distribution"
     },
     "brand": {
@@ -68,11 +76,15 @@
     {"dependent": "web_react_adapter", "dependent_major": 1, "dependency": "component_recipes", "supported": ["1.0.0", "1.1.0"]},
     {"dependent": "egui_adapter", "dependent_major": 1, "dependency": "interface_canon", "supported": ["1.0.0", "1.0.1"]},
     {"dependent": "egui_adapter", "dependent_major": 1, "dependency": "component_recipes", "supported": ["1.0.0", "1.1.0"]},
+    {"dependent": "wordpress_adapter", "dependent_major": 1, "dependency": "brand_canon", "supported": ["1.6.0"]},
+    {"dependent": "wordpress_adapter", "dependent_major": 1, "dependency": "interface_canon", "supported": ["1.0.1"]},
+    {"dependent": "wordpress_adapter", "dependent_major": 1, "dependency": "component_recipes", "supported": ["1.1.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "brand_canon", "supported": ["1.1.2", "1.2.0", "1.2.1", "1.3.0", "1.4.0", "1.5.0", "1.6.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "interface_canon", "supported": ["1.0.0", "1.0.1"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "component_recipes", "supported": ["1.0.0", "1.1.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "web_react_adapter", "supported": ["1.0.0", "1.1.0"]},
     {"dependent": "compiler", "dependent_major": 2, "dependency": "egui_adapter", "supported": ["1.0.0", "1.0.1", "1.0.2"]},
+    {"dependent": "compiler", "dependent_major": 2, "dependency": "wordpress_adapter", "supported": ["1.0.0"]},
     {"dependent": "brand", "dependent_major": 1, "dependency": "brand_canon", "supported": ["1.1.2", "1.2.0", "1.2.1", "1.3.0", "1.4.0", "1.5.0", "1.6.0"]},
     {"dependent": "brand", "dependent_major": 1, "dependency": "interface_canon", "supported": ["1.0.0", "1.0.1"]},
     {"dependent": "brand", "dependent_major": 2, "dependency": "brand_canon", "supported": ["1.6.0"]},

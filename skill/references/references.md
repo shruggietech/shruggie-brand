@@ -208,11 +208,11 @@ This library supports decisions in the [BrandBuilder manual](10-system-architect
 
 ## WordPress authoring and integration
 
-The entries in this collection guide future native adapter and starter work. BrandBuilder does not currently ship either WordPress deliverable; [interface implementation](11-interface-implementation.md) identifies the present handoff boundary.
+The entries in this collection govern the generated native adapter and block-theme starter. [Interface implementation](11-interface-implementation.md) explains the mapping, and [WordPress delivery](wordpress.md) covers installation and updates.
 
 ### REF-WP-GLOBAL
 
-**Source:** WordPress Developer Resources, [Global Settings and Styles](https://developer.wordpress.org/themes/global-settings-and-styles/). **Class:** Platform theme guidance. **Use:** Map brand tokens to native `theme.json` settings and styles in a future adapter. **Limit:** Pin the target WordPress core and schema version.
+**Source:** WordPress Developer Resources, [Global Settings and Styles](https://developer.wordpress.org/themes/global-settings-and-styles/). **Class:** Platform theme guidance. **Use:** Map brand tokens to native `theme.json` settings and styles in the generated adapter. **Limit:** Pin the target WordPress core and schema version.
 
 ### REF-WP-HIERARCHY
 
@@ -224,7 +224,7 @@ The entries in this collection guide future native adapter and starter work. Bra
 
 ### REF-WP-CUSTOM
 
-**Source:** WordPress Developer Resources, [Custom settings](https://developer.wordpress.org/themes/global-settings-and-styles/settings/custom/). **Class:** Platform implementation guidance. **Use:** Separate custom brand tokens from native presets when designing a future mapping. **Limit:** Host consumers must actually read a custom property for it to affect UI.
+**Source:** WordPress Developer Resources, [Custom settings](https://developer.wordpress.org/themes/global-settings-and-styles/settings/custom/). **Class:** Platform implementation guidance. **Use:** Separate custom adapter metadata from native presets. **Limit:** Host consumers must actually read a custom property for it to affect UI.
 
 ### REF-WP-COLOR
 
@@ -232,7 +232,7 @@ The entries in this collection guide future native adapter and starter work. Bra
 
 ### REF-WP-TYPE
 
-**Source:** WordPress Developer Resources, [Typography settings and font faces](https://developer.wordpress.org/themes/global-settings-and-styles/settings/typography/). **Class:** Platform implementation guidance. **Use:** Plan licensed font files and native typography controls for a future theme. **Limit:** Check font rights, loading, and actual rendered text.
+**Source:** WordPress Developer Resources, [Typography settings and font faces](https://developer.wordpress.org/themes/global-settings-and-styles/settings/typography/). **Class:** Platform implementation guidance. **Use:** Declare licensed local font files and native typography controls. **Limit:** Check font rights, loading, and actual rendered text.
 
 ### REF-WP-EDITOR-ASSETS
 
@@ -240,11 +240,11 @@ The entries in this collection guide future native adapter and starter work. Bra
 
 ### REF-WP-BLOCK-CSS
 
-**Source:** WordPress Developer Resources, [Block stylesheets](https://developer.wordpress.org/themes/features/block-stylesheets/). **Class:** Platform implementation guidance. **Use:** Associate component CSS with native blocks in a future adapter. **Limit:** Verify load context and supported core version.
+**Source:** WordPress Developer Resources, [Block stylesheets](https://developer.wordpress.org/themes/features/block-stylesheets/). **Class:** Platform implementation guidance. **Use:** Associate adapter-owned component CSS with native blocks. **Limit:** Verify load context and supported core version.
 
 ### REF-WP-VARIATIONS
 
-**Source:** WordPress Developer Resources, [Block style variations](https://developer.wordpress.org/themes/features/block-style-variations/). **Class:** Platform authoring guidance. **Use:** Offer legitimate component variations to an editor without flattening all brand rules into one style. **Limit:** The future adapter must define which variants it actually ships.
+**Source:** WordPress Developer Resources, [Block style variations](https://developer.wordpress.org/themes/features/block-style-variations/). **Class:** Platform authoring guidance. **Use:** Offer a brand Card block style and an approved dark interface theme variation. **Limit:** The variation is an editor-selected theme choice, not a visitor preference switch.
 
 ### REF-WP-STRUCTURE
 
@@ -252,7 +252,7 @@ The entries in this collection guide future native adapter and starter work. Bra
 
 ### REF-WP-PATTERNS
 
-**Source:** WordPress Developer Resources, [Patterns](https://developer.wordpress.org/themes/patterns/). **Class:** Platform authoring guidance. **Use:** Plan reusable native content compositions for a future starter. **Limit:** Keep sample content distinct from editable user content.
+**Source:** WordPress Developer Resources, [Patterns](https://developer.wordpress.org/themes/patterns/). **Class:** Platform authoring guidance. **Use:** Provide reusable native content compositions in the starter. **Limit:** Keep sample content distinct from editable user content.
 
 ### REF-WP-CURATION
 

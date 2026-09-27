@@ -673,6 +673,15 @@ def copy_kit(source: Path, brand: dict) -> dict:
     shutil.copy2(portable_guide, downloads / f"{slug}-portable-guidelines.html")
     for name in ("logos", "favicons", "icons"):
         replace_tree(source / name, downloads / name)
+    wordpress_archive = source / "wordpress" / f"{slug}-stbb-theme.zip"
+    wordpress_adapter = json.loads((source / "wordpress" / "adapter.json").read_text(encoding="utf-8"))
+    if wordpress_adapter.get("entries", {}).get("zip") != f"wordpress/{wordpress_archive.name}":
+        raise ValueError(f"{slug}: WordPress archive authority disagrees")
+    wp_downloads = downloads / "wordpress"
+    wp_downloads.mkdir()
+    shutil.copy2(wordpress_archive, wp_downloads / wordpress_archive.name)
+    if hashlib.sha256((wp_downloads / wordpress_archive.name).read_bytes()).hexdigest() != wordpress_adapter["zip"]["sha256"]:
+        raise ValueError(f"{slug}: hosted WordPress ZIP differs from verified kit")
     for item in governed:
         relative = Path(item["source"]["path"])
         destination = downloads / relative

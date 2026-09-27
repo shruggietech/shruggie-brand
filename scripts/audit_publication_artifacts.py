@@ -174,6 +174,7 @@ def _download_sources(source: Path, brand: dict) -> Dict[str, Path]:
     expected = {
         "%s-brand-guide.pdf" % slug: _safe_file(source, "brand-guide.pdf"),
         "%s-portable-guidelines.html" % slug: _safe_file(source, "guidelines/index.html"),
+        "wordpress/%s-stbb-theme.zip" % slug: _safe_file(source, "wordpress/%s-stbb-theme.zip" % slug),
     }
     for family in ("logos", "favicons", "icons", "specimens"):
         tree = source / family

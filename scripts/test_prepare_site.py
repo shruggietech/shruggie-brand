@@ -222,6 +222,12 @@ class PrepareSiteTests(unittest.TestCase):
             write_minimal_portal(source)
             (source / "brand-guide.pdf").write_bytes(b"%PDF-test")
             (source / "specimens" / "sample.svg").write_text("<svg/>\n", encoding="utf-8")
+            wp_source = source / "wordpress"
+            wp_source.mkdir()
+            wp_zip = wp_source / "alpha-stbb-theme.zip"
+            wp_zip.write_bytes(b"synthetic theme archive")
+            (wp_source / "adapter.json").write_text(json.dumps({"entries": {"zip": "wordpress/alpha-stbb-theme.zip"},
+                "zip": {"sha256": hashlib.sha256(wp_zip.read_bytes()).hexdigest()}}), encoding="utf-8")
             theme = {"$schema": "https://ui.shadcn.com/schema/registry-item.json", "name": "theme", "type": "registry:theme", "title": "Alpha Theme", "description": "Installable tokens", "cssVars": {"light": {"background": "oklch(1 0 0)"}, "dark": {"background": "oklch(0 0 0)"}}, "files": []}
             registry = source / "nextjs" / "registry"
             (registry / "theme.json").write_text(json.dumps(theme), encoding="utf-8")

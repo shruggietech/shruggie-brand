@@ -16,7 +16,7 @@ In Implementation mode, read the consumer contract and `IMPLEMENTATION.md`, use 
 
 When a consumer requirement is reusable but missing from the shared contracts, copy and complete the local capability-gap record. Include a reproducible need, the missing semantic concept, and evidence. Submission upstream requires explicit human authorization. Until adoption, the local record does not modify shared authority.
 
-After an authorized upstream change, update the owning canon, recipe, or adapter with tests. Bump the correct independent version, regenerate, verify compatibility, publish, and let consumers adopt that exact version deliberately.
+After an authorized upstream change, update the owning canon, recipe, or adapter with tests. Bump the correct independent version, regenerate, verify compatibility, publish, and let consumers adopt that exact version deliberately. For WordPress, the generated theme files are rebuildable defaults while posts, navigation, and saved Site Editor styles/templates remain client-owned database state. Inspect `wordpress/README.md` before an update and preserve a pinned ZIP, checksum, and database backup for rollback.
 
 ## Extension checklist
 
@@ -31,4 +31,4 @@ Extensions may add governed shared capability. They may not redraw approved mark
 
 ## Choose a source for the task
 
-The [References library](references.md) carries stable source IDs and offline explanations. For an accessibility obligation, start with the local contract and [WCAG 2.1](references.md#ref-a11y-wcag21). For a web control, use the pinned adapter plus [React labels](references.md#ref-web-react) or the applicable [ARIA pattern](references.md#ref-a11y-apg). For native egui, use its pinned [test API](references.md#ref-egui-test) and record what the host platform bridge actually exposes. Android and WordPress entries guide host or future-adapter work and do not claim those adapters exist. If a source changes edition or moves URL, retain the local ID's meaning and review the citation before changing generated instructions.
+The [References library](references.md) carries stable source IDs and offline explanations. For an accessibility obligation, start with the local contract and [WCAG 2.1](references.md#ref-a11y-wcag21). For a web control, use the pinned adapter plus [React labels](references.md#ref-web-react) or the applicable [ARIA pattern](references.md#ref-a11y-apg). For native egui, use its pinned [test API](references.md#ref-egui-test) and record what the host platform bridge actually exposes. For WordPress, use the pinned adapter and theme starter with [native theme structure](references.md#ref-wp-structure) and [Global Styles precedence](references.md#ref-wp-hierarchy). Android entries guide host work without claiming a generated Compose adapter. If a source changes edition or moves URL, retain the local ID's meaning and review the citation before changing generated instructions.

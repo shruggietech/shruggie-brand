@@ -60,7 +60,8 @@ There are exactly two mandatory creative approval stops: Gate 1 binds the actual
 | To know what may change | `00-variance-contract.md` |
 | To run somewhere unusual | `09-portability.md` |
 | To research a design or platform decision | `references.md` for a stable source ID and its limits, then the relevant task manual |
-| To plan Android or WordPress host integration | `11-interface-implementation.md` support boundary, then the Android or WordPress entries in `references.md` |
+| To implement WordPress | Pinned `wordpress/adapter.json`, theme ZIP, support matrix, then `wordpress.md`, `11-interface-implementation.md`, and `references.md` |
+| To plan Android host integration | `11-interface-implementation.md` support boundary, then the Android entries in `references.md` |
 | To check a kit | `templates/verify.py` |
 | To fix an existing kit | Run verify first, then work the problems list |
 
@@ -103,7 +104,7 @@ matrix and the fallback chain. A missing tool gets named in `VERIFY.md` with the
 tool that was missing; it never gets silently substituted, and a skip must never
 read as "not applicable".
 
-**Version contracts independently.** Brand Canon, Interface Canon, component recipes, Web/React adapter, egui adapter, compiler, and each brand have separate semantic versions. `references/version-policy.json` defines their meanings, bump rules, compatibility edges, and recovery requirements. Compatibility does not imply publication. Pin the exact versions and checksums in every consumer contract and never substitute a latest release during recovery. BrandBuilder publishes migration impact but does not collect downstream adoption or utility evidence.
+**Version contracts independently.** Brand Canon, Interface Canon, component recipes, Web/React adapter, egui adapter, WordPress adapter, compiler, and each brand have separate semantic versions. `references/version-policy.json` defines their meanings, bump rules, compatibility edges, and recovery requirements. Compatibility does not imply publication. Pin the exact versions and checksums in every consumer contract and never substitute a latest release during recovery. BrandBuilder publishes migration impact but does not collect downstream adoption or utility evidence.
 
 **Bundle fonts. Never fetch them at build time.** House mode uses the approved local faces. Fixed mode uses only declared local faces whose hash, family, weight, style, format, license, provenance, and usage status pass validation. Network retrieval happens only through the explicitly invoked `templates/ingest_font.py` command and completes atomically before a build begins.
 
@@ -145,8 +146,9 @@ It validates the explicit contract first, then probes, runs the glyph gate, and 
     python3 templates/gen_web_react.py  <brand.json> <kit>    # semantic web tokens, bounded React adapter, AppFrame
     python3 templates/gen_egui.py       <brand.json> <kit>    # typed Rust tokens, idiomatic egui adapter, rendered tests
     python3 templates/gen_nextjs.py     <brand.json> <kit>    # globals.css, registry, fonts, provider
-    python3 templates/gen_enforcement.py <brand.json> <kit>   # consumer contract, AGENTS.md, ESLint, stylelint
     python3 templates/gen_logo.py       <brand.json> <kit>    # colourways, lockups, native icon suites
+    python3 templates/gen_wordpress.py  <brand.json> <kit>    # native theme.json, block-theme ZIP, patterns
+    python3 templates/gen_enforcement.py <brand.json> <kit>   # consumer contract, AGENTS.md, ESLint, stylelint
     python3 templates/gen_guidelines.py <brand.json> <kit>    # portal payload and portable guide
     python3 templates/gen_guide_pdf.py  <brand.json> <kit>    # brand guide, declared light or default dark
     python3 templates/verify.py         <kit>                 # measured VERIFY.md

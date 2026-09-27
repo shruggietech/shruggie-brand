@@ -4,8 +4,12 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-09-27
+
 ### Added
 
+- Added a first-class WordPress adapter and installable block-theme starter for every generated kit, with native presets, local assets, scoped styles, templates, editable patterns, versioned support records, and exact package inventory.
+- Added a source-derived Dark interface Site Editor variation, a brand-specific Card block style, two pinned live WordPress/PHP fixtures, a direct theme ZIP download, and a WordPress installation and update manual page. Documentation contract 1.2.0 includes the new page.
 - Published a source-classified References manual with stable local citations and task-specific applications across the authoring and integration guides.
 - Exposed each verified kit's exact documentation facts at `/<brand>/facts/documentation.json`, with a direct link and query example in its guideline overview.
 
@@ -20,6 +24,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Decisions
 
+- On 2026-09-27, used WordPress core block themes as the native baseline, with a separate WordPress adapter version and two pinned WordPress/PHP fixture pairs. Saved Site Editor overrides remain client-owned database state; generated theme files cannot silently replace them. This adds a CI runtime fixture and changes release metadata, consumer schema, and kit packaging.
 - On 2026-09-27, retained the unpublished 2.6.0 candidate version because S060 tightens certification without changing approved identity geometry or public kit shape. The publication audit composes existing family validators and distinguishes the eight hosted kits from the seven ShruggieTech release-authorized archives. Canonical license files added during archive packaging are exempt from the kit manifest inventory check and remain subject to archive validation.
 
 ## [2.6.0] - 2026-09-26

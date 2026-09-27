@@ -11,7 +11,7 @@
     "identity_redesign": {"type": "boolean"},
     "surfaces": {
       "type": "object",
-      "required": ["identity", "palette", "typography", "platform_assets", "web_react", "egui", "documentation", "recovery"],
+      "required": ["identity", "palette", "typography", "platform_assets", "web_react", "egui", "wordpress", "documentation", "recovery"],
       "properties": {
         "identity": {"$ref": "#/$defs/impact"},
         "palette": {"$ref": "#/$defs/impact"},
@@ -19,6 +19,7 @@
         "platform_assets": {"$ref": "#/$defs/impact"},
         "web_react": {"$ref": "#/$defs/impact"},
         "egui": {"$ref": "#/$defs/impact"},
+        "wordpress": {"$ref": "#/$defs/impact"},
         "documentation": {"$ref": "#/$defs/impact"},
         "recovery": {"$ref": "#/$defs/impact"}
       },

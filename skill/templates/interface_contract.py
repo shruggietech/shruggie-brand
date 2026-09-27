@@ -83,7 +83,7 @@ def load_brand_canon(path=None):
 
 VERSION_DOMAINS = {
     "brand_canon", "interface_canon", "component_recipes", "web_react_adapter",
-    "egui_adapter", "compiler", "brand",
+    "egui_adapter", "wordpress_adapter", "compiler", "brand",
 }
 
 
@@ -659,7 +659,7 @@ def skill_metadata(path=None):
     values = {}
     for output, key in (("version", "version"), ("canon", "canon"), ("interface_canon", "interface-canon"),
                         ("component_recipes", "component-recipes"), ("web_react_adapter", "web-react-adapter"),
-                        ("egui_adapter", "egui-adapter")):
+                        ("egui_adapter", "egui-adapter"), ("wordpress_adapter", "wordpress-adapter")):
         match = re.search(r"^\s+%s:\s*([^\s#]+)\s*$" % key, block.group("body"), re.MULTILINE)
         _require(match is not None, "%s metadata lacks %s" % (path, key))
         values[output] = match.group(1).strip("\"'")
@@ -748,7 +748,7 @@ def _governed_block(brand, versions, recovery_path, recovery_sha):
 
 ## Governed BrandBuilder contract
 
-BrandBuilder is mandatory for brand-system authoring, consumer implementation, and conformance audit. This kit pins Brand Canon `{canon}`, Interface Canon `{interface}`, component recipes `{recipes}`, Web/React adapter `{adapter}`, egui adapter `{egui}`, compiler `{compiler}`, and brand `{brand_version}`.
+BrandBuilder is mandatory for brand-system authoring, consumer implementation, and conformance audit. This kit pins Brand Canon `{canon}`, Interface Canon `{interface}`, component recipes `{recipes}`, Web/React adapter `{adapter}`, egui adapter `{egui}`, WordPress adapter `{wordpress}`, compiler `{compiler}`, and brand `{brand_version}`.
 
 Read `consumer-contract.json`, then `IMPLEMENTATION.md`. The pinned contract outranks screenshots, legacy stylesheets, and inferred local values. Do not reinterpret identity or create a permanent parallel design system.
 
@@ -758,7 +758,7 @@ If BrandBuilder `{compiler}` is absent, verify SHA-256 `{sha}` and extract `{rec
 {end}""".format(
         begin=BEGIN_MARKER, end=END_MARKER, canon=versions["canon_version"],
         interface=versions["interface_canon_version"], recipes=versions["component_recipe_version"],
-        adapter=versions["web_react_adapter_version"], egui=versions["egui_adapter_version"], compiler=versions["compiler_version"],
+        adapter=versions["web_react_adapter_version"], egui=versions["egui_adapter_version"], wordpress=versions["wordpress_adapter_version"], compiler=versions["compiler_version"],
         brand_version=versions["brand_version"], sha=recovery_sha, recovery=recovery_path,
         affiliation=affiliation_line,
     )
@@ -800,12 +800,19 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
     support_matrix = kit / "web" / "support-matrix.json"
     egui_adapter = kit / "native" / "egui" / "adapter.json"
     egui_support = kit / "native" / "egui" / "support-matrix.json"
+    wordpress_adapter = kit / "wordpress" / "adapter.json"
+    wordpress_support = kit / "wordpress" / "support-matrix.json"
+    wordpress_theme_zip = kit / "wordpress" / (brand["slug"] + "-stbb-theme.zip")
     _require(web_adapter.is_file(), "Web/React adapter manifest is missing before consumer contract generation")
     _require(support_matrix.is_file(), "Web support matrix is missing before consumer contract generation")
     _require(egui_adapter.is_file(), "egui adapter manifest is missing before consumer contract generation")
     _require(egui_support.is_file(), "egui support matrix is missing before consumer contract generation")
+    _require(wordpress_adapter.is_file(), "WordPress adapter manifest is missing before consumer contract generation")
+    _require(wordpress_support.is_file(), "WordPress support matrix is missing before consumer contract generation")
+    _require(wordpress_theme_zip.is_file(), "WordPress theme ZIP is missing before consumer contract generation")
     adapter = _read_json(web_adapter)
     native_adapter = _read_json(egui_adapter)
+    wp_adapter = _read_json(wordpress_adapter)
     recipe_catalog = _read_json(REFERENCES / "component-recipes.json")
     _require(metadata["component_recipes"] == recipe_catalog["version"],
              "skill component recipe metadata does not match the catalog")
@@ -813,12 +820,15 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
              "skill Web/React adapter metadata does not match generated output")
     _require(metadata["egui_adapter"] == native_adapter["adapter_version"],
              "skill egui adapter metadata does not match generated output")
+    _require(metadata["wordpress_adapter"] == wp_adapter["adapter_version"],
+             "skill WordPress adapter metadata does not match generated output")
     versions = {
         "canon_version": resolved["canon_version"],
         "interface_canon_version": resolved["interface_canon_version"],
         "component_recipe_version": recipe_catalog["version"],
         "web_react_adapter_version": adapter["adapter_version"],
         "egui_adapter_version": native_adapter["adapter_version"],
+        "wordpress_adapter_version": wp_adapter["adapter_version"],
         "compiler_version": metadata["version"],
         "brand_version": brand.get("version", "1.0.0"),
     }
@@ -828,6 +838,7 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         "component_recipes": versions["component_recipe_version"],
         "web_react_adapter": versions["web_react_adapter_version"],
         "egui_adapter": versions["egui_adapter_version"],
+        "wordpress_adapter": versions["wordpress_adapter_version"],
         "compiler": versions["compiler_version"],
         "brand": versions["brand_version"],
     }
@@ -866,7 +877,7 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
     }
     _write_json(enforcement / "bundle.json", bundle)
     consumer_core = {
-        "schema_version": 4,
+        "schema_version": 5,
         "brand": {
             "slug": brand["slug"],
             "title": brand["title"],
@@ -881,6 +892,7 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
             "component_recipe_version": "Bounded shared component grammar and behavior contract.",
             "web_react_adapter_version": "Generated Web/React implementation contract.",
             "egui_adapter_version": "Generated Rust and egui implementation contract.",
+            "wordpress_adapter_version": "Generated native WordPress implementation and theme package contract.",
             "compiler_version": "BrandBuilder distribution that generated this contract.",
             "brand_version": "Consumer brand source contract version.",
         },
@@ -888,9 +900,9 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         "environment": {
             "renderer": "renderer-neutral",
             "host": "none",
-            "supported_targets": ["web", "native"],
+            "supported_targets": ["web", "native", "wordpress"],
             "viewport_profiles": list(load_interface_canon()["runtime"]["window_classes"]),
-            "adapter_versions": {"web-tokens": adapter["adapter_version"], "web-react": adapter["adapter_version"], "egui": native_adapter["adapter_version"], "nextjs-compatibility": metadata["version"]},
+            "adapter_versions": {"web-tokens": adapter["adapter_version"], "web-react": adapter["adapter_version"], "egui": native_adapter["adapter_version"], "wordpress": wp_adapter["adapter_version"], "nextjs-compatibility": metadata["version"]},
         },
         "authority": {
             "brand_source": "brand.json",
@@ -904,6 +916,9 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
             "support_matrix": "web/support-matrix.json",
             "egui_adapter": "native/egui/adapter.json",
             "egui_support_matrix": "native/egui/support-matrix.json",
+            "wordpress_adapter": "wordpress/adapter.json",
+            "wordpress_support_matrix": "wordpress/support-matrix.json",
+            "wordpress_theme_zip": "wordpress/%s-stbb-theme.zip" % brand["slug"],
             "instructions": "enforcement/IMPLEMENTATION.md",
             "documentation_contract": "enforcement/documentation-contract.json",
             "documentation_facts": "enforcement/documentation-facts.json",
@@ -959,6 +974,10 @@ def emit_consumer_contract(brand, brand_source, kit, implementation_text):
         egui_adapter.parent / "Cargo.lock",
         egui_adapter,
         egui_support,
+        wordpress_adapter,
+        wordpress_support,
+        wordpress_theme_zip,
+        kit / "wordpress" / "theme-inventory.json",
         gap_path,
         distribution,
     ]
@@ -1013,6 +1032,9 @@ def verify_consumer_contract(kit):
             authority["support_matrix"],
             authority["egui_adapter"],
             authority["egui_support_matrix"],
+            authority["wordpress_adapter"],
+            authority["wordpress_support_matrix"],
+            authority["wordpress_theme_zip"],
             authority["documentation_contract"],
             authority["documentation_facts"],
             contract["capability_gap"]["template_path"],
@@ -1068,12 +1090,19 @@ def verify_consumer_contract(kit):
         _require(egui_adapter.get("compiler_version") == contract["versions"]["compiler_version"], "egui adapter compiler version disagrees with consumer contract")
         egui_support = _read_json(_contained_kit_file(kit, authority["egui_support_matrix"]))
         _require(egui_support.get("adapter_version") == egui_adapter.get("adapter_version"), "egui support matrix adapter version disagrees")
+        wp_adapter = _read_json(_contained_kit_file(kit, authority["wordpress_adapter"]))
+        wp_support = _read_json(_contained_kit_file(kit, authority["wordpress_support_matrix"]))
+        _require(contract["versions"]["wordpress_adapter_version"] == wp_adapter.get("adapter_version"), "consumer WordPress adapter version disagrees")
+        _require(wp_support.get("adapter_version") == wp_adapter.get("adapter_version"), "WordPress support matrix version disagrees")
+        _require(wp_adapter.get("compiler_version") == contract["versions"]["compiler_version"], "WordPress compiler version disagrees")
+        _require(wp_adapter.get("entries", {}).get("zip") == authority["wordpress_theme_zip"], "WordPress theme ZIP authority disagrees")
         domain_versions = {
             "brand_canon": contract["versions"]["canon_version"],
             "interface_canon": contract["versions"]["interface_canon_version"],
             "component_recipes": contract["versions"]["component_recipe_version"],
             "web_react_adapter": contract["versions"]["web_react_adapter_version"],
             "egui_adapter": contract["versions"]["egui_adapter_version"],
+            "wordpress_adapter": contract["versions"]["wordpress_adapter_version"],
             "compiler": contract["versions"]["compiler_version"],
             "brand": contract["versions"]["brand_version"],
         }
@@ -1169,6 +1198,8 @@ def verify_consumer_contract(kit):
                      "recovery Web/React adapter metadata disagrees")
             _require(metadata["egui_adapter"] == contract["versions"]["egui_adapter_version"],
                      "recovery egui adapter metadata disagrees")
+            _require(metadata["wordpress_adapter"] == contract["versions"]["wordpress_adapter_version"],
+                     "recovery WordPress adapter metadata disagrees")
             bundled_canon = json.loads(archive.read("references/interface-canon.json").decode("utf-8"))
             _require(bundled_canon["version"] == contract["versions"]["interface_canon_version"],
                      "recovery Interface Canon version disagrees")
@@ -1193,7 +1224,7 @@ def skill_metadata_from_text(text):
     values = {}
     for output, key in (("version", "version"), ("canon", "canon"), ("interface_canon", "interface-canon"),
                         ("component_recipes", "component-recipes"), ("web_react_adapter", "web-react-adapter"),
-                        ("egui_adapter", "egui-adapter")):
+                        ("egui_adapter", "egui-adapter"), ("wordpress_adapter", "wordpress-adapter")):
         match = re.search(r"^\s+%s:\s*([^\s#]+)\s*$" % key, block.group("body"), re.MULTILINE)
         _require(match is not None, "bundled SKILL.md metadata lacks %s" % key)
         values[output] = match.group(1).strip("\"'")

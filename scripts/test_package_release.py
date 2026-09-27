@@ -54,10 +54,18 @@ class PackageReleaseTests(unittest.TestCase):
         consumer_schema = (ROOT / "skill" / "references" / "consumer-contract.schema.json").read_bytes()
         policy_bytes = (ROOT / "skill" / "references" / "version-policy.json").read_bytes()
         policy = json.loads(policy_bytes.decode("utf-8"))
+        for rule in policy["compatibility_rules"]:
+            if rule["dependent"] == "wordpress_adapter":
+                fixture_version = {"brand_canon": "1.2.1", "interface_canon": "1.0.0",
+                                   "component_recipes": "1.0.0"}[rule["dependency"]]
+                if fixture_version not in rule["supported"]:
+                    rule["supported"].append(fixture_version)
+        policy_bytes = json.dumps(policy).encode("utf-8")
+        (reference_dir / "version-policy.json").write_bytes(policy_bytes)
         bundle_buffer = io.BytesIO()
         with zipfile.ZipFile(bundle_buffer, "w") as bundle:
             bundle.writestr("SOURCE_REVISION", "a" * 40 + "\n")
-            bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 2.0.0\n  canon: 1.2.1\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n---\n")
+            bundle.writestr("SKILL.md", "---\nmetadata:\n  version: 2.0.0\n  canon: 1.2.1\n  interface-canon: 1.0.0\n  component-recipes: 1.0.0\n  web-react-adapter: 1.0.0\n  egui-adapter: 1.0.0\n  wordpress-adapter: 1.0.0\n---\n")
             bundle.writestr("AGENTS.md", "instructions\n")
             bundle.writestr("references/interface-canon.json", json.dumps({"version": "1.0.0"}))
             bundle.writestr("references/component-recipes.json", json.dumps({"version": "1.0.0"}))
@@ -75,7 +83,7 @@ class PackageReleaseTests(unittest.TestCase):
         begin = "<!-- BEGIN SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
         end = "<!-- END SHRUGGIE-BRANDBUILDER: CONSUMER CONTRACT -->"
         distribution = "enforcement/distributions/shruggie-brandbuilder-2.0.0.skill"
-        versions = {"brand_version": "1.0.0", "canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "compiler_version": "2.0.0"}
+        versions = {"brand_version": "1.0.0", "canon_version": "1.2.1", "interface_canon_version": "1.0.0", "component_recipe_version": "1.0.0", "web_react_adapter_version": "1.0.0", "egui_adapter_version": "1.0.0", "wordpress_adapter_version": "1.0.0", "compiler_version": "2.0.0"}
         package = {"id": "alpha-brand-1.0.0-bb2.0.0", "filename": "alpha-brand-1.0.0-bb2.0.0.zip", "brand_slug": "alpha", "brand_version": "1.0.0", "brandbuilder_version": "2.0.0"}
         kit_bundle = {"schema_version": 1, "package": package, "versions": versions, "source_revision": "a" * 40, "publication": {"status": "candidate", "version": "2.0.0", "tag": "v2.0.0"}, "checksum_authority": {"algorithm": "sha256", "manifest": "manifest.json", "release_checksums": None}}
         values = {
@@ -103,6 +111,9 @@ class PackageReleaseTests(unittest.TestCase):
             "native/egui/adapter.json": json.dumps({"adapter_version": "1.0.0", "component_recipe_version": "1.0.0"}).encode(),
             "native/egui/Cargo.lock": b"# deterministic lockfile\n",
             "native/egui/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode(),
+            "wordpress/adapter.json": json.dumps({"adapter_version": "1.0.0", "entries": {"zip": "wordpress/alpha-stbb-theme.zip"}}).encode(),
+            "wordpress/support-matrix.json": json.dumps({"adapter_version": "1.0.0"}).encode(),
+            "wordpress/alpha-stbb-theme.zip": b"fixture ZIP bytes",
             "enforcement/capability-gap.example.json": json.dumps({"submission_authorized": False}).encode(),
             distribution: bundle,
         }
@@ -112,22 +123,23 @@ class PackageReleaseTests(unittest.TestCase):
             "enforcement/component-recipes.json", "enforcement/component-recipes.schema.json",
             "enforcement/version-policy.json", "web/adapter.json", "web/support-matrix.json",
             "native/egui/Cargo.lock", "native/egui/adapter.json", "native/egui/support-matrix.json",
+            "wordpress/adapter.json", "wordpress/support-matrix.json", "wordpress/alpha-stbb-theme.zip",
             "enforcement/consumer-contract.schema.json", "enforcement/capability-gap.example.json", distribution,
             "enforcement/documentation-contract.json", "enforcement/documentation-contract.schema.json", "enforcement/documentation-facts.json",
             "enforcement/MIGRATION.md", "enforcement/bundle.json", "enforcement/release-impact.json", "enforcement/release-impact.schema.json",
         ]
         consumer = {
-            "schema_version": 4,
+            "schema_version": 5,
             "brand": {"slug": "alpha", "title": "Alpha", "affiliation": {}, "brand_version": "1.0.0"},
             "bundle": kit_bundle,
             "versions": versions,
             "version_semantics": {
                 "brand_version": "Brand version.", "canon_version": "Brand Canon version.",
-                "interface_canon_version": "Interface Canon version.", "component_recipe_version": "Component recipe version.", "web_react_adapter_version": "Web adapter version.", "egui_adapter_version": "egui adapter version.", "compiler_version": "Compiler version.",
+                "interface_canon_version": "Interface Canon version.", "component_recipe_version": "Component recipe version.", "web_react_adapter_version": "Web adapter version.", "egui_adapter_version": "egui adapter version.", "wordpress_adapter_version": "WordPress adapter version.", "compiler_version": "Compiler version.",
             },
             "compatibility": {
                 "policy_version": policy["version"], "status": "compatible",
-                "validated_versions": {"brand_canon": "1.2.1", "interface_canon": "1.0.0", "component_recipes": "1.0.0", "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "2.0.0", "brand": "1.0.0"},
+                "validated_versions": {"brand_canon": "1.2.1", "interface_canon": "1.0.0", "component_recipes": "1.0.0", "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "wordpress_adapter": "1.0.0", "compiler": "2.0.0", "brand": "1.0.0"},
                 "rules_checked": len({(rule["dependent"], rule["dependency"])
                                       for rule in policy["compatibility_rules"]}),
             },
@@ -136,7 +148,7 @@ class PackageReleaseTests(unittest.TestCase):
                 "viewport_profiles": ["compact"], "adapter_versions": {"vanilla": "2.0.0"},
             },
             "authority": {
-                "brand_source": "brand.json", "bundle": "enforcement/bundle.json", "release_impact": "enforcement/release-impact.json", "migration_summary": "enforcement/MIGRATION.md", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json",
+                "brand_source": "brand.json", "bundle": "enforcement/bundle.json", "release_impact": "enforcement/release-impact.json", "migration_summary": "enforcement/MIGRATION.md", "interface_canon": "enforcement/interface-canon.json", "component_recipes": "enforcement/component-recipes.json", "version_policy": "enforcement/version-policy.json", "web_adapter": "web/adapter.json", "support_matrix": "web/support-matrix.json", "egui_adapter": "native/egui/adapter.json", "egui_support_matrix": "native/egui/support-matrix.json", "wordpress_adapter": "wordpress/adapter.json", "wordpress_support_matrix": "wordpress/support-matrix.json", "wordpress_theme_zip": "wordpress/alpha-stbb-theme.zip",
                 "instructions": "enforcement/IMPLEMENTATION.md", "precedence": ["brand.json"],
                 "documentation_contract": "enforcement/documentation-contract.json", "documentation_facts": "enforcement/documentation-facts.json",
                 "permitted_exceptions": [],

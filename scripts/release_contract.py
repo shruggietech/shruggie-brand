@@ -117,6 +117,12 @@ MIGRATIONS = {
         "pages use label-matched paths; their old URLs retain static compatibility bridges. "
         "Direct asset file paths, approved identity bytes, Brand Canon 1.6.0, and adapter APIs remain unchanged."
     ),
+    "2.7.0": (
+        "Existing kits need migration: **yes to adopt native WordPress delivery**. Regenerate and repin "
+        "each kit with exact checksums to receive WordPress adapter 1.0.0 and its installable block-theme "
+        "starter. Existing approved identity geometry and Web/React and egui adapter APIs remain unchanged. "
+        "Saved WordPress Site Editor content and overrides require explicit staging reconciliation."
+    ),
 }
 
 
@@ -151,7 +157,7 @@ def skill_metadata(path: Path) -> Dict[str, str]:
     if not metadata:
         raise ValueError("skill/SKILL.md lacks metadata")
     values = {}
-    for key in ("version", "canon", "interface-canon", "component-recipes", "web-react-adapter", "egui-adapter"):
+    for key in ("version", "canon", "interface-canon", "component-recipes", "web-react-adapter", "egui-adapter", "wordpress-adapter"):
         match = re.search(r"^\s+" + key + r":\s*([^\s#]+)\s*$",
                           metadata.group("body"), re.MULTILINE)
         if not match:
@@ -210,7 +216,7 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
     validate_version_combination({
         "brand_canon": canon["version"], "interface_canon": interface["version"],
         "component_recipes": recipes["version"], "web_react_adapter": skill["web-react-adapter"],
-        "egui_adapter": skill["egui-adapter"], "compiler": skill["version"], "brand": "1.0.0",
+        "egui_adapter": skill["egui-adapter"], "wordpress_adapter": skill["wordpress-adapter"], "compiler": skill["version"], "brand": "1.0.0",
     }, policy)
 
     brands = {}
@@ -236,6 +242,7 @@ def load_metadata(root: Path, version: str) -> Dict[str, object]:
         "component_recipe_version": recipes["version"],
         "web_react_adapter_version": skill["web-react-adapter"],
         "egui_adapter_version": skill["egui-adapter"],
+        "wordpress_adapter_version": skill["wordpress-adapter"],
         "version_policy_version": policy["version"],
         "release_impact": impact,
         "release_date": release["date"],
@@ -268,12 +275,13 @@ def render_notes(metadata: Mapping[str, object]) -> str:
         "Component recipe version: `%s`\n\n"
         "Web/React adapter version: `%s`\n\n"
         "egui adapter version: `%s`\n\n"
+        "WordPress adapter version: `%s`\n\n"
         "Version policy: `%s`\n\n"
         "%s\n\n%s\n\n"
         "## Release changes\n\n%s\n"
         % (version, metadata["skill_version"], metadata["canon_version"],
            metadata["interface_canon_version"], metadata["component_recipe_version"],
-           metadata["web_react_adapter_version"], metadata["egui_adapter_version"], metadata["version_policy_version"],
+           metadata["web_react_adapter_version"], metadata["egui_adapter_version"], metadata["wordpress_adapter_version"], metadata["version_policy_version"],
            MIGRATIONS[version], render_release_impact(metadata["release_impact"]), metadata["release_changes"])
     )
 
@@ -445,6 +453,9 @@ def verify_brand_archive(path: Path, slug: str, version: str,
             "support matrix": authority.get("support_matrix"),
             "egui adapter": authority.get("egui_adapter"),
             "egui support matrix": authority.get("egui_support_matrix"),
+            "WordPress adapter": authority.get("wordpress_adapter"),
+            "WordPress support matrix": authority.get("wordpress_support_matrix"),
+            "WordPress theme ZIP": authority.get("wordpress_theme_zip"),
             "capability-gap template": capability_gap.get("template_path"),
             "recovery distribution": recovery.get("path"),
         }
@@ -537,10 +548,18 @@ def verify_brand_archive(path: Path, slug: str, version: str,
         egui_support = _read_json(archive, authority["egui_support_matrix"], path.name)
         if egui_support.get("adapter_version") != egui_adapter.get("adapter_version"):
             raise ValueError("%s egui support matrix adapter version disagrees" % path.name)
+        wp_adapter = _read_json(archive, authority["wordpress_adapter"], path.name)
+        wp_support = _read_json(archive, authority["wordpress_support_matrix"], path.name)
+        if versions.get("wordpress_adapter_version") != wp_adapter.get("adapter_version"):
+            raise ValueError("%s consumer wordpress_adapter_version disagrees" % path.name)
+        if wp_support.get("adapter_version") != wp_adapter.get("adapter_version"):
+            raise ValueError("%s WordPress support matrix adapter version disagrees" % path.name)
+        if wp_adapter.get("entries", {}).get("zip") != authority["wordpress_theme_zip"]:
+            raise ValueError("%s WordPress ZIP authority disagrees" % path.name)
         domain_versions = {
             "brand_canon": versions.get("canon_version"), "interface_canon": versions.get("interface_canon_version"),
             "component_recipes": versions.get("component_recipe_version"), "web_react_adapter": versions.get("web_react_adapter_version"),
-            "egui_adapter": versions.get("egui_adapter_version"), "compiler": versions.get("compiler_version"),
+            "egui_adapter": versions.get("egui_adapter_version"), "wordpress_adapter": versions.get("wordpress_adapter_version"), "compiler": versions.get("compiler_version"),
             "brand": versions.get("brand_version"),
         }
         if consumer.get("compatibility") != validate_version_combination(domain_versions, version_policy):
@@ -593,7 +612,8 @@ def verify_brand_archive(path: Path, slug: str, version: str,
                                               ("interface-canon", "interface_canon_version"),
                                               ("component-recipes", "component_recipe_version"),
                                               ("web-react-adapter", "web_react_adapter_version"),
-                                              ("egui-adapter", "egui_adapter_version")):
+                                              ("egui-adapter", "egui_adapter_version"),
+                                              ("wordpress-adapter", "wordpress_adapter_version")):
                 match = re.search(r"^\s+%s:\s*([^\s#]+)\s*$" % metadata_key,
                                   skill_text, re.MULTILINE)
                 if match is None or match.group(1).strip("\"'") != versions.get(version_key):
