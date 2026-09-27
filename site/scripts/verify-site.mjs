@@ -716,6 +716,18 @@ try {
         if (width === 1280) check(await page.locator('#nd-sidebar a[data-active="true"], #nd-sidebar a[aria-current="page"]').count() >= 1, `${route} lacks an active desktop guideline topic`);
         if (width === 1280 && ['logos', 'color', 'typography'].includes(contract.guideTopic)) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: /^Identity$/ }).count() === 1, `${route} does not keep its Identity parent identifiable and expanded`);
         check(await page.locator('.guide-footer a[href="#guide-title"]').count() === 1, `${route} lacks a separate Back to top link`);
+        if (contract.guideTopic === 'overview' && width === 1280) {
+          check(await page.getByRole('heading', { name: 'Implementation authority' }).count() === 1, `${route} omits implementation authority`);
+          check(await page.getByRole('heading', { name: 'Versions and bindings' }).count() === 1, `${route} omits labeled versions`);
+          const factsPath = `/${contract.brandSlug}/facts/documentation.json`;
+          check(await page.locator(`a[href="${factsPath}"]`).count() === 1, `${route} omits the direct public facts link`);
+          const factsResponse = await page.request.get(base + factsPath);
+          check(factsResponse.ok() && JSON.stringify(await factsResponse.json()) === JSON.stringify(portal.implementation), `${route} public facts do not agree with the generated portal`);
+          check((await page.locator('#implementation-authority').innerText()).includes('default rules') || Object.keys(portal.implementation.rules.overrides).length > 0, `${route} does not explain its default interface rules`);
+          const versionCells = await page.locator('section[aria-labelledby="versions-and-bindings"] .metric-list > div').evaluateAll((elements) => elements.map((element) => ({ top: element.getBoundingClientRect().top, valueBottom: element.querySelector('dd').getBoundingClientRect().bottom })));
+          const firstVersionRow = versionCells.filter((cell) => Math.abs(cell.top - versionCells[0].top) <= 1);
+          check(firstVersionRow.length >= 2 && Math.max(...firstVersionRow.map((cell) => cell.valueBottom)) - Math.min(...firstVersionRow.map((cell) => cell.valueBottom)) <= 1, `${route} version values lose row alignment`);
+        }
         check(await page.locator('.guide-footer .guide-host-exit[href="/"]').count() === 1, `${route} lacks a separate All brands exit`);
         check(await page.locator('.shell, .site-footer').count() === 0, `${route} leaks the marketing-site shell into the guideline portal`);
         const bodyText = (await page.locator('body').innerText()).toLowerCase();
@@ -1010,7 +1022,14 @@ try {
   }
   const editorial = page.locator('.docs-page :where(p, li, td, blockquote) > a').first();
   check(await editorial.count() === 1 && await editorial.evaluate((element) => getComputedStyle(element).textDecorationLine.includes('underline')), 'editorial links lack a persistent resting underline');
-  for (const paginationCase of [{ route: '/docs/', hrefs: ['/docs/00-variance-contract/'] }, { route: '/docs/02-kit-anatomy/', hrefs: ['/docs/00-variance-contract/', '/docs/asset-glossary/'] }, { route: '/docs/asset-glossary/', hrefs: ['/docs/02-kit-anatomy/', '/docs/03-interview/'] }, { route: '/docs/03-interview/', hrefs: ['/docs/asset-glossary/', '/docs/06-logo-protocol/'] }, { route: '/docs/04-toolchain/', hrefs: ['/docs/07-voice/', '/docs/05-shadcn-binding/'] }, { route: '/docs/09-portability/', hrefs: ['/docs/05-shadcn-binding/', '/docs/operating-modes/'] }, { route: '/docs/identity-continuity/', hrefs: ['/docs/08-glyph-construction/', '/docs/07-voice/'] }, { route: '/docs/operating-modes/', hrefs: ['/docs/09-portability/', '/docs/10-system-architecture/'] }, { route: '/docs/10-system-architecture/', hrefs: ['/docs/operating-modes/', '/docs/11-interface-implementation/'] }, { route: '/docs/13-agent-integration/', hrefs: ['/docs/12-verification-versioning/'] }]) {
+  await page.goto(base + '/docs/00-variance-contract/');
+  check(await page.locator('a[href="/docs/references/#ref-ui-carbon"]').count() === 1, 'the color contract lacks a source-resolving Carbon citation');
+  await page.goto(base + '/docs/references/#ref-ui-carbon');
+  check(await page.locator('h3#ref-ui-carbon').count() === 1 && await page.locator('h3#ref-a11y-wcag21').count() === 1, 'References lacks stable readable source anchors');
+  check(await page.locator('#nd-sidebar a[href="/docs/references/"]').count() >= 1, 'References is missing from manual navigation');
+  const searchResponse = await page.request.get(base + '/static.json');
+  check(searchResponse.ok() && (await searchResponse.text()).includes('References'), 'References is missing from static documentation search');
+  for (const paginationCase of [{ route: '/docs/', hrefs: ['/docs/00-variance-contract/'] }, { route: '/docs/02-kit-anatomy/', hrefs: ['/docs/00-variance-contract/', '/docs/asset-glossary/'] }, { route: '/docs/asset-glossary/', hrefs: ['/docs/02-kit-anatomy/', '/docs/03-interview/'] }, { route: '/docs/03-interview/', hrefs: ['/docs/asset-glossary/', '/docs/06-logo-protocol/'] }, { route: '/docs/04-toolchain/', hrefs: ['/docs/07-voice/', '/docs/05-shadcn-binding/'] }, { route: '/docs/09-portability/', hrefs: ['/docs/05-shadcn-binding/', '/docs/operating-modes/'] }, { route: '/docs/identity-continuity/', hrefs: ['/docs/08-glyph-construction/', '/docs/07-voice/'] }, { route: '/docs/operating-modes/', hrefs: ['/docs/09-portability/', '/docs/10-system-architecture/'] }, { route: '/docs/10-system-architecture/', hrefs: ['/docs/operating-modes/', '/docs/11-interface-implementation/'] }, { route: '/docs/13-agent-integration/', hrefs: ['/docs/12-verification-versioning/', '/docs/references/'] }, { route: '/docs/references/', hrefs: ['/docs/13-agent-integration/'] }]) {
     await page.goto(base + paginationCase.route);
     const links = page.locator('.docs-pagination > a');
     const hrefs = await links.evaluateAll((elements) => elements.map((element) => element.getAttribute('href')));

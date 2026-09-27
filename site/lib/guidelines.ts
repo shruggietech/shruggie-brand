@@ -27,6 +27,7 @@ export type GuidelinePortal = {
     schema_version: number;
     documentation_contract_version: string;
     brand: { slug: string; title: string; affiliation: unknown; brand_version: string };
+    bundle: { package: { id: string; filename: string } };
     versions: Record<string, string>;
     bindings: Record<string, string>;
     rules: { inheritance: string; overrides: Record<string, string> };
@@ -131,6 +132,6 @@ export function topicToc(portal: GuidelinePortal, topic: GuidelineTopic): TOCIte
   if (topic.key === 'assets') return [{ title: 'Direct downloads', url: '#direct-downloads', depth: 2 }, { title: 'Asset library', url: '#asset-library', depth: 2 }];
   if (topic.key === 'expressions') return (portal.asset_families.find((family) => family.key === 'expressions')?.assets ?? []).map((asset) => ({ title: asset.title, url: `#${asset.id}`, depth: 2 }));
   if (topic.key === 'integration') return portal.instructions.map((instruction, index) => ({ title: `${instruction.platform}: ${instruction.title}`, url: `#instruction-${index + 1}`, depth: 2 }));
-  const sections: Record<string, string[]> = { overview: ['Brand overview', 'Foundations', 'Promises', 'Boundaries', 'Built to ship'], voice: ['Governing principle', 'Voice qualities', 'Personality'], logos: ['Usage', 'Minimum sizes', 'Prohibitions'], typography: ['Type families'], components: ['Domain components'] };
+  const sections: Record<string, string[]> = { overview: ['Brand overview', 'Foundations', 'Promises', 'Boundaries', 'Implementation authority', 'Versions and bindings', 'Get the kit'], voice: ['Governing principle', 'Voice qualities', 'Personality'], logos: ['Usage', 'Minimum sizes', 'Prohibitions'], typography: ['Type families'], components: ['Domain components'] };
   return (sections[topic.key] ?? []).map((title) => ({ title, url: `#${title.toLowerCase().replaceAll(' ', '-')}`, depth: 2 }));
 }

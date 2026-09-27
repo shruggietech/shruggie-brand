@@ -201,3 +201,7 @@ Product-specific page structure.
 ## What this buys us
 
 A brand author still decides strategy, voice, logo source, palette, and the other choices that define its identity. The contract makes those decisions explicit and lets shared implementation details generate consistently from approved source. The authoring workflow in `03-interview.md` governs discovery and approval before a kit is shipped.
+
+## Apply the color distinction
+
+When an approved identity uses a bright accent on a wordmark, keep that exact artwork color in the formal palette. For a button or warning on a light surface, choose the interface role from the declared dark/light tokens, measure its rendered contrast, and add a text or shape cue for the state. [Carbon's color model](references.md#ref-ui-carbon) illustrates semantic interface roles; it does not supply this brand's colors. The repository's WCAG 2.1 AA floor is adopted from [WCAG 2.1](references.md#ref-a11y-wcag21), with [Use of Color](references.md#ref-a11y-color) as an informative explanation. A shared HEX can be intentional, but ownership and sibling identity do not determine either palette.

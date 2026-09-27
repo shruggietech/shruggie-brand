@@ -42,3 +42,7 @@ Evidence includes review language, a request for findings only, absent mutation 
 - Author to Implementation: publish an exact contract, verification entry point, adapter versions, and recovery bytes.
 - Implementation to Author: create a local capability-gap record when a reusable semantic concept is missing. Product composition remains local.
 - Audit to Author or Implementation: report evidence, affected authority, and recommended owning mode without making the change.
+
+## Research in the selected mode
+
+Select only sources relevant to the task from [References](references.md). In Author mode, use cited discovery, identity, and accessibility guidance to explain a proposed decision while keeping the two existing creative gates. In Implementation mode, start with the pinned kit and use a platform entry for the actual host; an Android or WordPress source does not imply a delivered adapter. In Audit mode, cite the applicable standard or advisory framework as evidence, distinguish an observed failure from a suggested improvement, and keep the assessment read-only. Reading a source never creates mutation authority or a new approval gate.

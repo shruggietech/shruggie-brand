@@ -506,6 +506,33 @@ def expression_gallery(brand, kit):
             '<h2>Expressions and atmosphere</h2><p class="lead">These approved treatments extend the identity for selected campaign and editorial contexts. They are not substitutes for the core logo masters.</p>'
             '<div class="expression-grid">%s</div></section>' % "".join(cards))
 
+def implementation_reference_html(facts):
+    versions = "".join('<div><dt>%s</dt><dd><code>%s</code></dd></div>' %
+                       (escape(key.replace("_", " ")), escape(str(value)))
+                       for key, value in facts["versions"].items())
+    bindings = "".join('<li><strong>%s:</strong> <code>%s</code></li>' %
+                       (escape(key.replace("_", " ")), escape(path))
+                       for key, path in facts["bindings"].items())
+    inheritance = facts["rules"]["inheritance"]
+    starting_point = ("This brand starts with shared ShruggieTech interface rules while keeping its own approved identity."
+                      if inheritance == "shruggietech-house" else
+                      "This brand uses its own delivered interface binding; do not assume a ShruggieTech house palette.")
+    overrides = facts["rules"]["overrides"]
+    override_text = ("<ul>%s</ul>" % "".join('<li><code>%s</code>: effective brand reference <code>%s</code>; compare this role with its default reference in the delivered interface binding. Its scope is this interface role for this brand.</li>' %
+                                           (escape(key), escape(str(value))) for key, value in sorted(overrides.items()))
+                     if overrides else "<p>No brand-specific interface overrides are declared. Use the delivered binding and its default rules.</p>")
+    slug = facts["brand"]["slug"]
+    return ('<section id="implementation"><div class="eyebrow">Implementation authority</div><h2>Exact kit facts</h2>'
+            '<p>%s The current hosted <a href="https://brand.shruggie.tech/%s/facts/documentation.json">documentation facts (JSON)</a> '
+            'declare schema version %s and documentation contract version %s. In a downloaded kit, '
+            '<code>enforcement/documentation-facts.json</code> governs those pinned bytes.</p>'
+            '<h3>Interface overrides</h3>%s<h3>Versions</h3><dl class="facts-grid">%s</dl>'
+            '<h3>Implementation files</h3><ul>%s</ul><p>The registry catalog lists installable theme and component resources; '
+            'select a resource for the consuming host rather than treating the catalog as an installed component.</p></section>' %
+            (escape(starting_point), escape(slug, quote=True), facts["schema_version"],
+             escape(facts["documentation_contract_version"]), override_text, versions, bindings))
+
+
 def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
@@ -533,6 +560,8 @@ def build(B, kit):
                             + _swatches("Light palette", list(L.items()), title))
     color_role_html = role_reference_html(load_color_roles(B, kit))
     catalog = _asset_catalog(kit, title)
+    facts = json.loads(Path(kit, "enforcement", "documentation-facts.json").read_text(encoding="utf-8"))
+    implementation_html = implementation_reference_html(facts)
 
     return """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -596,6 +625,10 @@ section { scroll-margin-top:24px; }
 .card { background:var(--card); border:1px solid var(--border);
   border-radius:var(--radius-xl); padding:24px; }
 .two { display:grid; gap:24px; grid-template-columns:1fr 1fr; }
+.facts-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%%,14rem),1fr)); gap:12px; }
+.facts-grid > div { min-width:0; padding:12px; border:1px solid var(--border); border-radius:var(--radius-md); }
+.facts-grid dd { margin:0; overflow-wrap:anywhere; }
+#implementation code { overflow-wrap:anywhere; }
 @media(max-width:800px){ .two,.theme-wells{ grid-template-columns:1fr; } }
 .row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-top:24px; }
 .btn { font-family:var(--font-body); font-weight:%(body_medium)d; font-size:.875rem; border-radius:var(--radius-md);
@@ -640,12 +673,12 @@ code { font-family:var(--font-body); font-weight:var(--font-label-weight); font-
 </header>
 
 <nav class="contents" aria-label="On this page"><strong>On this page</strong><ul>
-<li><a href="#colors">Colors</a></li><li><a href="#themes">Theme examples</a></li>
+<li><a href="#implementation">Implementation</a></li><li><a href="#colors">Colors</a></li><li><a href="#themes">Theme examples</a></li>
 <li><a href="#type-components">Type and components</a></li><li><a href="#assets">Asset catalog</a></li>
 %(expression_nav)s
 </ul></nav>
 
-<main><section id="colors"><div class="eyebrow">Color</div><h2>Formal identity colors and interface cues</h2>
+<main>%(implementation_html)s<section id="colors"><div class="eyebrow">Color</div><h2>Formal identity colors and interface cues</h2>
 <p class="lead">%(sepline)s</p>
 %(color_role_html)s
 <p class="lead">HEX uses uppercase pairs; sRGB uses integer 0-255 channels; HSL uses degrees and percentages rounded to one decimal; OKLCH uses four decimals for lightness and chroma plus one for hue; CIELAB uses D50 with lightness as a percentage and two decimals per channel.</p>
@@ -712,6 +745,7 @@ if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;
         "surface_mode": guide_surface_mode(B),
         "expression_nav": '<li><a href="#expressions">Expressions</a></li>' if custom_assets(B, kit, public_only=True) else "",
         "expressions": expression_gallery(B, kit),
+        "implementation_html": implementation_html,
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),
         "idea": copy_for(B, "idea", B.get("brand_idea", title)),
         "descriptor": copy_for(B, "descriptor", B.get("descriptor", "")),

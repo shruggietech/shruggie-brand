@@ -175,8 +175,14 @@ def render_implementation(facts, governed_rules):
         ("egui_adapter_version", "egui adapter"), ("compiler_version", "BrandBuilder"), ("brand_version", "Brand")))
     bindings = "\n".join("- **%s:** `%s`" % (name.replace("_", " ").title(), path) for name, path in facts["bindings"].items())
     overrides = facts["rules"]["overrides"]
-    rules = ("Inheritance mode: `%s`.\n\nDeclared interface overrides:\n%s" %
-             (facts["rules"]["inheritance"], "\n".join("- `%s`: `%s`" % item for item in sorted(overrides.items())) if overrides else "- None."))
+    inheritance = facts["rules"]["inheritance"]
+    inheritance_note = ("This brand starts with the shared ShruggieTech interface rules while keeping its approved identity and declared overrides."
+                        if inheritance == "shruggietech-house" else
+                        "This brand uses its own delivered interface binding; do not assume a ShruggieTech house palette.")
+    override_note = ("\n".join("- `%s` has effective brand reference `%s`; compare that role's default reference in the delivered interface binding before applying it. The change affects this interface role for this brand, not its whole identity." % item
+                                for item in sorted(overrides.items())) if overrides else
+                     "No brand-specific interface overrides are declared. Use the delivered binding and its default rules.")
+    rules = "%s\n\nInterface overrides:\n%s" % (inheritance_note, override_note)
     checks = "\n".join("- `%s`" % command for command in facts["verification"]["entry_points"])
     migration = render_migration_summary(facts)
     return """# Implementation Contract: {title}
@@ -195,7 +201,7 @@ Package identity: `{package}` (`{filename}`)
 
 {bindings}
 
-## Inheritance and overrides
+## Interface starting point and overrides
 
 {interface_rules}
 

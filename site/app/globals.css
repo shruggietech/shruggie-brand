@@ -183,10 +183,10 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .guide-notice { margin-top: 1.5rem; padding: 1rem; border-inline-start: 3px solid var(--guide-accent, var(--primary)); background: var(--muted); }
 .personality-list, .type-list, .component-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 1rem; }
 .personality-list h3, .type-list h3, .component-list h3 { margin-top: 0; }
-.metric-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .75rem; }
-.metric-list > div { padding: .85rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); }
+.metric-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .75rem; }
+.metric-list > div { display: flex; flex-direction: column; gap: .5rem; padding: .85rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--card); }
 .metric-list dt { color: var(--muted-foreground); text-transform: capitalize; }
-.metric-list dd { margin: .25rem 0 0; font: 500 1rem var(--sh-font-mono); }
+.metric-list dd { min-width: 0; margin: auto 0 0; font: 500 1rem var(--sh-font-mono); overflow-wrap: anywhere; }
 .logo-example { display: grid; max-width: 42rem; margin: 1rem 0; padding: 1.25rem; border: 1px solid var(--border); border-radius: .75rem; overflow: clip; }
 .logo-example figcaption { margin-top: 1rem; color: inherit; text-align: center; }
 .dark-well { background: #090909; color: #f5f5f5; }

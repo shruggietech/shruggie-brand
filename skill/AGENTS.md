@@ -59,6 +59,8 @@ There are exactly two mandatory creative approval stops: Gate 1 binds the actual
 | To write copy | `07-voice.md` |
 | To know what may change | `00-variance-contract.md` |
 | To run somewhere unusual | `09-portability.md` |
+| To research a design or platform decision | `references.md` for a stable source ID and its limits, then the relevant task manual |
+| To plan Android or WordPress host integration | `11-interface-implementation.md` support boundary, then the Android or WordPress entries in `references.md` |
 | To check a kit | `templates/verify.py` |
 | To fix an existing kit | Run verify first, then work the problems list |
 
@@ -190,7 +192,8 @@ Keep proposals and unresolved questions in the working brief. Never turn a missi
 | `references/01-canon.json` | machine-readable inheritance root. Generators read this |
 | `references/canon.schema.json` | authoring schema for explicit affiliation, inheritance, typography, supplied inputs, and approvals |
 | `references/02-kit-anatomy.md` | what a complete kit contains, file by file |
-| `references/03-interview.md` | the five gates and how each default is computed |
+| `references/03-interview.md` | adaptive discovery and the two mandatory creative approval gates |
+| `references/references.md` | stable annotated sources, classifications, local applications, and offline citation IDs |
 | `references/04-toolchain.md` | probe script and the asset-to-tool matrix |
 | `references/asset-glossary.md` | plain-English meanings for brand marks, lockups, social images, transparency, ink, and intended viewing surface |
 | `references/05-shadcn-binding.md` | token to slot map, registry authoring, the radius deviation |

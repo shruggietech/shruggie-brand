@@ -117,3 +117,7 @@ dies at the binary step.
 
 All six pass on the ShruggieTech instance. Check 4 is in the list because it
 caught a real failure during development.
+
+## Apply the binding in a host
+
+First install the exact registry theme and verify the generated semantic variable names against the host's [shadcn theming](references.md#ref-web-shadcn) contract. For a form, bind the input to a visible label using the [React input guidance](references.md#ref-web-react); then inspect focus and error cues at rendered size. Use [Tailwind state variants](references.md#ref-web-tailwind) only for states the component recipe declares, and review the [CSS custom-property scope](references.md#ref-web-variables) before overriding a token. These framework references guide the host; the versioned kit files and local verifier remain the implementation authority.

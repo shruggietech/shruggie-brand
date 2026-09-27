@@ -43,3 +43,7 @@ A `historical-baseline` records the current production source and its limits. It
 ## Gate 2 boundary
 
 Gate 2 reviews private provisional derivatives made from the promoted canonical source before final kit compilation. Its packet includes lockups, wordmarks where applicable, icons, formal palette, separate interface cues, typography, representative applications, and a social share image with exact approved copy and layout, identified separately from wide and stacked lockups. It may approve those derivatives and publication surfaces within the recorded scope. It must not introduce, reconstruct, simplify, or first reveal production master geometry. Any such change invalidates Gate 1 approval and returns to the canonical candidate stage. A changed reviewed derivative, including social copy, requires fresh Gate 2 approval. Silence is never approval.
+
+## Apply the continuity evidence
+
+If a reduced mark looks clearer in a tiny preview, compare its role with the approved Full source and the recorded derivative manifest before adopting it. A usability heuristic such as [visible feedback](references.md#ref-ux-nielsen) can guide the review of the preview, while the source digest and proof matrix establish identity continuity. Neither a clearer preview nor a cited framework authorizes changing the approved SVG path.
