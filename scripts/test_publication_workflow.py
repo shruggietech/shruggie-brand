@@ -10,6 +10,7 @@ import re
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 import audit_publication_artifacts
@@ -225,6 +226,27 @@ class PublicationArtifactAuditTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "staged source revision"):
                 audit_publication_artifacts.audit_semantics(
                     root, kits, site, release, staged, ("covarity",), ("covarity",), "a" * 40)
+
+    def test_semantic_candidate_checks_hosted_archive_without_release_asset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kits, site, _, _ = create_semantic_candidate(root)
+            publication = root / "site" / "generated" / "publication.json"
+            payload = json.loads(publication.read_text(encoding="utf-8"))
+            payload["packages"] = []
+            publication.write_text(json.dumps(payload), encoding="utf-8")
+            archive = site / "covarity" / "downloads" / "covarity-brand-1.0.0-bb2.6.0.zip"
+
+            def synthetic_archive(_source, destination, *, root):
+                destination.write_bytes(b"PK\x03\x04archive")
+
+            with mock.patch.object(audit_publication_artifacts, "write_brand_archive", side_effect=synthetic_archive):
+                audit_publication_artifacts.audit_semantics(
+                    root, kits, site, production=("covarity",), release_authorized=())
+                archive.write_bytes(b"PK\x03\x04corrupt")
+                with self.assertRaisesRegex(ValueError, "hosted archive differs from certified kit"):
+                    audit_publication_artifacts.audit_semantics(
+                        root, kits, site, production=("covarity",), release_authorized=())
 
     def test_semantic_candidate_rejects_unsafe_optional_reference(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -9,6 +9,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 from typing import Dict, Iterable, Optional, Set, Tuple
 
@@ -16,6 +17,7 @@ from typing import Dict, Iterable, Optional, Set, Tuple
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skill" / "templates"))
 from interface_contract import RELEASE_AUTHORIZED_BRANDS
+from package_release import write_brand_archive
 PRODUCTION = (
     "covarity",
     "cueson",
@@ -287,9 +289,17 @@ def audit_semantics(root: Path, kits: Path, site: Path, release: Optional[Path] 
         archive = _safe_file(target / "downloads", package["filename"])
         if indexed_brand.get("kitArchive") != "/%s/downloads/%s" % (slug, package["filename"]):
             raise ValueError("%s advertised archive URL differs" % slug)
-        if (release is not None and slug in release_slugs
-                and _fingerprint(archive) != _fingerprint(_safe_file(release, package["filename"]))):
-            raise ValueError("%s hosted archive differs from release candidate" % slug)
+        if release is not None and slug in release_slugs:
+            if _fingerprint(archive) != _fingerprint(_safe_file(release, package["filename"])):
+                raise ValueError("%s hosted archive differs from release candidate" % slug)
+        elif slug not in release_slugs:
+            # Independently owned brands are hosted, but absent from formal release assets.
+            # Regenerate their deterministic archive to bind the advertised download to this kit.
+            with tempfile.TemporaryDirectory(prefix="brand-archive-audit-") as temporary:
+                expected_archive = Path(temporary) / package["filename"]
+                write_brand_archive(source, expected_archive, root=root)
+                if _fingerprint(archive) != _fingerprint(expected_archive):
+                    raise ValueError("%s hosted archive differs from certified kit" % slug)
         packages.append(package)
     released = [item for item in packages if item["brand_slug"] in release_slugs]
     if (release_slugs != {item["brand_slug"] for item in released}

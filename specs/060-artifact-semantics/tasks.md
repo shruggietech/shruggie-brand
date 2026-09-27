@@ -23,7 +23,7 @@
 
 - [x] T009 [US3] Update Unreleased changelogs and record classified findings, validation layers, and limitations in `verification.md`.
 - [x] T010 Run focused regressions, eight production kit and glyph checks, archive and site CI-parity tests, accessibility, source encoding, and candidate publication audit.
-- [ ] T011 Run Spec Kit cross-artifact analysis again, resolve blocking findings, commit and push S060, open the official PR, and attach it to this task.
+- [x] T011 Run Spec Kit cross-artifact analysis again, resolve blocking findings, commit and push S060, open the official PR, and attach it to this task.
 - [ ] T012 Resolve all first-round review comments and CI failures, trigger at most one second review round, resolve its findings, and hand off only when checks are green.
 
 ## Dependencies

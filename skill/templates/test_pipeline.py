@@ -83,6 +83,9 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("sha256", problems({**manifest, "files": [{**entry, "sha256": "0" * 64}]}))
             self.assertIn("version", problems({**manifest, "version": "9.0.0"}))
             self.assertEqual("", problems(manifest))
+            for license_name in ("LICENSE", "NOTICE", "LICENSE-BRAND.md"):
+                write_utf8(kit / license_name, "canonical archive license\n")
+            self.assertEqual("", problems(manifest))
             write_utf8(kit / "unrecorded.json", "{}\n")
             self.assertIn("unrecorded", problems(manifest))
 

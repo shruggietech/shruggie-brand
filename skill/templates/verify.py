@@ -1354,7 +1354,10 @@ def c_manifest(kit, rep):
             # that includes QC. The portable verifier must accept both stages.
             if relative != "manifest.json":
                 actual.add(relative)
-    unrecorded = sorted(relative for relative in actual - seen if not relative.startswith("qc/"))
+    # Archive packaging adds canonical repository licenses after kit manifest creation.
+    archive_licenses = {"LICENSE", "NOTICE", "LICENSE-BRAND.md"}
+    unrecorded = sorted(relative for relative in actual - seen
+                        if not relative.startswith("qc/") and relative not in archive_licenses)
     if unrecorded:
         bad.append("manifest has unrecorded files: %s" % ", ".join(unrecorded[:6]))
     absent = sorted(seen - actual)
