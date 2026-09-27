@@ -2,7 +2,7 @@
 
 **Feature Branch**: `codex/062-wordpress-brand-delivery`
 **Created**: 2026-09-27
-**Status**: In progress
+**Status**: Ready for review
 **Input**: S062 completes #273 and #274 as one end-to-end native WordPress delivery. Generate a source-bound adapter first, then an installable block-theme starter and an upgradeable client handoff.
 
 ## Clarifications

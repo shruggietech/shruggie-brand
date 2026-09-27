@@ -14,11 +14,7 @@
 - The pinned WordPress 6.9.9/PHP 8.2 and WordPress 7.1.2/PHP 8.3 fixtures passed with the final go-schedule ZIP. Each exercised native pattern registration, editor save/reopen without block recovery, published output, Home navigation, local font and media loading, non-root asset URL composition, long-word reflow at 390px, keyboard focus, search/archive/404 templates, and axe WCAG 2.1 AA at 390px and 1440px with zero violations.
 - Each runtime fixture installed an updated ZIP, observed the changed theme file, restored the pinned prior ZIP, and confirmed the page, saved Global Styles color pair, and saved footer template part remained effective. `dist/wordpress-runtime/drift-<version>.json` records the generated background default, saved value, effective value, and resolution for baseline, update, and rollback.
 - `scripts/test_publication_workflow.py` passed 25 tests. The hosted publication audit, using an isolated eight-kit staging tree because local `dist/` also contains development tool caches, passed with 8 brands, 8 governed kit markers, 8 site markers, 8 packages, and 1,922 public files. The direct WordPress ZIP copy is included in the byte inventory and tamper tests.
-- Site lint and static export passed. `scripts/test_registry_delivery.py` installed 24 UI items and local fonts in a clean pinned shadcn consumer. `scripts/audit_public_documentation.py --sources` and `--prepared` each reported zero problems. The v2.7.0 release contract verified nine candidate assets and generated notes. The pinned WordPress fixture dependency audit reported zero vulnerabilities.
-
-## Remaining gate
-
-- The exported site's headless browser verifier is running. Record its final result here, then repeat the static export after the final WordPress manual wording adjustment and rerun the publication audit before PR creation.
+- Site lint and static export passed. The final exported-site browser verifier checked 94 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations. `scripts/test_registry_delivery.py` installed 24 UI items and local fonts in a clean pinned shadcn consumer. `scripts/audit_public_documentation.py --sources` and `--prepared` each reported zero problems. The final hosted artifact audit passed after the WordPress manual edit. The v2.7.0 release contract verified nine candidate assets and generated notes. The pinned WordPress fixture dependency audit reported zero vulnerabilities.
 
 ## Scope limits
 
