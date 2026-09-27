@@ -48,11 +48,16 @@ class WordPressGenerationTests(unittest.TestCase):
         palette = {item["slug"]: item["color"] for item in settings["settings"]["color"]["palette"]}
         self.assertEqual(palette["stbb-go-schedule-identity-primary"], "#58A6FF")
         self.assertIn("stbb-go-schedule-cue-action", palette)
+        self.assertNotIn("stbb-go-schedule-border-default", palette)
+        self.assertTrue(all(item["color"].startswith("#") for item in settings["settings"]["color"]["palette"]))
         self.assertNotEqual(palette["stbb-go-schedule-identity-primary"], palette["stbb-go-schedule-cue-action"])
         dark = json.loads((self.kit / "wordpress" / "theme" / "stbb-go-schedule" / "styles" / "dark.json").read_text(encoding="utf-8"))
         dark_palette = {item["slug"]: item["color"] for item in dark["settings"]["color"]["palette"]}
         self.assertEqual(dark_palette["stbb-go-schedule-identity-primary"], palette["stbb-go-schedule-identity-primary"])
         self.assertNotEqual(dark_palette["stbb-go-schedule-surface-background"], palette["stbb-go-schedule-surface-background"])
+        css = (self.kit / "wordpress" / "theme" / "stbb-go-schedule" / "assets" / "css" / "stbb-content.css").read_text(encoding="utf-8")
+        self.assertIn("outline: 2px solid var(--wp--preset--color--stbb-go-schedule-focus-ring)", css)
+        self.assertIn("border: 1px solid var(--wp--preset--color--stbb-go-schedule-text-muted)", css)
         media_pattern = (self.kit / "wordpress" / "theme" / "stbb-go-schedule" / "patterns" / "text-media.php").read_text(encoding="utf-8")
         self.assertIn("get_theme_file_uri", media_pattern)
         self.assertIn("go-schedule-social-preview-1280.png", media_pattern)

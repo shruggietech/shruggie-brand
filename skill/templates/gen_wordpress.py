@@ -114,7 +114,7 @@ def theme_settings(brand, interface, color_roles, fonts):
     roles = interface["roles_by_theme"]["light"]
     for key, label in (("surface.background", "Background"), ("surface.card", "Card"),
                        ("text.primary", "Text"), ("text.muted", "Muted text"),
-                       ("border.default", "Border"), ("focus.ring", "Focus")):
+                       ("focus.ring", "Focus")):
         palette.append({"name": "Interface: %s" % label, "slug": "%s-%s" % (prefix, key.replace(".", "-")), "color": roles[key]})
     names = {entry["slug"] for entry in palette}
     require(len(names) == len(palette), "WordPress palette slugs collide")
@@ -166,7 +166,7 @@ def dark_variation(base, brand, interface, color_roles):
         for cue in cues:
             if name == "%s-cue-%s" % (prefix, cue["id"]):
                 item["color"] = cue["hex"]
-        for role in ("surface.background", "surface.card", "text.primary", "text.muted", "border.default", "focus.ring"):
+        for role in ("surface.background", "surface.card", "text.primary", "text.muted", "focus.ring"):
             if name == "%s-%s" % (prefix, role.replace(".", "-")):
                 item["color"] = roles[role]
     dark["styles"]["elements"]["button"]["color"]["text"] = next(
@@ -177,7 +177,7 @@ def dark_variation(base, brand, interface, color_roles):
 def content_css(brand, interface):
     slug = brand["slug"]
     roles = interface["roles_by_theme"]["light"]
-    focus = roles["focus.ring"]
+    focus = "var(--wp--preset--color--stbb-%s-focus-ring)" % slug
     width = css_value(roles["focus.width"])
     offset = css_value(roles["focus.offset"])
     return ("/* Generated content-only supplement. Theme defaults live in theme.json. */\n"
@@ -188,7 +188,7 @@ def content_css(brand, interface):
             ":where(.wp-site-blocks, .editor-styles-wrapper) .stbb-%s-sample-mark { background: #fff; padding: var(--wp--preset--spacing--stbb-%s-space-4); }\n" % (slug, slug) +
             ":where(.wp-site-blocks, .editor-styles-wrapper) .stbb-%s-sample-mark img { inline-size: min(12rem, 100%%); }\n" % slug +
             ":where(.wp-site-blocks, .editor-styles-wrapper) :where(.wp-element-caption) { color: var(--wp--preset--color--stbb-%s-text-muted); }\n" % slug +
-            ":where(.wp-site-blocks, .editor-styles-wrapper) .wp-block-group.is-style-stbb-%s-card { background: var(--wp--preset--color--stbb-%s-surface-card); color: var(--wp--preset--color--stbb-%s-text-primary); border: 1px solid var(--wp--preset--color--stbb-%s-border-default); border-radius: var(--wp--preset--spacing--stbb-%s-space-2); padding: var(--wp--preset--spacing--stbb-%s-space-6); }\n" % (slug, slug, slug, slug, slug, slug) +
+            ":where(.wp-site-blocks, .editor-styles-wrapper) .wp-block-group.is-style-stbb-%s-card { background: var(--wp--preset--color--stbb-%s-surface-card); color: var(--wp--preset--color--stbb-%s-text-primary); border: %spx solid var(--wp--preset--color--stbb-%s-text-muted); border-radius: var(--wp--preset--spacing--stbb-%s-space-2); padding: var(--wp--preset--spacing--stbb-%s-space-6); }\n" % (slug, slug, slug, roles["border.default"], slug, slug, slug) +
             ":where(.wp-site-blocks, .editor-styles-wrapper) :where(.wp-block-navigation, .wp-block-columns, .wp-block-group, .wp-block-post-content) { min-inline-size: 0; overflow-wrap: anywhere; }\n"
             ":where(.wp-site-blocks, .editor-styles-wrapper) :where(.wp-block-button__link) { min-block-size: 44px; display: inline-flex; align-items: center; }\n"
             "@media (prefers-reduced-motion: reduce) { :where(.wp-site-blocks, .editor-styles-wrapper) * { scroll-behavior: auto; animation-duration: 0.01ms; transition-duration: 0.01ms; } }\n")

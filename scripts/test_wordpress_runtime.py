@@ -12,6 +12,7 @@ import zipfile
 from pathlib import Path
 from urllib.request import urlopen
 
+from coloraide import Color
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,6 +73,39 @@ def browser_probe(port, page_id, fixture_root, version):
             page.keyboard.press("Tab")
             if page.evaluate("getComputedStyle(document.activeElement).outlineStyle") == "none":
                 raise RuntimeError("Keyboard focus indicator is missing")
+            card_border = page.evaluate("""() => {
+                const card = document.createElement('div');
+                card.className = 'wp-block-group is-style-stbb-go-schedule-card';
+                document.querySelector('main').append(card);
+                const style = getComputedStyle(card);
+                const result = [style.borderTopWidth, style.borderTopStyle, style.borderTopColor];
+                card.remove();
+                return result;
+            }""")
+            if card_border[0] != "1px" or card_border[1] != "solid" or card_border[2] in ("transparent", "rgba(0, 0, 0, 0)"):
+                raise RuntimeError("Generated card border has invalid width or color: %s" % card_border)
+            dark = json.loads((ROOT / "dist" / "go-schedule" / "wordpress" / "theme" / "stbb-go-schedule" / "styles" / "dark.json").read_text(encoding="utf-8"))
+            dark_palette = {item["slug"]: item["color"] for item in dark["settings"]["color"]["palette"]}
+            dark_focus = dark_palette["stbb-go-schedule-focus-ring"]
+            dark_background = dark_palette["stbb-go-schedule-surface-background"]
+            if Color(dark_focus).contrast(dark_background, method="wcag21") < 3:
+                raise RuntimeError("Dark variation focus indicator falls below 3:1")
+            dark_outline = page.evaluate("""hex => {
+                const variable = '--wp--preset--color--stbb-go-schedule-focus-ring';
+                document.documentElement.style.setProperty(variable, hex);
+                const control = document.querySelector('.wp-block-button__link');
+                control.focus();
+                const actual = getComputedStyle(control).outlineColor;
+                const sample = document.createElement('div');
+                sample.style.color = hex;
+                document.body.append(sample);
+                const expected = getComputedStyle(sample).color;
+                sample.remove();
+                document.documentElement.style.removeProperty(variable);
+                return [actual, expected];
+            }""", dark_focus)
+            if dark_outline[0] != dark_outline[1]:
+                raise RuntimeError("Focus outline does not follow the selected dark variation: %s" % dark_outline)
             page.screenshot(path=str(fixture_root / ("front-%s-390.png" % version)), full_page=True)
             page.set_viewport_size({"width": 1440, "height": 900})
             wide_findings = page.evaluate("async () => await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })")
