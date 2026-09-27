@@ -2358,6 +2358,26 @@ def c_aa_floor(kit, canon, brand, rep):
                % checked)
 
 
+def c_asset_aliases(kit, brand, rep):
+    """Confirm descriptive names resolve to unchanged approved derivative bytes."""
+    from asset_language import ALIAS_INDEX, validate_aliases
+    try:
+        with open(os.path.join(kit, "logos", "provenance.json"), encoding="utf-8") as handle:
+            provenance = json.load(handle)
+        with open(os.path.join(kit, ALIAS_INDEX.replace("/", os.sep)), encoding="utf-8") as handle:
+            mapping = json.load(handle)
+        problems = validate_aliases(kit, provenance["derivatives"], mapping)
+        if mapping.get("brand") != brand.get("slug"):
+            problems.append("alias index brand differs from kit brand")
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        problems = [str(error)]
+        mapping = {}
+    if problems:
+        rep.bad("asset-aliases", "; ".join(problems[:10]))
+    else:
+        rep.ok("asset-aliases", "%d approved derivative paths retain byte-identical descriptive names" % len(mapping["aliases"]))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("kit", nargs="?", default=".")
@@ -2387,6 +2407,7 @@ def main():
     c_identity_continuity(kit, brand, rep)
     c_glyph(kit, brand, rep)
     c_logo_provenance(kit, brand, rep)
+    c_asset_aliases(kit, brand, rep)
     c_capability_artifacts(kit, rep)
     c_icon_suites(kit, brand, rep)
     c_specimen(kit, brand, rep)

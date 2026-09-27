@@ -4,7 +4,7 @@ description: Build or audit a complete brand kit for a ShruggieTech-owned or thi
 license: Apache-2.0. The code, templates and reference documentation are licensed under the Apache License 2.0. Apache-2.0 section 6 grants no trademark rights, and the ShruggieTech and sub-brand names, wordmarks and logo geometry are additionally reserved: see LICENSE-BRAND.md. Bundled fonts keep their own SIL Open Font License 1.1.
 compatibility: Python 3.8 or newer. `coloraide` is required for color work, fontTools is required for generated and fixed typography, Pillow is required when raster supplied inputs request palette evidence, Brotli lets fontTools inspect WOFF2 metadata, and jsonschema validates shadcn registry payloads. Render-only capabilities still degrade to named skips. Run `templates/probe.py` first and route off its report.
 metadata:
-  version: 2.4.0
+  version: 2.5.0
   canon: 1.6.0
   interface-canon: 1.0.1
   component-recipes: 1.1.0
@@ -195,6 +195,7 @@ Keep proposals and unresolved questions in the working brief. Never turn a missi
 | `references/02-kit-anatomy.md` | what a complete kit contains, file by file |
 | `references/03-interview.md` | the five gates and how each default is computed |
 | `references/04-toolchain.md` | probe script and the asset-to-tool matrix |
+| `references/asset-glossary.md` | plain-English meanings for brand marks, lockups, social images, transparency, ink, and intended viewing surface |
 | `references/05-shadcn-binding.md` | token to slot map, registry authoring, the radius deviation |
 | `references/06-logo-protocol.md` | what a mark must be: grid, lockups, favicons, prohibitions |
 | `references/07-voice.md` | registers, the principle and descriptor shapes, banned rhetoric |

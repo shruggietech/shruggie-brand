@@ -192,6 +192,7 @@ Keep proposals and unresolved questions in the working brief. Never turn a missi
 | `references/02-kit-anatomy.md` | what a complete kit contains, file by file |
 | `references/03-interview.md` | the five gates and how each default is computed |
 | `references/04-toolchain.md` | probe script and the asset-to-tool matrix |
+| `references/asset-glossary.md` | plain-English meanings for brand marks, lockups, social images, transparency, ink, and intended viewing surface |
 | `references/05-shadcn-binding.md` | token to slot map, registry authoring, the radius deviation |
 | `references/06-logo-protocol.md` | what a mark must be: grid, lockups, favicons, prohibitions |
 | `references/07-voice.md` | registers, the principle and descriptor shapes, banned rhetoric |

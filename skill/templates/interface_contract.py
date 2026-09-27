@@ -1142,9 +1142,9 @@ def verify_consumer_contract(kit):
             _require(len(names) == len(set(names)), "recovery distribution has duplicate paths")
             _require({"SKILL.md", "AGENTS.md", "SOURCE_REVISION", "references/interface-canon.json",
                       "references/component-recipes.json", "references/component-recipes.schema.json",
-                      "references/version-policy.json",
+                      "references/version-policy.json", "references/asset-glossary.md",
                       "references/consumer-contract.schema.json", "references/documentation-contract.json",
-                      "references/documentation-contract.schema.json", "templates/documentation_contract.py", "templates/verify.py",
+                      "references/documentation-contract.schema.json", "templates/documentation_contract.py", "templates/verify.py", "templates/asset_language.py",
                       "templates/validate_glyph.py"}.issubset(names),
                      "recovery distribution lacks governed entry points")
             for name in names:

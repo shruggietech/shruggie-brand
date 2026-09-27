@@ -2,6 +2,8 @@
 
 **Find the authoritative files and generated delivery layers in a BrandBuilder kit.** A kit is a versioned package: its own `brand.json`, `enforcement/bundle.json`, and `manifest.json` tell a consumer which identity and compiler produced it. Use the delivered inventory rather than assuming a sibling kit has identical optional assets.
 
+Use the [Asset Language](/docs/asset-glossary/) glossary for the meanings of brand mark, wide and stacked lockup, social share image, ink treatment, and intended background. `logos/asset-aliases.json` maps each approved original logo path to a descriptive byte-identical filename under `logos/named/`; existing paths remain available.
+
 ## The delivery layers
 
 | Layer | Purpose | Where to start |

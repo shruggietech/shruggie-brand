@@ -1,16 +1,16 @@
 {
   "$schema": "release-impact.schema.json",
   "schema_version": 1,
-  "brandbuilder_version": "2.4.0",
-  "identity_redesign": true,
+  "brandbuilder_version": "2.5.0",
+  "identity_redesign": false,
   "surfaces": {
-    "identity": {"classification": "required", "summary": "Go Schedule 2.0.0 promotes the existing reduced prompt and cursor paths to the current primary mark. Other approved mark geometry remains unchanged."},
+    "identity": {"classification": "unaffected", "summary": "All approved source and Gate 2 derivative geometry remains unchanged."},
     "palette": {"classification": "unaffected", "summary": "Existing approved formal and interface colors remain unchanged."},
     "typography": {"classification": "unaffected", "summary": "Existing local fonts and outlined wordmarks remain authoritative."},
-    "platform_assets": {"classification": "required", "summary": "Go Schedule marks, paired lockups, icons, and previews use the simplified primary mark. Every brand gains a distinct approved social image and legacy direct-link aliases."},
+    "platform_assets": {"classification": "required", "summary": "Every kit gains byte-identical descriptive logo aliases and a path map. Existing logo and icon deliveries retain their paths and bytes."},
     "web_react": {"classification": "unaffected", "summary": "The Web and React adapter API and token roles remain unchanged."},
     "egui": {"classification": "unaffected", "summary": "The egui adapter API and approved values remain unchanged."},
-    "documentation": {"classification": "required", "summary": "Brand guides and the hosted site distinguish social images from logo lockups. Brand landing metadata uses exact verified kit image bytes."},
-    "recovery": {"classification": "required", "summary": "Regenerate and repin affected kits with exact 2.4.0 package checksums. Go Schedule 2.0.0 is an identity migration; other brands gain social assets under their minor versions."}
+    "documentation": {"classification": "required", "summary": "The shared asset glossary and generated guides use consistent form, layout, ink, background, and surface terms. Hosted and portable downloads show one card per distinct design."},
+    "recovery": {"classification": "required", "summary": "Regenerate and repin 2.5.0 kits with exact package checksums to adopt descriptive aliases and catalog metadata. Existing approved asset paths remain valid."}
   }
 }

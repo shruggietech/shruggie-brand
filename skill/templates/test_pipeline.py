@@ -607,6 +607,40 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(2, len(groups[0]["deliveries"]))
         self.assertEqual("icons/web/favicon-32x32.png", groups[0]["representative"]["path"])
 
+    def test_guideline_card_face_uses_smallest_sharp_size_and_keeps_all_sizes(self):
+        sizes = (16, 32, 192, 384, 512, 1024)
+        deliveries = [
+            {"path": "icons/web/icon-%d.png" % size, "family": "icon", "platform": "web",
+             "role": "installable", "appearance": "default", "source_variant": "reduced",
+             "format": "png", "width": size, "height": size, "destination": "Web app manifest"}
+            for size in sizes
+        ]
+        groups = gen_guidelines.group_asset_deliveries(deliveries)
+        self.assertEqual(1, len(groups))
+        self.assertEqual(set(sizes), {item["width"] for item in groups[0]["deliveries"]})
+        self.assertEqual("icons/web/icon-384.png", groups[0]["representative"]["path"])
+        deliveries.append({"path": "icons/web/icon.svg", "family": "icon", "platform": "web",
+                           "role": "installable", "appearance": "default", "source_variant": "reduced",
+                           "format": "svg", "width": 1024, "height": 1024, "destination": "Web app manifest"})
+        groups = gen_guidelines.group_asset_deliveries(deliveries)
+        self.assertEqual(1, len(groups))
+        self.assertEqual("icons/web/icon.svg", groups[0]["representative"]["path"])
+
+    def test_guideline_asset_groups_keep_layout_and_ink_distinct_with_aliases(self):
+        base = {"family": "logo", "platform": "identity", "kind": "lockup", "variant": "full",
+                "colourway": "color", "format": "svg", "width": 1000, "height": 200,
+                "destination": "Brand identity"}
+        wide = dict(base, path="logos/svg/example-horizontal-color.svg")
+        stacked = dict(base, path="logos/svg/example-stacked-color.svg")
+        black = dict(base, path="logos/svg/example-horizontal-black.svg", colourway="black")
+        preferred = dict(base, path="logos/named/example-logo-lockup-wide-full-color-clear-for-dark.svg",
+                         alias_of=wide["path"], preferred=True)
+        groups = gen_guidelines.group_asset_deliveries([wide, stacked, black, preferred])
+        self.assertEqual(3, len(groups))
+        wide_group = next(group for group in groups if wide in group["deliveries"])
+        self.assertEqual({wide["path"], preferred["path"]}, {item["path"] for item in wide_group["deliveries"]})
+        self.assertEqual(preferred["path"], wide_group["representative"]["path"])
+
     def test_social_image_is_separate_from_logo_and_prefers_canonical_preview(self):
         social = {"family": "logo", "platform": "identity", "kind": "social-image", "variant": None,
                   "colourway": "color", "role": "social-image", "appearance": "color", "source_variant": None,
@@ -661,20 +695,29 @@ class PipelineTests(unittest.TestCase):
         deliveries = [
             {"path": "icons/apple/macos/Assets.xcassets/AppIcon.appiconset/icon_16x16.png", "family": "icon", "platform": "apple-macos", "role": "asset-catalog-icon", "appearance": "default", "source_variant": "full", "format": "png", "width": 16, "height": 16, "destination": "Xcode AppIcon.appiconset"},
             {"path": "icons/apple/macos/AppIcon.iconset/icon_16x16.png", "family": "icon", "platform": "apple-macos", "role": "iconset-icon", "appearance": "default", "source_variant": "full", "format": "png", "width": 16, "height": 16, "destination": "macOS AppIcon.iconset"},
+            {"path": "icons/apple/macos/AppIcon.icns", "family": "icon", "platform": "apple-macos", "role": "icns", "appearance": "default", "source_variant": "full", "format": "icns", "embedded_sizes": [16, 32], "destination": "macOS application bundle"},
         ]
         groups = gen_guidelines.group_asset_deliveries(deliveries)
         self.assertEqual(1, len(groups))
-        self.assertEqual({"asset-catalog-icon", "iconset-icon"}, {item["role"] for item in groups[0]["deliveries"]})
+        self.assertEqual({"asset-catalog-icon", "iconset-icon", "icns"}, {item["role"] for item in groups[0]["deliveries"]})
+        families, resources = gen_guidelines.portal_assets(deliveries)
+        self.assertEqual([], resources)
+        self.assertEqual("app-icon", families[0]["assets"][0]["role"])
+        self.assertEqual({"png", "icns"}, set(families[0]["assets"][0]["formats"]))
 
-    def test_guideline_asset_groups_merge_web_destination_roles_without_losing_role_data(self):
+    def test_guideline_asset_groups_stack_reused_web_artwork_across_sizes_and_roles(self):
         deliveries = [
             {"path": "icons/web/favicon-180x180.png", "family": "icon", "platform": "web", "role": "favicon", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 180, "height": 180, "destination": "Web root"},
             {"path": "icons/web/apple-touch-icon.png", "family": "icon", "platform": "web", "role": "apple-touch", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 180, "height": 180, "destination": "Apple touch icon"},
             {"path": "icons/web/icon-192.png", "family": "icon", "platform": "web", "role": "installable", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 192, "height": 192, "destination": "Web app manifest"},
+            {"path": "icons/web/maskable-192.png", "family": "icon", "platform": "web", "role": "maskable", "appearance": "default", "source_variant": "reduced", "format": "png", "width": 192, "height": 192, "destination": "Web app manifest"},
         ]
         groups = gen_guidelines.group_asset_deliveries(deliveries)
-        self.assertEqual(1, len(groups))
-        self.assertEqual({"favicon", "apple-touch", "installable"}, {item["role"] for item in groups[0]["deliveries"]})
+        self.assertEqual(2, len(groups))
+        web = next(group for group in groups if len(group["deliveries"]) == 3)
+        self.assertEqual({"favicon", "apple-touch", "installable"}, {item["role"] for item in web["deliveries"]})
+        self.assertEqual({180, 192}, {item["width"] for item in web["deliveries"]})
+        self.assertEqual("web-icon", gen_guidelines.describe(web["representative"])["platform_role"])
 
     def test_portal_colors_are_hex_first_and_keep_aliases_secondary(self):
         entries = gen_guidelines.portal_colors([
@@ -802,11 +845,17 @@ class PipelineTests(unittest.TestCase):
             }), encoding="utf-8")
             (kit / "favicon.png").write_bytes((kit / "icons" / "web" / "favicon-32x32.png").read_bytes())
 
+            deliveries, _, _ = gen_guidelines.asset_deliveries(kit)
+            alias_row = next(item for item in deliveries if item["path"] == "favicon.png")
+            self.assertEqual("icons/web/favicon-32x32.png", alias_row["alias_of"])
+            self.assertFalse(alias_row.get("preferred"))
+
             catalog = gen_guidelines._asset_catalog(kit, "Example")
             self.assertEqual(1, catalog.count('class="asset-card"'))
             self.assertIn("favicon-16x16.png", catalog)
             self.assertIn("favicon-32x32.png", catalog)
             self.assertIn("favicon.png", catalog)
+            self.assertIn("<span>Existing alias", catalog)
             self.assertIn("Integration instructions", catalog)
             self.assertIn("icons/web/README.md", catalog)
             self.assertEqual(4, catalog.count("data-kit-asset"))
@@ -1107,9 +1156,10 @@ class PipelineTests(unittest.TestCase):
                 self.assertIsNone(re.search(r"\b%s\b" % british, reader_text, re.IGNORECASE), british)
             grouped = gen_guidelines.group_asset_deliveries([
                 {"family": "web", "platform": "web", "kind": "icon", "variant": "mark",
-                 "colourway": "color", "path": "icons/sample.svg"}
+                 "colourway": "color", "alpha": "transparent", "path": "icons/sample.svg"}
             ])
-            self.assertEqual("color", grouped[0]["key"][4])
+            self.assertEqual("full-color", grouped[0]["key"][3])
+            self.assertEqual("clear", grouped[0]["key"][4])
 
     @staticmethod
     def rebind_historical_continuity(brand_path, source_class):
