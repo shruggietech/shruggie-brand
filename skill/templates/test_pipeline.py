@@ -855,6 +855,7 @@ class PipelineTests(unittest.TestCase):
             self.assertIn("favicon-16x16.png", catalog)
             self.assertIn("favicon-32x32.png", catalog)
             self.assertIn("favicon.png", catalog)
+            self.assertIn("<span>Existing alias", catalog)
             self.assertIn("Integration instructions", catalog)
             self.assertIn("icons/web/README.md", catalog)
             self.assertEqual(4, catalog.count("data-kit-asset"))

@@ -54,7 +54,7 @@ class AssetLanguageTests(unittest.TestCase):
             mapping["aliases"][0]["source_path"] = "../escape.svg"
             self.assertTrue(asset_language.validate_aliases(kit, records, mapping))
 
-    def test_alias_tamper_and_unindexed_file_are_rejected(self):
+    def test_alias_tamper_is_rejected_then_regeneration_reconciles_named_tree(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary)
             source = kit / "logos" / "svg" / "example-mark-color.svg"
@@ -66,9 +66,18 @@ class AssetLanguageTests(unittest.TestCase):
             alias = kit / mapping["aliases"][0]["preferred_path"]
             alias.write_bytes(b"tampered")
             self.assertTrue(asset_language.validate_aliases(kit, records))
-            alias.write_bytes(source.read_bytes())
+            asset_language.write_aliases(kit, "example", records)
+            self.assertEqual(source.read_bytes(), alias.read_bytes())
             (alias.parent / "unindexed.svg").write_bytes(b"<svg/>")
             self.assertTrue(asset_language.validate_aliases(kit, records))
+            source.write_bytes(b"<svg><path/></svg>")
+            asset_language.write_aliases(kit, "example", records)
+            self.assertEqual(source.read_bytes(), alias.read_bytes())
+            self.assertFalse((alias.parent / "unindexed.svg").exists())
+            self.assertEqual([], asset_language.validate_aliases(kit, records))
+            asset_language.write_aliases(kit, "example", [])
+            self.assertFalse(alias.exists())
+            self.assertEqual([], asset_language.validate_aliases(kit, []))
 
     def test_missing_wordmark_is_not_inferred_from_lockup(self):
         lockup = {"family": "logo", "kind": "lockup", "variant": "full", "colourway": "color",

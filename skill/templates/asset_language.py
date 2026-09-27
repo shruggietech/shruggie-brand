@@ -4,7 +4,6 @@
 import hashlib
 import json
 import re
-import shutil
 from pathlib import Path
 
 
@@ -147,8 +146,8 @@ def preferred_path(slug, item):
 
 
 def write_aliases(kit, slug, derivatives):
-    """Create preferred public names without touching the approved derivative set."""
-    root = Path(kit)
+    """Reconcile generated public names without touching approved derivatives."""
+    root = Path(kit).resolve()
     aliases = []
     by_preferred = {}
     for item in derivatives:
@@ -158,21 +157,36 @@ def write_aliases(kit, slug, derivatives):
             raise ValueError("missing or unsupported approved asset: %s" % source_path)
         public_item = dict(item, family="logo", platform="identity", format=source.suffix[1:])
         preferred = preferred_path(slug, public_item)
-        target = _safe_path(root, preferred)
-        digest = hashlib.sha256(source.read_bytes()).hexdigest()
-        if preferred in by_preferred and by_preferred[preferred] != digest:
+        _safe_path(root, preferred)
+        contents = source.read_bytes()
+        digest = hashlib.sha256(contents).hexdigest()
+        if preferred in by_preferred and by_preferred[preferred][0] != digest:
             raise ValueError("descriptive alias collision: %s" % preferred)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest() != digest:
-            raise ValueError("stale descriptive alias: %s" % preferred)
-        if not target.exists():
-            shutil.copyfile(str(source), str(target))
-        by_preferred[preferred] = digest
+        by_preferred[preferred] = (digest, contents)
         description = describe(public_item)
         aliases.append({"source_path": source_path, "preferred_path": preferred, "sha256": digest,
                         "design_id": design_id(public_item),
                         "design": {key: description[key] for key in AXES},
                         "title": description["title"]})
+    named_root = _safe_path(root, "logos/named")
+    if named_root.exists() and not named_root.is_dir():
+        raise ValueError("named delivery path is not a directory")
+    existing = list(named_root.rglob("*")) if named_root.exists() else []
+    if any(path.is_symlink() or not (path.is_file() or path.is_dir()) for path in existing):
+        raise ValueError("named delivery tree contains an unsafe entry")
+    for path in existing:
+        if path.is_file() and path.relative_to(root).as_posix() not in by_preferred:
+            path.unlink()
+    for path in sorted((path for path in existing if path.is_dir()), key=lambda value: len(value.parts), reverse=True):
+        if not any(path.iterdir()):
+            path.rmdir()
+    for preferred, (_, contents) in by_preferred.items():
+        target = _safe_path(root, preferred)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists() and not target.is_file():
+            raise ValueError("descriptive alias path is not a file: %s" % preferred)
+        if not target.exists() or target.read_bytes() != contents:
+            target.write_bytes(contents)
     payload = {"schema_version": 1, "brand": slug, "aliases": sorted(aliases, key=lambda item: item["source_path"])}
     index = _safe_path(root, ALIAS_INDEX)
     with index.open("w", encoding="utf-8", newline="\n") as handle:

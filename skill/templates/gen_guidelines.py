@@ -407,7 +407,8 @@ def _asset_catalog(kit, title):
             else:
                 size = "container or metadata"
             entries.append('<li><a data-kit-asset href="../%s">%s</a><span>%s · %s · %s · %s</span></li>' %
-                           (escape(item["path"], quote=True), escape(Path(item["path"]).name), "Preferred name" if item.get("preferred") else "Existing path",
+                           (escape(item["path"], quote=True), escape(Path(item["path"]).name),
+                            "Preferred name" if item.get("preferred") else "Existing alias" if item.get("alias_of") else "Existing path",
                             size, item["format"].upper(),
                             escape(str(item.get("destination") or "Kit delivery"))))
         light_surface = _preview_surface(kit, row) == "light"
