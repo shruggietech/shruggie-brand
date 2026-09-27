@@ -40,18 +40,20 @@ The Carbon and WCAG color-role rationale from #267 is retained as separate refer
 
 ## Brand/topic reader-task matrix
 
-All rows remain pending until the fresh eight-kit build, exported site audit, and browser review complete. Each row requires overview affiliation/versions/facts, voice, logo, color, typography, components, integration, assets, and expressions when declared. A default interface must explain which binding applies; any declared override must show its effective value and point to the default source. Asset downloads and registry links must resolve to generated files.
+Each row covers overview affiliation, versions, and facts; voice, logo, color, and typography; components and integration; assets and expressions when declared. The final exported-site verifier visited 93 HTML routes at desktop and mobile widths and reported zero WCAG 2.1 AA violations. All production brands declare no interface overrides, so their overviews explain the delivered defaults. A synthetic override exercises equal and theme-specific defaults, effective references, source, scope, and drift rejection. Asset and registry links were checked against generated files.
 
 | Brand | Overview and authority | Voice, logo, color, type | Components and integration | Assets and expressions |
 | --- | --- | --- | --- | --- |
-| Covarity | Pending | Pending | Pending | Pending |
-| Cueson | Pending | Pending | Pending | Pending |
-| ESO Weave | Pending | Pending | Pending | Pending |
-| fragcap | Pending | Pending | Pending | Pending |
-| Glitchpad | Pending | Pending | Pending | Pending |
-| go-schedule | Pending | Pending | Pending | Pending |
-| I Heart PR Tours | Pending | Pending | Pending | Pending |
-| ShruggieTech | Pending | Pending | Pending | Pending |
+| Covarity (house, dark) | Pass | Pass | Pass | Pass; no expression topic declared |
+| Cueson (house, dark) | Pass | Pass | Pass | Pass; no expression topic declared |
+| ESO Weave (independent, dark) | Pass; vendor boundary retained | Pass | Pass | Pass; no expression topic declared |
+| fragcap (house, dark) | Pass | Pass | Pass | Pass; no expression topic declared |
+| Glitchpad (house, dark) | Pass | Pass | Pass | Pass; no expression topic declared |
+| go-schedule (house, dark) | Pass | Pass | Pass | Pass; no expression topic declared |
+| I Heart PR Tours (independent, light) | Pass | Pass | Pass | Pass; governed expression topic and downloads |
+| ShruggieTech (house, dark) | Pass; no self-endorsement | Pass | Pass | Pass; no expression topic declared |
+
+Representative reader tasks: an implementer can locate the exact current facts through `GET /{brand}/facts/documentation.json` and distinguish them from the downloaded kit's pinned `enforcement/documentation-facts.json`; a shadcn consumer can distinguish the registry catalog from an installable theme item and follow the pinned manual steps; an offline agent can follow any of the 68 stable source IDs in the packaged skill; a viewer of I Heart PR Tours can find the optional expression guidance and its governed download. Two generated guideline sheets (light and dark) and a PDF contact sheet were inspected visually; the PDF retains shared identity facts without duplicating the technical implementation contract.
 
 ## Acceptance-to-evidence map
 
@@ -77,7 +79,7 @@ The source library was checked against official W3C, Android Developers, WordPre
 | Reference ID/citation validator and mutation tests | Passed; 68 stable reference entries and locally resolved citations. |
 | Python contract and pipeline tests | 150 script tests and 90 generator pipeline tests passed. |
 | Eight kit build, `verify.py`, and `validate_glyph.py` | Eight clean kits, zero reported verification problems and zero glyph failures. |
-| Site lint/build/browser WCAG 2.1 AA | Lint and 122-page static build passed; final browser route/accessibility run in progress. |
+| Site lint/build/browser WCAG 2.1 AA | Lint and 122-page static build passed; 93 HTML routes verified at desktop and mobile widths with zero WCAG 2.1 AA violations. |
 | Publication artifact and external link reviews | Verified nine release assets, eight kit/hosted packages, 1,914 exported public files, and exact fact bytes; external source caveats recorded above. |
 | UTF-8 no BOM, LF, mojibake, and tracked-artifact hygiene | 179 source files checked with zero problems; `git diff --check`, Markdown, and README link checks passed; generated outputs remain ignored. |
 | PR CI and external reviews | Pending |

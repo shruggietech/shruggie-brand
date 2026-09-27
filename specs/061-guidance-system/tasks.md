@@ -22,7 +22,7 @@
 - [x] T006 [US1] Author the owner-named primary and advisory bibliography, historical-source dispositions, edition caveats, and application notes in `skill/references/references.md`.
 - [x] T007 [US1] Register the new page and disposition in `skill/references/documentation-contract.json` and update pagination/source contract tests.
 - [x] T008 [US1] Convert relative offline citations to hosted MDX routes in `scripts/documentation_render.py`, preserving exact raw skill sources and testing both outputs.
-- [ ] T009 [US1] Validate links, IDs, offline package membership, nav, and search in documentation and site tests.
+- [x] T009 [US1] Validate links, IDs, offline package membership, nav, and search in documentation and site tests.
 
 ## Phase 4: User Story 2 - Usable generated guidelines (P1, #270)
 
@@ -33,7 +33,7 @@
 - [x] T010 [US2] Refactor `site/components/guidelines/topic-content.tsx` and `site/lib/guidelines.ts` with specific affiliation, inheritance, override, version, binding, registry, and empty-state explanations.
 - [x] T011 [US2] Update `site/app/globals.css` for semantic definition-row alignment, narrow reflow, and 200% zoom; keep keyboard focus and heading containment intact.
 - [x] T012 [US2] Improve generated offline and portable guidance in `skill/templates/documentation_contract.py` and `gen_guidelines.py`; review the shared facts in `gen_guide_pdf.py` and edit that template only if a required PDF explanation is absent.
-- [ ] T013 [US2] Extend site/browser and Python tests for fact links, reader tasks, conditional expressions, responsive headings, and exact authority.
+- [x] T013 [US2] Extend site/browser and Python tests for fact links, reader tasks, conditional expressions, responsive headings, and exact authority.
 
 ## Phase 5: User Story 3 - Applied source-aware guidance (P1, #272)
 
@@ -49,8 +49,8 @@
 ## Phase 6: Full validation and PR handoff
 
 - [x] T018 Run Spec Kit cross-artifact analysis, resolve findings, and keep spec/plan/tasks/verification aligned.
-- [ ] T019 Run complete documented validation: Python tests, eight zero-problem kits and glyph checks, site lint/build/browser verification, public documentation audit, publication-artifact audit, and source hygiene/mojibake check.
-- [ ] T020 Update issue/project disposition, commit S061 sources, push `codex/061-guidance-system`, and create the official PR with issue traceability and verification evidence.
+- [x] T019 Run complete documented validation: Python tests, eight zero-problem kits and glyph checks, site lint/build/browser verification, public documentation audit, publication-artifact audit, and source hygiene/mojibake check.
+- [x] T020 Update issue/project disposition, commit S061 sources, push `codex/061-guidance-system`, and create the official PR with issue traceability and verification evidence.
 - [ ] T021 Wait for required CI and every third-party review; fix and reply to each actionable comment, allow no more than one manual `@codex review` re-request, and hand off only after green CI and satisfied reviews.
 
 ## Dependencies and order
