@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reject empty, duplicate, unsafe, unrecorded, or identity-mismatched root manifests during portable kit verification. Existing approved identity bytes and public kit schema are unchanged.
+
 ## 2.6.0 - 2026-09-26
 
 - Generated every hosted brand guideline topic path from its visible menu label, including Overview, Logo, Assets, and optional topics.

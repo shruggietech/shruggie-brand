@@ -1283,17 +1283,85 @@ def c_pdf(kit, rep):
         rep.ok("pdf-fonts-embedded", "%d PDFs, all fonts embedded%s" % (len(pdfs), note))
 
 def c_manifest(kit, rep):
-    mp = os.path.join(kit, "manifest.json")
-    if not os.path.exists(mp): return rep.skip("manifest-checksums", "manifest.json not present")
-    man = json.load(open(mp, encoding="utf-8")); bad = []
-    for e in man.get("files", []):
-        fp = os.path.join(kit, e["path"])
-        if not os.path.exists(fp): bad.append("%s: missing" % e["path"]); continue
-        b = open(fp, "rb").read()
-        if hashlib.sha256(b).hexdigest() != e.get("sha256"): bad.append("%s: sha256 mismatch" % e["path"])
-        elif e.get("bytes") is not None and len(b) != e["bytes"]: bad.append("%s: size mismatch" % e["path"])
+    root = Path(kit).resolve()
+    mp = root / "manifest.json"
+    if mp.is_symlink() or not mp.is_file():
+        return rep.bad("manifest-checksums", "manifest.json is missing")
+    try:
+        man = json.loads(mp.read_text(encoding="utf-8"))
+        brand = json.loads((root / "brand.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as error:
+        return rep.bad("manifest-checksums", "manifest or brand metadata is unreadable: %s" % error)
+    bad = []
+    if not isinstance(man, dict) or not isinstance(brand, dict):
+        return rep.bad("manifest-checksums", "manifest and brand metadata must be objects")
+    if man.get("name") != "%s-brand-kit" % brand.get("slug"):
+        bad.append("manifest name disagrees with brand")
+    if man.get("version") != brand.get("version"):
+        bad.append("manifest version disagrees with brand")
+    if man.get("canon") != brand.get("canon"):
+        bad.append("manifest canon disagrees with brand")
+    records = man.get("files")
+    if not isinstance(records, list) or not records:
+        return rep.bad("manifest-checksums", "; ".join(bad + ["manifest file inventory is empty or invalid"]))
+    seen = set()
+    for entry in records:
+        if not isinstance(entry, dict):
+            bad.append("malformed manifest file entry")
+            continue
+        relative = entry.get("path")
+        if (not isinstance(relative, str) or not relative or "\\" in relative
+                or relative.startswith("/") or ":" in relative.split("/")[0]
+                or any(part in ("", ".", "..") for part in relative.split("/"))):
+            bad.append("unsafe manifest path: %r" % relative)
+            continue
+        if relative in seen:
+            bad.append("duplicate manifest path: %s" % relative)
+            continue
+        seen.add(relative)
+        target = root / relative
+        if any(parent.is_symlink() for parent in (target, *target.parents) if parent != root and root in parent.parents):
+            bad.append("unsafe symbolic link in manifest path: %s" % relative)
+            continue
+        try:
+            target.resolve(strict=True).relative_to(root)
+        except (OSError, ValueError):
+            bad.append("missing or unsafe manifest path: %s" % relative)
+            continue
+        if not target.is_file():
+            bad.append("missing manifest file: %s" % relative)
+            continue
+        try:
+            value = target.read_bytes()
+        except OSError as error:
+            bad.append("manifest file is unreadable: %s (%s)" % (relative, error))
+            continue
+        if not value or entry.get("bytes") != len(value):
+            bad.append("manifest size mismatch: %s" % relative)
+        if entry.get("sha256") != hashlib.sha256(value).hexdigest():
+            bad.append("manifest sha256 mismatch: %s" % relative)
+    if "brand.json" not in seen:
+        bad.append("manifest omits required brand.json")
+    if "manifest.json" in seen:
+        bad.append("manifest must not record itself")
+    actual = set()
+    for parent, directories, filenames in os.walk(str(root), followlinks=False):
+        directories[:] = [name for name in directories if name not in
+                          {"node_modules", "concepts", ".git", "__pycache__"}]
+        for filename in filenames:
+            relative = (Path(parent) / filename).relative_to(root).as_posix()
+            # build_kit writes an initial manifest before QC, then a final one
+            # that includes QC. The portable verifier must accept both stages.
+            if relative != "manifest.json":
+                actual.add(relative)
+    unrecorded = sorted(relative for relative in actual - seen if not relative.startswith("qc/"))
+    if unrecorded:
+        bad.append("manifest has unrecorded files: %s" % ", ".join(unrecorded[:6]))
+    absent = sorted(seen - actual)
+    if absent:
+        bad.append("manifest records missing files: %s" % ", ".join(absent[:6]))
     rep.bad("manifest-checksums", "; ".join(bad[:8])) if bad else \
-        rep.ok("manifest-checksums", "%d files match" % len(man.get("files", [])))
+        rep.ok("manifest-checksums", "%d unique files match" % len(seen))
 
 
 def c_consumer_contract(kit, rep):

@@ -4,7 +4,10 @@
 from __future__ import annotations
 
 import os
+import hashlib
+import json
 import re
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -75,7 +78,167 @@ def create_publication_trees(root: Path) -> tuple[Path, Path]:
     return kits, site
 
 
+def create_semantic_candidate(root: Path) -> tuple[Path, Path, Path, Path]:
+    slug = "covarity"
+    kits = root / "dist"
+    site = root / "site" / "out"
+    generated = root / "site" / "generated"
+    release = root / "release"
+    kit = kits / slug
+    public = site / slug
+    version = "2.6.0"
+    package = {"id": "covarity-brand-1.0.0-bb2.6.0", "filename": "covarity-brand-1.0.0-bb2.6.0.zip",
+               "brand_slug": slug, "brand_version": "1.0.0", "brandbuilder_version": version}
+    brand = {"slug": slug, "version": "1.0.0", "canon": "1.6.0"}
+    versions = {"brand_version": "1.0.0", "compiler_version": version}
+    bundle = {"package": package, "versions": versions}
+    consumer = {"brand": {"slug": slug}, "bundle": bundle, "versions": versions}
+    facts = {"brand": consumer["brand"], "bundle": bundle, "versions": versions}
+    portal = {"brand": {"slug": slug}, "implementation": facts, "topics": []}
+    conformance = {"versions": versions, "source_revision": "a" * 40}
+
+    def write_json(path: Path, value: object) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value) + "\n", encoding="utf-8")
+
+    def write_file(path: Path, value: bytes = b"file") -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(value)
+
+    write_json(kit / "brand.json", brand)
+    write_json(kit / "manifest.json", {"version": "1.0.0", "canon": "1.6.0", "files": [{"path": "brand.json"}]})
+    write_json(kit / "enforcement" / "bundle.json", bundle)
+    write_json(kit / "enforcement" / "consumer-contract.json", consumer)
+    write_json(kit / "enforcement" / "documentation-facts.json", facts)
+    write_json(kit / "guidelines" / "portal.json", portal)
+    write_json(kit / "conformance" / "manifest.json", conformance)
+    write_file(kit / "conformance" / "browser" / "specimen.html", b"<html>specimen</html>")
+    write_json(kit / "nextjs" / "registry" / "registry.json", {"items": [{"name": "theme"}]})
+    write_json(kit / "nextjs" / "registry" / "theme.json", {"name": "theme"})
+    for name in ("brand-guide.pdf", "guidelines/index.html", "logos/mark.svg",
+                 "favicons/favicon.svg", "icons/.iconkit-generated.json", "specimens/specimen.svg"):
+        write_file(kit / name, name.encode("utf-8"))
+    shutil.copytree(kit / "nextjs" / "registry", public / "brand" / "r")
+    downloads = public / "downloads" / "files"
+    for name, source in audit_publication_artifacts._download_sources(kit, brand).items():
+        destination = downloads / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+    fixtures = site / "conformance-fixtures" / slug
+    fixtures.mkdir(parents=True)
+    shutil.copyfile(kit / "conformance" / "manifest.json", fixtures / "manifest.json")
+    shutil.copyfile(kit / "conformance" / "browser" / "specimen.html", fixtures / "specimen.html")
+    write_file(public / "downloads" / package["filename"], b"PK\x03\x04archive")
+    write_json(generated / "brands.json", [{"slug": slug, "version": "1.0.0", "packageId": package["id"],
+                                            "kitArchiveFilename": package["filename"], "brandbuilderVersion": version,
+                                            "kitArchive": "/covarity/downloads/" + package["filename"]}])
+    write_json(generated / "guidelines.json", [portal])
+    write_json(generated / "conformance.json", [{"slug": slug, "brandVersion": "1.0.0", "versions": versions,
+                                                 "sourceRevision": "a" * 40}])
+    write_json(generated / "publication.json", {"version": version, "packages": [package],
+                                                "sourceRevision": "a" * 40})
+    write_json(generated / "documentation-publication.json", {"version": version,
+                                                              "sourceRevision": "a" * 40})
+    write_json(site / "docs" / "publication.json", {"version": version,
+                                                   "sourceRevision": "a" * 40})
+    write_file(release / package["filename"], b"PK\x03\x04archive")
+    write_file(release / "shruggie-brandbuilder-2.6.0.skill", b"skill")
+    write_file(release / "release-notes.md", b"notes")
+    write_file(generated / "docs" / "index.mdx", b"# Documentation\n")
+    staged = root / "staged"
+    shutil.copytree(release, staged / "files")
+    for name, source in (("PUBLICATION.json", generated / "publication.json"),
+                         ("DOCUMENTATION.json", generated / "documentation-publication.json"),
+                         ("SITE-DOCUMENTATION.json", site / "docs" / "publication.json")):
+        shutil.copyfile(source, staged / name)
+    shutil.copytree(generated / "docs", staged / "docs")
+    sums = sorted((hashlib.sha256(path.read_bytes()).hexdigest(), path.name)
+                  for path in (staged / "files").iterdir() if path.suffix in {".skill", ".zip"})
+    (staged / "SHA256SUMS").write_text("".join("%s  ./%s\n" % pair for pair in sums), encoding="utf-8")
+    (staged / "SOURCE_COMMIT").write_text("a" * 40 + "\n", encoding="utf-8")
+    return kits, site, release, staged
+
+
 class PublicationArtifactAuditTests(unittest.TestCase):
+    def test_semantic_candidate_accepts_real_optional_absence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kits, site, release, staged = create_semantic_candidate(root)
+            result = audit_publication_artifacts.audit_semantics(
+                root, kits, site, release, staged, ("covarity",), ("covarity",), "a" * 40)
+            self.assertEqual(1, result["brands"])
+            self.assertGreater(result["public_files"], 0)
+
+    def test_semantic_candidate_rejects_missing_registry_dependency_and_download(self):
+        for relative in ("covarity/brand/r/theme.json", "covarity/downloads/files/logos/mark.svg"):
+            with self.subTest(relative=relative), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                kits, site, _, _ = create_semantic_candidate(root)
+                (site / relative).unlink()
+                with self.assertRaisesRegex(ValueError, "inventory or bytes differ"):
+                    audit_publication_artifacts.audit_semantics(
+                        root, kits, site, production=("covarity",), release_authorized=("covarity",))
+
+    def test_semantic_candidate_rejects_changed_download_and_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kits, site, _, _ = create_semantic_candidate(root)
+            (site / "covarity" / "downloads" / "files" / "logos" / "mark.svg").write_bytes(b"changed")
+            with self.assertRaisesRegex(ValueError, "download inventory or bytes differ"):
+                audit_publication_artifacts.audit_semantics(
+                    root, kits, site, production=("covarity",), release_authorized=("covarity",))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kits, site, _, _ = create_semantic_candidate(root)
+            record = root / "site" / "generated" / "publication.json"
+            payload = json.loads(record.read_text(encoding="utf-8"))
+            payload["version"] = "9.0.0"
+            record.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "publication package inventory or version"):
+                audit_publication_artifacts.audit_semantics(
+                    root, kits, site, production=("covarity",), release_authorized=("covarity",))
+
+    def test_semantic_candidate_rejects_facts_drift_and_staged_checksum(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kits, site, _, _ = create_semantic_candidate(root)
+            path = kits / "covarity" / "enforcement" / "documentation-facts.json"
+            facts = json.loads(path.read_text(encoding="utf-8"))
+            facts["versions"]["compiler_version"] = "9.0.0"
+            path.write_text(json.dumps(facts), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "documentation facts differ"):
+                audit_publication_artifacts.audit_semantics(
+                    root, kits, site, production=("covarity",), release_authorized=("covarity",))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kits, site, release, staged = create_semantic_candidate(root)
+            (staged / "SHA256SUMS").write_text("0" * 64 + "  ./covarity-brand-1.0.0-bb2.6.0.zip\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "SHA256SUMS"):
+                audit_publication_artifacts.audit_semantics(
+                    root, kits, site, release, staged, ("covarity",), ("covarity",), "a" * 40)
+
+    def test_semantic_candidate_rejects_wrong_source_revision(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kits, site, release, staged = create_semantic_candidate(root)
+            (staged / "SOURCE_COMMIT").write_text("b" * 40 + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "staged source revision"):
+                audit_publication_artifacts.audit_semantics(
+                    root, kits, site, release, staged, ("covarity",), ("covarity",), "a" * 40)
+
+    def test_semantic_candidate_rejects_unsafe_optional_reference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kits, site, _, _ = create_semantic_candidate(root)
+            path = kits / "covarity" / "brand.json"
+            brand = json.loads(path.read_text(encoding="utf-8"))
+            brand["custom_assets"] = [{"approval": {"status": "approved", "publication_eligible": True},
+                                       "source": {"path": "../escape.svg"}}]
+            path.write_text(json.dumps(brand), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "unsafe artifact reference"):
+                audit_publication_artifacts.audit_semantics(
+                    root, kits, site, production=("covarity",), release_authorized=("covarity",))
+
     def test_valid_publication_trees_pass(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
