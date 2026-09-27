@@ -702,6 +702,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual({"asset-catalog-icon", "iconset-icon", "icns"}, {item["role"] for item in groups[0]["deliveries"]})
         families, resources = gen_guidelines.portal_assets(deliveries)
         self.assertEqual([], resources)
+        self.assertEqual("app-icon", families[0]["assets"][0]["role"])
         self.assertEqual({"png", "icns"}, set(families[0]["assets"][0]["formats"]))
 
     def test_guideline_asset_groups_stack_reused_web_artwork_across_sizes_and_roles(self):

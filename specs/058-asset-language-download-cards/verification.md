@@ -29,7 +29,7 @@ The Covarity catalog contains separate full-color wide, full-color stacked, and 
 
 ## First PR review corrections
 
-The first external Codex review found that copied favicon compatibility paths lacked `alias_of` metadata, so their card rows said "Existing path" rather than "Existing alias". It also found that the macOS `AppIcon.icns` container was outside the matching PNG app-icon card. Both findings are corrected in shared delivery metadata. Targeted tests failed before the corrections and passed after them; the combined generator and asset-language suite passed 95 tests (two capability-tier skips) with the pinned Node 24.11.0 renderer. PR CI and any subsequent review remain separate gates.
+The first external Codex review found that copied favicon compatibility paths lacked `alias_of` metadata, so their card rows said "Existing path" rather than "Existing alias". It also found that the macOS `AppIcon.icns` container was outside the matching PNG app-icon card. Both findings are corrected in shared delivery metadata. A subsequent catalog check confirmed all 18 Covarity favicon compatibility copies have alias targets and the ICNS appears beside PNG sizes; the macOS filter role is normalized to "app icon" as well. Targeted tests failed before the corrections and passed after them; the combined generator and asset-language suite passed 95 tests (two capability-tier skips) with the pinned Node 24.11.0 renderer before the final filter-label assertion. The focused label assertion passed afterward. PR CI and any subsequent review remain separate gates.
 
 ## Post-clarification Spec Kit analysis
 

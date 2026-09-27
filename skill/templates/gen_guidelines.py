@@ -174,7 +174,7 @@ def portal_assets(deliveries, kit=None):
             use = language["usage"].lower()
         family["assets"].append({
             "id": group["id"], "title": title,
-            "role": language["platform_role"] if language["platform_role"] == "web-icon" else representative.get("role") or representative.get("kind") or "asset",
+            "role": language["platform_role"] if language["platform_role"] in {"web-icon", "app-icon"} else representative.get("role") or representative.get("kind") or "asset",
             "platform": representative.get("platform") or "identity",
             "appearance": representative.get("appearance") or representative.get("colourway") or "default",
             "surface": language["surface"] if language["surface"] != "none" else _preview_surface(kit, representative) if kit else "dark",
