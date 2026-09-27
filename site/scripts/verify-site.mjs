@@ -703,7 +703,8 @@ try {
       if (contract.kind === 'docs-page' && width === 1280) {
         const record = documentationByPath.get(route);
         check(Boolean(record), `${route} lacks generated documentation navigation metadata`);
-        if (record) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: new RegExp(`^${record.navigation.section}$`) }).count() === 1, `${route} does not keep its ${record.navigation.section} parent identifiable and expanded`);
+        if (record?.navigation.section === 'References') check(await page.locator('#nd-sidebar a[href="/docs/references/"][data-active="true"]').count() === 1, `${route} does not identify the standalone References page`);
+        else if (record) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: new RegExp(`^${record.navigation.section}$`) }).count() === 1, `${route} does not keep its ${record.navigation.section} parent identifiable and expanded`);
       }
       if (route === '/shruggietech/guidelines/overview/') {
         check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);

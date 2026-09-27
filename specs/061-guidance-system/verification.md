@@ -87,3 +87,5 @@ The local full shadcn consumer install attempted npm registry requests and hit t
 ## PR review follow-up
 
 First-round Codex review identified a browser assertion that selected the `Implementation authority` heading rather than its containing section. The verifier now reads the section and checks the text rendered for the actual default or override state. A static-export check confirmed all eight overview sections contain the default explanation; the complete browser suite and CI remain pending.
+
+The new References manual is a standalone navigation link rather than a collapsible group. The browser verifier now checks that page's active direct link and retains expanded-group checks for multi-page sections. Exported HTML contains the active References link and the tested `ref-ui-carbon` and `ref-a11y-wcag21` anchors. The complete browser run remains the final local gate.
