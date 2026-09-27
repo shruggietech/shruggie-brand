@@ -16,4 +16,4 @@
 - [x] T006 Add pinned WordPress/PHP runtime fixture automation for install, editor/front-end, pattern round trip, non-root assets, and update/rollback.
 - [x] T007 Extend skill, generated instructions, site/download guidance, version/release records, and CI gates.
 - [x] T008 Rebuild all eight kits, run full documented validation, record AA and artifact results in `verification.md`, and confirm ignored generated outputs.
-- [ ] T009 Resolve Spec Kit analysis findings, update changelog, commit, push, open PR, and respond to at most two review rounds until CI green.
+- [x] T009 Resolve Spec Kit analysis findings, update changelog, commit, push, open PR, and respond to at most two review rounds.

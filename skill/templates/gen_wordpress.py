@@ -181,7 +181,7 @@ def content_css(brand, interface):
     width = css_value(roles["focus.width"])
     offset = css_value(roles["focus.offset"])
     return ("/* Generated content-only supplement. Theme defaults live in theme.json. */\n"
-            ":where(.wp-site-blocks, .editor-styles-wrapper) :where(a, button, .wp-element-button, input, select, textarea):focus-visible {\n"
+            ":is(.wp-site-blocks, .editor-styles-wrapper) :is(a, button, .wp-element-button, input, select, textarea):focus-visible {\n"
             "  outline: %s solid %s; outline-offset: %s;\n}\n" % (width, focus, offset) +
             ":where(.wp-site-blocks, .editor-styles-wrapper) :where(.wp-block-image img, .wp-block-site-logo img) { max-inline-size: 100%; block-size: auto; }\n" +
             ":where(.wp-site-blocks, .editor-styles-wrapper) .stbb-%s-sample-media img { inline-size: min(28rem, 100%%); }\n" % slug +

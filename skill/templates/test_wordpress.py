@@ -56,6 +56,7 @@ class WordPressGenerationTests(unittest.TestCase):
         self.assertEqual(dark_palette["stbb-go-schedule-identity-primary"], palette["stbb-go-schedule-identity-primary"])
         self.assertNotEqual(dark_palette["stbb-go-schedule-surface-background"], palette["stbb-go-schedule-surface-background"])
         css = (self.kit / "wordpress" / "theme" / "stbb-go-schedule" / "assets" / "css" / "stbb-content.css").read_text(encoding="utf-8")
+        self.assertIn(":is(.wp-site-blocks, .editor-styles-wrapper) :is(a, button, .wp-element-button, input, select, textarea):focus-visible", css)
         self.assertIn("outline: 2px solid var(--wp--preset--color--stbb-go-schedule-focus-ring)", css)
         self.assertIn("border: 1px solid var(--wp--preset--color--stbb-go-schedule-text-muted)", css)
         media_pattern = (self.kit / "wordpress" / "theme" / "stbb-go-schedule" / "patterns" / "text-media.php").read_text(encoding="utf-8")

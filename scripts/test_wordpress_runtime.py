@@ -90,11 +90,15 @@ def browser_probe(port, page_id, fixture_root, version):
             dark_background = dark_palette["stbb-go-schedule-surface-background"]
             if Color(dark_focus).contrast(dark_background, method="wcag21") < 3:
                 raise RuntimeError("Dark variation focus indicator falls below 3:1")
-            dark_outline = page.evaluate("""hex => {
+            dark_outline = page.evaluate("""async hex => {
                 const variable = '--wp--preset--color--stbb-go-schedule-focus-ring';
                 document.documentElement.style.setProperty(variable, hex);
+                document.body.style.setProperty(variable, hex);
+                const site = document.querySelector('.wp-site-blocks');
+                site.style.setProperty(variable, hex);
                 const control = document.querySelector('.wp-block-button__link');
                 control.focus();
+                await new Promise(resolve => setTimeout(resolve, 250));
                 const actual = getComputedStyle(control).outlineColor;
                 const sample = document.createElement('div');
                 sample.style.color = hex;
@@ -102,6 +106,8 @@ def browser_probe(port, page_id, fixture_root, version):
                 const expected = getComputedStyle(sample).color;
                 sample.remove();
                 document.documentElement.style.removeProperty(variable);
+                document.body.style.removeProperty(variable);
+                site.style.removeProperty(variable);
                 return [actual, expected];
             }""", dark_focus)
             if dark_outline[0] != dark_outline[1]:
