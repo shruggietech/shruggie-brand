@@ -782,13 +782,13 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual({"dark": palettes[0], "light": palettes[1]}, payload["presentations"])
             self.assertEqual(
                 [
-                    ("overview", "Overview", "Overview", 0, "/alpha/guidelines/"),
+                    ("overview", "Overview", "Overview", 0, "/alpha/guidelines/overview/"),
                     ("voice", "Voice", "Voice", 0, "/alpha/guidelines/voice/"),
-                    ("logos", "Logo", "Identity", 0, "/alpha/guidelines/logos/"),
+                    ("logos", "Logo", "Identity", 0, "/alpha/guidelines/logo/"),
                     ("color", "Color", "Identity", 1, "/alpha/guidelines/color/"),
                     ("typography", "Typography", "Identity", 2, "/alpha/guidelines/typography/"),
                     ("components", "Components", "Components", 0, "/alpha/guidelines/components/"),
-                    ("assets", "Assets", "Assets", 0, "/alpha/downloads/"),
+                    ("assets", "Assets", "Assets", 0, "/alpha/guidelines/assets/"),
                     ("integration", "Integration", "Integration", 0, "/alpha/guidelines/integration/"),
                 ],
                 [(topic["key"], topic["label"], topic["section"], topic["order"], topic["path"]) for topic in payload["topics"]],
@@ -809,6 +809,14 @@ class PipelineTests(unittest.TestCase):
                 private = gen_guidelines.portal_payload(brand, kit)
             self.assertNotIn("expressions", [topic["key"] for topic in private["topics"]])
             self.assertEqual("", gen_guidelines.expression_gallery(brand, kit))
+
+    def test_guideline_topic_path_uses_visible_label_and_rejects_empty_labels(self):
+        self.assertEqual("/alpha/guidelines/logo/", gen_guidelines.guideline_topic_path("alpha", "Logo"))
+        self.assertEqual("/alpha/guidelines/brand-voice/", gen_guidelines.guideline_topic_path("alpha", "Brand Voice"))
+        with self.assertRaisesRegex(ValueError, "no URL slug"):
+            gen_guidelines.guideline_topic_path("alpha", "!!!")
+        with self.assertRaisesRegex(ValueError, "ASCII"):
+            gen_guidelines.guideline_topic_path("alpha", "Café")
 
     def test_guideline_swatches_cover_every_role_and_deduplicate_equal_values(self):
         html = gen_guidelines._swatches("Dark palette", [

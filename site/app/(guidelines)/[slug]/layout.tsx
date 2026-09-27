@@ -13,6 +13,6 @@ export default async function GuidelineLayout({ children, params }: { children: 
   const containerProps = { className: 'guideline-layout', 'data-guide-mode': mode, style: guidePresentationStyle(portal) } as HTMLAttributes<HTMLDivElement>;
   return <>
     <style>{`html:has(.guideline-layout[data-guide-mode='${mode}']), body:has(.guideline-layout[data-guide-mode='${mode}']) { background: ${background}; color-scheme: ${mode}; }`}</style>
-    <DocsLayout tree={guidelineTree(portal)} nav={{ title: <span className="guide-nav-title"><strong>{portal.brand.title}</strong><small>Brand guidelines</small></span>, url: `/${slug}/guidelines/`, transparentMode: 'none' }} searchToggle={{ enabled: false }} themeSwitch={{ enabled: false }} sidebar={{ defaultOpenLevel: 1 }} containerProps={containerProps}>{children}</DocsLayout>
+    <DocsLayout tree={guidelineTree(portal)} nav={{ title: <span className="guide-nav-title"><strong>{portal.brand.title}</strong><small>Brand guidelines</small></span>, url: portal.topics[0].path, transparentMode: 'none' }} searchToggle={{ enabled: false }} themeSwitch={{ enabled: false }} sidebar={{ defaultOpenLevel: 1 }} containerProps={containerProps}>{children}</DocsLayout>
   </>;
 }

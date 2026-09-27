@@ -41,13 +41,13 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
         "implementation": facts,
         "brand": {"slug": slug, "title": title, "descriptor": "Alpha.", "idea": "Alpha.", "affiliation": "", "surface_mode": "dark"},
         "topics": [
-            {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "path": f"/{slug}/guidelines/", "description": "Start here."},
+            {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "path": f"/{slug}/guidelines/overview/", "description": "Start here."},
             {"key": "voice", "title": "Voice and messaging", "label": "Voice", "section": "Voice", "order": 0, "path": f"/{slug}/guidelines/voice/", "description": "Voice."},
-            {"key": "logos", "title": "Logo system and usage", "label": "Logo", "section": "Identity", "order": 0, "path": f"/{slug}/guidelines/logos/", "description": "Logo."},
+            {"key": "logos", "title": "Logo system and usage", "label": "Logo", "section": "Identity", "order": 0, "path": f"/{slug}/guidelines/logo/", "description": "Logo."},
             {"key": "color", "title": "Color", "label": "Color", "section": "Identity", "order": 1, "path": f"/{slug}/guidelines/color/", "description": "Palette."},
             {"key": "typography", "title": "Typography", "label": "Typography", "section": "Identity", "order": 2, "path": f"/{slug}/guidelines/typography/", "description": "Type."},
             {"key": "components", "title": "Components and examples", "label": "Components", "section": "Components", "order": 0, "path": f"/{slug}/guidelines/components/", "description": "Components."},
-            {"key": "assets", "title": "Assets", "label": "Assets", "section": "Assets", "order": 0, "path": f"/{slug}/downloads/", "description": "Downloads."},
+            {"key": "assets", "title": "Assets", "label": "Assets", "section": "Assets", "order": 0, "path": f"/{slug}/guidelines/assets/", "description": "Downloads."},
             {"key": "integration", "title": "Platform integration", "label": "Integration", "section": "Integration", "order": 0, "path": f"/{slug}/guidelines/integration/", "description": "Integration."},
         ],
         "content": {"overview": {}, "voice": {}, "logos": {}, "typography": {}, "components": {}},
@@ -251,7 +251,7 @@ class PrepareSiteTests(unittest.TestCase):
                 self.assertNotIn("showcaseSurface", record)
                 self.assertNotIn("showcaseForeground", record)
                 self.assertEqual("dark", record["guideSurfaceMode"])
-                self.assertEqual("/alpha/guidelines/", record["guidelinesPath"])
+                self.assertEqual("/alpha/guidelines/overview/", record["guidelinesPath"])
                 self.assertEqual("/alpha/downloads/alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchive"])
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchiveFilename"])
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0", record["packageId"])
@@ -435,17 +435,21 @@ class PrepareSiteTests(unittest.TestCase):
             portals = [json.loads((source / "guidelines" / "portal.json").read_text(encoding="utf-8"))]
         routes = prepare_site.build_routes(brands, [], portals)
         guide_routes = [route for route in routes if route["kind"] in {"guidelines", "guidelines-topic"}]
-        self.assertEqual(["/alpha/guidelines/", "/alpha/guidelines/voice/", "/alpha/guidelines/logos/", "/alpha/guidelines/color/", "/alpha/guidelines/typography/", "/alpha/guidelines/components/", "/alpha/guidelines/integration/"], [route["pathname"] for route in guide_routes])
+        self.assertEqual(["/alpha/guidelines/overview/", "/alpha/guidelines/voice/", "/alpha/guidelines/logo/", "/alpha/guidelines/color/", "/alpha/guidelines/typography/", "/alpha/guidelines/components/", "/alpha/guidelines/integration/"], [route["pathname"] for route in guide_routes])
         self.assertEqual(["overview", "voice", "logos", "color", "typography", "components", "integration"], [route["guideTopic"] for route in guide_routes])
-        self.assertFalse(any(route["kind"] == "brand" or route["pathname"] in {"/alpha/", "/alpha/guidelines/assets/"} for route in routes))
+        self.assertFalse(any(route["kind"] == "brand" or route["pathname"] in {"/alpha/", "/alpha/guidelines/", "/alpha/guidelines/logos/", "/alpha/downloads/"} for route in routes))
         self.assertEqual("assets", next(route for route in routes if route["kind"] == "downloads")["guideTopic"])
+        self.assertEqual("/alpha/guidelines/assets/", next(route for route in routes if route["kind"] == "downloads")["pathname"])
+        portals[0]["topics"][2]["path"] = "/alpha/guidelines/logos/"
+        with self.assertRaisesRegex(ValueError, "invalid or duplicate destination"):
+            prepare_site.build_routes(brands, [], portals)
 
     def test_vendor_boundary_reaches_routes_metadata_and_structured_data(self):
         notice = "Acme is independent. Users are responsible."
         brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73", "vendorBoundary": notice}]
         route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "guidelines")
         self.assertEqual(notice, route["vendorBoundary"])
-        self.assertEqual("https://brand.shruggie.tech/alpha/guidelines/", route["vendorBoundaryUrl"])
+        self.assertEqual("https://brand.shruggie.tech/alpha/guidelines/overview/", route["vendorBoundaryUrl"])
         entity = next(item for item in route["structuredData"]["@graph"] if item.get("@type") == "Brand")
         self.assertEqual(notice, entity["disambiguatingDescription"])
         self.assertEqual(route["vendorBoundaryUrl"], entity["usageInfo"])
@@ -472,7 +476,7 @@ class PrepareSiteTests(unittest.TestCase):
             prepare_site.add_guideline_metadata(page, route)
             content = page.read_text(encoding="utf-8")
             self.assertIn("<title>Alpha guidelines | ShruggieTech</title>", content)
-            self.assertIn('rel="canonical" href="https://brand.shruggie.tech/alpha/guidelines/"', content)
+            self.assertIn('rel="canonical" href="https://brand.shruggie.tech/alpha/guidelines/overview/"', content)
             self.assertIn('property="og:title"', content)
             self.assertIn('property="og:image:width" content="1280"', content)
             self.assertIn('property="og:image:alt" content="Alpha logo with slogan: Exact alpha slogan"', content)
@@ -676,7 +680,7 @@ class PrepareSiteTests(unittest.TestCase):
             mark = root / "mark.png"
             Image.new("RGBA", (80, 80), (43, 204, 115, 255)).save(mark)
             fonts = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "ttf"
-            brand = prepare_site.make_route("guidelines-alpha", "guidelines", "/alpha/guidelines/",
+            brand = prepare_site.make_route("guidelines-alpha", "guidelines", "/alpha/guidelines/overview/",
                                             "Alpha guidelines", "Approved brand.", "Brand guidelines", [], brand_slug="alpha")
             home = prepare_site.make_route("home", "home", "/", "Brands", "Other route.", "Portfolio", [])
             prepare_site.generate_social_previews([brand, home], public, mark,

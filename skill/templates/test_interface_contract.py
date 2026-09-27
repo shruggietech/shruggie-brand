@@ -113,7 +113,7 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_release_impact_is_closed_and_rejects_downstream_evidence_fields(self):
         impact = load_release_impact()
-        self.assertEqual("2.5.0", impact["brandbuilder_version"])
+        self.assertEqual("2.6.0", impact["brandbuilder_version"])
         self.assertFalse(impact["identity_redesign"])
         self.assertIn("unchanged", impact["surfaces"]["identity"]["summary"])
         self.assertEqual(
@@ -348,7 +348,7 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual("1.0.2", first["versions"]["egui_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertNotIn("adoption_status", first["compatibility"])
-            expected_package = "shruggietech-brand-%s-bb2.5.0" % brand["version"]
+            expected_package = "shruggietech-brand-%s-bb2.6.0" % brand["version"]
             self.assertEqual(expected_package, first["bundle"]["package"]["id"])
             self.assertEqual(expected_package + ".zip", first["bundle"]["package"]["filename"])
             self.assertEqual(brand["version"], first["bundle"]["package"]["brand_version"])

@@ -111,6 +111,12 @@ MIGRATIONS = {
         "paths remain available with unchanged bytes; logos/asset-aliases.json maps them to descriptive "
         "publication copies. Brand source geometry, Brand Canon 1.6.0, and adapter APIs are unchanged."
     ),
+    "2.6.0": (
+        "Existing kits need migration: **yes to adopt canonical guideline page routes**. "
+        "Regenerate and repin each kit with exact checksums. Hosted Overview, Logo, and Assets "
+        "pages use label-matched paths; their old URLs retain static compatibility bridges. "
+        "Direct asset file paths, approved identity bytes, Brand Canon 1.6.0, and adapter APIs remain unchanged."
+    ),
 }
 
 

@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { chromium } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { inflateSync } from 'node:zlib';
-import { conformanceRoutes, downloadFiles, htmlRoutes, iconFiles, iconRoutes, requiredFiles, routeRecords, tableRoutes, visualRoutes, visualThemes, visualWidths } from '../tests/site.test.mjs';
+import { conformanceRoutes, downloadFiles, htmlRoutes, iconFiles, iconRoutes, legacyRoutes, requiredFiles, routeRecords, tableRoutes, visualRoutes, visualThemes, visualWidths } from '../tests/site.test.mjs';
 import guidelinePortals from '../generated/guidelines.json' with { type: 'json' };
 import brands from '../generated/brands.json' with { type: 'json' };
 import documentationRecords from '../generated/documentation.json' with { type: 'json' };
@@ -394,7 +394,7 @@ try {
     await targetPage.reload({ waitUntil: 'networkidle' });
   };
   const verifyStableGeometry = async () => {
-    const brandPortalPairs = brands.map((brand) => ({ overview: `/${brand.slug}/guidelines/`, assets: `/${brand.slug}/downloads/` }));
+    const brandPortalPairs = brands.map((brand) => ({ overview: `/${brand.slug}/guidelines/overview/`, assets: `/${brand.slug}/guidelines/assets/` }));
     for (const scale of [1, 2]) {
       const geometryContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: scale });
       const geometryPage = await geometryContext.newPage();
@@ -705,7 +705,7 @@ try {
         check(Boolean(record), `${route} lacks generated documentation navigation metadata`);
         if (record) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: new RegExp(`^${record.navigation.section}$`) }).count() === 1, `${route} does not keep its ${record.navigation.section} parent identifiable and expanded`);
       }
-      if (route === '/shruggietech/guidelines/') {
+      if (route === '/shruggietech/guidelines/overview/') {
         check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
       }
       if (['guidelines', 'guidelines-topic', 'downloads'].includes(contract.kind)) {
@@ -822,7 +822,8 @@ try {
   await page.emulateMedia({ reducedMotion: 'no-preference', forcedColors: 'none', colorScheme: 'light' });
   for (const portal of guidelinePortals) {
     for (const topic of ['assets', 'logos']) {
-      const route = topic === 'assets' ? `/${portal.brand.slug}/downloads/` : `/${portal.brand.slug}/guidelines/${topic}/`;
+      const route = portal.topics.find((entry) => entry.key === topic)?.path;
+      check(Boolean(route), `${portal.brand.slug} is missing ${topic} route`);
       for (const width of [360, 768, 1280]) {
         for (const theme of visualThemes) {
           await page.setViewportSize({ width, height: 900 });
@@ -842,7 +843,7 @@ try {
     }
   }
   await page.setViewportSize({ width: 1280, height: 900 });
-  for (const sample of [{ route: '/glitchpad/guidelines/logos/', child: '/glitchpad/guidelines/logos/' }, { route: '/docs/06-logo-protocol/', child: '/docs/06-logo-protocol/' }]) {
+  for (const sample of [{ route: '/glitchpad/guidelines/logo/', child: '/glitchpad/guidelines/logo/' }, { route: '/docs/06-logo-protocol/', child: '/docs/06-logo-protocol/' }]) {
     await page.goto(base + sample.route);
     const identity = page.locator('#nd-sidebar button').filter({ hasText: /^Identity$/ });
     check(await identity.count() === 1, `${sample.route} lacks the keyboard-operable Identity disclosure`);
@@ -857,13 +858,13 @@ try {
   const noScriptPage = await noScriptContext.newPage();
   await noScriptPage.goto(base + '/');
   check(await noScriptPage.locator('.brand-card a').count() === 16 && await noScriptPage.locator('.brand-card a').first().isVisible() && await noScriptPage.locator('.brand-accordion summary').count() === 8, 'no-script homepage does not retain visible guidelines, downloads, and disclosures');
-  await noScriptPage.goto(base + '/glitchpad/downloads/');
+  await noScriptPage.goto(base + '/glitchpad/guidelines/assets/');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === portalBySlug.get('glitchpad')?.topics.length, 'no-script guideline fallback does not expose the complete navigation hierarchy');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script guideline fallback does not identify the current topic');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').evaluate((element) => { const style = getComputedStyle(element); return Number.parseInt(style.fontWeight, 10) >= 700 && style.boxShadow !== 'none'; }), 'no-script guideline fallback does not visibly distinguish the current topic');
   check(await noScriptPage.locator('.asset-tile').count() > 0 && await noScriptPage.locator('.resource-list a[data-kit-asset]').count() > 0, 'no-script asset route does not retain complete server-rendered browsing and downloads');
   check((await noScriptPage.locator('body').innerText()).includes('Search and filters require JavaScript'), 'no-script asset route does not explain its progressive enhancement boundary');
-  await noScriptPage.goto(base + '/i-heart-pr-tours/downloads/');
+  await noScriptPage.goto(base + '/i-heart-pr-tours/guidelines/assets/');
   check(await noScriptPage.locator('.guideline-layout').getAttribute('data-guide-mode') === 'light' && await noScriptPage.locator('.hierarchy-noscript-nav a').count() === portalBySlug.get('i-heart-pr-tours')?.topics.length && await noScriptPage.locator('.asset-tile').count() > 0, 'light no-script brand route loses its declared surface, navigation, or assets');
   check(sameColor(await noScriptPage.locator('.guideline-layout').evaluate((element) => getComputedStyle(element).backgroundColor), '#FFFFFF'), 'light no-script brand route inherits a dark background');
   await noScriptPage.goto(base + '/docs/06-logo-protocol/');
@@ -887,13 +888,13 @@ try {
   check(await touchPage.locator('.brand-accordion-list').evaluate((element) => getComputedStyle(element).display) === 'block', 'wide touch-only viewport does not expose native disclosures');
   await touchPage.locator('.brand-accordion summary').first().tap();
   check(await touchPage.locator('.brand-accordion').first().locator('.brand-actions a').first().isVisible(), 'wide touch-only disclosure does not reveal its actions');
-  await touchPage.goto(base + '/glitchpad/guidelines/logos/');
+  await touchPage.goto(base + '/glitchpad/guidelines/logo/');
   const touchIdentity = touchPage.locator('#nd-sidebar button').filter({ hasText: /^Identity$/ });
   check(await touchIdentity.count() === 1, 'touch guideline navigation lacks the Identity disclosure');
   if (await touchIdentity.count() === 1) {
     if (await touchIdentity.getAttribute('data-state') === 'open') await touchIdentity.tap();
     await touchIdentity.tap();
-    check(await touchPage.locator('#nd-sidebar a[href="/glitchpad/guidelines/logos/"]').isVisible(), 'touch guideline navigation cannot reveal the active Identity child');
+    check(await touchPage.locator('#nd-sidebar a[href="/glitchpad/guidelines/logo/"]').isVisible(), 'touch guideline navigation cannot reveal the active Identity child');
   }
   await touchPage.goto(base + '/docs/06-logo-protocol/');
   const touchDocsIdentity = touchPage.locator('#nd-sidebar button').filter({ hasText: /^Identity$/ });
@@ -917,6 +918,24 @@ try {
       check(response.status() === 200, `sitemap URL ${location} does not resolve directly`);
     }
   }
+  for (const legacy of legacyRoutes) {
+    const withoutSlash = legacy.source.slice(0, -1);
+    const trailingSlash = await page.request.get(base + withoutSlash, { maxRedirects: 0 });
+    check(isCanonicalRedirect(trailingSlash.status(), trailingSlash.headers().location, base, withoutSlash), `${withoutSlash} must normalize to its trailing-slash compatibility page`);
+    const response = await page.request.get(base + legacy.source, { maxRedirects: 0 });
+    check(response.status() === 200, `${legacy.source} compatibility page is unavailable`);
+    if (response.status() !== 200) continue;
+    const html = await response.text();
+    check(html.includes(`href="https://brand.shruggie.tech${legacy.destination}"`) && html.includes('name="robots"') && html.includes('noindex'), `${legacy.source} lacks canonical destination or noindex`);
+    check(html.includes(`href="${legacy.destination}"`) && html.includes('http-equiv="refresh"'), `${legacy.source} lacks an immediate redirect and readable fallback link`);
+    check(!routeRecords.some((route) => route.pathname === legacy.source), `${legacy.source} is exposed as a canonical route`);
+    await page.goto(base + legacy.source);
+    await page.waitForURL((url) => url.pathname === legacy.destination);
+  }
+  const bookmarked = legacyRoutes.find((route) => route.source === '/glitchpad/downloads/');
+  await page.goto(base + bookmarked.source + '?from=old#direct-downloads');
+  await page.waitForURL((url) => url.pathname === bookmarked.destination);
+  check(new URL(page.url()).search === '?from=old' && new URL(page.url()).hash === '#direct-downloads', 'legacy Assets bookmark loses its query or fragment');
   for (const route of routeRecords) {
     const response = await page.request.get(base + route.social.path);
     check(response.ok(), `${route.social.path} cannot be fetched`);
@@ -933,7 +952,7 @@ try {
       check(isCanonicalRedirect(redirect.status(), redirect.headers().location, base, withoutSlash), `${withoutSlash} must permanently redirect once to its canonical same-origin trailing-slash path`);
     }
   }
-  await page.goto(base + '/i-heart-pr-tours/guidelines/');
+  await page.goto(base + '/i-heart-pr-tours/guidelines/overview/');
   await page.emulateMedia({ media: 'print' });
   const lightPrint = await page.locator('.guideline-layout').evaluate((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, foreground: style.color }; });
   check(sameColor(lightPrint.background, '#FFFFFF') && contrastRatio(lightPrint.foreground, lightPrint.background) >= 4.5, `light brand print presentation is not readable (${JSON.stringify(lightPrint)})`);

@@ -1,16 +1,16 @@
 {
   "$schema": "release-impact.schema.json",
   "schema_version": 1,
-  "brandbuilder_version": "2.5.0",
+  "brandbuilder_version": "2.6.0",
   "identity_redesign": false,
   "surfaces": {
     "identity": {"classification": "unaffected", "summary": "All approved source and Gate 2 derivative geometry remains unchanged."},
     "palette": {"classification": "unaffected", "summary": "Existing approved formal and interface colors remain unchanged."},
     "typography": {"classification": "unaffected", "summary": "Existing local fonts and outlined wordmarks remain authoritative."},
-    "platform_assets": {"classification": "required", "summary": "Every kit gains byte-identical descriptive logo aliases and a path map. Existing logo and icon deliveries retain their paths and bytes."},
+    "platform_assets": {"classification": "unaffected", "summary": "Existing logo, icon, and direct download file paths and bytes remain unchanged."},
     "web_react": {"classification": "unaffected", "summary": "The Web and React adapter API and token roles remain unchanged."},
     "egui": {"classification": "unaffected", "summary": "The egui adapter API and approved values remain unchanged."},
-    "documentation": {"classification": "required", "summary": "The shared asset glossary and generated guides use consistent form, layout, ink, background, and surface terms. Hosted and portable downloads show one card per distinct design."},
-    "recovery": {"classification": "required", "summary": "Regenerate and repin 2.5.0 kits with exact package checksums to adopt descriptive aliases and catalog metadata. Existing approved asset paths remain valid."}
+    "documentation": {"classification": "required", "summary": "Every hosted brand guideline menu page now uses a final path segment derived from its visible label. Former Overview, Logo, and Assets page paths remain static compatibility bridges."},
+    "recovery": {"classification": "required", "summary": "Regenerate and repin 2.6.0 kits with exact package checksums to adopt canonical guideline topic URLs. Direct asset file paths and approved identity bytes remain unchanged."}
   }
 }

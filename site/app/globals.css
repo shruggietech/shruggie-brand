@@ -158,6 +158,11 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .guide-nav-title strong { color: var(--foreground); font-family: var(--sh-font-display); }
 .guide-nav-title small { color: var(--muted-foreground); font: 500 .65rem/1.3 var(--sh-font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .guideline-page { --color-fd-primary: var(--primary); min-width: 0; color: var(--foreground); }
+.legacy-route-bridge { max-width: 48rem; min-height: 16rem; margin-inline: auto; padding: clamp(2rem, 6vw, 5rem); color: var(--foreground); }
+.legacy-route-bridge h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; }
+.legacy-route-bridge p { margin-block: 1rem; }
+.legacy-route-bridge a { display: inline-flex; min-height: 44px; align-items: center; color: var(--primary); text-decoration: underline; text-underline-offset: .2em; }
+.legacy-route-bridge a:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 .guide-heading { padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
 .hierarchy-noscript-nav { margin: 1.5rem; padding: 1rem; border: 1px solid var(--line); border-radius: .6rem; }
 .hierarchy-noscript-nav ul { display: grid; gap: .5rem; margin: .5rem 0 0; padding-left: 1.25rem; }

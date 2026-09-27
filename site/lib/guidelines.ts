@@ -78,19 +78,23 @@ export function guidePresentationStyle(portal: GuidelinePortal): CSSProperties {
 }
 
 export function guidelineTopic(portal: GuidelinePortal, segments?: string[]) {
-  if (!segments?.length) return portal.topics[0];
-  if (segments.length !== 1) return undefined;
-  return portal.topics.find((topic) => topic.key === segments[0]);
+  if (segments?.length !== 1) return undefined;
+  return portal.topics.find((topic) => topic.path === `/${portal.brand.slug}/guidelines/${segments[0]}/`);
 }
 
-export function guidelinePath(slug: string, topic: string) { return portalTopicPath(slug, topic); }
-
-function portalTopicPath(slug: string, topic: string) { return topic === 'overview' ? `/${slug}/guidelines/` : topic === 'assets' ? `/${slug}/downloads/` : `/${slug}/guidelines/${topic}/`; }
+function labelSlug(label: string) {
+  if (!/^[\x00-\x7F]+$/.test(label)) throw new Error(`Guideline label must be ASCII text: ${label}`);
+  const segment = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (!segment) throw new Error(`Guideline label has no URL slug: ${label}`);
+  return segment;
+}
 
 export function guidelineSections(portal: GuidelinePortal): GuidelineSection[] {
   const sections: GuidelineSection[] = [];
+  const paths = new Set<string>();
   for (const topic of portal.topics) {
-    if (topic.path !== portalTopicPath(portal.brand.slug, topic.key)) throw new Error(`Invalid generated path for ${portal.brand.slug}/${topic.key}`);
+    if (topic.path !== `/${portal.brand.slug}/guidelines/${labelSlug(topic.label)}/` || paths.has(topic.path)) throw new Error(`Invalid or duplicate generated path for ${portal.brand.slug}/${topic.key}`);
+    paths.add(topic.path);
     const existing = sections.find((section) => section.label === topic.section);
     if (existing) {
       if (!existing.children) throw new Error(`Mixed leaf and grouped section: ${topic.section}`);
@@ -124,7 +128,7 @@ export function topicToc(portal: GuidelinePortal, topic: GuidelineTopic): TOCIte
     { title: 'Dark palette', url: '#dark-palette', depth: 2 },
     { title: 'Light palette', url: '#light-palette', depth: 2 },
   ];
-  if (topic.key === 'assets') return [...portal.asset_families.map((family) => ({ title: family.title, url: `#${family.key}`, depth: 2 })), { title: 'Documents and containers', url: '#resources', depth: 2 }];
+  if (topic.key === 'assets') return [{ title: 'Direct downloads', url: '#direct-downloads', depth: 2 }, { title: 'Asset library', url: '#asset-library', depth: 2 }];
   if (topic.key === 'expressions') return (portal.asset_families.find((family) => family.key === 'expressions')?.assets ?? []).map((asset) => ({ title: asset.title, url: `#${asset.id}`, depth: 2 }));
   if (topic.key === 'integration') return portal.instructions.map((instruction, index) => ({ title: `${instruction.platform}: ${instruction.title}`, url: `#instruction-${index + 1}`, depth: 2 }));
   const sections: Record<string, string[]> = { overview: ['Brand overview', 'Foundations', 'Promises', 'Boundaries', 'Built to ship'], voice: ['Governing principle', 'Voice qualities', 'Personality'], logos: ['Usage', 'Minimum sizes', 'Prohibitions'], typography: ['Type families'], components: ['Domain components'] };
