@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-26
 
-**Status**: Implemented, local verification in progress
+**Status**: Implemented and locally verified, PR review in progress
 
 **Input**: S059 addresses issue #285. Give every dedicated brand guideline menu item a predictable page URL whose final segment matches the visible menu label, migrate site references, and keep existing public page links usable.
 

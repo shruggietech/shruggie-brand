@@ -20,8 +20,9 @@
 | `python scripts/test_registry_delivery.py --site site/out --inventory-only` | Eight published registry inventories matched generated kits. |
 | Site MDX generation, TypeScript `tsc --noEmit`, Next static build, and `node tests/site.test.mjs` | Passed; 121 static pages exported. |
 | `node --test tests/production-origin.test.mjs tests/payload-contract.test.mjs` | 12 tests passed. |
-| `node scripts/verify-site.mjs` | First complete sweep passed: 92 HTML routes at desktop and mobile widths, zero WCAG 2.1 AA violations. Final sweep with added legacy URL normalization and query/fragment assertions is in progress. |
+| `node scripts/verify-site.mjs` | Two complete sweeps passed: 92 HTML routes at desktop and mobile widths, zero WCAG 2.1 AA violations. The final sweep included all 24 legacy page bridges, trailing-slash normalization, and query/fragment preservation on a bookmarked Assets URL. |
 | Documentation publication, Markdown, README link, release-contract, and public-documentation checks | Passed. |
+| `python scripts/audit_publication_artifacts.py --kits site/test-results/s059-audit-kits --site site/out` | Passed with eight kit markers and eight site markers. The clean kit inventory was copied from the eight `dist/<brand>/` trees because the shared ignored `dist/` directory also holds local tool caches and other non-release files. |
 
 ## Visual review and environment
 
@@ -29,4 +30,4 @@ Generated guidelines contact sheets for Covarity, Cueson, ESO Weave, fragcap, Gl
 
 ## Pending PR gates
 
-The official PR, hosted CI, external Codex/security review, and owner merge handoff follow the authorized push. Their outcomes will be added when known.
+Official PR [#289](https://github.com/shruggietech/shruggie-brand/pull/289) is open. Hosted CI and external review remain in progress. The first Codex review asked for completion of the final browser sweep; the passing result above resolves that evidence gap. Owner merge handoff follows green CI and satisfied reviews.

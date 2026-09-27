@@ -24,8 +24,8 @@
 ## Phase 4: Validation and handoff
 
 - [x] T011 Update version and changelog for 2.6.0 route contract, retaining Brand Canon and identity versions.
-- [ ] T012 Run focused and full Python, eight-kit/glyph, site lint/build/browser, release-contract, accessibility, and publication gates; save evidence in `verification.md`.
-- [ ] T013 Audit UTF-8/LF, mojibake, ignored generated output, and spec/plan/task consistency; commit and push.
+- [x] T012 Run focused and full Python, eight-kit/glyph, site lint/build/browser, release-contract, accessibility, and publication gates; save evidence in `verification.md`.
+- [x] T013 Audit UTF-8/LF, mojibake, ignored generated output, and spec/plan/task consistency; commit and push.
 - [ ] T014 Open official PR, attach it to this chat, resolve CI and every review comment, trigger at most one second review round, then request owner merge review.
 
 ## Dependencies and execution order
