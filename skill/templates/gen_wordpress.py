@@ -11,7 +11,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-from brand_contract import font_faces
+from brand_contract import _validate_svg, font_faces
 from component_contract import load_component_catalog
 from interface_contract import resolve_interface_contract, skill_metadata
 
@@ -272,17 +272,34 @@ def generate_wordpress(brand_source, kit_path):
     color_roles = json.loads((kit / "color-roles.json").read_text(encoding="utf-8"))
     interface = resolve_interface_contract(brand)
     root = kit / "wordpress"
+    if root.exists() or root.is_symlink():
+        require(root.is_dir() and not root.is_symlink(), "WordPress output root is unsafe")
+        shutil.rmtree(root)
     theme = root / "theme" / ("stbb-" + slug)
     theme.mkdir(parents=True, exist_ok=True)
     fonts, font_assets = font_records(kit, theme, brand)
     image_assets = []
-    sample_image = "%s-social-preview-1280.png" % slug
-    has_social_preview = (kit / "logos" / "png" / sample_image).is_file()
-    for label, size in (("horizontal-black", 1024), ("mark-black", 1024)) + ((("social-preview", 1280),) if has_social_preview else ()):
-        filename = "%s-%s-%d.png" % (slug, label, size)
-        source = kit / "logos" / "png" / filename
-        require(source.is_file() and source.read_bytes().startswith(b"\x89PNG\r\n\x1a\n"),
-                "WordPress approved raster asset is missing: %s" % filename)
+    probe_path = kit / "qc" / "probe.json"
+    raster_available = (json.loads(probe_path.read_text(encoding="utf-8")).get("svg_raster", True)
+                        if probe_path.is_file() else True)
+    extension = "png" if raster_available else "svg"
+    mark_image = "%s-mark-black-1024.png" % slug if raster_available else "%s-mark-black.svg" % slug
+    sample_image = "%s-social-preview-1280.png" % slug if raster_available else "%s-social-preview.svg" % slug
+    logo_source = kit / "logos" / extension
+    has_social_preview = (logo_source / sample_image).is_file()
+    names = (["%s-horizontal-black-1024.png" % slug, mark_image] if raster_available
+             else ["%s-horizontal-black.svg" % slug, mark_image])
+    if has_social_preview:
+        names.append(sample_image)
+    for filename in names:
+        source = logo_source / filename
+        require(source.is_file() and not source.is_symlink(),
+                "WordPress approved %s asset is missing: %s" % ("raster" if raster_available else "vector", filename))
+        if raster_available:
+            require(source.read_bytes().startswith(b"\x89PNG\r\n\x1a\n"),
+                    "WordPress approved raster asset is missing: %s" % filename)
+        else:
+            _validate_svg(source)
         destination = theme / "assets" / "images" / filename
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, destination)
@@ -292,10 +309,12 @@ def generate_wordpress(brand_source, kit_path):
     write_json(theme / "theme.json", settings)
     write_json(theme / "styles" / "dark.json", dark_variation(settings, brand, interface, color_roles))
     write_text(theme / "style.css", "/*\nTheme Name: %s Brand Starter\nTheme URI: https://brand.shruggie.tech/%s/\nAuthor: ShruggieTech\nDescription: Generated native block-theme foundation for %s.\nVersion: %s\nRequires at least: 6.9\nRequires PHP: 8.2\nLicense: Apache-2.0\nText Domain: stbb-%s\n*/\n" % (brand["title"], slug, brand["title"], ADAPTER_VERSION, slug))
-    write_text(theme / "assets" / "css" / "stbb-content.css", content_css(brand, interface))
-    write_text(theme / "functions.php", "<?php\n/** Generated content-only stylesheet hooks. */\nadd_action( 'after_setup_theme', function () { add_theme_support( 'editor-styles' ); add_editor_style( 'assets/css/stbb-content.css' ); } );\nadd_action( 'init', function () { register_block_style( 'core/group', array( 'name' => 'stbb-%s-card', 'label' => 'Brand card' ) ); } );\nadd_action( 'wp_enqueue_scripts', function () { wp_enqueue_style( 'stbb-%s-content', get_theme_file_uri( 'assets/css/stbb-content.css' ), array(), '%s' ); } );\n" % (slug, slug, ADAPTER_VERSION))
+    stylesheet = theme / "assets" / "css" / "stbb-content.css"
+    write_text(stylesheet, content_css(brand, interface))
+    stylesheet_version = digest(stylesheet)["sha256"]
+    write_text(theme / "functions.php", "<?php\n/** Generated content-only stylesheet hooks. */\nadd_action( 'after_setup_theme', function () { add_theme_support( 'editor-styles' ); add_editor_style( 'assets/css/stbb-content.css' ); } );\nadd_action( 'init', function () { register_block_style( 'core/group', array( 'name' => 'stbb-%s-card', 'label' => 'Brand card' ) ); } );\nadd_action( 'wp_enqueue_scripts', function () { wp_enqueue_style( 'stbb-%s-content', get_theme_file_uri( 'assets/css/stbb-content.css' ), array(), '%s' ); } );\n" % (slug, slug, stylesheet_version))
     templates(theme)
-    patterns(theme, brand, sample_image if has_social_preview else "%s-mark-black-1024.png" % slug)
+    patterns(theme, brand, sample_image if has_social_preview else mark_image)
     write_text(theme / "README.md", "# %s WordPress starter\n\nGenerated by BrandBuilder. Install this ZIP through Appearance > Themes, activate, upload an approved PNG for Site Logo, choose navigation, and replace demonstration copy. Source SVG logo geometry remains in the parent brand kit; do not enable unrestricted SVG uploads merely for this theme. Before updating, back up the database and export Site Editor customizations, then compare saved overrides with the new theme defaults on staging. Keep the previous ZIP and its checksum for rollback. See https://brand.shruggie.tech/docs/wordpress/ and the parent kit's `wordpress/README.md` for the supported versions and complete handoff.\n" % brand["title"])
     inventory = zip_theme(theme, root / (slug + "-stbb-theme.zip"))
     write_json(root / "theme-inventory.json", {"schema_version": 1, "theme_root": theme.name, "files": inventory})
@@ -328,7 +347,9 @@ def generate_wordpress(brand_source, kit_path):
                 "zip": digest(root / (slug + "-stbb-theme.zip")),
                 "assets": font_assets + image_assets}
     write_json(root / "adapter.json", manifest)
-    write_text(root / "README.md", "# %s WordPress delivery\n\nInstall `%s-stbb-theme.zip` on the exact WordPress/PHP pairs listed in `adapter.json`. Use native Site Editor blocks and the four patterns. Set Site Logo with `theme/%s/assets/images/%s-mark-black-1024.png` or another approved variant in the parent kit. The theme uses native settings for defaults and a content-scoped CSS supplement. It does not style the WordPress admin chrome. The optional Dark interface style variation is selected by an editor and does not switch with a visitor preference.\n\nBefore updating, back up the database and export saved Global Styles, templates, template parts, navigation, pages, and posts. Pin the current ZIP and its checksum. Install the new ZIP in a staging site, compare its `theme.json` against saved Site Editor overrides, and reconcile intentionally. Saved database styles and templates can mask regenerated file defaults; replacing a ZIP does not delete client content or force those defaults. Roll back with the pinned ZIP plus database backup if necessary. Use a child theme or maintained source overlay for client code changes, rather than editing generated files. Classic themes and third-party builders, forms, commerce, multilingual, and caching plugins are unverified until tested for a client.\n" % (brand["title"], slug, theme.name, slug))
+    logo_guidance = ("Set Site Logo with `theme/%s/assets/images/%s` or another approved PNG variant in the parent kit." % (theme.name, mark_image)
+                     if raster_available else "This core-tier kit contains vector theme assets only; export an approved PNG before uploading a Site Logo to the media library.")
+    write_text(root / "README.md", "# %s WordPress delivery\n\nInstall `%s-stbb-theme.zip` on the exact WordPress/PHP pairs listed in `adapter.json`. Use native Site Editor blocks and the four patterns. %s The theme uses native settings for defaults and a content-scoped CSS supplement. It does not style the WordPress admin chrome. The optional Dark interface style variation is selected by an editor and does not switch with a visitor preference.\n\nBefore updating, back up the database and export saved Global Styles, templates, template parts, navigation, pages, and posts. Pin the current ZIP and its checksum. Install the new ZIP in a staging site, compare its `theme.json` against saved Site Editor overrides, and reconcile intentionally. Saved database styles and templates can mask regenerated file defaults; replacing a ZIP does not delete client content or force those defaults. Roll back with the pinned ZIP plus database backup if necessary. Use a child theme or maintained source overlay for client code changes, rather than editing generated files. Classic themes and third-party builders, forms, commerce, multilingual, and caching plugins are unverified until tested for a client.\n" % (brand["title"], slug, logo_guidance))
     return manifest
 
 

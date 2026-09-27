@@ -9,6 +9,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 from color_roles import resolve_color_roles
 from gen_wordpress import WordPressError, generate_wordpress, theme_settings
@@ -70,12 +71,49 @@ class WordPressGenerationTests(unittest.TestCase):
             self.generate()
 
     def test_missing_optional_social_preview_uses_approved_mark(self):
-        (self.kit / "logos" / "png" / "go-schedule-social-preview-1280.png").unlink()
         self.generate()
+        (self.kit / "logos" / "png" / "go-schedule-social-preview-1280.png").unlink()
+        manifest = self.generate()
         media = (self.kit / "wordpress" / "theme" / "stbb-go-schedule" / "patterns" / "text-media.php").read_text(encoding="utf-8")
         self.assertIn("go-schedule-mark-black-1024.png", media)
         self.assertIn("stbb-go-schedule-sample-mark", media)
+        stale = "assets/images/go-schedule-social-preview-1280.png"
+        self.assertFalse((self.kit / "wordpress" / "theme" / "stbb-go-schedule" / stale).exists())
+        self.assertNotIn(stale, {item["path"] for item in json.loads((self.kit / "wordpress" / "theme-inventory.json").read_text(encoding="utf-8"))["files"]})
+        with zipfile.ZipFile(self.kit / manifest["entries"]["zip"]) as archive:
+            self.assertNotIn("stbb-go-schedule/" + stale, archive.namelist())
         self.assertGreater(verify_wordpress(self.kit), 15)
+
+    def test_core_tier_packages_source_exact_vector_assets(self):
+        (self.kit / "qc").mkdir()
+        (self.kit / "qc" / "probe.json").write_text('{"svg_raster": false}\n', encoding="utf-8")
+        svg_dir = self.kit / "logos" / "svg"
+        svg_dir.mkdir()
+        svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0h10v10H0z"/></svg>\n'
+        for name in ("horizontal-black", "mark-black"):
+            (svg_dir / ("go-schedule-%s.svg" % name)).write_bytes(svg)
+        shutil.rmtree(self.kit / "logos" / "png")
+        manifest = self.generate()
+        media = (self.kit / "wordpress" / "theme" / "stbb-go-schedule" / "patterns" / "text-media.php").read_text(encoding="utf-8")
+        self.assertIn("go-schedule-mark-black.svg", media)
+        self.assertIn("vector theme assets only", (self.kit / "wordpress" / "README.md").read_text(encoding="utf-8"))
+        self.assertEqual(verify_wordpress(self.kit), len(json.loads((self.kit / "wordpress" / "theme-inventory.json").read_text(encoding="utf-8"))["files"]))
+        with zipfile.ZipFile(self.kit / manifest["entries"]["zip"]) as archive:
+            self.assertIn("stbb-go-schedule/assets/images/go-schedule-mark-black.svg", archive.namelist())
+
+    def test_stylesheet_cache_version_follows_css_bytes(self):
+        self.generate()
+        theme = self.kit / "wordpress" / "theme" / "stbb-go-schedule"
+        css = (theme / "assets" / "css" / "stbb-content.css").read_text(encoding="utf-8")
+        original_version = hashlib.sha256(css.encode("utf-8")).hexdigest()
+        functions = (theme / "functions.php").read_text(encoding="utf-8")
+        self.assertIn("array(), '%s'" % original_version, functions)
+        with patch("gen_wordpress.content_css", return_value=css + "/* source revision */\n"):
+            self.generate()
+        updated_css = (theme / "assets" / "css" / "stbb-content.css").read_bytes()
+        updated_version = hashlib.sha256(updated_css).hexdigest()
+        self.assertNotEqual(updated_version, original_version)
+        self.assertIn("array(), '%s'" % updated_version, (theme / "functions.php").read_text(encoding="utf-8"))
 
     def test_archive_tamper_fails(self):
         manifest = self.generate()
