@@ -30,7 +30,7 @@ export type GuidelinePortal = {
     bundle: { package: { id: string; filename: string } };
     versions: Record<string, string>;
     bindings: Record<string, string>;
-    rules: { inheritance: string; overrides: Record<string, string> };
+    rules: { inheritance: string; overrides: Record<string, string>; default_references: Record<string, { source: string; dark: string; light: string }> };
     authority: { precedence: string[]; permitted_exceptions: string[] };
     verification: { entry_points: string[]; success: string };
     recovery: { distribution: string; path: string; sha256: string; extract_to: string; instruction: string };

@@ -10,7 +10,7 @@ A manual or packaged skill link targets `references.md#ref-...`. The determinist
 
 ## Guideline fact
 
-The generated `enforcement/documentation-facts.json` retains its current contract version and fields for brand, bundle, versions, bindings, rules, authority, verification, recovery, hosted, and bundled scopes. The hosted portal embeds it and the public static JSON resource copies it byte for byte. No separate fact is authored in the site.
+The generated `enforcement/documentation-facts.json` uses documentation contract 1.1.0 and fields for brand, bundle, versions, bindings, rules, authority, verification, recovery, hosted, and bundled scopes. For each declared override, `rules.default_references` contains the exact dark and light default aliases selected by the pinned interface canon plus that canon's kit path. The hosted portal embeds these facts and the public static JSON resource copies them byte for byte. No separate fact is authored in the site.
 
 ## Reader-task audit record
 

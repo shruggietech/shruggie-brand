@@ -518,8 +518,11 @@ def implementation_reference_html(facts):
                       if inheritance == "shruggietech-house" else
                       "This brand uses its own delivered interface binding; do not assume a ShruggieTech house palette.")
     overrides = facts["rules"]["overrides"]
-    override_text = ("<ul>%s</ul>" % "".join('<li><code>%s</code>: effective brand reference <code>%s</code>; compare this role with its default reference in the delivered interface binding. Its scope is this interface role for this brand.</li>' %
-                                           (escape(key), escape(str(value))) for key, value in sorted(overrides.items()))
+    override_text = ("<ul>%s</ul>" % "".join('<li><code>%s</code>: dark default <code>%s</code>, light default <code>%s</code> from <code>%s</code>; effective brand reference <code>%s</code> declared in <code>brand.json</code>. Its scope is this interface role for this brand.</li>' %
+                                           (escape(key), escape(facts["rules"]["default_references"][key]["dark"]),
+                                            escape(facts["rules"]["default_references"][key]["light"]),
+                                            escape(facts["rules"]["default_references"][key]["source"]), escape(str(value)))
+                                           for key, value in sorted(overrides.items()))
                      if overrides else "<p>No brand-specific interface overrides are declared. Use the delivered binding and its default rules.</p>")
     slug = facts["brand"]["slug"]
     return ('<section id="implementation"><div class="eyebrow">Implementation authority</div><h2>Exact kit facts</h2>'

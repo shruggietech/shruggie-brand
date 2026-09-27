@@ -11,7 +11,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
-- Reworked shared guideline topics, offline implementation guidance, and portable guides to explain interface defaults, affiliations, versions, registry use, and pinned versus current kit authority in reader terms.
+- Reworked shared guideline topics, offline implementation guidance, and portable guides to explain interface defaults, affiliations, versions, registry use, and pinned versus current kit authority in reader terms. Documentation contract 1.1.0 records each declared override's dark and light default references from the delivered interface canon.
 
 ### Fixed
 

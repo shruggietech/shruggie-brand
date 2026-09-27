@@ -1,7 +1,7 @@
 {
   "$schema": "documentation-contract.schema.json",
   "schema_version": 1,
-  "contract_version": "1.0.0",
+  "contract_version": "1.1.0",
   "required_topics": ["architecture", "operating-modes", "brand-canon", "interface-canon", "component-recipes", "adapters", "verification", "versioning-release", "agent-integration", "extension-workflow"],
   "surfaces": [
     {"id": "main", "audience": "BrandBuilder maintainers and extenders", "owns": "System architecture, operating modes, contracts, generators, verification, versions, releases, installation, agents, and extensions.", "excludes": "Exact delivered brand bytes and brand-specific identity expression."},

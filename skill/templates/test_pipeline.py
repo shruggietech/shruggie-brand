@@ -53,6 +53,15 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_portable_override_guidance_shows_theme_defaults_and_effective_reference(self):
+        facts = {"schema_version": 1, "documentation_contract_version": "1.1.0", "brand": {"slug": "sample"},
+                 "versions": {}, "bindings": {}, "rules": {"inheritance": "independent",
+                 "overrides": {"text.muted": "$brand.accent.bright"},
+                 "default_references": {"text.muted": {"source": "enforcement/interface-canon.json", "dark": "$resolved.muted", "light": "$brand.accent.dim"}}}}
+        html = gen_guidelines.implementation_reference_html(facts)
+        for expected in ("$resolved.muted", "$brand.accent.dim", "$brand.accent.bright", "enforcement/interface-canon.json", "brand.json"):
+            self.assertIn(expected, html)
+
     def test_manifest_rejects_empty_required_inventory_and_optional_absence(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary)

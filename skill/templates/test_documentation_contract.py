@@ -94,12 +94,19 @@ class DocumentationContractTests(unittest.TestCase):
             missing = copy.deepcopy(facts); missing["bindings"]["web_adapter"] = "web/missing.json"
             with self.assertRaisesRegex(DocumentationContractError, "binding facts"):
                 verify_documentation_facts(missing, contract, consumer, kit)
-            (kit / "brand.json").write_text(json.dumps({"affiliation": {"inheritance": "independent"}, "interface": {"overrides": {"action.primary": "$brand.semantic_colors.action"}}}), encoding="utf-8")
+            (kit / "enforcement" / "interface-canon.json").write_text(json.dumps({"aliases": {"action.primary": "$resolved.action", "text.muted": "$brand.accent.dim"}, "theme_aliases": {"dark": {"text.muted": "$resolved.muted"}, "light": {}}}), encoding="utf-8")
+            (kit / "brand.json").write_text(json.dumps({"affiliation": {"inheritance": "independent"}, "interface": {"overrides": {"action.primary": "$brand.semantic_colors.action", "text.muted": "$brand.accent.bright"}}}), encoding="utf-8")
             overridden = build_documentation_facts(contract, consumer, kit)
             override_guidance = render_implementation(overridden, "Use the governed palette.")
-            self.assertIn("`action.primary` has effective brand reference `$brand.semantic_colors.action`", override_guidance)
-            self.assertIn("default reference in the delivered interface binding", override_guidance)
+            self.assertEqual(overridden["rules"]["default_references"]["action.primary"], {"source": "enforcement/interface-canon.json", "dark": "$resolved.action", "light": "$resolved.action"})
+            self.assertEqual(overridden["rules"]["default_references"]["text.muted"]["dark"], "$resolved.muted")
+            self.assertEqual(overridden["rules"]["default_references"]["text.muted"]["light"], "$brand.accent.dim")
+            self.assertIn("default reference `$resolved.action` on dark surfaces", override_guidance)
+            self.assertIn("effective brand reference `$brand.semantic_colors.action`", override_guidance)
             self.assertIn("this interface role for this brand", override_guidance)
+            drifted_default = copy.deepcopy(overridden); drifted_default["rules"]["default_references"]["text.muted"]["dark"] = "$brand.accent.dim"
+            with self.assertRaisesRegex(DocumentationContractError, "default.*rules|overridden rules"):
+                verify_documentation_facts(drifted_default, contract, consumer, kit)
 
 
 if __name__ == "__main__":

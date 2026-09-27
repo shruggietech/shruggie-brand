@@ -196,6 +196,10 @@ for (const portal of guidelinePortals) {
     }
   }
   if (portal.implementation?.schema_version !== 1 || portal.implementation.brand.slug !== portal.brand.slug || portal.implementation.versions.brand_version !== portal.brand.version) throw new Error(`${portal.brand.slug} hosted implementation facts are missing or inconsistent`);
+  const overrides = portal.implementation.rules.overrides;
+  const defaults = portal.implementation.rules.default_references;
+  if (JSON.stringify(Object.keys(overrides).sort()) !== JSON.stringify(Object.keys(defaults).sort())) throw new Error(`${portal.brand.slug} default interface references do not cover declared overrides`);
+  for (const role of Object.keys(overrides)) if (!defaults[role].source || !defaults[role].dark || !defaults[role].light) throw new Error(`${portal.brand.slug} omits a themed default or its source for ${role}`);
   if (portal.implementation.hosted.manual_path !== '/docs/' || portal.implementation.bundled.latest_substitution_allowed !== false) throw new Error(`${portal.brand.slug} documentation authority boundaries are invalid`);
   const assets = portal.topics.find((topic) => topic.key === 'assets');
   if (assets?.path !== `/${portal.brand.slug}/guidelines/assets/`) throw new Error(`${portal.brand.slug} Assets does not use its canonical guideline route`);
