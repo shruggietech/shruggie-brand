@@ -1356,8 +1356,12 @@ def c_manifest(kit, rep):
                 actual.add(relative)
     # Archive packaging adds canonical repository licenses after kit manifest creation.
     archive_licenses = {"LICENSE", "NOTICE", "LICENSE-BRAND.md"}
+    # The generator's preliminary manifest omits VERIFY.md and QC outputs. Its
+    # complete manifest records VERIFY.md, so QC inventory must close at that stage.
+    preliminary = "VERIFY.md" not in seen
     unrecorded = sorted(relative for relative in actual - seen
-                        if not relative.startswith("qc/") and relative not in archive_licenses)
+                        if not (preliminary and relative.startswith("qc/"))
+                        and relative not in archive_licenses)
     if unrecorded:
         bad.append("manifest has unrecorded files: %s" % ", ".join(unrecorded[:6]))
     absent = sorted(seen - actual)

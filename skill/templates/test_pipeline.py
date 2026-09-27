@@ -86,8 +86,22 @@ class PipelineTests(unittest.TestCase):
             for license_name in ("LICENSE", "NOTICE", "LICENSE-BRAND.md"):
                 write_utf8(kit / license_name, "canonical archive license\n")
             self.assertEqual("", problems(manifest))
+            (kit / "qc").mkdir()
+            write_utf8(kit / "qc" / "probe.json", "{}\n")
+            self.assertEqual("", problems(manifest))
+            write_utf8(kit / "VERIFY.md", "verified\n")
+            verify_bytes = (kit / "VERIFY.md").read_bytes()
+            complete = {**manifest, "files": [entry, {
+                "path": "VERIFY.md", "bytes": len(verify_bytes),
+                "sha256": hashlib.sha256(verify_bytes).hexdigest(),
+            }]}
+            self.assertIn("unrecorded", problems(complete))
+            qc_bytes = (kit / "qc" / "probe.json").read_bytes()
+            complete["files"].append({"path": "qc/probe.json", "bytes": len(qc_bytes),
+                                      "sha256": hashlib.sha256(qc_bytes).hexdigest()})
+            self.assertEqual("", problems(complete))
             write_utf8(kit / "unrecorded.json", "{}\n")
-            self.assertIn("unrecorded", problems(manifest))
+            self.assertIn("unrecorded", problems(complete))
 
     def test_go_schedule_current_primary_is_exact_shipped_reduced_geometry(self):
         brand = json.loads((ROOT / "brands" / "go-schedule" / "brand.json").read_text(encoding="utf-8"))

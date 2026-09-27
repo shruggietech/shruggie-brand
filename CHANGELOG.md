@@ -6,7 +6,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
-- Reject empty, duplicate, unsafe, incomplete, or identity-mismatched kit manifests in the portable verifier instead of treating an empty `files` array as a successful checksum check.
+- Reject empty, duplicate, unsafe, incomplete, or identity-mismatched kit manifests in the portable verifier instead of treating an empty `files` array as a successful checksum check. Completed kits also reject unrecorded QC files while preliminary pre-QC manifests retain their bounded exception.
 - Compare exported registry, download, conformance, guideline fact, and archive surfaces against the exact verified kit and release candidate, including a regenerated hosted archive for independently owned brands, then recheck staged release files, source revision, and checksums before upload.
 
 ### Decisions
