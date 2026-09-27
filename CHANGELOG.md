@@ -4,6 +4,18 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-09-26
+
+### Changed
+
+- Made every dedicated brand guideline menu page use a final URL segment derived from its visible label. Overview, Logo, and Assets now live at `/guidelines/overview/`, `/guidelines/logo/`, and `/guidelines/assets/` for each brand.
+- Kept former guideline root, Logo, and Assets page URLs as static, non-indexable compatibility bridges to one canonical destination. Direct download file URLs and kit archives remain unchanged.
+- Advanced BrandBuilder and site to 2.6.0 for the generated page-route contract. Brand Canon 1.6.0, approved identity geometry, and adapter APIs remain unchanged.
+
+### Decisions
+
+- On 2026-09-26, used static compatibility pages because the GitHub Pages export cannot emit HTTP redirects. Each bridge navigates immediately, links visibly to its canonical page, and is excluded from the sitemap.
+
 ## [2.5.0] - 2026-09-26
 
 ### Changed

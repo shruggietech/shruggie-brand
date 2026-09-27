@@ -31,6 +31,7 @@ sys.path.insert(0, str(TEMPLATES))
 from brand_contract import affiliation, custom_assets, guide_surface_mode, public_showcase, showcase_surface, social_copy, vendor_boundary
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
+from gen_guidelines import guideline_topic_path
 from package_release import write_brand_archive
 from release_contract import PRODUCTION
 from documentation_publication import build_record as documentation_publication_record
@@ -137,10 +138,7 @@ def validate_portal_navigation(portal: dict[str, Any], slug: str) -> None:
         expected_topics.insert(6, ("expressions", "Expressions", "Identity", 3))
     if actual != expected_topics:
         raise ValueError(f"{slug}: guideline navigation differs from the authoritative hierarchy")
-    expected_paths = {
-        key: f"/{slug}/downloads/" if key == "assets" else f"/{slug}/guidelines/" if key == "overview" else f"/{slug}/guidelines/{key}/"
-        for key, _, _, _ in expected_topics
-    }
+    expected_paths = {key: guideline_topic_path(slug, label) for key, label, _, _ in expected_topics}
     paths = [topic.get("path") for topic in topics]
     if paths != [expected_paths[topic["key"]] for topic in topics] or len(paths) != len(set(paths)):
         raise ValueError(f"{slug}: guideline navigation contains an invalid or duplicate destination")
@@ -198,7 +196,7 @@ def make_route(key: str, kind: str, pathname: str, title: str, description: str,
         "docsSlug": docs_slug,
         "guideTopic": guide_topic,
         "vendorBoundary": vendor_notice,
-        "vendorBoundaryUrl": f"{SITE_URL}/{brand_slug}/guidelines/" if vendor_notice and brand_slug else None,
+        "vendorBoundaryUrl": f"{SITE_URL}/{brand_slug}/guidelines/overview/" if vendor_notice and brand_slug else None,
     }
 
 
@@ -277,23 +275,25 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
     portal_by_slug = {portal["brand"]["slug"]: portal for portal in (portals or [])}
     for brand in sorted(brands, key=lambda item: item["slug"]):
         slug = brand["slug"]
-        guidelines_path = f"/{slug}/guidelines/"
-        brand_crumb = {"name": brand["title"], "url": f"{SITE_URL}{guidelines_path}"}
+        fallback_overview = guideline_topic_path(slug, "Overview")
         portal = portal_by_slug.get(slug)
         vendor_notice = brand.get("vendorBoundary")
-        topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "description": brand["descriptor"]}]
+        topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "label": "Overview", "path": fallback_overview, "description": brand["descriptor"]}, {"key": "assets", "title": "Assets", "label": "Assets", "path": guideline_topic_path(slug, "Assets"), "description": "Task-oriented access to every verified delivery."}]
         if portal:
             validate_portal_navigation(portal, slug)
         overview = topics[0]
+        guidelines_path = overview["path"]
+        assets_path = next(topic["path"] for topic in topics if topic["key"] == "assets")
+        brand_crumb = {"name": brand["title"], "url": f"{SITE_URL}{guidelines_path}"}
         routes.extend([
-            make_route(f"downloads-{slug}", "downloads", f"/{slug}/downloads/", f"{brand['title']} assets", f"Browse and download the complete {brand['title']} brand asset collection.", "Brand assets", [home, brand_crumb, {"name": "Assets", "url": f"{SITE_URL}/{slug}/downloads/"}], brand_slug=slug, guide_topic="assets", vendor_notice=vendor_notice),
+            make_route(f"downloads-{slug}", "downloads", assets_path, f"{brand['title']} assets", f"Browse and download the complete {brand['title']} brand asset collection.", "Brand assets", [home, brand_crumb, {"name": "Assets", "url": f"{SITE_URL}{assets_path}"}], brand_slug=slug, guide_topic="assets", vendor_notice=vendor_notice),
             make_route(f"guidelines-{slug}", "guidelines", guidelines_path, f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice, social_alt=(f"{brand['title']} logo with slogan: {brand['socialSlogan']}" if brand.get("socialSlogan") else None)),
             make_route(f"conformance-{slug}", "conformance", f"/conformance/{slug}/", f"{brand['title']} interface conformance", f"Inspect the generated browser reference and cross-host evidence boundary for {brand['title']}.", "Interface conformance", [home, conformance_root, {"name": brand["title"], "url": f"{SITE_URL}/conformance/{slug}/"}], brand_slug=slug, vendor_notice=vendor_notice),
         ])
         for topic in topics[1:]:
             if topic["key"] == "assets":
                 continue
-            pathname = topic.get("path", f"/{slug}/guidelines/{topic['key']}/")
+            pathname = topic["path"]
             routes.append(make_route(f"guidelines-{slug}-{topic['key']}", "guidelines-topic", pathname, f"{topic['title']} | {brand['title']}", topic["description"], "Brand guidelines", [home, brand_crumb, {"name": topic.get("label", topic["title"]), "url": f"{SITE_URL}{pathname}"}], brand_slug=slug, guide_topic=topic["key"], vendor_notice=vendor_notice))
     routes.append(make_route("docs", "docs-index", "/docs/", "Documentation", "The repeatable ShruggieTech system for building complete, usable brand identities.", "Documentation", [home, docs_root]))
     for doc in sorted(docs, key=lambda item: item["slug"]):
@@ -510,7 +510,7 @@ def generate_social_previews(routes: list[dict[str, Any]], public: Path, mark_pa
         canvas.alpha_composite(mark, (mark_x, mark_y))
         footer = "brand.shruggie.tech"
         if route.get("vendorBoundary"):
-            footer = f"Independent third-party project. Vendor notice: brand.shruggie.tech/{route['brandSlug']}/guidelines/"
+            footer = f"Independent third-party project. Vendor notice: brand.shruggie.tech/{route['brandSlug']}/guidelines/overview/"
         draw.text((120, 530), footer, font=footer_font, fill=(154, 154, 154, 255))
         canvas.save(destination, format="PNG", optimize=False)
 
@@ -658,6 +658,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
     if not portable_guide.is_file() or not portal_payload_path.is_file():
         raise ValueError(f"{slug}: verified guideline portal output is missing")
     portal = json.loads(portal_payload_path.read_text(encoding="utf-8"))
+    validate_portal_navigation(portal, slug)
     guide_mode = guide_surface_mode(brand)
     if (portal.get("brand") or {}).get("surface_mode") != guide_mode:
         raise ValueError(f"{slug}: guideline portal presentation disagrees with source")
@@ -703,7 +704,7 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "icon": f"{logo_root}/{slug}-mark-reduced-color.svg",
         "specimen": f"/{slug}/downloads/files/specimens/{specimen_name}",
         "portableGuide": f"/{slug}/downloads/files/{slug}-portable-guidelines.html",
-        "guidelinesPath": f"/{slug}/guidelines/",
+        "guidelinesPath": portal["topics"][0]["path"],
         "kitArchive": f"/{slug}/downloads/{archive_filename}",
         "kitArchiveFilename": archive_filename,
         "packageId": bundle["package"]["id"],

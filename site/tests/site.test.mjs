@@ -129,7 +129,7 @@ if (ihprt?.guideSurfaceMode !== 'light' || ihprt?.showcaseMode !== 'light' || ih
 if (!ihprt?.vendorBoundary?.includes('I Heart PR Tours owns its trademarks')) throw new Error('I Heart PR Tours public record omits the required vendor boundary');
 for (const brand of brands) {
   const expectedArchive = `/${brand.slug}/downloads/${brand.packageId}.zip`;
-  if (brand.guidelinesPath !== `/${brand.slug}/guidelines/` || brand.kitArchive !== expectedArchive || brand.kitArchiveFilename !== expectedArchive.split('/').at(-1)) throw new Error(`${brand.slug} generated action destinations are incomplete or inconsistent`);
+  if (brand.guidelinesPath !== `/${brand.slug}/guidelines/overview/` || brand.kitArchive !== expectedArchive || brand.kitArchiveFilename !== expectedArchive.split('/').at(-1)) throw new Error(`${brand.slug} generated action destinations are incomplete or inconsistent`);
   if (brand.brandbuilderVersion !== publication.version || brand.packageId !== `${brand.slug}-brand-${brand.version}-bb${publication.version}`) throw new Error(`${brand.slug} package identity differs from the publication record`);
   if ('vendorBoundarySummary' in brand) throw new Error(`${brand.slug} retains obsolete card-level vendor summary copy`);
   if (brand.portfolioSurface !== JSON.parse(readFileSync(new URL(`../../brands/${brand.slug}/brand.json`, import.meta.url), 'utf8')).surfaces.card.toUpperCase()) throw new Error(`${brand.slug} homepage surface differs from its approved dark card source`);
@@ -197,7 +197,9 @@ for (const portal of guidelinePortals) {
   if (portal.implementation?.schema_version !== 1 || portal.implementation.brand.slug !== portal.brand.slug || portal.implementation.versions.brand_version !== portal.brand.version) throw new Error(`${portal.brand.slug} hosted implementation facts are missing or inconsistent`);
   if (portal.implementation.hosted.manual_path !== '/docs/' || portal.implementation.bundled.latest_substitution_allowed !== false) throw new Error(`${portal.brand.slug} documentation authority boundaries are invalid`);
   const assets = portal.topics.find((topic) => topic.key === 'assets');
-  if (assets?.path !== `/${portal.brand.slug}/downloads/`) throw new Error(`${portal.brand.slug} Assets does not use the stable downloads route`);
+  if (assets?.path !== `/${portal.brand.slug}/guidelines/assets/`) throw new Error(`${portal.brand.slug} Assets does not use its canonical guideline route`);
+  const topicPaths = portal.topics.map((topic) => topic.path);
+  if (new Set(topicPaths).size !== topicPaths.length || portal.topics.some((topic) => topic.path !== `/${portal.brand.slug}/guidelines/${topic.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}/`)) throw new Error(`${portal.brand.slug} has a duplicate or noncanonical guideline topic path`);
 }
 if (!topicContentSource.includes('<ColorReference') || !colorReferenceSource.includes('roles.identity.map') || !colorReferenceSource.includes('roles.identity_combinations.map') || !colorReferenceSource.includes('<CueRows')) throw new Error('hosted color guide does not render formal and interface roles');
 const expectedDocumentationNavigation = [
@@ -213,7 +215,7 @@ if (JSON.stringify([...documentation].sort((left, right) => left.navigation.pagi
 if (!guidelineLayoutSource.includes('tree={guidelineTree(portal)}') || !guidelinePageSource.includes('<GuidelineNoScriptNav')) throw new Error('brand routes do not share the generated hierarchy and no-script fallback');
 if (!documentationLayoutSource.includes('tree={documentationTree()}') || !noScriptHierarchySource.includes('DocumentationNoScriptNav')) throw new Error('documentation routes do not share the generated hierarchy and no-script fallback');
 if (!documentationTreeSource.includes("type: 'folder' as const") || !documentationTreeSource.includes('paginationOrder') || !noScriptHierarchySource.includes('<ul>') || !noScriptHierarchySource.includes('aria-current=') || !globalStyles.includes(".hierarchy-noscript-nav a[aria-current='page']")) throw new Error('grouped navigation lacks semantic nested structure, stable pagination, or a visibly styled no-script current state');
-if (!guidelinePageSource.includes("topic.key !== 'assets'") || !guidelinePageSource.includes('dynamicParams = false')) throw new Error('obsolete guidelines Assets route is still statically generated');
+if (!guidelinePageSource.includes("topic.key === 'assets'") || !guidelinePageSource.includes('dynamicParams = false')) throw new Error('canonical guidelines Assets route is not statically generated');
 if (!downloadsSource.includes('<AssetLibrary portal={portal} />') || !downloadsSource.includes('Direct downloads')) throw new Error('Assets does not combine direct downloads and the generated asset library');
 if (!topicContentSource.includes('id="brand-overview"') || !topicContentSource.includes('portal.brand.idea') || !topicContentSource.includes('id="built-to-ship"') || !topicContentSource.includes('/brand/r/registry.json')) throw new Error('consolidated Overview does not preserve the retired brand-page content and registry entry point');
 if (!topicContentSource.includes('id="generated-contract"') || !topicContentSource.includes('contract.versions') || !topicContentSource.includes('contract.bindings') || !topicContentSource.includes('contract.hosted.manual_path')) throw new Error('hosted Overview omits exact generated versions, bindings, or the system-manual destination');
@@ -243,15 +245,21 @@ if (!brandPortfolioSource.includes('const hasThirdPartyProjects = brands.some((b
 if (!brandPortfolioSource.includes('<p>* Third-party projects are independently owned and operated.</p>')) throw new Error('portfolio lacks the exact generic third-party notice');
 if (brandPortfolioSource.includes('new Set(brands.flatMap') || brandPortfolioSource.includes('notices.map(')) throw new Error('portfolio still aggregates detailed vendor-boundary strings into the homepage notice');
 if (!brandPortfolioSource.includes('{hasThirdPartyProjects && <aside')) throw new Error('portfolio generic notice does not define the zero-applicability state');
-for (const route of routeRecords.filter((route) => route.brandSlug === 'eso-weave')) if (route.vendorBoundary !== esoWeave.vendorBoundary || route.vendorBoundaryUrl !== 'https://brand.shruggie.tech/eso-weave/guidelines/') throw new Error(`${route.pathname} omits the ESO Weave vendor-boundary metadata`);
-if (routeRecords.some((route) => route.kind === 'brand' || brands.some((brand) => route.pathname === `/${brand.slug}/`) || route.pathname.endsWith('/guidelines/assets/'))) throw new Error('route contract retains a removed brand root or duplicate Assets route');
+for (const route of routeRecords.filter((route) => route.brandSlug === 'eso-weave')) if (route.vendorBoundary !== esoWeave.vendorBoundary || route.vendorBoundaryUrl !== 'https://brand.shruggie.tech/eso-weave/guidelines/overview/') throw new Error(`${route.pathname} omits the ESO Weave vendor-boundary metadata`);
+if (routeRecords.some((route) => route.kind === 'brand' || brands.some((brand) => route.pathname === `/${brand.slug}/` || [`/${brand.slug}/guidelines/`, `/${brand.slug}/guidelines/logos/`, `/${brand.slug}/downloads/`].includes(route.pathname)))) throw new Error('route contract exposes a legacy brand page as canonical');
+for (const brand of brands) if (routeRecords.filter((route) => route.pathname === `/${brand.slug}/guidelines/assets/`).length !== 1) throw new Error(`${brand.slug} does not have exactly one canonical Assets route`);
 export const brandRoutes = routeRecords.filter((route) => ['downloads', 'guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
 export const docRoutes = routeRecords.filter((route) => ['docs-index', 'docs-page'].includes(route.kind)).map((route) => route.pathname);
 export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolchain', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability'].map((slug) => `/docs/${slug}/`);
 export const htmlRoutes = routeRecords.map((route) => route.pathname);
+export const legacyRoutes = brands.flatMap((brand) => [
+  { source: `/${brand.slug}/guidelines/`, destination: `/${brand.slug}/guidelines/overview/` },
+  { source: `/${brand.slug}/guidelines/logos/`, destination: `/${brand.slug}/guidelines/logo/` },
+  { source: `/${brand.slug}/downloads/`, destination: `/${brand.slug}/guidelines/assets/` },
+]);
 export const conformanceRoutes = routeRecords.filter((route) => route.kind === 'conformance').map((route) => route.pathname);
 export const guidelineRoutes = routeRecords.filter((route) => ['guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
-export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/`, `/${brand.slug}/downloads/`]), '/glitchpad/guidelines/color/', '/i-heart-pr-tours/guidelines/color/', '/i-heart-pr-tours/guidelines/expressions/', '/docs/', '/docs/00-variance-contract/'];
+export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/overview/`, `/${brand.slug}/guidelines/assets/`]), '/glitchpad/guidelines/color/', '/i-heart-pr-tours/guidelines/color/', '/i-heart-pr-tours/guidelines/expressions/', '/docs/', '/docs/00-variance-contract/'];
 export const visualThemes = ['light', 'dark'];
 export const visualWidths = [360, 390, 1280];
 export const requiredFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/maskable-icon-192x192.png', '/maskable-icon-512x512.png', '/shruggietech-logo-dark.svg', '/shruggietech-logo-light.svg', '/site.webmanifest', '/robots.txt', '/sitemap.xml', '/static.json', ...routeRecords.map((route) => route.social.path), ...conformanceRecords.flatMap((record) => [record.specimenPath, record.manifestPath])];

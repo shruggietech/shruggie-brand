@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 2.6.0 - 2026-09-26
+
+- Generated every hosted brand guideline topic path from its visible menu label, including Overview, Logo, Assets, and optional topics.
+- Retained semantic topic keys and direct download file paths. Brand Canon 1.6.0, approved identity geometry, and adapter APIs remain unchanged; repin generated kits to adopt the route contract.
+
 ## 2.5.0 - 2026-09-26
 
 - Added one shared asset language for form, layout, detail, color treatment, transparent background, intended viewing surface, and monochrome ink.

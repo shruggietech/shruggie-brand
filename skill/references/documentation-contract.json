@@ -51,9 +51,9 @@
   "route_dispositions": [
     {"kind": "docs-index", "owner": "main", "action": "preserve", "destination": "/docs/", "rationale": "The system manual keeps its stable entry route."},
     {"kind": "docs-page", "owner": "main", "action": "preserve", "destination": "/docs/{slug}/", "rationale": "Governed manual pages keep stable source-derived routes."},
-    {"kind": "guidelines", "owner": "hosted", "action": "preserve", "destination": "/{brand}/guidelines/", "rationale": "Each current brand reference keeps its overview route."},
-    {"kind": "guidelines-topic", "owner": "hosted", "action": "preserve", "destination": "/{brand}/guidelines/{topic}/", "rationale": "Current brand topic routes remain available."},
-    {"kind": "downloads", "owner": "hosted", "action": "preserve", "destination": "/{brand}/downloads/", "rationale": "Verified brand deliveries keep their task-oriented route."}
+    {"kind": "guidelines", "owner": "hosted", "action": "preserve", "destination": "/{brand}/guidelines/overview/", "rationale": "Each brand overview uses the visible menu label as its canonical final segment; the former root remains a compatibility bridge."},
+    {"kind": "guidelines-topic", "owner": "hosted", "action": "preserve", "destination": "/{brand}/guidelines/{label-slug}/", "rationale": "Topic routes use the visible menu label; former topic paths that changed remain compatibility bridges."},
+    {"kind": "downloads", "owner": "hosted", "action": "preserve", "destination": "/{brand}/guidelines/assets/", "rationale": "The Assets page is canonical under guidelines while direct download files keep their existing paths."}
   ],
   "shared_fact_fields": ["documentation_contract_version", "brand", "bundle", "release_impact", "versions", "bindings", "rules", "authority", "verification", "recovery", "capability_gap", "hosted", "bundled"],
   "graphics": [

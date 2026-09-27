@@ -24,6 +24,18 @@ from color_roles import load_color_roles
 from asset_language import ALIAS_INDEX, describe, design_id, design_key, write_aliases, validate_aliases
 
 
+def guideline_topic_path(brand_slug, label):
+    """Give every visible menu label one predictable hosted page path."""
+    if not isinstance(label, str) or not label.isascii():
+        raise ValueError("guideline topic label must be ASCII text")
+    segment = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
+    if not segment:
+        raise ValueError("guideline topic label has no URL slug")
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", brand_slug):
+        raise ValueError("guideline brand slug is invalid")
+    return "/%s/guidelines/%s/" % (brand_slug, segment)
+
+
 def role_reference_html(roles):
     if not roles:
         return ""
@@ -229,18 +241,22 @@ def portal_payload(B, kit):
     guide = B.get("guide") or {}
     slug = B["slug"]
     topics = [
-        {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "path": "/%s/guidelines/" % slug, "description": str(guide.get("foundation_title") or B.get("descriptor") or "Brand foundations")},
-        {"key": "voice", "title": "Voice and messaging", "label": "Voice", "section": "Voice", "order": 0, "path": "/%s/guidelines/voice/" % slug, "description": "Principles for writing in the brand voice."},
-        {"key": "logos", "title": "Logo system and usage", "label": "Logo", "section": "Identity", "order": 0, "path": "/%s/guidelines/logos/" % slug, "description": "Approved marks, lockups, clear space, and reduction rules."},
-        {"key": "color", "title": "Color", "label": "Color", "section": "Identity", "order": 1, "path": "/%s/guidelines/color/" % slug, "description": "Canonical palette values and semantic roles."},
-        {"key": "typography", "title": "Typography", "label": "Typography", "section": "Identity", "order": 2, "path": "/%s/guidelines/typography/" % slug, "description": "Approved type families, weights, and roles."},
-        {"key": "components", "title": "Components and examples", "label": "Components", "section": "Components", "order": 0, "path": "/%s/guidelines/components/" % slug, "description": "Representative interface patterns for this identity."},
-        {"key": "assets", "title": "Assets", "label": "Assets", "section": "Assets", "order": 0, "path": "/%s/downloads/" % slug, "description": "Task-oriented access to every verified delivery."},
-        {"key": "integration", "title": "Platform integration", "label": "Integration", "section": "Integration", "order": 0, "path": "/%s/guidelines/integration/" % slug, "description": "Rendered instructions for delivered platform assets."},
+        {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "description": str(guide.get("foundation_title") or B.get("descriptor") or "Brand foundations")},
+        {"key": "voice", "title": "Voice and messaging", "label": "Voice", "section": "Voice", "order": 0, "description": "Principles for writing in the brand voice."},
+        {"key": "logos", "title": "Logo system and usage", "label": "Logo", "section": "Identity", "order": 0, "description": "Approved marks, lockups, clear space, and reduction rules."},
+        {"key": "color", "title": "Color", "label": "Color", "section": "Identity", "order": 1, "description": "Canonical palette values and semantic roles."},
+        {"key": "typography", "title": "Typography", "label": "Typography", "section": "Identity", "order": 2, "description": "Approved type families, weights, and roles."},
+        {"key": "components", "title": "Components and examples", "label": "Components", "section": "Components", "order": 0, "description": "Representative interface patterns for this identity."},
+        {"key": "assets", "title": "Assets", "label": "Assets", "section": "Assets", "order": 0, "description": "Task-oriented access to every verified delivery."},
+        {"key": "integration", "title": "Platform integration", "label": "Integration", "section": "Integration", "order": 0, "description": "Rendered instructions for delivered platform assets."},
     ]
     if expressions:
         topics.insert(6, {"key": "expressions", "title": "Expressions and atmosphere", "label": "Expressions", "section": "Identity", "order": 3,
-                          "path": "/%s/guidelines/expressions/" % slug, "description": "Approved non-core treatments and atmosphere."})
+                          "description": "Approved non-core treatments and atmosphere."})
+    for topic in topics:
+        topic["path"] = guideline_topic_path(slug, topic["label"])
+    if len({topic["path"] for topic in topics}) != len(topics):
+        raise ValueError("guideline topic labels generate duplicate paths")
     return {
         "schema_version": "1.0",
         "implementation": implementation,
