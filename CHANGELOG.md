@@ -4,6 +4,15 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Fixed
+
+- Reject empty, duplicate, unsafe, incomplete, or identity-mismatched kit manifests in the portable verifier instead of treating an empty `files` array as a successful checksum check. Completed kits also reject unrecorded QC files while preliminary pre-QC manifests retain their bounded exception.
+- Compare exported registry, download, conformance, guideline fact, and archive surfaces against the exact verified kit and release candidate, including a regenerated hosted archive for independently owned brands, then recheck staged release files, source revision, and checksums before upload.
+
+### Decisions
+
+- On 2026-09-27, retained the unpublished 2.6.0 candidate version because S060 tightens certification without changing approved identity geometry or public kit shape. The publication audit composes existing family validators and distinguishes the eight hosted kits from the seven ShruggieTech release-authorized archives. Canonical license files added during archive packaging are exempt from the kit manifest inventory check and remain subject to archive validation.
+
 ## [2.6.0] - 2026-09-26
 
 ### Changed

@@ -189,7 +189,7 @@ jobs:
         run: |
           python scripts/test_registry_delivery.py --site site/out --inventory-only
           python scripts/audit_public_documentation.py --prepared
-          python scripts/audit_publication_artifacts.py --kits dist --site site/out
+          python scripts/audit_publication_artifacts.py --kits dist --site site/out --semantic --release release
       - name: Stage checksummed release candidate
         run: |
           CANDIDATE="$RUNNER_TEMP/release-candidate"
@@ -204,6 +204,7 @@ jobs:
           (cd "$CANDIDATE/files" && sha256sum -- ./*.skill ./*.zip | sort -k2) > "$CANDIDATE/SHA256SUMS"
           (cd "$CANDIDATE/files" && sha256sum --check ../SHA256SUMS)
           python scripts/release_contract.py documentation --version "$VERSION" --record "$CANDIDATE/DOCUMENTATION.json" --publication "$CANDIDATE/PUBLICATION.json" --docs "$CANDIDATE/docs" --exported "$CANDIDATE/SITE-DOCUMENTATION.json" --release-dir "$CANDIDATE/files" --revision "$GITHUB_SHA"
+          python scripts/audit_publication_artifacts.py --kits dist --site site/out --semantic --release release --candidate "$CANDIDATE" --revision "$GITHUB_SHA"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
           name: verified-brand-kits-${{ github.sha }}

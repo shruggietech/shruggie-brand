@@ -53,6 +53,56 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_manifest_rejects_empty_required_inventory_and_optional_absence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            write_utf8(kit / "brand.json", json.dumps({"slug": "sample", "version": "1.0.0", "canon": "1.6.0"}))
+            write_utf8(kit / "manifest.json", json.dumps({"name": "sample-brand-kit", "version": "1.0.0", "canon": "1.6.0", "files": []}))
+            report = verify.Report()
+            verify.c_manifest(str(kit), report)
+            self.assertTrue(any("empty" in problem for problem in report.problems), report.problems)
+
+    def test_manifest_rejects_duplicate_unsafe_missing_hash_and_version(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand = {"slug": "sample", "version": "1.0.0", "canon": "1.6.0"}
+            data = (json.dumps(brand) + "\n").encode("utf-8")
+            (kit / "brand.json").write_bytes(data)
+            entry = {"path": "brand.json", "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+            manifest = {"name": "sample-brand-kit", "version": "1.0.0", "canon": "1.6.0", "files": [entry]}
+
+            def problems(value):
+                write_utf8(kit / "manifest.json", json.dumps(value))
+                report = verify.Report()
+                verify.c_manifest(str(kit), report)
+                return "\n".join(report.problems)
+
+            self.assertIn("duplicate", problems({**manifest, "files": [entry, entry]}))
+            self.assertIn("unsafe", problems({**manifest, "files": [{**entry, "path": "../brand.json"}]}))
+            self.assertIn("missing", problems({**manifest, "files": [{**entry, "path": "lost.json"}]}))
+            self.assertIn("sha256", problems({**manifest, "files": [{**entry, "sha256": "0" * 64}]}))
+            self.assertIn("version", problems({**manifest, "version": "9.0.0"}))
+            self.assertEqual("", problems(manifest))
+            for license_name in ("LICENSE", "NOTICE", "LICENSE-BRAND.md"):
+                write_utf8(kit / license_name, "canonical archive license\n")
+            self.assertEqual("", problems(manifest))
+            (kit / "qc").mkdir()
+            write_utf8(kit / "qc" / "probe.json", "{}\n")
+            self.assertEqual("", problems(manifest))
+            write_utf8(kit / "VERIFY.md", "verified\n")
+            verify_bytes = (kit / "VERIFY.md").read_bytes()
+            complete = {**manifest, "files": [entry, {
+                "path": "VERIFY.md", "bytes": len(verify_bytes),
+                "sha256": hashlib.sha256(verify_bytes).hexdigest(),
+            }]}
+            self.assertIn("unrecorded", problems(complete))
+            qc_bytes = (kit / "qc" / "probe.json").read_bytes()
+            complete["files"].append({"path": "qc/probe.json", "bytes": len(qc_bytes),
+                                      "sha256": hashlib.sha256(qc_bytes).hexdigest()})
+            self.assertEqual("", problems(complete))
+            write_utf8(kit / "unrecorded.json", "{}\n")
+            self.assertIn("unrecorded", problems(complete))
+
     def test_go_schedule_current_primary_is_exact_shipped_reduced_geometry(self):
         brand = json.loads((ROOT / "brands" / "go-schedule" / "brand.json").read_text(encoding="utf-8"))
         paths = brand["logo"]["paths"]
