@@ -61,6 +61,7 @@ def stage(source: Path, destination: Path) -> None:
                 raise ValueError(f"shared fixed face is missing: {face['path']}")
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(origin, target)
+        shutil.copytree(FONTS / "licenses", destination / "fonts" / "licenses", dirs_exist_ok=True)
     else:
         shutil.copytree(FONTS, destination / "fonts")
 

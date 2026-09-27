@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import copy
+import base64
 import hashlib
 import json
+import shutil
 import sys
 import tempfile
 import unittest
@@ -41,6 +43,9 @@ from interface_contract import (
 )
 from gen_web_react import generate_web_react
 from gen_egui import generate_egui
+from gen_wordpress import generate_wordpress
+from color_roles import resolve_color_roles
+from interface_contract import load_brand_canon
 from schema_validation import validate_json_schema
 
 
@@ -89,12 +94,12 @@ class InterfaceCanonTests(unittest.TestCase):
     def test_version_policy_has_independent_domains_and_fails_incompatible_combinations(self):
         policy = validate_version_policy(load_version_policy())
         self.assertEqual(
-            {"brand_canon", "interface_canon", "component_recipes", "web_react_adapter", "egui_adapter", "compiler", "brand"},
+            {"brand_canon", "interface_canon", "component_recipes", "web_react_adapter", "egui_adapter", "wordpress_adapter", "compiler", "brand"},
             set(policy["domains"]),
         )
         versions = {
-            "brand_canon": "1.2.1", "interface_canon": "1.0.0", "component_recipes": "1.0.0",
-            "web_react_adapter": "1.0.0", "egui_adapter": "1.0.0", "compiler": "2.0.0", "brand": "1.0.0",
+            "brand_canon": "1.6.0", "interface_canon": "1.0.1", "component_recipes": "1.1.0",
+            "web_react_adapter": "1.1.0", "egui_adapter": "1.0.2", "wordpress_adapter": "1.0.0", "compiler": "2.7.0", "brand": "1.0.0",
         }
         self.assertEqual("compatible", validate_version_combination(versions, policy)["status"])
         incompatible = dict(versions, brand_canon="9.0.0")
@@ -113,11 +118,11 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_release_impact_is_closed_and_rejects_downstream_evidence_fields(self):
         impact = load_release_impact()
-        self.assertEqual("2.6.0", impact["brandbuilder_version"])
+        self.assertEqual("2.7.0", impact["brandbuilder_version"])
         self.assertFalse(impact["identity_redesign"])
         self.assertIn("unchanged", impact["surfaces"]["identity"]["summary"])
         self.assertEqual(
-            {"identity", "palette", "typography", "platform_assets", "web_react", "egui", "documentation", "recovery"},
+            {"identity", "palette", "typography", "platform_assets", "web_react", "egui", "wordpress", "documentation", "recovery"},
             set(impact["surfaces"]),
         )
         with tempfile.TemporaryDirectory() as temporary:
@@ -336,19 +341,28 @@ class ConsumerContractTests(unittest.TestCase):
             (kit / "brand.json").write_bytes(brand_source.read_bytes())
             generate_web_react(kit / "brand.json", kit)
             generate_egui(kit / "brand.json", kit)
+            (kit / "color-roles.json").write_text(json.dumps(resolve_color_roles(brand, load_brand_canon())), encoding="utf-8")
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            logo_dir = kit / "logos" / "png"
+            logo_dir.mkdir(parents=True)
+            png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lXcAAAAASUVORK5CYII=")
+            for name in ("horizontal-black", "mark-black"):
+                (logo_dir / ("shruggietech-%s-1024.png" % name)).write_bytes(png)
+            generate_wordpress(kit / "brand.json", kit)
             first = emit_consumer_contract(brand, kit / "brand.json", kit, "# Implementation\n\nExact guidance.\n")
             tracked = [kit / item["path"] for item in first["provenance"]] + [kit / "enforcement" / "consumer-contract.json"]
             before = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
             second = emit_consumer_contract(brand, kit / "brand.json", kit, "# Implementation\n\nExact guidance.\n")
             after = {path.relative_to(kit).as_posix(): path.read_bytes() for path in tracked}
             self.assertEqual(first, second)
-            self.assertEqual(4, first["schema_version"])
+            self.assertEqual(5, first["schema_version"])
             self.assertEqual("1.1.0", first["versions"]["component_recipe_version"])
             self.assertEqual("1.1.0", first["versions"]["web_react_adapter_version"])
             self.assertEqual("1.0.2", first["versions"]["egui_adapter_version"])
+            self.assertEqual("1.0.0", first["versions"]["wordpress_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertNotIn("adoption_status", first["compatibility"])
-            expected_package = "shruggietech-brand-%s-bb2.6.0" % brand["version"]
+            expected_package = "shruggietech-brand-%s-bb2.7.0" % brand["version"]
             self.assertEqual(expected_package, first["bundle"]["package"]["id"])
             self.assertEqual(expected_package + ".zip", first["bundle"]["package"]["filename"])
             self.assertEqual(brand["version"], first["bundle"]["package"]["brand_version"])
@@ -356,6 +370,7 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual("enforcement/component-recipes.json", first["authority"]["component_recipes"])
             self.assertEqual("web/adapter.json", first["authority"]["web_adapter"])
             self.assertEqual("native/egui/adapter.json", first["authority"]["egui_adapter"])
+            self.assertEqual("wordpress/adapter.json", first["authority"]["wordpress_adapter"])
             self.assertEqual("enforcement/documentation-contract.json", first["authority"]["documentation_contract"])
             self.assertEqual("enforcement/documentation-facts.json", first["authority"]["documentation_facts"])
             self.assertTrue((kit / "enforcement" / "documentation-facts.json").is_file())

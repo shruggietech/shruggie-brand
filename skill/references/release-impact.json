@@ -1,16 +1,44 @@
 {
   "$schema": "release-impact.schema.json",
   "schema_version": 1,
-  "brandbuilder_version": "2.6.0",
+  "brandbuilder_version": "2.7.0",
   "identity_redesign": false,
   "surfaces": {
-    "identity": {"classification": "unaffected", "summary": "All approved source and Gate 2 derivative geometry remains unchanged."},
-    "palette": {"classification": "unaffected", "summary": "Existing approved formal and interface colors remain unchanged."},
-    "typography": {"classification": "unaffected", "summary": "Existing local fonts and outlined wordmarks remain authoritative."},
-    "platform_assets": {"classification": "unaffected", "summary": "Existing logo, icon, and direct download file paths and bytes remain unchanged."},
-    "web_react": {"classification": "unaffected", "summary": "The Web and React adapter API and token roles remain unchanged."},
-    "egui": {"classification": "unaffected", "summary": "The egui adapter API and approved values remain unchanged."},
-    "documentation": {"classification": "required", "summary": "Canonical guideline topic URLs retain their static compatibility bridges. The manual now includes annotated References; generated hosted and portable guidance links exact public facts, and documentation contract 1.1.0 records default references for declared interface overrides."},
-    "recovery": {"classification": "required", "summary": "Regenerate and repin 2.6.0 kits with exact package checksums to adopt current guideline routes, References, and documentation facts contract 1.1.0. Direct asset file paths and approved identity bytes remain unchanged."}
+    "identity": {
+      "classification": "unaffected",
+      "summary": "All approved source and Gate 2 derivative geometry remains unchanged."
+    },
+    "palette": {
+      "classification": "unaffected",
+      "summary": "Existing approved formal and interface colors remain unchanged."
+    },
+    "typography": {
+      "classification": "unaffected",
+      "summary": "Existing local fonts and outlined wordmarks remain authoritative."
+    },
+    "platform_assets": {
+      "classification": "unaffected",
+      "summary": "Existing logo, icon, and direct download file paths and bytes remain unchanged."
+    },
+    "web_react": {
+      "classification": "unaffected",
+      "summary": "The Web and React adapter API and token roles remain unchanged."
+    },
+    "egui": {
+      "classification": "unaffected",
+      "summary": "The egui adapter API and approved values remain unchanged."
+    },
+    "wordpress": {
+      "classification": "required",
+      "summary": "Generate and verify native WordPress adapter 1.0.0 and an installable block-theme starter for each brand. Pin exact WordPress/PHP test pairs and the theme ZIP checksum."
+    },
+    "documentation": {
+      "classification": "required",
+      "summary": "Canonical guideline topic URLs retain their static compatibility bridges. The manual includes annotated References and a WordPress delivery page; generated hosted and portable guidance links exact public facts. Documentation contract 1.2.0 retains default references for declared interface overrides."
+    },
+    "recovery": {
+      "classification": "required",
+      "summary": "Regenerate and repin 2.7.0 kits with exact package checksums to adopt the WordPress delivery, guideline routes, References, and documentation facts contract 1.2.0. Approved identity bytes remain unchanged."
+    }
   }
 }

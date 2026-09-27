@@ -2491,6 +2491,12 @@ def main():
     c_pdf(kit, rep)
     c_component_adapter(kit, rep)
     c_egui_adapter(kit, rep)
+    try:
+        from verify_wordpress import verify_wordpress
+        count = verify_wordpress(kit)
+        rep.ok("wordpress-adapter", "%d theme files and archive entries match" % count)
+    except Exception as error:
+        rep.bad("wordpress-adapter", str(error))
     c_cross_host_conformance(kit, rep)
     c_consumer_contract(kit, rep)
     c_manifest(kit, rep)

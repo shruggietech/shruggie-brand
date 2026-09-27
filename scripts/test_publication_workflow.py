@@ -119,7 +119,7 @@ def create_semantic_candidate(root: Path) -> tuple[Path, Path, Path, Path]:
     write_file(kit / "conformance" / "browser" / "specimen.html", b"<html>specimen</html>")
     write_json(kit / "nextjs" / "registry" / "registry.json", {"items": [{"name": "theme"}]})
     write_json(kit / "nextjs" / "registry" / "theme.json", {"name": "theme"})
-    for name in ("brand-guide.pdf", "guidelines/index.html", "logos/mark.svg",
+    for name in ("brand-guide.pdf", "guidelines/index.html", "wordpress/covarity-stbb-theme.zip", "logos/mark.svg",
                  "favicons/favicon.svg", "icons/.iconkit-generated.json", "specimens/specimen.svg"):
         write_file(kit / name, name.encode("utf-8"))
     shutil.copytree(kit / "nextjs" / "registry", public / "brand" / "r")
@@ -184,13 +184,14 @@ class PublicationArtifactAuditTests(unittest.TestCase):
                         root, kits, site, production=("covarity",), release_authorized=("covarity",))
 
     def test_semantic_candidate_rejects_changed_download_and_version(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            kits, site, _, _ = create_semantic_candidate(root)
-            (site / "covarity" / "downloads" / "files" / "logos" / "mark.svg").write_bytes(b"changed")
-            with self.assertRaisesRegex(ValueError, "download inventory or bytes differ"):
-                audit_publication_artifacts.audit_semantics(
-                    root, kits, site, production=("covarity",), release_authorized=("covarity",))
+        for relative in ("logos/mark.svg", "wordpress/covarity-stbb-theme.zip"):
+            with self.subTest(relative=relative), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                kits, site, _, _ = create_semantic_candidate(root)
+                (site / "covarity" / "downloads" / "files" / relative).write_bytes(b"changed")
+                with self.assertRaisesRegex(ValueError, "download inventory or bytes differ"):
+                    audit_publication_artifacts.audit_semantics(
+                        root, kits, site, production=("covarity",), release_authorized=("covarity",))
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             kits, site, _, _ = create_semantic_candidate(root)

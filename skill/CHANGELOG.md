@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.7.0 - 2026-09-27
+
+- Generated native WordPress adapter 1.0.0 and installable branded block-theme starters with source-bound presets, local fonts and approved PNG alternatives, editable core-block patterns, a deterministic ZIP inventory, and client update guidance.
+- Added a selectable Dark interface variation, brand Card style, native WordPress fixture tests, and a governed WordPress delivery manual page in documentation contract 1.2.0.
+- Added WordPress as an independently versioned adapter in the consumer contract and version policy. Existing brand geometry and Web/React and egui adapter APIs remain unchanged.
+
 - Added a classified, annotated References manual and applied its stable citations to discovery, identity, design, documentation, and platform integration instructions.
 - Explained pinned implementation facts, interface defaults and overrides, independent styling, and versioned bindings in generated offline and portable guides. Documentation contract 1.1.0 includes the exact dark and light default references for any declared interface override.
 - Reject empty, duplicate, unsafe, unrecorded, or identity-mismatched root manifests during portable kit verification. Existing approved identity bytes and public kit schema are unchanged.
