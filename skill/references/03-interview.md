@@ -62,3 +62,7 @@ Only after both gates are approved may the final kit be compiled, verified, and 
 - **Rich input**: Reuse supplied facts and constraints; ask only about gaps, conflicts, and approvals.
 - **Revision**: Return to the affected gate, and to Gate 1 whenever governed source changes.
 - **Nonresponsive operator**: Retain pending state; do not infer either approval or permission to publish.
+
+## Turn research into a decision, not a gate
+
+For a new tour brand, ask which customer associations are supported by the operator's own evidence and which are hoped-for claims. Record the first as a fact and the second as a proposal; [Keller's brand-equity record](references.md#ref-brand-keller) helps frame the distinction without providing the answer. Ask what a first-time visitor expects the booking action to do and which cues make it findable; [Norman's book record](references.md#ref-ux-norman) and [Nielsen's heuristics](references.md#ref-ux-nielsen) are prompts for review, not additional approvals or substitutes for observation. A question is useful only if its answer changes a named decision in the table above. Keep the two existing creative gates and no fixed question count.

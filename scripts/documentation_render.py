@@ -126,6 +126,8 @@ def identity_line(publication: Mapping[str, Any]) -> str:
 
 def render_page(source: str, description: str, publication: Mapping[str, Any]) -> str:
     title, body = derive_public_markdown(source)
+    body = re.sub(r"(?<!!)\]\((?:\./)?([a-z0-9-]+)\.md(#[a-z0-9-]+)?\)",
+                  lambda match: "](/docs/%s/%s)" % (match.group(1), match.group(2) or ""), body)
     frontmatter = f"---\ntitle: {json.dumps(title)}\ndescription: {json.dumps(description)}\n---\n\n"
     return frontmatter + identity_line(publication) + "\n\n" + body
 

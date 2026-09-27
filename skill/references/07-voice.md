@@ -146,3 +146,7 @@ number is what matters.
 
 A pattern that produces false positives gets narrowed, never disabled. The
 check earns its place by being annoying in the right way.
+
+## Write for the reader's next action
+
+For an asset download, name the artwork and its intended use in the link instead of writing only "download." For a warning, state the condition and the action to take. [W3C accessible writing guidance](references.md#ref-a11y-writing) supplies authoring prompts, while the approved voice rules above control this brand's tone. Review the resulting link and instruction in context; a clear sentence is more useful than a generic claim about being accessible.

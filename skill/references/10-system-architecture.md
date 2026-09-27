@@ -26,3 +26,7 @@ The bundled implementation contract owns exact delivered paths, version pins, co
 6. Publish only after all required gates report zero failures.
 
 The policy in `documentation-contract.json` inventories every main-manual page and documentation-related route. Adding a page or route without a disposition is an error, which prevents quiet duplication and stale ownership.
+
+## Choose the reader's document
+
+When adding a topic, decide whether the reader needs a procedure, conceptual explanation, exact reference, or learning path, using [Diátaxis](references.md#ref-doc-diataxis) as an advisory organizing aid. For example, the hosted brand guide answers "Which approved asset do I download?" while the bundled implementation contract answers "Which pinned file and version do I integrate?" Keep these tasks separate in the content even when they share a fact source. [Fumadocs UI guidance](references.md#ref-web-fumadocs) helps shape site navigation, but this repository's catalog and exported browser result are the publication evidence.

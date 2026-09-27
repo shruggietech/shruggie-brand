@@ -31,8 +31,9 @@ class DocumentationContractTests(unittest.TestCase):
         contract = load_documentation_contract()
         validate_json_schema(contract, read_json(ROOT / "skill" / "references" / "documentation-contract.schema.json"))
         pages = manual_catalog(contract)
-        self.assertEqual(16, len(pages))
-        self.assertEqual(list(range(1, 17)), [page["pagination_order"] for page in pages])
+        self.assertEqual(17, len(pages))
+        self.assertEqual(list(range(1, len(pages) + 1)), [page["pagination_order"] for page in pages])
+        self.assertEqual("references", pages[-1]["slug"])
         self.assertEqual(set(contract["required_topics"]), {topic for page in pages for topic in page["topics"]})
 
     def test_unlisted_source_duplicate_navigation_and_missing_topic_fail_closed(self):
@@ -50,7 +51,7 @@ class DocumentationContractTests(unittest.TestCase):
         with self.assertRaisesRegex(DocumentationContractError, "positions"):
             validate_documentation_contract(duplicate, ROOT / "skill" / "references")
         missing = copy.deepcopy(contract)
-        missing["manual_pages"][-1]["topics"].remove("extension-workflow")
+        next(page for page in missing["manual_pages"] if page["slug"] == "13-agent-integration")["topics"].remove("extension-workflow")
         with self.assertRaisesRegex(DocumentationContractError, "topics"):
             validate_documentation_contract(missing, ROOT / "skill" / "references")
 
@@ -93,6 +94,19 @@ class DocumentationContractTests(unittest.TestCase):
             missing = copy.deepcopy(facts); missing["bindings"]["web_adapter"] = "web/missing.json"
             with self.assertRaisesRegex(DocumentationContractError, "binding facts"):
                 verify_documentation_facts(missing, contract, consumer, kit)
+            (kit / "enforcement" / "interface-canon.json").write_text(json.dumps({"aliases": {"action.primary": "$resolved.action", "text.muted": "$brand.accent.dim"}, "theme_aliases": {"dark": {"text.muted": "$resolved.muted"}, "light": {}}}), encoding="utf-8")
+            (kit / "brand.json").write_text(json.dumps({"affiliation": {"inheritance": "independent"}, "interface": {"overrides": {"action.primary": "$brand.semantic_colors.action", "text.muted": "$brand.accent.bright"}}}), encoding="utf-8")
+            overridden = build_documentation_facts(contract, consumer, kit)
+            override_guidance = render_implementation(overridden, "Use the governed palette.")
+            self.assertEqual(overridden["rules"]["default_references"]["action.primary"], {"source": "enforcement/interface-canon.json", "dark": "$resolved.action", "light": "$resolved.action"})
+            self.assertEqual(overridden["rules"]["default_references"]["text.muted"]["dark"], "$resolved.muted")
+            self.assertEqual(overridden["rules"]["default_references"]["text.muted"]["light"], "$brand.accent.dim")
+            self.assertIn("default reference `$resolved.action` on dark surfaces", override_guidance)
+            self.assertIn("effective brand reference `$brand.semantic_colors.action`", override_guidance)
+            self.assertIn("this interface role for this brand", override_guidance)
+            drifted_default = copy.deepcopy(overridden); drifted_default["rules"]["default_references"]["text.muted"]["dark"] = "$brand.accent.dim"
+            with self.assertRaisesRegex(DocumentationContractError, "default.*rules|overridden rules"):
+                verify_documentation_facts(drifted_default, contract, consumer, kit)
 
 
 if __name__ == "__main__":

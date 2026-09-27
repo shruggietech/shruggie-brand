@@ -30,3 +30,7 @@ Conformance evidence proves measured behavior for the declared adapter and fixtu
 4. Publish immutable versioned artifacts and checksums.
 5. Update current hosted references from the verified generated kit.
 6. Keep older bundled contracts authoritative for their delivered bytes.
+
+## Interpret proof correctly
+
+A zero-problem generator report proves the checked source and contract invariants. It does not show that every human can locate an override, recognize a source, or navigate a rendered page. For a guideline change, inspect heading purpose against [W3C headings guidance](references.md#ref-a11y-headings), keyboard/focus behavior against [keyboard](references.md#ref-a11y-keyboard) and [focus](references.md#ref-a11y-focus), and narrow or zoomed layout against [reflow](references.md#ref-a11y-reflow). Record a reader task and its observed result beside the automated gate. WCAG 2.1 AA remains the adopted floor; these linked Understanding pages explain it and do not alter the version policy.

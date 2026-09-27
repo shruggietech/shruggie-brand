@@ -53,6 +53,15 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_portable_override_guidance_shows_theme_defaults_and_effective_reference(self):
+        facts = {"schema_version": 1, "documentation_contract_version": "1.1.0", "brand": {"slug": "sample"},
+                 "versions": {}, "bindings": {}, "rules": {"inheritance": "independent",
+                 "overrides": {"text.muted": "$brand.accent.bright"},
+                 "default_references": {"text.muted": {"source": "enforcement/interface-canon.json", "dark": "$resolved.muted", "light": "$brand.accent.dim"}}}}
+        html = gen_guidelines.implementation_reference_html(facts)
+        for expected in ("$resolved.muted", "$brand.accent.dim", "$brand.accent.bright", "enforcement/interface-canon.json", "brand.json"):
+            self.assertIn(expected, html)
+
     def test_manifest_rejects_empty_required_inventory_and_optional_absence(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary)
@@ -812,7 +821,7 @@ class PipelineTests(unittest.TestCase):
                 {"path": "icons/web/README.md", "platform": "web", "role": "instructions", "appearance": "default", "source_variant": "reduced", "format": "markdown", "destination": "Web integration guide"},
             ]
             (kit / "icons" / "manifest.json").write_text(json.dumps({"artifacts": artifacts, "suites": [], "aliases": {}}), encoding="utf-8")
-            facts = {"schema_version": 1, "documentation_contract_version": "1.0.0", "brand": {"slug": "alpha", "title": "Alpha", "affiliation": None, "brand_version": "1.2.3"}, "versions": {}, "bindings": {}, "authority": {"precedence": [], "permitted_exceptions": []}, "verification": {"entry_points": [], "success": "zero failures"}, "recovery": {}, "capability_gap": {}, "hosted": {"manual_path": "/docs/", "scope": "Current generated kit only."}, "bundled": {"facts_path": "enforcement/documentation-facts.json", "authority": "Pinned bytes.", "latest_substitution_allowed": False}}
+            facts = {"schema_version": 1, "documentation_contract_version": "1.0.0", "brand": {"slug": "alpha", "title": "Alpha", "affiliation": None, "brand_version": "1.2.3"}, "bundle": {"package": {"id": "alpha-1.2.3", "filename": "alpha-1.2.3.zip"}}, "versions": {}, "bindings": {}, "rules": {"inheritance": "independent", "overrides": {}}, "authority": {"precedence": [], "permitted_exceptions": []}, "verification": {"entry_points": [], "success": "zero failures"}, "recovery": {}, "capability_gap": {}, "hosted": {"manual_path": "/docs/", "scope": "Current generated kit only."}, "bundled": {"facts_path": "enforcement/documentation-facts.json", "authority": "Pinned bytes.", "latest_substitution_allowed": False}}
             (kit / "enforcement").mkdir()
             (kit / "enforcement" / "documentation-facts.json").write_text(json.dumps(facts), encoding="utf-8")
             brand = {"slug": "alpha", "title": "Alpha", "version": "1.2.3", "descriptor": "Alpha tools.", "brand_idea": "Work clearly.", "guide": {}, "voice": {}, "typography": {"families": {}}, "domain_components": {}, "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
@@ -1037,6 +1046,10 @@ class PipelineTests(unittest.TestCase):
         write_utf8(destination / "logos" / "provenance.json", json.dumps({"derivatives": []}) + "\n")
         (destination / "icons").mkdir()
         write_utf8(destination / "icons" / "manifest.json", json.dumps({"artifacts": [], "suites": [], "aliases": {}}) + "\n")
+        enforcement = destination / "enforcement"
+        enforcement.mkdir()
+        facts = {"schema_version": 1, "documentation_contract_version": "1.0.0", "brand": {"slug": brand["slug"], "title": brand["title"], "affiliation": brand["affiliation"], "brand_version": brand["version"]}, "bundle": {"package": {"id": "test-kit", "filename": "test-kit.zip"}}, "versions": {"brand_version": brand["version"]}, "bindings": {"interface_canon": "enforcement/interface-canon.json"}, "rules": {"inheritance": brand["affiliation"]["inheritance"], "overrides": {}}, "authority": {"precedence": [], "permitted_exceptions": []}, "verification": {"entry_points": [], "success": "zero failures"}, "recovery": {}, "capability_gap": {}, "hosted": {"manual_path": "/docs/", "scope": "Current generated kit only."}, "bundled": {"facts_path": "enforcement/documentation-facts.json", "authority": "Pinned bytes.", "latest_substitution_allowed": False}}
+        write_utf8(enforcement / "documentation-facts.json", json.dumps(facts) + "\n")
         return brand, dark, light
 
     def test_cta_tokens_are_measured_isolated_and_fail_closed(self):
@@ -1097,8 +1110,6 @@ class PipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "guide"
             brand, dark, light = self.i_heart_pr_tours_guide_fixture(kit)
-            (kit / "enforcement").mkdir()
-            write_utf8(kit / "enforcement" / "documentation-facts.json", "{}\n")
             portal = gen_guidelines.portal_payload(brand, kit)
             roles = portal["color_roles"]
             portable = gen_guidelines.build(brand, kit)
@@ -1498,6 +1509,10 @@ class PipelineTests(unittest.TestCase):
             (kit / "icons" / "manifest.json").write_text(
                 json.dumps({"artifacts": [], "suites": [], "aliases": {}}), encoding="utf-8")
 
+            enforcement = kit / "enforcement"
+            enforcement.mkdir(exist_ok=True)
+            facts = {"schema_version": 1, "documentation_contract_version": "1.0.0", "brand": {"slug": brand["slug"], "title": brand["title"]}, "versions": {"brand_version": brand["version"]}, "bindings": {}, "rules": {"inheritance": "independent", "overrides": {}}}
+            write_utf8(enforcement / "documentation-facts.json", json.dumps(facts) + "\n")
             pdf_html = gen_guide_pdf.build(brand, kit)
             portable_html = gen_guidelines.build(brand, kit)
 

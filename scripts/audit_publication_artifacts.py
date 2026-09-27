@@ -243,6 +243,9 @@ def audit_semantics(root: Path, kits: Path, site: Path, release: Optional[Path] 
         if (facts.get("bundle") != bundle or facts.get("versions") != consumer.get("versions")
                 or facts.get("brand") != consumer.get("brand") or portal.get("implementation") != facts):
             raise ValueError("%s documentation facts differ from kit authority" % slug)
+        if _fingerprint(_safe_file(target, "facts/documentation.json")) != _fingerprint(
+                _safe_file(source, "enforcement/documentation-facts.json")):
+            raise ValueError("%s public documentation facts differ from verified kit" % slug)
         indexed_brand = next(item for item in brands if item["slug"] == slug)
         indexed_portal = next(item for item in guidelines if item["brand"]["slug"] == slug)
         indexed_conformance = next(item for item in conformance if item["slug"] == slug)

@@ -659,6 +659,14 @@ def copy_kit(source: Path, brand: dict) -> dict:
         raise ValueError(f"{slug}: verified guideline portal output is missing")
     portal = json.loads(portal_payload_path.read_text(encoding="utf-8"))
     validate_portal_navigation(portal, slug)
+    facts_source = source / "enforcement" / "documentation-facts.json"
+    if not facts_source.is_file() or json.loads(facts_source.read_text(encoding="utf-8")) != portal.get("implementation"):
+        raise ValueError(f"{slug}: guideline facts differ from the verified kit")
+    facts_target = target / "facts" / "documentation.json"
+    facts_target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(facts_source, facts_target)
+    if facts_target.read_bytes() != facts_source.read_bytes():
+        raise ValueError(f"{slug}: public documentation facts differ from the verified kit")
     guide_mode = guide_surface_mode(brand)
     if (portal.get("brand") or {}).get("surface_mode") != guide_mode:
         raise ValueError(f"{slug}: guideline portal presentation disagrees with source")
@@ -738,6 +746,9 @@ def copy_kit(source: Path, brand: dict) -> dict:
 def write_docs(references: Path, output: Path, descriptions: dict[str, str] = DOC_DESCRIPTIONS,
                navigation: dict[str, tuple[str, int, str, int]] = DOC_NAVIGATION,
                publication: Optional[dict[str, Any]] = None) -> list[dict[str, Any]]:
+    if (references / "references.md").is_file():
+        from check_documentation_references import validate_references
+        validate_references(references)
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)

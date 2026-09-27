@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added a classified, annotated References manual and applied its stable citations to discovery, identity, design, documentation, and platform integration instructions.
+- Explained pinned implementation facts, interface defaults and overrides, independent styling, and versioned bindings in generated offline and portable guides. Documentation contract 1.1.0 includes the exact dark and light default references for any declared interface override.
 - Reject empty, duplicate, unsafe, unrecorded, or identity-mismatched root manifests during portable kit verification. Existing approved identity bytes and public kit schema are unchanged.
 
 ## 2.6.0 - 2026-09-26

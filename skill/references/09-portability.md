@@ -126,3 +126,7 @@ provider. A paragraph telling the agent what order to do six things in does not.
 
 Every time a step turns out to be provider-dependent, the fix is to move it into
 a template and have the prose call the template.
+
+## Check the target host
+
+After importing a generated icon, inspect the host's own packaging and display: [Apple app icon guidance](references.md#ref-apple-app-icon), [Windows icon design](references.md#ref-windows-icon-design), and [maskable web icons](references.md#ref-web-maskable) describe different targets. A kit source file proves what was delivered, while a host preview proves how that exact file appears there. For interface behavior, preserve native controls and labels described by [HTML semantics](references.md#ref-web-html) or the target platform's equivalent. This task does not require redrawing the approved master.

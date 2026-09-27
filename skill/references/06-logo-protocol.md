@@ -167,3 +167,7 @@ Review the generated proof and verifier results for these recurring defects:
 - Lockups not optically aligned
 
 Use the current source-mode rules and generated measurements rather than an older kit as authority.
+
+## Review recognition before revision
+
+When an operator supplies an established mark, record which features people already recognize, which source files are authoritative, and what concrete defect motivates a change. [Distinctive-asset research](references.md#ref-brand-distinctive) supports asking that question; it does not require a new hue for every sibling brand. The Gate 1 proof and byte-bound source rules above decide whether the exact mark can ship. A designer may propose a new direction, but it is a new owner decision, not an automated cleanup of supplied path data.

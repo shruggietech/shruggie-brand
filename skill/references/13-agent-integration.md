@@ -28,3 +28,7 @@ After an authorized upstream change, update the owning canon, recipe, or adapter
 6. Keep generated `dist/`, site exports, archives, PDFs, and raster output out of source control.
 
 Extensions may add governed shared capability. They may not redraw approved marks, infer affiliation, lower accessibility gates, or create a permanent parallel design system.
+
+## Choose a source for the task
+
+The [References library](references.md) carries stable source IDs and offline explanations. For an accessibility obligation, start with the local contract and [WCAG 2.1](references.md#ref-a11y-wcag21). For a web control, use the pinned adapter plus [React labels](references.md#ref-web-react) or the applicable [ARIA pattern](references.md#ref-a11y-apg). For native egui, use its pinned [test API](references.md#ref-egui-test) and record what the host platform bridge actually exposes. Android and WordPress entries guide host or future-adapter work and do not claim those adapters exist. If a source changes edition or moves URL, retain the local ID's meaning and review the citation before changing generated instructions.

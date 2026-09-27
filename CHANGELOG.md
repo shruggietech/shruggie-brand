@@ -4,6 +4,15 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Added
+
+- Published a source-classified References manual with stable local citations and task-specific applications across the authoring and integration guides.
+- Exposed each verified kit's exact documentation facts at `/<brand>/facts/documentation.json`, with a direct link and query example in its guideline overview.
+
+### Changed
+
+- Reworked shared guideline topics, offline implementation guidance, and portable guides to explain interface defaults, affiliations, versions, registry use, and pinned versus current kit authority in reader terms. Documentation contract 1.1.0 records each declared override's dark and light default references from the delivered interface canon.
+
 ### Fixed
 
 - Reject empty, duplicate, unsafe, incomplete, or identity-mismatched kit manifests in the portable verifier instead of treating an empty `files` array as a successful checksum check. Completed kits also reject unrecorded QC files while preliminary pre-QC manifests retain their bounded exception.

@@ -111,6 +111,9 @@ def create_semantic_candidate(root: Path) -> tuple[Path, Path, Path, Path]:
     write_json(kit / "enforcement" / "bundle.json", bundle)
     write_json(kit / "enforcement" / "consumer-contract.json", consumer)
     write_json(kit / "enforcement" / "documentation-facts.json", facts)
+    (public / "facts").mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(kit / "enforcement" / "documentation-facts.json",
+                    public / "facts" / "documentation.json")
     write_json(kit / "guidelines" / "portal.json", portal)
     write_json(kit / "conformance" / "manifest.json", conformance)
     write_file(kit / "conformance" / "browser" / "specimen.html", b"<html>specimen</html>")
@@ -200,6 +203,14 @@ class PublicationArtifactAuditTests(unittest.TestCase):
                     root, kits, site, production=("covarity",), release_authorized=("covarity",))
 
     def test_semantic_candidate_rejects_facts_drift_and_staged_checksum(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kits, site, _, _ = create_semantic_candidate(root)
+            public_facts = site / "covarity" / "facts" / "documentation.json"
+            public_facts.write_text('{"schema_version": 9}\n', encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "public documentation facts differ"):
+                audit_publication_artifacts.audit_semantics(
+                    root, kits, site, production=("covarity",), release_authorized=("covarity",))
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             kits, site, _, _ = create_semantic_candidate(root)

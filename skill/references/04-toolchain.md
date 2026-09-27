@@ -140,3 +140,7 @@ as a nonbinding concept, not as production artwork or approved identity source.
 
 A build that silently degrades reads as complete when it is not, and that is
 the failure mode this whole system exists to prevent.
+
+## Platform asset and host checks
+
+The generated Android launcher layers and monochrome treatment have a different job from the Play listing image. Use [adaptive icon guidance](references.md#ref-android-adaptive-icon) to review launcher roles and [Play icon specifications](references.md#ref-android-play-icon) for the store asset. A host integrating the kit still owns content scaling, system bars, and safe insets; [Android layout guidance](references.md#ref-android-layout), [system bars](references.md#ref-android-bars), and [Compose accessibility](references.md#ref-android-access) provide task-specific checks. The kit does not generate a Compose interface adapter. The same source/host distinction applies to [Apple app icon configuration](references.md#ref-apple-xcode-icon), [Windows icon construction](references.md#ref-windows-icon), and the [web manifest](references.md#ref-web-manifest).

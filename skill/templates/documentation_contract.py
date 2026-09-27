@@ -105,9 +105,25 @@ def _safe_kit_file(kit, relative):
     return path
 
 
+def _override_default_references(kit, authority, overrides):
+    if not overrides:
+        return {}
+    canon = _read_json(_safe_kit_file(kit, authority["interface_canon"]))
+    aliases = canon.get("aliases") or {}
+    themes = canon.get("theme_aliases") or {}
+    defaults = {}
+    for role in sorted(overrides):
+        selected = {theme: (themes.get(theme) or {}).get(role, aliases.get(role)) for theme in ("dark", "light")}
+        _require(all(isinstance(reference, str) and reference.startswith("$") for reference in selected.values()),
+                 "interface canon omits the default reference for %s" % role)
+        defaults[role] = {"source": authority["interface_canon"], **selected}
+    return defaults
+
+
 def build_documentation_facts(contract, consumer, kit):
     authority = consumer["authority"]
     source_brand = _read_json(_safe_kit_file(kit, authority["brand_source"]))
+    overrides = (source_brand.get("interface") or {}).get("overrides") or {}
     facts = {
         "schema_version": 1,
         "documentation_contract_version": contract["contract_version"],
@@ -125,7 +141,8 @@ def build_documentation_facts(contract, consumer, kit):
         },
         "rules": {
             "inheritance": (source_brand.get("affiliation") or {}).get("inheritance", "independent"),
-            "overrides": copy.deepcopy((source_brand.get("interface") or {}).get("overrides") or {}),
+            "overrides": copy.deepcopy(overrides),
+            "default_references": _override_default_references(kit, authority, overrides),
         },
         "authority": {"precedence": copy.deepcopy(authority["precedence"]), "permitted_exceptions": copy.deepcopy(authority["permitted_exceptions"])},
         "verification": copy.deepcopy(consumer["verification"]),
@@ -153,8 +170,10 @@ def verify_documentation_facts(facts, contract, consumer, kit):
     }
     _require(facts["bindings"] == expected_bindings, "documentation binding facts disagree")
     source_brand = _read_json(_safe_kit_file(kit, authority["brand_source"]))
+    overrides = (source_brand.get("interface") or {}).get("overrides") or {}
     expected_rules = {"inheritance": (source_brand.get("affiliation") or {}).get("inheritance", "independent"),
-                      "overrides": (source_brand.get("interface") or {}).get("overrides") or {}}
+                      "overrides": overrides,
+                      "default_references": _override_default_references(kit, authority, overrides)}
     _require(facts["rules"] == expected_rules, "documentation inherited or overridden rules disagree")
     _require(facts["authority"] == {"precedence": authority["precedence"], "permitted_exceptions": authority["permitted_exceptions"]},
              "documentation authority facts disagree")
@@ -175,8 +194,16 @@ def render_implementation(facts, governed_rules):
         ("egui_adapter_version", "egui adapter"), ("compiler_version", "BrandBuilder"), ("brand_version", "Brand")))
     bindings = "\n".join("- **%s:** `%s`" % (name.replace("_", " ").title(), path) for name, path in facts["bindings"].items())
     overrides = facts["rules"]["overrides"]
-    rules = ("Inheritance mode: `%s`.\n\nDeclared interface overrides:\n%s" %
-             (facts["rules"]["inheritance"], "\n".join("- `%s`: `%s`" % item for item in sorted(overrides.items())) if overrides else "- None."))
+    inheritance = facts["rules"]["inheritance"]
+    inheritance_note = ("This brand starts with the shared ShruggieTech interface rules while keeping its approved identity and declared overrides."
+                        if inheritance == "shruggietech-house" else
+                        "This brand uses its own delivered interface binding; do not assume a ShruggieTech house palette.")
+    override_note = ("\n".join("- `%s`: default reference `%s` on dark surfaces and `%s` on light surfaces (from `%s`); effective brand reference `%s` (declared in `brand.json`). The change affects this interface role for this brand, not its whole identity." %
+                                (role, facts["rules"]["default_references"][role]["dark"], facts["rules"]["default_references"][role]["light"],
+                                 facts["rules"]["default_references"][role]["source"], effective)
+                                for role, effective in sorted(overrides.items())) if overrides else
+                     "No brand-specific interface overrides are declared. Use the delivered binding and its default rules.")
+    rules = "%s\n\nInterface overrides:\n%s" % (inheritance_note, override_note)
     checks = "\n".join("- `%s`" % command for command in facts["verification"]["entry_points"])
     migration = render_migration_summary(facts)
     return """# Implementation Contract: {title}
@@ -195,7 +222,7 @@ Package identity: `{package}` (`{filename}`)
 
 {bindings}
 
-## Inheritance and overrides
+## Interface starting point and overrides
 
 {interface_rules}
 

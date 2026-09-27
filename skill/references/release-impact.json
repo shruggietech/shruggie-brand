@@ -10,7 +10,7 @@
     "platform_assets": {"classification": "unaffected", "summary": "Existing logo, icon, and direct download file paths and bytes remain unchanged."},
     "web_react": {"classification": "unaffected", "summary": "The Web and React adapter API and token roles remain unchanged."},
     "egui": {"classification": "unaffected", "summary": "The egui adapter API and approved values remain unchanged."},
-    "documentation": {"classification": "required", "summary": "Every hosted brand guideline menu page now uses a final path segment derived from its visible label. Former Overview, Logo, and Assets page paths remain static compatibility bridges."},
-    "recovery": {"classification": "required", "summary": "Regenerate and repin 2.6.0 kits with exact package checksums to adopt canonical guideline topic URLs. Direct asset file paths and approved identity bytes remain unchanged."}
+    "documentation": {"classification": "required", "summary": "Canonical guideline topic URLs retain their static compatibility bridges. The manual now includes annotated References; generated hosted and portable guidance links exact public facts, and documentation contract 1.1.0 records default references for declared interface overrides."},
+    "recovery": {"classification": "required", "summary": "Regenerate and repin 2.6.0 kits with exact package checksums to adopt current guideline routes, References, and documentation facts contract 1.1.0. Direct asset file paths and approved identity bytes remain unchanged."}
   }
 }

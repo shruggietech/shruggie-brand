@@ -37,6 +37,7 @@ jobs:
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_documentation_publication.py
+          python scripts/test_documentation_references.py
           python scripts/test_prepare_site.py
           python scripts/test_public_documentation.py
           python scripts/test_check_readme_links.py
@@ -138,6 +139,7 @@ jobs:
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_documentation_publication.py
+          python scripts/test_documentation_references.py
           python scripts/test_prepare_site.py
           python scripts/test_public_documentation.py
           python scripts/test_check_readme_links.py

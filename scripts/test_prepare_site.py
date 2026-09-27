@@ -252,6 +252,8 @@ class PrepareSiteTests(unittest.TestCase):
                 self.assertNotIn("showcaseForeground", record)
                 self.assertEqual("dark", record["guideSurfaceMode"])
                 self.assertEqual("/alpha/guidelines/overview/", record["guidelinesPath"])
+                self.assertEqual((source / "enforcement" / "documentation-facts.json").read_bytes(),
+                                 (public / "alpha" / "facts" / "documentation.json").read_bytes())
                 self.assertEqual("/alpha/downloads/alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchive"])
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchiveFilename"])
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0", record["packageId"])
