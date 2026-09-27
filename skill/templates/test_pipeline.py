@@ -695,10 +695,14 @@ class PipelineTests(unittest.TestCase):
         deliveries = [
             {"path": "icons/apple/macos/Assets.xcassets/AppIcon.appiconset/icon_16x16.png", "family": "icon", "platform": "apple-macos", "role": "asset-catalog-icon", "appearance": "default", "source_variant": "full", "format": "png", "width": 16, "height": 16, "destination": "Xcode AppIcon.appiconset"},
             {"path": "icons/apple/macos/AppIcon.iconset/icon_16x16.png", "family": "icon", "platform": "apple-macos", "role": "iconset-icon", "appearance": "default", "source_variant": "full", "format": "png", "width": 16, "height": 16, "destination": "macOS AppIcon.iconset"},
+            {"path": "icons/apple/macos/AppIcon.icns", "family": "icon", "platform": "apple-macos", "role": "icns", "appearance": "default", "source_variant": "full", "format": "icns", "embedded_sizes": [16, 32], "destination": "macOS application bundle"},
         ]
         groups = gen_guidelines.group_asset_deliveries(deliveries)
         self.assertEqual(1, len(groups))
-        self.assertEqual({"asset-catalog-icon", "iconset-icon"}, {item["role"] for item in groups[0]["deliveries"]})
+        self.assertEqual({"asset-catalog-icon", "iconset-icon", "icns"}, {item["role"] for item in groups[0]["deliveries"]})
+        families, resources = gen_guidelines.portal_assets(deliveries)
+        self.assertEqual([], resources)
+        self.assertEqual({"png", "icns"}, set(families[0]["assets"][0]["formats"]))
 
     def test_guideline_asset_groups_stack_reused_web_artwork_across_sizes_and_roles(self):
         deliveries = [
@@ -839,6 +843,11 @@ class PipelineTests(unittest.TestCase):
                 "aliases": {"favicon.png": "icons/web/favicon-32x32.png"},
             }), encoding="utf-8")
             (kit / "favicon.png").write_bytes((kit / "icons" / "web" / "favicon-32x32.png").read_bytes())
+
+            deliveries, _, _ = gen_guidelines.asset_deliveries(kit)
+            alias_row = next(item for item in deliveries if item["path"] == "favicon.png")
+            self.assertEqual("icons/web/favicon-32x32.png", alias_row["alias_of"])
+            self.assertFalse(alias_row.get("preferred"))
 
             catalog = gen_guidelines._asset_catalog(kit, "Example")
             self.assertEqual(1, catalog.count('class="asset-card"'))

@@ -343,7 +343,8 @@ def asset_deliveries(kit):
             raise ValueError("guideline icon alias references missing file: %s" % alias)
         if target not in icon_rows:
             raise ValueError("guideline icon alias references uncatalogued target: %s" % target)
-        row = dict(icon_rows[target]); row["path"] = alias; row["destination"] = "Compatibility alias for %s" % target
+        row = dict(icon_rows[target]); row["path"] = alias; row["alias_of"] = target
+        row["destination"] = "Compatibility alias for %s" % target
         rows.append(row)
     return rows, icons.get("suites", []), icons.get("aliases", {})
 

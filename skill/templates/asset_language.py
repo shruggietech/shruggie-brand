@@ -75,7 +75,7 @@ def describe(item):
     else:
         platform = str(item.get("platform") or "integration")
         raw_role = str(item.get("role") or "asset")
-        platform_role = ("app-icon" if platform == "apple-macos" and raw_role in {"asset-catalog-icon", "iconset-icon"}
+        platform_role = ("app-icon" if platform == "apple-macos" and raw_role in {"asset-catalog-icon", "iconset-icon", "icns"}
                          else "web-icon" if platform == "web" and raw_role in {"favicon", "apple-touch", "installable"}
                          else raw_role)
         purpose = "platform-icon"
