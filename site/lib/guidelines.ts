@@ -23,6 +23,14 @@ export type GuidelineTopic = { key: string; title: string; label: string; sectio
 export type GuidelineSection = { label: string; destination?: GuidelineTopic; children?: GuidelineTopic[] };
 export type GuidelinePortal = {
   schema_version: string;
+  essentials: {
+    name: string; relationship: string; written_form: string; name_story: string[];
+    approved_words: Record<string, string>; strategy: Record<string, string>;
+    mark_guidance: string; palette_guidance: string;
+    type_families: { display: string; body: string; mono: string };
+    usage_limits: string[]; visual_boundary: string; reduced_below_px: number | null; standalone_mark_variant: string;
+    sections: { title: string; id: string }[];
+  };
   implementation: {
     schema_version: number;
     documentation_contract_version: string;
@@ -43,7 +51,6 @@ export type GuidelinePortal = {
   presentations: { dark: Record<string, string>; light: Record<string, string> };
   topics: GuidelineTopic[];
   content: {
-    overview: { foundation_title?: string; foundation?: string; promises?: string[]; in_scope?: string[]; out_of_scope?: string[]; sharp_edge?: string };
     voice: { principle?: string; qualities?: string[]; lead_with?: string[]; avoid?: string[]; personality?: string[][] };
     logos: { guidance?: string; minimum_sizes?: Record<string, number>; reduced_below_px?: number | null; prohibitions?: string[] };
     typography: { mode?: string; families?: Record<string, { name: string; weights: number[] }> };
@@ -132,6 +139,12 @@ export function topicToc(portal: GuidelinePortal, topic: GuidelineTopic): TOCIte
   if (topic.key === 'assets') return [{ title: 'Direct downloads', url: '#direct-downloads', depth: 2 }, { title: 'Asset library', url: '#asset-library', depth: 2 }];
   if (topic.key === 'expressions') return (portal.asset_families.find((family) => family.key === 'expressions')?.assets ?? []).map((asset) => ({ title: asset.title, url: `#${asset.id}`, depth: 2 }));
   if (topic.key === 'integration') return portal.instructions.map((instruction, index) => ({ title: `${instruction.platform}: ${instruction.title}`, url: `#instruction-${index + 1}`, depth: 2 }));
-  const sections: Record<string, string[]> = { overview: ['Brand overview', 'Foundations', 'Promises', 'Boundaries', 'Implementation authority', 'Versions and bindings', 'Get the kit'], voice: ['Governing principle', 'Voice qualities', 'Personality'], logos: ['Usage', 'Minimum sizes', 'Prohibitions'], typography: ['Type families'], components: ['Domain components'] };
+  if (topic.key === 'overview') return [
+    ...portal.essentials.sections.map((section) => ({ title: section.title, url: `#${section.id}`, depth: 2 as const })),
+    { title: 'Implementation authority', url: '#implementation-authority', depth: 2 },
+    { title: 'Versions and bindings', url: '#versions-and-bindings', depth: 2 },
+    { title: 'Get the kit', url: '#get-the-kit', depth: 2 },
+  ];
+  const sections: Record<string, string[]> = { voice: ['Governing principle', 'Voice qualities', 'Personality'], logos: ['Usage', 'Minimum sizes', 'Prohibitions'], typography: ['Type families'], components: ['Domain components'] };
   return (sections[topic.key] ?? []).map((title) => ({ title, url: `#${title.toLowerCase().replaceAll(' ', '-')}`, depth: 2 }));
 }

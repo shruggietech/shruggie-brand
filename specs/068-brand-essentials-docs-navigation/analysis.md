@@ -1,0 +1,5 @@
+# S068 Spec Kit analysis
+
+Checked 2026-09-29 against the eleven current `brands/*/brand.json` sources and issues #298 and #299. `spec.md`, `plan.md`, `tasks.md`, and `projection-map.md` use the same field boundary: approved visual-guide messaging and canonical identity guidance may reach Brand essentials; unresolved message roles and legacy product or service scope do not. `inventory.py` deterministically covers every current legacy opening field and approved message item, and the checked `disposition-inventory.md` records 434 exact items across eleven brands. The issue intake's eight-brand count predates the three additional current brands.
+
+Requirements FR-001 through FR-006 map to T001 through T008; FR-007 and FR-008 map to T009 and T010; FR-009 and FR-010 map to T011 through T014. Optional approved words and strategy have independent presence checks. The candidate and released publication states have separate sidebar expectations. No blocking specification contradiction remains. Release publication still requires a real release record, so the candidate preview uses the compact theme control.

@@ -13,6 +13,7 @@ Exit code is the number of problems found, capped at 125.
 """
 import argparse, base64, copy, hashlib, importlib.util, json, os, re, struct, sys, tempfile, unicodedata, zlib
 from html.parser import HTMLParser
+from html import escape
 from io import BytesIO
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -294,12 +295,22 @@ EXEMPT = re.compile(r'<!--\s*verify:allow-rhetoric\s+reason="([^"]{6,120})"\s*--
 
 def c_rhetoric(kit, rep):
     hits, scanned, dashes, exempt = [], 0, 0, []
+    brand_source = json.loads(Path(kit, "brand.json").read_text(encoding="utf-8"))
+    guidance = brand_source.get("guidance") or {}
+    literal_visual_copy = [guidance.get("logo"), guidance.get("palette"), guidance.get("sharp_edge"),
+                           *((brand_source.get("logo") or {}).get("prohibitions") or [])]
     for p in walk(kit):
         rel = os.path.relpath(p, kit)
         if os.path.basename(p) not in COPY_FILES and not rel.startswith("guidelines"): continue
         if os.path.splitext(p)[1].lower() not in {".md", ".html"}: continue
-        t = open(p, encoding="utf-8", errors="replace").read(); scanned += 1
+        t = Path(p).read_text(encoding="utf-8", errors="replace"); scanned += 1
         dashes += t.count("\u2014")
+        if rel.replace("\\", "/") == "guidelines/index.html":
+            # Exact canonical visual rules are checked for source parity elsewhere;
+            # keep the style lint on the surrounding generator-authored prose.
+            for value in literal_visual_copy:
+                if value:
+                    t = t.replace(escape(value), "")
         m = EXEMPT.search(t)
         if m:
             exempt.append("%s (%s)" % (rel, m.group(1))); continue

@@ -443,8 +443,8 @@
       "kind": "guidelines",
       "owner": "hosted",
       "action": "preserve",
-      "destination": "/{brand}/guidelines/overview/",
-      "rationale": "Each brand overview uses the visible menu label as its canonical final segment; the former root remains a compatibility bridge."
+      "destination": "/{brand}/guidelines/brand-essentials/",
+      "rationale": "Brand essentials uses its visible menu label as the canonical final segment; the former root and Overview page remain compatibility bridges."
     },
     {
       "kind": "guidelines-topic",

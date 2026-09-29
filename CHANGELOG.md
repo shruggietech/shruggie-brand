@@ -4,6 +4,17 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Changed
+
+- S068 replaces the first guideline page with source-bound Brand essentials across hosted, portable, and PDF guides for eleven brands. The sentence disposition and projection map document how prior copy is handled; the old Overview URL redirects to the new page.
+- PDF guides now carry every declared mark prohibition on a source-bound Usage limits sheet. The three reviewed visual boundaries for I Heart PR Tours, Local Companion, and Scruggs Tire & Alignment remain visible across all guide formats.
+- The documentation sidebar now shows an exact release version linked to the official release when published. Unreleased candidates keep a compact theme control without a release badge.
+- Source-bound visual guidance is exempted from the portable guide's generic rhetoric lint while generator-authored prose remains checked. CI now verifies the S068 projection and sentence inventory.
+
+### Decisions
+
+- On 2026-09-29, retained one unversioned documentation tree. A published manual shows its exact BrandBuilder version with an official release link; an unpublished candidate shows a compact theme switch only. The CI contract and delivered-guide checks are pinned process gates for this source-driven navigation change.
+
 ## [3.0.0] - 2026-09-29
 
 ### Added

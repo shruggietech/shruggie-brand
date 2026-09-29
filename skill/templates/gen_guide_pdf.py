@@ -19,6 +19,7 @@ from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
 from messaging import approved_messages
+from brand_essentials import ROLE_LABELS, WORD_ROLES, essentials_projection
 from brand_contract import affiliation, affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
 from color_roles import load_color_roles
 
@@ -30,31 +31,6 @@ def chips(t, keys, light=False):
               '<div class="m">%s</div><div class="m dim">%s</div></div>'
               % (t[k], "#D6DAE2" if light else "#26304A", k, t[k]))
     return o
-
-def _personality(B):
-    guidance = B.get("guidance") or {}
-    rows, promises = guidance.get("personality") or [], guidance.get("promises") or []
-    sections = []
-    if rows:
-        sections.append('<div class="card" style="margin-top:4mm"><div class="ey">Personality</div>'
-                        '<table><tr><th>Trait</th><th>Expression</th><th>Avoid</th></tr>%s</table></div>'
-                        % "".join("<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % tuple(map(escape, row))
-                                  for row in rows))
-    if promises:
-        sections.append('<div class="card" style="margin-top:4mm"><div class="ey">Promises</div>'
-                        '<ul class="dim">%s</ul></div>' % "".join('<li>%s</li>' % escape(value)
-                                                               for value in promises))
-    sections.append(_sharp_edge(B))
-    return "".join(sections)
-
-def _sharp_edge(B):
-    """The one place the brand could mislead somebody. Kept; the in-scope and
-    out-of-scope lists that used to sit beside it were specification material."""
-    edge = (B.get("guidance") or {}).get("sharp_edge")
-    if not edge:
-        return ""
-    return ('<div class="callout" style="margin:0"><div class="ey">The sharp edge</div>'
-            '<p style="margin:0" class="dim">%s</p></div>' % escape(edge))
 
 def _semantics(B, A, CTA, CTA_FG, OR, FA):
     emphasis_name = "Orange" if affiliation(B)["inheritance"] == "shruggietech-house" else "Emphasis"
@@ -172,6 +148,7 @@ def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
     messages = approved_messages(B, "visual-guide")
+    essentials = essentials_projection(B)
     light_first = guide_surface_mode(B) == "light"
     P, ALT = (L, D) if light_first else (D, L)
     A, AL = P["primary"], L["primary"]
@@ -188,6 +165,7 @@ def build(B, kit):
     horizontal_lockup = lockups.get("horizontal") or {}
     stacked_lockup = lockups.get("stacked") or {}
     mono_logo = asset(kit, "%s-horizontal-light-1024.png" % slug) if light_first else asset(kit, "%s-horizontal-color-1024.png" % slug)
+    essentials_mark = asset(kit, "%s-mark-reduced-%s-1024.png" % (slug, "light" if light_first else "color"))
     mono_light = asset(kit, "%s-horizontal-light-1024.png" % slug)
     def img(b, cls="", st=""):
         return '' if not b else '<img class="%s" style="%s" src="data:image/png;base64,%s">' % (cls, st, b)
@@ -285,14 +263,11 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
                          for i in range(1, 6))
 
     cover_lines = []
-    for role, label in (("slogan", "Slogan"), ("short_description", "Short description"),
-                        ("long_description", "Long description"), ("introductory_statement", "Introduction"),
-                        ("positioning", "Positioning"), ("mission", "Mission"), ("vision", "Vision"),
-                        ("values", "Values"), ("brand_promise", "Brand promise")):
+    for role in WORD_ROLES:
         if role in messages:
             cover_lines.append('<div data-message-role="%s"><div class="tag">%s</div>'
                                '<div class="idea">%s</div></div>'
-                               % (role.replace("_", "-"), label, escape(messages[role])))
+                               % (role.replace("_", "-"), ROLE_LABELS[role], escape(messages[role])))
     cover_message = ('<div class="message" style="border-color:%s">%s</div>'
                      % (A, "".join(cover_lines))) if cover_lines else ""
     pages = []
@@ -306,36 +281,52 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
                     B.get("version", "1.0.0"), B.get("canon", "1.0.0"),
                     B.get("homepage", "").replace("https://", ""), foot(1)))
 
-    # DEVIATION: this sheet used to open with a product summary and an
-    # in-scope / out-of-scope trio. A brand guide that pitches the product goes
-    # stale the moment the specification moves, and it answers a question nobody
-    # opened a brand book to ask. The sheet carries the name and the rules for
-    # writing it now. Scope belongs to the specification.
-    story = (B.get("guidance") or {}).get("name_story") or []
-    written = (B.get("guidance") or {}).get("written_form") or ""
+    # The opening sheet uses reviewed identity source, never legacy product scope.
+    story = essentials["name_story"]
+    written = essentials["written_form"]
     name_rows = [("Named", (B.get("guidance") or {}).get("named")),
                  ("Parent", aff["parent"]), ("Register", B.get("register"))]
-    name_body = "".join('<p>%s</p>' % para for para in story)
+    name_body = '<div class="kv"><div class="k">Approved name</div><div>%s</div></div>' % escape(essentials["name"])
+    if essentials["relationship"]:
+        name_body += '<p><strong>Relationship:</strong> %s</p>' % escape(essentials["relationship"])
+    name_body += "".join('<p>%s</p>' % escape(para) for para in story)
     if written:
         name_body += ('<div class="callout acc"><div class="ey">Written form</div>'
-                      '<p style="margin:0" class="dim">%s</p></div>' % written)
+                      '<p style="margin:0" class="dim">%s</p></div>' % escape(written))
     if any(value for _, value in name_rows):
         name_body += '<div class="kv" style="margin-top:5mm">%s</div>' % "".join(
             '<div class="k">%s</div><div>%s</div>' % (label, escape(value))
             for label, value in name_rows if value)
-    name_body += _personality(B)
-    voice = B.get("voice") or {}
-    if voice and not story and not written and (B.get("guidance") or {}).get("personality"):
-        name_body += '<div class="card" style="margin-top:4mm"><div class="ey">Voice</div>'
-        if B.get("governing_principle"):
-            name_body += '<p>%s</p>' % escape(B["governing_principle"])
-        for key, label in (("qualities", "Qualities"), ("lead_with", "Lead with"), ("avoid", "Avoid")):
-            if voice.get(key):
-                name_body += '<strong>%s</strong><p>%s</p>' % (label, escape("; ".join(voice[key])))
-        name_body += '</div>'
-    if story or written or any((B.get("guidance") or {}).get(key)
-                               for key in ("personality", "promises", "sharp_edge")):
-        pages.append(pg("Name", title, name_body, 2))
+    if essentials["approved_words"]:
+        name_body += '<div class="card"><div class="ey">Approved words</div><p>The exact approved words and role labels appear on the cover.</p></div>'
+    name_body += ('<div class="card"><div class="ey">Visual signatures</div>'
+                  '<p>Use the exact delivered masters described on the Logo system sheet. Formal colors and their measured uses are on the Color sheet. '
+                  'Display %s, body %s, and mono %s are the declared type families.</p></div>' %
+                  tuple(escape(essentials["type_families"][role]) for role in ("display", "body", "mono")))
+    name_body += '<p><strong>Where each asset belongs:</strong> The Asset catalog lists verified marks, lockups, icons, and platform deliveries by intended surface and size.</p>'
+    name_body += '<div class="callout"><div class="ey">Usage limits</div><p>Keep delivered artwork geometry unchanged. %s</p>' % (
+        'The Usage limits sheet lists every source rule.' if essentials["usage_limits"] or essentials["visual_boundary"] else
+        'The Logo system sheet gives measured sizes and clear space.')
+    if essentials["usage_limits"]:
+        name_body += '<p>%s</p>' % escape(essentials["usage_limits"][0])
+    name_body += '</div>'
+    if not story:
+        if essentials["mark_guidance"]:
+            name_body += '<p><strong>Mark:</strong> %s</p>' % escape(essentials["mark_guidance"])
+        if essentials["palette_guidance"]:
+            name_body += '<p><strong>Color:</strong> %s</p>' % escape(essentials["palette_guidance"])
+        if mono_logo:
+            name_body += '<div class="card" style="text-align:center;margin-top:5mm;padding:6mm">%s</div>' % img(mono_logo, "", "height:28mm;max-width:100%")
+        if essentials_mark and not essentials["mark_guidance"] and not essentials["palette_guidance"]:
+            name_body += ('<div class="card" style="text-align:center;margin-top:6mm;min-height:82mm">'
+                          '<div class="ey">Delivered reduced mark</div>%s</div>' %
+                          img(essentials_mark, "", "height:58mm;max-width:100%"))
+    if essentials["strategy"]:
+        name_body += '<div class="card"><div class="ey">Brand strategy</div>%s</div>' % "".join(
+            '<p data-message-role="%s"><strong>%s:</strong> %s</p>' %
+            (role.replace("_", "-"), ROLE_LABELS[role], escape(value))
+            for role, value in essentials["strategy"].items())
+    pages.append(pg("Brand essentials", title, name_body, 2))
 
     mark_size_guidance = (
         "The face-only reduced master is the standalone mark at every size. Use the supplied icon files for each platform."
@@ -355,10 +346,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         '<tr><td>Stacked</td><td>%.2fC</td><td>%.2fC</td><td>Centered on wordmark ink width</td></tr></table>'
         '<p class="m dim">The horizontal row records its approved master composition. C is the outlined '
         'wordmark cap height used by the stacked lockup. X is the clear-space unit declared above. '
-        'Keep one X clear around every master and never resize the mark and wordmark independently.</p>'
-        '<div class="callout"><div class="ey">Prohibited</div><p style="margin:0" class="dim">'
-        'No rotation, skew, stretch, outline, bevel or glow. Never recolor individual elements. '
-        'Never set the wordmark in live text or a substitute typeface. %s</p></div>' % (
+        'Keep one X clear around every master and never resize the mark and wordmark independently.</p>' % (
             copy_for(B, "logo"),
             img(mono_logo, "", "height:17mm"), cs, canvas_width, canvas_height, 100.0 * cs / artwork_width,
             "".join("<tr><td>%s</td><td>%s px</td></tr>" % (k, v)
@@ -367,10 +355,21 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             float(horizontal_lockup.get("mark_height_units", 160.0)),
             float(horizontal_lockup.get("gap_units", 34.0)),
             float(stacked_lockup.get("mark_height_c", 1.8)),
-            float(stacked_lockup.get("gap_c", 0.45)),
-            ("Never combine the %s and ShruggieTech marks into one lockup." % slug)
-            if aff["parent"] else "Never combine this mark with another organization’s mark into one lockup.")
+            float(stacked_lockup.get("gap_c", 0.45)))
         + _variants(B, kit, slug, img), 3))
+
+    if essentials["usage_limits"] or essentials["visual_boundary"]:
+        limits = "".join('<li style="margin-bottom:3mm">%s</li>' % escape(value) for value in essentials["usage_limits"])
+        boundary_note = ('<h3>Additional visual boundary</h3><p>%s</p>' % escape(essentials["visual_boundary"])) if essentials["visual_boundary"] else ""
+        usage_body = ('<p>These are the exact source usage rules for this identity. The preceding Logo system sheet gives measured sizes and clear space.</p>'
+                      '<div class="card" style="min-height:210mm;display:flex;flex-direction:column;justify-content:space-between">'
+                      '<div><ol style="padding-left:6mm;margin:0">%s</ol>%s</div>'
+                      '<div class="two" style="align-items:center;text-align:center;margin-top:8mm">'
+                      '<div>%s<p class="m dim">Delivered horizontal lockup</p></div>'
+                      '<div>%s<p class="m dim">Delivered reduced mark</p></div></div></div>' %
+                      (limits, boundary_note, img(mono_logo, "", "height:25mm;max-width:100%"),
+                       img(essentials_mark, "", "height:36mm;max-width:100%")))
+        pages.append(pg("Logo system", "Usage limits", usage_body, len(pages) + 1))
 
     i_heart_cta = slug == "i-heart-pr-tours"
     role_grid = "grid5" if i_heart_cta else "grid4"
@@ -399,7 +398,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             (B.get("color", {}).get("accent-bright", {}).get("legal_foreground_when_used_as_fill", {}) or {}).get("color", "?"),
             (B.get("color", {}).get("accent-bright", {}).get("legal_foreground_when_used_as_fill", {}) or {}).get("ratio", "?"),
             cta_note,
-        ) + _semantics(B, A, CTA, CTA_FG, OR, FA), 4))
+        ) + _semantics(B, A, CTA, CTA_FG, OR, FA), len(pages) + 1))
 
     pages.append(pg("Color", "Chart colors",
         '<p>Chart colors serve data visualization. Brand applications use the identity accent and the neutral surfaces. Each chart color is derived from the identity accent and measured against its surface so every entry clears 4.5:1.</p>'
@@ -410,7 +409,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         'style="margin-bottom:0">%s</div></div>' % (
             dark_bars, chips(D, ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"]),
             AL, light_bars, chips(L, ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"], True))
-        + _charttable(D, L, B), 5))
+        + _charttable(D, L, B), len(pages) + 1))
 
     pages.append(pg("Typography", "Display, interface, code",
         '<p>%s uses three approved type families. %s handles display text, %s handles '
@@ -433,7 +432,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             title, type_["display"], type_["body"], type_["mono"], type_["display_bold"],
             escape(messages.get("slogan", title)),
             escape(messages.get("short_description", "")),
-            type_["display"], type_["display_weights"], type_["body"], type_["body_weights"], type_["mono"], type_["mono_weights"]) + _scales(), 6))
+            type_["display"], type_["display_weights"], type_["body"], type_["body_weights"], type_["mono"], type_["mono_weights"]) + _scales(), len(pages) + 1))
 
     expressions = custom_assets(B, kit, public_only=True)
     if expressions:

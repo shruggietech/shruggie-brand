@@ -25,6 +25,8 @@ Run the geometry unit tests, probe the toolchain, build every kit, and build the
 
 ```powershell
 .\.venv\Scripts\python skill/templates/test_glyphkit.py
+.\.venv\Scripts\python skill/templates/test_brand_essentials.py
+.\.venv\Scripts\python specs/068-brand-essentials-docs-navigation/inventory.py
 .\.venv\Scripts\python skill/templates/test_interface_contract.py
 .\.venv\Scripts\python skill/templates/test_documentation_contract.py
 .\.venv\Scripts\python skill/templates/test_component_contract.py
@@ -34,6 +36,7 @@ Run the geometry unit tests, probe the toolchain, build every kit, and build the
 .\.venv\Scripts\python scripts/check_markdown.py
 .\.venv\Scripts\python skill/templates/probe.py
 .\.venv\Scripts\python scripts/build_all.py
+.\.venv\Scripts\python scripts/test_brand_essentials_delivery.py
 .\.venv\Scripts\python scripts/test_registry_delivery.py
 pnpm --dir site build
 ```

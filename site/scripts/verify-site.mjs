@@ -394,7 +394,7 @@ try {
     await targetPage.reload({ waitUntil: 'networkidle' });
   };
   const verifyStableGeometry = async () => {
-    const brandPortalPairs = brands.map((brand) => ({ overview: `/${brand.slug}/guidelines/overview/`, assets: `/${brand.slug}/guidelines/assets/` }));
+    const brandPortalPairs = brands.map((brand) => ({ overview: `/${brand.slug}/guidelines/brand-essentials/`, assets: `/${brand.slug}/guidelines/assets/` }));
     for (const scale of [1, 2]) {
       const geometryContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: scale });
       const geometryPage = await geometryContext.newPage();
@@ -705,13 +705,25 @@ try {
       if (contract.kind === 'guidelines') check(brandEntity?.disambiguatingDescription === contract.vendorBoundary && brandEntity?.usageInfo === contract.vendorBoundaryUrl, `${route} omits the ESO Weave structured vendor boundary`);
     }
     if (contract.kind === 'docs-index' || contract.kind === 'docs-page') check(await page.locator('header a').filter({ hasText: /^Documentation$/ }).count() <= 1, `${route} repeats the documentation root in navigation at ${width}px`);
+    if ((contract.kind === 'docs-index' || contract.kind === 'docs-page') && width === 1280) {
+      const sidebar = page.locator('#nd-sidebar');
+      const version = sidebar.locator('.docs-manual-version');
+      check(await version.count() === (publication.status === 'release' ? 1 : 0), `${route} sidebar release label disagrees with publication status`);
+      if (publication.status === 'release') check(await version.getAttribute('href') === publication.releaseUrl && (await version.innerText()).includes(publication.version), `${route} sidebar version lacks its exact official release destination`);
+      else {
+        const wrapper = sidebar.locator('div:has(> .docs-manual-theme-only)').last();
+        check(await wrapper.count() === 1, `${route} candidate manual lacks a compact theme row`);
+        if (await wrapper.count()) check(await wrapper.evaluate((element) => element.getBoundingClientRect().width < 130), `${route} candidate theme row retains unexplained empty width`);
+      }
+      check(await sidebar.locator('button[data-theme-toggle], [data-theme-toggle] button').count() > 0, `${route} sidebar theme control is unavailable`);
+    }
     if (contract.kind === 'docs-page' && width === 1280) {
       const record = documentationByPath.get(route);
       check(Boolean(record), `${route} lacks generated documentation navigation metadata`);
       if (record?.navigation.section === 'References') check(await page.locator('#nd-sidebar a[href="/docs/references/"][data-active="true"]').count() === 1, `${route} does not identify the standalone References page`);
       else if (record) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: new RegExp(`^${record.navigation.section}$`) }).count() === 1, `${route} does not keep its ${record.navigation.section} parent identifiable and expanded`);
     }
-    if (route === '/shruggietech/guidelines/overview/') {
+    if (route === '/shruggietech/guidelines/brand-essentials/') {
       check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
     }
     if (['guidelines', 'guidelines-topic', 'downloads'].includes(contract.kind)) {
@@ -723,6 +735,13 @@ try {
       if (width === 1280 && ['logos', 'color', 'typography'].includes(contract.guideTopic)) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: /^Identity$/ }).count() === 1, `${route} does not keep its Identity parent identifiable and expanded`);
       check(await page.locator('.guide-footer a[href="#guide-title"]').count() === 1, `${route} lacks a separate Back to top link`);
       if (contract.guideTopic === 'overview' && width === 1280) {
+        for (const section of portal.essentials.sections) {
+          check(await page.locator(`h2#${section.id}`).filter({ hasText: section.title }).count() === 1, `${route} essentials heading ${section.title} differs from its source section map`);
+          check(await page.locator(`#nd-toc a[href="#${section.id}"]`).count() === 1, `${route} contents link for ${section.title} is missing`);
+        }
+        for (const limit of portal.essentials.usage_limits) check((await page.locator('section[aria-labelledby="usage-limits"]').innerText()).includes(limit), `${route} omits an exact source usage limit`);
+        if (portal.essentials.visual_boundary) check((await page.locator('section[aria-labelledby="usage-limits"]').innerText()).includes(portal.essentials.visual_boundary), `${route} omits the reviewed visual boundary`);
+        for (const oldHeading of ['Foundations', 'Promises', 'Boundaries']) check(await page.getByRole('heading', { name: oldHeading, exact: true }).count() === 0, `${route} retains ${oldHeading} in the essentials opening`);
         check(await page.getByRole('heading', { name: 'Implementation authority' }).count() === 1, `${route} omits implementation authority`);
         check(await page.getByRole('heading', { name: 'Versions and bindings' }).count() === 1, `${route} omits labeled versions`);
         const factsPath = `/${contract.brandSlug}/facts/documentation.json`;
@@ -850,6 +869,28 @@ try {
     }
   }
   await page.emulateMedia({ reducedMotion: 'no-preference', forcedColors: 'none', colorScheme: 'light' });
+  for (const route of ['/docs/', '/docs/06-logo-protocol/']) {
+    for (const width of [360, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(base + route);
+      await page.getByRole('button', { name: 'Open Sidebar' }).click();
+      const drawer = page.locator('#nd-sidebar-mobile');
+      check(await drawer.isVisible(), `${route} sidebar drawer is unavailable at ${width}px`);
+      const mobileVersion = drawer.locator('.docs-manual-version');
+      check(await mobileVersion.count() === (publication.status === 'release' ? 1 : 0), `${route} mobile manual version disagrees with publication status at ${width}px`);
+      if (publication.status === 'release') check(await mobileVersion.getAttribute('href') === publication.releaseUrl && (await mobileVersion.innerText()).includes(publication.version), `${route} mobile manual version has no exact release destination`);
+      const toggle = drawer.locator('button[data-theme-toggle]');
+      check(await toggle.getAttribute('aria-label') === 'Toggle Theme', `${route} mobile theme switch lacks an accessible name`);
+      const priorTheme = await page.locator('html').getAttribute('class');
+      await toggle.focus();
+      await page.keyboard.press('Enter');
+      await page.waitForFunction((prior) => document.documentElement.className !== prior, priorTheme);
+      check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), `${route} mobile theme row overflows at ${width}px`);
+      await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+      check(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), `${route} mobile theme row overflows at 200 percent zoom`);
+      await page.evaluate(() => { document.documentElement.style.zoom = ''; });
+    }
+  }
   for (const portal of guidelinePortals) {
     for (const topic of ['assets', 'logos']) {
       const route = portal.topics.find((entry) => entry.key === topic)?.path;
@@ -982,7 +1023,7 @@ try {
       check(isCanonicalRedirect(redirect.status(), redirect.headers().location, base, withoutSlash), `${withoutSlash} must permanently redirect once to its canonical same-origin trailing-slash path`);
     }
   }
-  await page.goto(base + '/i-heart-pr-tours/guidelines/overview/');
+  await page.goto(base + '/i-heart-pr-tours/guidelines/brand-essentials/');
   await page.emulateMedia({ media: 'print' });
   const lightPrint = await page.locator('.guideline-layout').evaluate((element) => { const style = getComputedStyle(element); return { background: style.backgroundColor, foreground: style.color }; });
   check(sameColor(lightPrint.background, '#FFFFFF') && contrastRatio(lightPrint.foreground, lightPrint.background) >= 4.5, `light brand print presentation is not readable (${JSON.stringify(lightPrint)})`);
