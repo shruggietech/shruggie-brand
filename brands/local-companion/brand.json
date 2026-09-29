@@ -230,9 +230,7 @@
       "Use the reduced master at and below 32 pixels."
     ]
   },
-  "guide": {
-    "idea": "A private space for the companions you shape",
-    "descriptor": "A private Windows workspace for personalized AI companions",
+  "guidance": {
     "foundation_title": "One workspace, under your control",
     "foundation": "Local Companion brings personalized conversations, image creation, and the local characters and models behind them into one owner-operated Windows workspace. Its product identity belongs to the workspace itself; individual companions and private content keep their own context.",
     "personality": [
@@ -274,9 +272,7 @@
     ],
     "sharp_edge": "Local Companion is the workspace identity. A companion portrait or conversation belongs to its own context and should not become the default product mark or a public sample without separate approval.",
     "logo": "The calm orbit places a centered disc inside two open bands. The open shape suggests an owner-controlled space with room for different companions. A thicker Reduced master keeps the same center and opening clear at small icon sizes.",
-    "palette": "Graphite provides a quiet desktop canvas and indigo carries the product identity. Use the accessible darker indigo on light surfaces. Functional interface cues are measured separately and include text, shape, or control-state cues.",
-    "specimen_line": "Your companions, your space.",
-    "specimen_body": "Chat, create images, and manage the local characters and models behind them."
+    "palette": "Graphite provides a quiet desktop canvas and indigo carries the product identity. Use the accessible darker indigo on light surfaces. Functional interface cues are measured separately and include text, shape, or control-state cues."
   },
   "canon": "1.6.0",
   "identity_continuity": {
@@ -314,6 +310,17 @@
         "structured-data",
         "social-preview"
       ]
+    }
+  },
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "unresolved"
+    },
+    "long_description": {
+      "status": "unresolved"
     }
   },
   "social_copy": {

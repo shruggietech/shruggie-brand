@@ -8,8 +8,19 @@
   "canon": "1.6.0",
   "registry_base": "https://brand.shruggie.tech/dancewithme865/brand",
   "showcase_surface": "light.card",
-  "guide": {
+  "guidance": {
     "surface_mode": "light"
+  },
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "unresolved"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
   },
   "social_copy": {
     "slogan": "DanceWithMe865",

@@ -9,8 +9,8 @@
     {
       "path": "brand.json",
       "purpose": "canonical brand source",
-      "bytes": 18263,
-      "sha256": "0fb76daf5031fe37afbfbf5878467583e500e4d2675de8d1097b254db4d19fa7"
+      "bytes": 18202,
+      "sha256": "03624c326fba50800287efdb0a5cf0f86f963a87ada3c0a40abb03c154c41897"
     },
     {
       "path": "README.md",
@@ -1314,5 +1314,5 @@
     "source_snapshot_sha256": "4c28e4270a602702fac3d1bbbef6694044671014849a505dc3e3db2db077eae7"
   },
   "historical_evidence": null,
-  "record_sha256": "6a558cf87856b5934b60b54945c9cce053c962edb14a9e1ab49d94285ffd2b8f"
+  "record_sha256": "ec2d96012800dee6d275d242ee87a5d74a4bdc4df33f78ca09036b5f9516a471"
 }

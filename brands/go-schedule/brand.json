@@ -252,9 +252,7 @@
     "geometry_provenance": "imported",
     "geometry_provenance_reason": "The shipped mark uses native rounded rectangles and stroked SVG paths that predate glyphkit. Their exact element geometry and stroke attributes are preserved."
   },
-  "guide": {
-    "idea": "Schedules as fields and run points.",
-    "descriptor": "A cross-platform scheduler in Go.",
+  "guidance": {
     "personality": [
       [
         "Exact",
@@ -285,14 +283,23 @@
     ],
     "sharp_edge": "go-schedule makes scheduling policy readable, but it does not hide operational tradeoffs or claim that cron is obsolete.",
     "logo": "The current primary mark is the exact prompt and cursor geometry from the shipped favicon. Anchor Blue draws the prompt and Interval Mint draws the cursor. Pair it with the outlined go-schedule wordmark in horizontal and stacked lockups.",
-    "palette": "Night, Panel, and Line provide the infrastructure surface. Anchor Blue carries identity, links, focus, and exact run points. Interval Mint carries recurrence and success. Hold Amber and Stop Red remain scarce operational signals.",
-    "specimen_line": "A cross-platform scheduler in Go.",
-    "specimen_body": "Readable schedules with timezone, catch-up, and overlap policy stated plainly."
+    "palette": "Night, Panel, and Line provide the infrastructure surface. Anchor Blue carries identity, links, focus, and exact run points. Interval Mint carries recurrence and success. Hold Amber and Stop Red remain scarce operational signals."
   },
   "canon": "1.6.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "unresolved"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
   },
   "social_copy": {
     "slogan": "A cross-platform scheduler in Go.",

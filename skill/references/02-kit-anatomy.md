@@ -16,6 +16,10 @@ Use the [Asset Language](/docs/asset-glossary/) glossary for the meanings of bra
 
 Do not replace a declared token with an arbitrary platform default. Read the exact generated binding for the target platform and run its named verifier.
 
+## Approved messaging and guide sources
+
+`brand.json.messaging` records each message role independently: slogan, short description, long description, and optional introduction or strategy statements. Every role is approved, absent, or unresolved. Only approved exact text may appear on a named surface in `uses`; an approved social composition in `social_copy` does not automatically authorize a general guide slogan. `brand.json.guidance` holds source visual instructions and the reading-surface setting. The PDF, portable guide, and hosted portal project these fields rather than maintaining guide-only slogans or descriptions. When no approved text exists for a role, the guides omit it. Strategy statements such as mission and vision belong in a separate strategy reference unless their approved uses deliberately include the visual guide. Product claims need an owned, current source before they are presented as approved brand copy.
+
 ## Primary files and directories
 
 | Path | What it supplies |

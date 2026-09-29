@@ -4,13 +4,12 @@
 gen_guide_pdf.py: the brand guide, built to the ShruggieTech house standard.
 
 The default house standard remains full-bleed dark on every sheet. A brand may
-explicitly declare ``guide.surface_mode: light`` when its approved identity is
+explicitly declare ``guidance.surface_mode: light`` when its approved identity is
 light-first. The declared mode applies to every page rather than mixing a dark
 cover with white body sheets.
 
-Prose: every section reads brand.json `guide.<key>` when present and falls back
-to a default generated from the measured values, so two operator inputs still
-produce a complete document.
+Brand-specific prose comes from approved `messaging` roles and canonical
+`guidance` fields. Missing roles are omitted rather than replaced with prose.
 
     python3 build/gen_guide_pdf.py <brand.json> <kit-dir> [--html-only]
 """
@@ -19,6 +18,7 @@ from html import escape
 from capabilities import load_capabilities
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, copy_for, type_context
+from messaging import approved_messages
 from brand_contract import affiliation, affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
 from color_roles import load_color_roles
 
@@ -32,33 +32,29 @@ def chips(t, keys, light=False):
     return o
 
 def _personality(B):
-    rows = (B.get("guide") or {}).get("personality") or [
-        ["Precise", "Exact units and observable outcomes", "Round numbers"],
-        ["Bounded", "States what it does not cover", "Implied magic"],
-        ["Competent", "Assumes a capable reader", "Condescending tutorials"]]
-    prom = (B.get("guide") or {}).get("promises") or [
-        "Every number shown is a measurement that happened.",
-        "Unknowns are labelled as unknowns.",
-        "Terminology stays identical across CLI, docs and interface."]
-    # DEVIATION: this was a two-up, which squeezed a three-column table into half
-    # the measure and wrapped every cell to four lines. The table takes the full
-    # width now and the two short blocks share the row underneath it.
-    return ('<div class="card" style="margin-top:4mm"><div class="ey">Personality</div>'
-            '<table><tr><th style="width:22%%">Trait</th><th style="width:39%%">Expression</th>'
-            '<th style="width:39%%">Avoid</th></tr>%s</table></div>'
-            '<div class="two" style="margin-top:4mm"><div class="card"><div class="ey">Promises</div>'
-            '<ul class="dim" style="line-height:1.7;margin-top:2mm">%s</ul></div>%s</div>'
-            % ("".join("<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % tuple(r) for r in rows),
-               "".join("<li>%s</li>" % p for p in prom), _sharp_edge(B)))
+    guidance = B.get("guidance") or {}
+    rows, promises = guidance.get("personality") or [], guidance.get("promises") or []
+    sections = []
+    if rows:
+        sections.append('<div class="card" style="margin-top:4mm"><div class="ey">Personality</div>'
+                        '<table><tr><th>Trait</th><th>Expression</th><th>Avoid</th></tr>%s</table></div>'
+                        % "".join("<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % tuple(map(escape, row))
+                                  for row in rows))
+    if promises:
+        sections.append('<div class="card" style="margin-top:4mm"><div class="ey">Promises</div>'
+                        '<ul class="dim">%s</ul></div>' % "".join('<li>%s</li>' % escape(value)
+                                                               for value in promises))
+    sections.append(_sharp_edge(B))
+    return "".join(sections)
 
 def _sharp_edge(B):
     """The one place the brand could mislead somebody. Kept; the in-scope and
     out-of-scope lists that used to sit beside it were specification material."""
-    edge = (B.get("guide") or {}).get("sharp_edge")
+    edge = (B.get("guidance") or {}).get("sharp_edge")
     if not edge:
         return ""
     return ('<div class="callout" style="margin:0"><div class="ey">The sharp edge</div>'
-            '<p style="margin:0" class="dim">%s</p></div>' % edge)
+            '<p style="margin:0" class="dim">%s</p></div>' % escape(edge))
 
 def _semantics(B, A, CTA, CTA_FG, OR, FA):
     emphasis_name = "Orange" if affiliation(B)["inheritance"] == "shruggietech-house" else "Emphasis"
@@ -175,6 +171,7 @@ def _charttable(D, L, B):
 def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
+    messages = approved_messages(B, "visual-guide")
     light_first = guide_surface_mode(B) == "light"
     P, ALT = (L, D) if light_first else (D, L)
     A, AL = P["primary"], L["primary"]
@@ -280,22 +277,31 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
     def foot(n):
         return '<div class="foot"><span>%s | Brand System</span><span>%02d</span></div>' % (title, n)
     def pg(ey, h2, body, n):
-        return '<div class="pg"><div class="ey">%s</div><h2>%s</h2>%s%s</div>' % (ey, h2, body, foot(n))
+        return '<div class="pg"><div class="ey">%s</div><h2>%s</h2>%s%s</div>' % (ey, h2, body, foot(len(pages) + 1))
 
     dark_bars = "".join('<div style="background:%s;height:%d%%"></div>' % (D["chart-%d" % i], 34 + i * 13)
                         for i in range(1, 6))
     light_bars = "".join('<div style="background:%s;height:%d%%"></div>' % (L["chart-%d" % i], 34 + i * 13)
                          for i in range(1, 6))
 
+    cover_lines = []
+    for role, label in (("slogan", "Slogan"), ("short_description", "Short description"),
+                        ("long_description", "Long description"), ("introductory_statement", "Introduction"),
+                        ("positioning", "Positioning"), ("mission", "Mission"), ("vision", "Vision"),
+                        ("values", "Values"), ("brand_promise", "Brand promise")):
+        if role in messages:
+            cover_lines.append('<div data-message-role="%s"><div class="tag">%s</div>'
+                               '<div class="idea">%s</div></div>'
+                               % (role.replace("_", "-"), label, escape(messages[role])))
+    cover_message = ('<div class="message" style="border-color:%s">%s</div>'
+                     % (A, "".join(cover_lines))) if cover_lines else ""
     pages = []
     pages.append('<div class="pg cover"><div class="inner">'
                  '<div class="sys">Brand &amp; design system</div>%s'
-                 '<div class="message" style="border-color:%s"><div class="tag">%s</div><div class="idea">%s</div></div>'
+                 '%s'
                  '<div class="base">%sVersion %s &nbsp;·&nbsp; '
                  'Canon %s &nbsp;·&nbsp; %s</div>%s</div></div>'
-                 % (img(mono_logo, "lockup"), A,
-                    copy_for(B, "idea", B.get("brand_idea", B["title"])),
-                    copy_for(B, "descriptor", B.get("descriptor", "")),
+                 % (img(mono_logo, "lockup"), cover_message,
                     ((endorsement + " &nbsp;·&nbsp; ") if endorsement else ""),
                     B.get("version", "1.0.0"), B.get("canon", "1.0.0"),
                     B.get("homepage", "").replace("https://", ""), foot(1)))
@@ -305,29 +311,31 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
     # stale the moment the specification moves, and it answers a question nobody
     # opened a brand book to ask. The sheet carries the name and the rules for
     # writing it now. Scope belongs to the specification.
-    story = (B.get("guide") or {}).get("name_story") or [
-        "State where the name came from and what its parts carry.",
-    ]
-    written = (B.get("guide") or {}).get("written_form") or (
-        "Write %s in title case in prose and lowercase in technical identifiers." % title)
-    pages.append(pg("Name", title,
-        "".join('<p>%s</p>' % para for para in story)
-        + '<div class="callout acc"><div class="ey">Written form</div>'
-          '<p style="margin:0" class="dim">%s</p></div>'
-          '<div class="kv" style="margin-top:5mm">%s</div>'
-          '<h3>Product principle</h3><p style="font-family:var(--font-display);font-weight:%d;'
-          'font-size:12.5pt;color:%s">%s</p>%s' % (
-            written,
-            "".join('<div class="k">%s</div><div>%s</div>' % (k, v) for k, v in [
-                ("Named", (B.get("guide") or {}).get("named", "")),
-                ("Parent", aff["parent"] or "None"),
-                ("Register", B.get("register", "precise-dry")),
-                ("Flourish", "Declined" if not B.get("shruggie_flourish")
-                             else "Permitted, once per view"),
-                ("Casing", "The product name is lowercase in prose and technical identifiers."
-                 if B.get("wordmark_text", title).islower()
-                 else "Title case in prose, lowercase in identifiers"),
-            ] if v), type_["display_regular"], A, B.get("brand_idea", title), _personality(B)), 2))
+    story = (B.get("guidance") or {}).get("name_story") or []
+    written = (B.get("guidance") or {}).get("written_form") or ""
+    name_rows = [("Named", (B.get("guidance") or {}).get("named")),
+                 ("Parent", aff["parent"]), ("Register", B.get("register"))]
+    name_body = "".join('<p>%s</p>' % para for para in story)
+    if written:
+        name_body += ('<div class="callout acc"><div class="ey">Written form</div>'
+                      '<p style="margin:0" class="dim">%s</p></div>' % written)
+    if any(value for _, value in name_rows):
+        name_body += '<div class="kv" style="margin-top:5mm">%s</div>' % "".join(
+            '<div class="k">%s</div><div>%s</div>' % (label, escape(value))
+            for label, value in name_rows if value)
+    name_body += _personality(B)
+    voice = B.get("voice") or {}
+    if voice and not story and not written and (B.get("guidance") or {}).get("personality"):
+        name_body += '<div class="card" style="margin-top:4mm"><div class="ey">Voice</div>'
+        if B.get("governing_principle"):
+            name_body += '<p>%s</p>' % escape(B["governing_principle"])
+        for key, label in (("qualities", "Qualities"), ("lead_with", "Lead with"), ("avoid", "Avoid")):
+            if voice.get(key):
+                name_body += '<strong>%s</strong><p>%s</p>' % (label, escape("; ".join(voice[key])))
+        name_body += '</div>'
+    if story or written or any((B.get("guidance") or {}).get(key)
+                               for key in ("personality", "promises", "sharp_edge")):
+        pages.append(pg("Name", title, name_body, 2))
 
     mark_size_guidance = (
         "The face-only reduced master is the standalone mark at every size. Use the supplied icon files for each platform."
@@ -431,8 +439,8 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         '<div class="callout"><div class="ey">Available weights</div><p style="margin:0" class="dim">'
         'Only the listed local faces are approved. Any other weight makes the renderer synthesize a faux bold, which prints badly and forces outlined glyphs into exported PDFs. Courier Prime is used only for literal command blocks.</p></div>' % (
             title, type_["display"], type_["body"], type_["mono"], type_["display_bold"],
-            copy_for(B, "idea", B.get("brand_idea", title)),
-            copy_for(B, "descriptor", B.get("descriptor", "")),
+            escape(messages.get("slogan", title)),
+            escape(messages.get("short_description", "")),
             type_["display"], type_["display_weights"], type_["body"], type_["body_weights"], type_["mono"], type_["mono_weights"]) + _scales(), 6))
 
     expressions = custom_assets(B, kit, public_only=True)

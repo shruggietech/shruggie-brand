@@ -273,6 +273,9 @@ class PrepareSiteTests(unittest.TestCase):
                     "affiliation": {"ownership": "shruggietech-owned", "showcase": "public", "parent": "ShruggieTech", "inheritance": "shruggietech-house", "endorsement": "shruggietech-project", "service_credit": "none"},
                     "social_copy": {"slogan": "Exact alpha slogan", "layout": "slogan-only", "description_lines": [],
                                     "approval": {"approved_by": "owner", "approved_on": "2026-09-25", "source": "test fixture"}},
+                    "messaging": {"slogan": {"status": "unresolved"},
+                                  "short_description": {"status": "unresolved"},
+                                  "long_description": {"status": "unresolved"}},
                 }
                 record = prepare_site.copy_kit(source, brand)
                 self.assertEqual("#121416", record["portfolioSurface"])
@@ -514,7 +517,8 @@ class PrepareSiteTests(unittest.TestCase):
             self.assertIn('name="twitter:card"', content)
             self.assertIn('type="application/ld+json"', content)
             self.assertIn('"BreadcrumbList"', content)
-            self.assertIn("One &amp; only.", content)
+            self.assertIn("Approved brand guidance", content)
+            self.assertNotIn("One &amp; only.", content)
 
     def test_guideline_publication_rewrites_validated_assets_and_adds_one_exit(self):
         with tempfile.TemporaryDirectory() as tmp:

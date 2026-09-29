@@ -727,7 +727,7 @@ class GuideSurfaceModeTests(unittest.TestCase):
     def test_missing_mode_defaults_to_dark_and_explicit_light_is_valid(self):
         brand = owned_brand()
         self.assertEqual("dark", guide_surface_mode(brand))
-        brand["guide"] = {"surface_mode": "light"}
+        brand["guidance"] = {"surface_mode": "light"}
         brand["light_surfaces"] = {
             "base": "#FFFFFF", "card": "#FFFFFF", "popover": "#FFFFFF",
             "secondary": "#F8F6F2", "hover": "#EEF4F8",
@@ -738,16 +738,16 @@ class GuideSurfaceModeTests(unittest.TestCase):
     def test_invalid_mode_and_incomplete_light_palette_fail_early(self):
         brand = owned_brand()
         for guide in ("light", {"surface_mode": "sepia"}, {"surface_mode": None}):
-            brand["guide"] = guide
-            with self.assertRaisesRegex(ContractError, "guide.surface_mode|guide must"):
+            brand["guidance"] = guide
+            with self.assertRaisesRegex(ContractError, "guidance.surface_mode|guidance must"):
                 guide_surface_mode(brand)
-        brand["guide"] = {"surface_mode": "light"}
+        brand["guidance"] = {"surface_mode": "light"}
         with self.assertRaisesRegex(ContractError, "light_surfaces"):
             guide_surface_mode(brand)
 
     def test_light_palette_rejects_low_contrast_local_text(self):
         brand = owned_brand()
-        brand["guide"] = {"surface_mode": "light"}
+        brand["guidance"] = {"surface_mode": "light"}
         brand["light_surfaces"] = {
             "base": "#FFFFFF", "card": "#FFFFFF", "popover": "#FFFFFF",
             "secondary": "#F8F6F2", "hover": "#EEF4F8",
@@ -1335,7 +1335,8 @@ class SocialCopyTests(unittest.TestCase):
         brand = json.loads(source.read_text(encoding="utf-8"))
         self.assertEqual("We’ll figure it out.", social_copy(brand)["slogan"])
         self.assertEqual("We advance your vision.", brand["brand_idea"])
-        self.assertEqual("We advance your vision.", brand["guide"]["idea"])
+        self.assertNotIn("idea", brand["guidance"])
+        self.assertEqual("We’ll figure it out.", brand["messaging"]["slogan"]["text"])
         self.assertIn("supersedes S057", brand["social_copy"]["approval"]["source"])
 
     def test_social_copy_rejects_lines_that_exceed_the_canvas(self):

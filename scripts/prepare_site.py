@@ -29,6 +29,7 @@ SITE_DESCRIPTION = "Explore ShruggieTech brand identities, standards, assets, an
 SOCIAL_SIZE = (1280, 640)
 sys.path.insert(0, str(TEMPLATES))
 from brand_contract import affiliation, custom_assets, guide_surface_mode, public_showcase, showcase_surface, social_copy, vendor_boundary
+from messaging import approved_messages
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from gen_guidelines import guideline_topic_path
@@ -254,7 +255,10 @@ def structured_data(route: dict[str, Any], routes: list[dict[str, Any]], brands:
         brand = next(item for item in brands if item["slug"] == route["brandSlug"])
         brand_id = f"{route['canonical']}#brand"
         page["mainEntity"] = {"@id": brand_id}
-        entity = {"@type": "Brand", "@id": brand_id, "name": brand["title"], "description": brand["descriptor"], "url": route["canonical"], "logo": f"{SITE_URL}{brand['icon']}"}
+        entity = {"@type": "Brand", "@id": brand_id, "name": brand["title"], "url": route["canonical"], "logo": f"{SITE_URL}{brand['icon']}"}
+        description = brand.get("approvedMessaging", {}).get("short_description")
+        if description:
+            entity["description"] = description
         if route.get("vendorBoundary"):
             entity["disambiguatingDescription"] = route["vendorBoundary"]
             entity["usageInfo"] = route["vendorBoundaryUrl"]
@@ -278,7 +282,7 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
         fallback_overview = guideline_topic_path(slug, "Overview")
         portal = portal_by_slug.get(slug)
         vendor_notice = brand.get("vendorBoundary")
-        topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "label": "Overview", "path": fallback_overview, "description": brand["descriptor"]}, {"key": "assets", "title": "Assets", "label": "Assets", "path": guideline_topic_path(slug, "Assets"), "description": "Task-oriented access to every verified delivery."}]
+        topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "label": "Overview", "path": fallback_overview, "description": "Approved brand guidance"}, {"key": "assets", "title": "Assets", "label": "Assets", "path": guideline_topic_path(slug, "Assets"), "description": "Task-oriented access to every verified delivery."}]
         if portal:
             validate_portal_navigation(portal, slug)
         overview = topics[0]
@@ -713,6 +717,9 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "kind": brand.get("kind", "sub-brand"),
         "descriptor": brand["descriptor"],
         "idea": brand["brand_idea"],
+        "approvedMessaging": approved_messages(brand, "site-metadata"),
+        "consumerMessaging": approved_messages(brand, "consumer-data"),
+        "messagingStates": {role: item["status"] for role, item in brand["messaging"].items()},
         "socialSlogan": social_copy(brand)["slogan"],
         "version": brand["version"],
         "accent": brand["accent"]["bright"],

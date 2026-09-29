@@ -116,7 +116,7 @@ read as "not applicable".
 
 **The brand guide uses its declared reading surface on every sheet, and it describes the brand.**
 Dark is the house default established by fragcap 1.1.0. A brand may instead
-declare `guide.surface_mode: light` when the approved identity is light-first;
+declare `guidance.surface_mode: light` when the approved identity is light-first;
 that exception requires an explicit light-surface palette, measured AA contrast,
 and owner approval. `qc_render.py --expect-ground` must receive the declared mode
 so a build cannot silently accept the opposite page ground. The guide carries

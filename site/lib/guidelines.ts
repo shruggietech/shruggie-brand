@@ -38,7 +38,7 @@ export type GuidelinePortal = {
     hosted: { manual_path: string; scope: string };
     bundled: { facts_path: string; authority: string; latest_substitution_allowed: boolean };
   };
-  brand: { slug: string; title: string; version: string; descriptor: string; idea: string; affiliation: string; vendorBoundary: string; surface_mode: 'light' | 'dark' };
+  brand: { slug: string; title: string; version: string; messaging: Partial<Record<'slogan' | 'short_description' | 'long_description' | 'introductory_statement' | 'positioning' | 'mission' | 'vision' | 'values' | 'brand_promise', string>>; affiliation: string; vendorBoundary: string; surface_mode: 'light' | 'dark' };
   presentation: Record<string, string>;
   presentations: { dark: Record<string, string>; light: Record<string, string> };
   topics: GuidelineTopic[];

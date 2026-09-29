@@ -49,9 +49,19 @@ def _lines(value, text):
 
 def validate_brief(brief):
     """Allow a draft with unresolved choices, but never synthesize approval."""
-    require(isinstance(brief, dict) and set(brief) == {"schema_version", "topics", "social_copy"},
+    require(isinstance(brief, dict) and brief.get("schema_version") in {1, 2},
+            "unsupported brief schema")
+    fields = {"schema_version", "topics", "social_copy"}
+    if brief["schema_version"] == 2:
+        fields.add("messaging")
+    require(set(brief) == fields,
             "brief fields are incomplete or unsupported")
-    require(brief["schema_version"] == 1, "unsupported brief schema")
+    if brief["schema_version"] == 2:
+        from messaging import MessageError, validate_messaging
+        try:
+            validate_messaging(brief)
+        except MessageError as error:
+            raise BriefError(str(error)) from error
     topics = brief["topics"]
     require(isinstance(topics, dict) and set(topics) == TOPICS, "brief topics are incomplete")
     for name, value in topics.items():
@@ -128,13 +138,18 @@ def validate_gate_2_packet(brief, packet, root, brand_root):
     root = Path(root)
     require(root.is_dir() and not root.is_symlink(), "private review root is missing or unsafe")
     root = root.resolve()
-    require(isinstance(packet, dict) and set(packet) == {"schema_version", "gate_1", "gate_2",
-                                                      "public_projection_enabled", "social_copy", "assets"},
+    fields = {"schema_version", "gate_1", "gate_2", "public_projection_enabled", "social_copy", "assets"}
+    if brief["schema_version"] == 2:
+        fields.add("messaging")
+    require(isinstance(packet, dict) and set(packet) == fields,
             "Gate 2 packet fields are incomplete")
     require(packet["schema_version"] == 1 and packet["public_projection_enabled"] is False,
             "Gate 2 review must remain private")
     require(packet["social_copy"] == brief["social_copy"],
             "Gate 2 social copy differs from the approved brief")
+    if brief["schema_version"] == 2:
+        require(packet["messaging"] == brief["messaging"],
+                "Gate 2 messaging differs from the approved brief")
     gate_1 = packet["gate_1"]
     require(isinstance(gate_1, dict) and set(gate_1) == {"status", "source_sha256"}
             and gate_1["status"] == "approved" and isinstance(gate_1["source_sha256"], str)
