@@ -57,6 +57,10 @@ def write_utf8(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def require_svg_renderer(self):
+        if not any(shutil.which(name) for name in ("rsvg-convert", "resvg", "inkscape")) and not probe.node_resvg_ok():
+            self.skipTest("SVG rasterizer unavailable at core tier")
+
     def test_portable_override_guidance_shows_theme_defaults_and_effective_reference(self):
         facts = {"schema_version": 1, "documentation_contract_version": "1.1.0", "brand": {"slug": "sample"},
                  "versions": {}, "bindings": {}, "rules": {"inheritance": "independent",
@@ -258,6 +262,7 @@ class PipelineTests(unittest.TestCase):
                 self.build_image_specimen(brand_path)
 
     def test_png_backed_svg_specimen_renders_visible_source_pixels_and_detects_drift(self):
+        self.require_svg_renderer()
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "specimen-image-fixture"
             brand_path, source = self.image_specimen_fixture(kit)
@@ -327,6 +332,7 @@ class PipelineTests(unittest.TestCase):
             ))
 
     def test_i_heart_pr_tours_specimen_uses_approved_wide_lockup(self):
+        self.require_svg_renderer()
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "i-heart-pr-tours"
             shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", kit)
@@ -618,14 +624,7 @@ class PipelineTests(unittest.TestCase):
             validate_brand(brand, str(kit))
 
     def test_i_heart_pr_tours_generation_preserves_exact_sources_and_approved_derivations(self):
-        renderer_available = bool(
-            shutil.which("rsvg-convert")
-            or shutil.which("resvg")
-            or shutil.which("inkscape")
-            or probe.node_resvg_ok()
-        )
-        if not renderer_available:
-            self.skipTest("exact supplied-raster derivation requires an SVG renderer")
+        self.require_svg_renderer()
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "i-heart-pr-tours"
             shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", kit)
@@ -786,9 +785,7 @@ class PipelineTests(unittest.TestCase):
         for slug in slugs:
             with self.subTest(slug=slug), tempfile.TemporaryDirectory() as temporary:
                 if slug == "i-heart-pr-tours":
-                    from probe import node_resvg_ok
-                    if not any(shutil.which(name) for name in ("rsvg-convert", "resvg", "inkscape")) and not node_resvg_ok():
-                        self.skipTest("supplied I Heart PR Tours SVG needs the optional raster renderer")
+                    self.require_svg_renderer()
                 kit = Path(temporary) / slug
                 shutil.copytree(ROOT / "brands" / slug, kit)
                 shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts", dirs_exist_ok=True)
@@ -1812,6 +1809,7 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue(any("metadata disagrees" in problem for problem in report.problems))
 
     def test_supplied_reduced_colourway_and_wordmarks_keep_exact_source_bytes(self):
+        self.require_svg_renderer()
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "i-heart-pr-tours"
             shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", kit)

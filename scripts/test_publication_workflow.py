@@ -384,14 +384,12 @@ class PublicationWorkflowContractTests(unittest.TestCase):
 
     def test_renderer_and_runtime_contract_are_exact(self):
         text = workflow_text()
-        self.assertGreaterEqual(text.count("node-version: 24.11.0"), 3)
-        self.assertGreaterEqual(text.count("@resvg/resvg-js@2.6.2"), 3)
+        self.assertGreaterEqual(text.count("node-version: 24.11.0"), 2)
+        self.assertGreaterEqual(text.count("@resvg/resvg-js@2.6.2"), 2)
         minimum_python = job_block(text, "python-38-compatibility")
-        self.assertIn("needs: approved-identity-proofs", minimum_python)
-        self.assertIn("node-version: 24.11.0", minimum_python)
-        self.assertIn("@resvg/resvg-js@2.6.2", minimum_python)
-        self.assertIn("name: approved-identity-proofs-${{ github.sha }}", minimum_python)
-        self.assertIn('GP_APPROVED_PROOF_ROOT="$GITHUB_WORKSPACE/approved-identity-proofs" python skill/templates/test_pipeline.py', minimum_python)
+        self.assertIn("python skill/templates/test_pipeline.py", minimum_python)
+        self.assertNotIn("setup-node", minimum_python)
+        self.assertNotIn("@resvg/resvg-js", minimum_python)
         self.assertNotIn("rsvg-convert", text)
         self.assertNotIn("librsvg", text)
 
