@@ -37,7 +37,7 @@
 
 ## Phase 6: Cross-cutting verification and PR
 
-- [ ] T017 Run focused regressions, the full `CONTRIBUTING.md` validation, all eight kit gates, the existing i-heart-pr-tours 32-proof continuity gate, site build/tests, and publication audit; record exact results in `specs/063-shruggietech-identity-projection/verification.md`.
+- [x] T017 Run focused regressions, the full `CONTRIBUTING.md` validation, all eight kit gates, the existing i-heart-pr-tours 32-proof continuity gate, site build/tests, and publication audit; record exact results in `specs/063-shruggietech-identity-projection/verification.md`.
 - [x] T018 Update the unreleased change log and any architecture-affecting decision entry in `CHANGELOG.md`; check UTF-8/LF, mojibake, generated-output hygiene, and `git diff --check`.
 - [x] T019 Commit S063 on `codex/063-shruggietech-identity-projection`, push the authorized branch, open the official PR, and attach it to this task.
 - [ ] T020 Monitor all required CI and external reviews; reply to and resolve every review thread, make needed corrections, and request at most one additional Codex review round. Hand off only with definitive green required checks and satisfied reviews.
