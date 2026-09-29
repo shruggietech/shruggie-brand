@@ -659,126 +659,140 @@ try {
   const escapedLinks = await visibleHeaderLinks();
   const menuState = await page.getByRole('button', { name: 'Toggle Menu' }).getAttribute('data-state');
   check(menuState === 'closed', `mobile landing menu does not close with Escape (${menuState}; ${JSON.stringify(escapedLinks)})`);
+  const routeCases = [];
   for (const route of htmlRoutes) {
     const contract = routeByPath.get(route);
     check(Boolean(contract), `${route} is absent from the generated route contract`);
     if (!contract) continue;
-    for (const width of [360, 1280]) {
-      await page.setViewportSize({ width, height: 900 });
-      const response = await page.goto(base + route);
-      check(response?.status() === 200, `${route} returned ${response?.status()}`);
-      check(await page.title() === contract.documentTitle, `${route} title disagrees with the route contract`);
-      const oneContent = async (selector) => await page.locator(selector).count() === 1 ? await page.locator(selector).getAttribute('content') : null;
-      check(await oneContent('meta[name="description"]') === contract.description, `${route} description disagrees with the route contract`);
-      check(await page.locator('link[rel="canonical"]').count() === 1 && await page.locator('link[rel="canonical"]').getAttribute('href') === contract.canonical, `${route} canonical URL disagrees with the route contract`);
-      check(await oneContent('meta[property="og:title"]') === contract.documentTitle, `${route} Open Graph title disagrees with the route contract`);
-      check(await oneContent('meta[property="og:description"]') === contract.description, `${route} Open Graph description disagrees with the route contract`);
-      check(await oneContent('meta[property="og:url"]') === contract.canonical, `${route} Open Graph URL disagrees with the route contract`);
-      check(await oneContent('meta[property="og:image"]') === contract.social.url, `${route} Open Graph image disagrees with the route contract`);
-      check(await oneContent('meta[property="og:image:width"]') === String(contract.social.width), `${route} Open Graph image width disagrees with the route contract`);
-      check(await oneContent('meta[property="og:image:height"]') === String(contract.social.height), `${route} Open Graph image height disagrees with the route contract`);
-      check(await oneContent('meta[property="og:image:type"]') === contract.social.type, `${route} Open Graph image type disagrees with the route contract`);
-      check(await oneContent('meta[property="og:image:alt"]') === contract.social.alt, `${route} Open Graph image alt text disagrees with the route contract`);
-      check(await oneContent('meta[name="twitter:card"]') === 'summary_large_image', `${route} lacks the large Twitter card contract`);
-      check(await oneContent('meta[name="twitter:title"]') === contract.documentTitle, `${route} Twitter title disagrees with the route contract`);
-      check(await oneContent('meta[name="twitter:description"]') === contract.description, `${route} Twitter description disagrees with the route contract`);
-      check(await oneContent('meta[name="twitter:image"]') === contract.social.url, `${route} Twitter image disagrees with the route contract`);
-      check(await oneContent('meta[name="twitter:image:alt"]') === contract.social.alt, `${route} Twitter image alt text disagrees with the route contract`);
-      const jsonLdScripts = page.locator('script[type="application/ld+json"]');
-      check(await jsonLdScripts.count() === 1, `${route} must expose exactly one JSON-LD graph`);
-      if (await jsonLdScripts.count() === 1) {
-        try { check(JSON.stringify(JSON.parse(await jsonLdScripts.textContent())) === JSON.stringify(contract.structuredData), `${route} JSON-LD disagrees with the route contract`); }
-        catch (error) { failures.push(`${route} JSON-LD cannot be parsed: ${error.message}`); }
-      }
-      check(await page.locator('link[rel="icon"]').count() >= 1, `${route} lacks a favicon`);
-      const publicSurface = `${await page.content()}\n${JSON.stringify(contract)}`.toLowerCase();
-      for (const rejected of retiredPublicPhrases) check(!publicSurface.includes(rejected), `${route} contains retired public wording in rendered content, metadata, or route data: ${rejected}`);
-      if (contract.brandSlug === 'eso-weave') {
-        check((await page.locator('body').innerText()).includes(contract.vendorBoundary), `${route} does not visibly render the ESO Weave vendor boundary`);
-        check(await oneContent('meta[name="brand-vendor-boundary"]') === contract.vendorBoundary, `${route} omits the ESO Weave vendor-boundary metadata`);
-        const brandEntity = contract.structuredData['@graph'].find((item) => item['@type'] === 'Brand');
-        if (contract.kind === 'guidelines') check(brandEntity?.disambiguatingDescription === contract.vendorBoundary && brandEntity?.usageInfo === contract.vendorBoundaryUrl, `${route} omits the ESO Weave structured vendor boundary`);
-      }
-      if (contract.kind === 'docs-index' || contract.kind === 'docs-page') check(await page.locator('header a').filter({ hasText: /^Documentation$/ }).count() <= 1, `${route} repeats the documentation root in navigation at ${width}px`);
-      if (contract.kind === 'docs-page' && width === 1280) {
-        const record = documentationByPath.get(route);
-        check(Boolean(record), `${route} lacks generated documentation navigation metadata`);
-        if (record?.navigation.section === 'References') check(await page.locator('#nd-sidebar a[href="/docs/references/"][data-active="true"]').count() === 1, `${route} does not identify the standalone References page`);
-        else if (record) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: new RegExp(`^${record.navigation.section}$`) }).count() === 1, `${route} does not keep its ${record.navigation.section} parent identifiable and expanded`);
-      }
-      if (route === '/shruggietech/guidelines/overview/') {
-        check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
-      }
-      if (['guidelines', 'guidelines-topic', 'downloads'].includes(contract.kind)) {
-        const portal = portalBySlug.get(contract.brandSlug);
-        check(Boolean(portal), `${route} lacks a generated portal record`);
-        check(await page.locator('.guideline-page').count() === 1, `${route} lacks one guideline document`);
-        check(await page.locator('.guide-nav-title').count() >= 1, `${route} lacks the brand-specific guideline identity`);
-        if (width === 1280) check(await page.locator('#nd-sidebar a[data-active="true"], #nd-sidebar a[aria-current="page"]').count() >= 1, `${route} lacks an active desktop guideline topic`);
-        if (width === 1280 && ['logos', 'color', 'typography'].includes(contract.guideTopic)) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: /^Identity$/ }).count() === 1, `${route} does not keep its Identity parent identifiable and expanded`);
-        check(await page.locator('.guide-footer a[href="#guide-title"]').count() === 1, `${route} lacks a separate Back to top link`);
-        if (contract.guideTopic === 'overview' && width === 1280) {
-          check(await page.getByRole('heading', { name: 'Implementation authority' }).count() === 1, `${route} omits implementation authority`);
-          check(await page.getByRole('heading', { name: 'Versions and bindings' }).count() === 1, `${route} omits labeled versions`);
-          const factsPath = `/${contract.brandSlug}/facts/documentation.json`;
-          check(await page.locator(`a[href="${factsPath}"]`).count() === 1, `${route} omits the direct public facts link`);
-          const factsResponse = await page.request.get(base + factsPath);
-          check(factsResponse.ok() && JSON.stringify(await factsResponse.json()) === JSON.stringify(portal.implementation), `${route} public facts do not agree with the generated portal`);
-          const ruleExplanation = await page.locator('section[aria-labelledby="implementation-authority"]').innerText();
-          check(Object.keys(portal.implementation.rules.overrides).length ? ruleExplanation.includes('default reference') : ruleExplanation.includes('default values'), `${route} does not explain its default interface rules`);
-          const versionCells = await page.locator('section[aria-labelledby="versions-and-bindings"] .metric-list > div').evaluateAll((elements) => elements.map((element) => ({ top: element.getBoundingClientRect().top, valueBottom: element.querySelector('dd').getBoundingClientRect().bottom })));
-          const firstVersionRow = versionCells.filter((cell) => Math.abs(cell.top - versionCells[0].top) <= 1);
-          check(firstVersionRow.length >= 2 && Math.max(...firstVersionRow.map((cell) => cell.valueBottom)) - Math.min(...firstVersionRow.map((cell) => cell.valueBottom)) <= 1, `${route} version values lose row alignment`);
-        }
-        check(await page.locator('.guide-footer .guide-host-exit[href="/"]').count() === 1, `${route} lacks a separate All brands exit`);
-        check(await page.locator('.shell, .site-footer').count() === 0, `${route} leaks the marketing-site shell into the guideline portal`);
-        const bodyText = (await page.locator('body').innerText()).toLowerCase();
-        check(!bodyText.includes('we build comprehensive brands'), `${route} leaks host marketing copy into the guideline portal`);
-        if (contract.guideTopic === 'color') {
-          check(await page.locator('.color-row').count() === portal.palettes.dark.length + portal.palettes.light.length, `${route} does not render every dark and light palette entry`);
-          check(await page.getByRole('heading', { name: 'Dark palette' }).count() === 1 && await page.getByRole('heading', { name: 'Light palette' }).count() === 1, `${route} lacks independently grouped dark and light palettes`);
-          const copy = page.locator('.guide-copy').first();
-          const copySize = await copy.evaluate((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }));
-          check(copySize.width >= 44 && copySize.height >= 44, `${route} color copy target is smaller than 44px (${JSON.stringify(copySize)})`);
-          await copy.click();
-          const copyStatus = copy.locator('xpath=following-sibling::span[@data-copy-status][1]');
-          await copyStatus.waitFor({ state: 'attached' });
-          await page.waitForFunction((buttonLabel) => [...document.querySelectorAll('button')].find((button) => button.getAttribute('aria-label') === buttonLabel)?.nextElementSibling?.textContent?.startsWith('Copied '), await copy.getAttribute('aria-label'));
-          check((await copyStatus.textContent()).startsWith('Copied '), `${route} copy action did not announce success`);
-          await page.locator('.color-details').first().locator('summary').click();
-          check(await page.locator('.color-details[open]').count() === 1, `${route} cannot reveal one row's secondary color formats independently`);
-        }
-        if (contract.guideTopic === 'assets') {
-          check(await page.locator('.asset-tile').count() === portal.asset_families.reduce((total, family) => total + family.assets.length, 0), `${route} does not render every representative visual asset`);
-          check(await page.locator('.resource-list li').count() === portal.resources.length, `${route} does not render every nonvisual resource`);
-          const previewHeights = await page.locator('.asset-preview').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().height));
-          check(previewHeights.every((height) => height <= 193), `${route} contains an unbounded asset preview`);
-          const assetLinks = page.locator('a[data-kit-asset]');
-          const catalogHrefs = await assetLinks.evaluateAll((links) => links.map((link) => link.getAttribute('href')));
-          const expectedHrefs = [...portal.asset_families.flatMap((family) => family.assets.flatMap((asset) => asset.deliveries.map((delivery) => delivery.url))), ...portal.resources.map((resource) => resource.url)];
-          check(new Set(catalogHrefs).size === catalogHrefs.length, `${route} repeats a delivery path in the catalog`);
-          check(expectedHrefs.length === catalogHrefs.length && expectedHrefs.every((href) => catalogHrefs.includes(href)), `${route} catalog does not exactly cover its generated deliveries and resources`);
-          await page.getByLabel('Search assets').fill('no-such-brand-asset');
-          check(await page.locator('.asset-empty').count() === 1 && (await page.locator('.asset-count').textContent()).startsWith('0 '), `${route} lacks an honest empty result state`);
-          await page.getByRole('button', { name: 'Show all assets' }).click();
-          check(await page.locator('.asset-tile').count() > 0 && new URL(page.url()).search === '', `${route} reset does not restore the full library and clean URL`);
-        }
-        if (width === 1280) {
-          await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
-          const zoomOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-          check(zoomOverflow <= 1, `${route} overflows horizontally at 200 percent zoom by ${zoomOverflow}px`);
-          await page.evaluate(() => { document.documentElement.style.zoom = ''; });
-        }
-      }
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-      if (overflow > 1) {
-        const offenders = await page.evaluate(() => [...document.querySelectorAll('*')].filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 5).map((element) => `${element.tagName}.${element.className}`));
-        failures.push(`${route} overflows horizontally at ${width}px by ${overflow}px (${offenders.join(', ')})`);
-      }
-      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
-      for (const violation of results.violations) failures.push(`${route} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
-    }
+    for (const width of [360, 1280]) routeCases.push({ route, contract, width });
   }
+  const verifyRouteCase = async (page, { route, contract, width }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const response = await page.goto(base + route);
+    check(response?.status() === 200, `${route} returned ${response?.status()}`);
+    check(await page.title() === contract.documentTitle, `${route} title disagrees with the route contract`);
+    const oneContent = async (selector) => await page.locator(selector).count() === 1 ? await page.locator(selector).getAttribute('content') : null;
+    check(await oneContent('meta[name="description"]') === contract.description, `${route} description disagrees with the route contract`);
+    check(await page.locator('link[rel="canonical"]').count() === 1 && await page.locator('link[rel="canonical"]').getAttribute('href') === contract.canonical, `${route} canonical URL disagrees with the route contract`);
+    check(await oneContent('meta[property="og:title"]') === contract.documentTitle, `${route} Open Graph title disagrees with the route contract`);
+    check(await oneContent('meta[property="og:description"]') === contract.description, `${route} Open Graph description disagrees with the route contract`);
+    check(await oneContent('meta[property="og:url"]') === contract.canonical, `${route} Open Graph URL disagrees with the route contract`);
+    check(await oneContent('meta[property="og:image"]') === contract.social.url, `${route} Open Graph image disagrees with the route contract`);
+    check(await oneContent('meta[property="og:image:width"]') === String(contract.social.width), `${route} Open Graph image width disagrees with the route contract`);
+    check(await oneContent('meta[property="og:image:height"]') === String(contract.social.height), `${route} Open Graph image height disagrees with the route contract`);
+    check(await oneContent('meta[property="og:image:type"]') === contract.social.type, `${route} Open Graph image type disagrees with the route contract`);
+    check(await oneContent('meta[property="og:image:alt"]') === contract.social.alt, `${route} Open Graph image alt text disagrees with the route contract`);
+    check(await oneContent('meta[name="twitter:card"]') === 'summary_large_image', `${route} lacks the large Twitter card contract`);
+    check(await oneContent('meta[name="twitter:title"]') === contract.documentTitle, `${route} Twitter title disagrees with the route contract`);
+    check(await oneContent('meta[name="twitter:description"]') === contract.description, `${route} Twitter description disagrees with the route contract`);
+    check(await oneContent('meta[name="twitter:image"]') === contract.social.url, `${route} Twitter image disagrees with the route contract`);
+    check(await oneContent('meta[name="twitter:image:alt"]') === contract.social.alt, `${route} Twitter image alt text disagrees with the route contract`);
+    const jsonLdScripts = page.locator('script[type="application/ld+json"]');
+    check(await jsonLdScripts.count() === 1, `${route} must expose exactly one JSON-LD graph`);
+    if (await jsonLdScripts.count() === 1) {
+      try { check(JSON.stringify(JSON.parse(await jsonLdScripts.textContent())) === JSON.stringify(contract.structuredData), `${route} JSON-LD disagrees with the route contract`); }
+      catch (error) { failures.push(`${route} JSON-LD cannot be parsed: ${error.message}`); }
+    }
+    check(await page.locator('link[rel="icon"]').count() >= 1, `${route} lacks a favicon`);
+    const publicSurface = `${await page.content()}\n${JSON.stringify(contract)}`.toLowerCase();
+    for (const rejected of retiredPublicPhrases) check(!publicSurface.includes(rejected), `${route} contains retired public wording in rendered content, metadata, or route data: ${rejected}`);
+    if (contract.brandSlug === 'eso-weave') {
+      check((await page.locator('body').innerText()).includes(contract.vendorBoundary), `${route} does not visibly render the ESO Weave vendor boundary`);
+      check(await oneContent('meta[name="brand-vendor-boundary"]') === contract.vendorBoundary, `${route} omits the ESO Weave vendor-boundary metadata`);
+      const brandEntity = contract.structuredData['@graph'].find((item) => item['@type'] === 'Brand');
+      if (contract.kind === 'guidelines') check(brandEntity?.disambiguatingDescription === contract.vendorBoundary && brandEntity?.usageInfo === contract.vendorBoundaryUrl, `${route} omits the ESO Weave structured vendor boundary`);
+    }
+    if (contract.kind === 'docs-index' || contract.kind === 'docs-page') check(await page.locator('header a').filter({ hasText: /^Documentation$/ }).count() <= 1, `${route} repeats the documentation root in navigation at ${width}px`);
+    if (contract.kind === 'docs-page' && width === 1280) {
+      const record = documentationByPath.get(route);
+      check(Boolean(record), `${route} lacks generated documentation navigation metadata`);
+      if (record?.navigation.section === 'References') check(await page.locator('#nd-sidebar a[href="/docs/references/"][data-active="true"]').count() === 1, `${route} does not identify the standalone References page`);
+      else if (record) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: new RegExp(`^${record.navigation.section}$`) }).count() === 1, `${route} does not keep its ${record.navigation.section} parent identifiable and expanded`);
+    }
+    if (route === '/shruggietech/guidelines/overview/') {
+      check(!(await page.locator('body').innerText()).toLowerCase().includes('a shruggietech project'), `${route} contains a self-endorsement`);
+    }
+    if (['guidelines', 'guidelines-topic', 'downloads'].includes(contract.kind)) {
+      const portal = portalBySlug.get(contract.brandSlug);
+      check(Boolean(portal), `${route} lacks a generated portal record`);
+      check(await page.locator('.guideline-page').count() === 1, `${route} lacks one guideline document`);
+      check(await page.locator('.guide-nav-title').count() >= 1, `${route} lacks the brand-specific guideline identity`);
+      if (width === 1280) check(await page.locator('#nd-sidebar a[data-active="true"], #nd-sidebar a[aria-current="page"]').count() >= 1, `${route} lacks an active desktop guideline topic`);
+      if (width === 1280 && ['logos', 'color', 'typography'].includes(contract.guideTopic)) check(await page.locator('#nd-sidebar button[data-state="open"]').filter({ hasText: /^Identity$/ }).count() === 1, `${route} does not keep its Identity parent identifiable and expanded`);
+      check(await page.locator('.guide-footer a[href="#guide-title"]').count() === 1, `${route} lacks a separate Back to top link`);
+      if (contract.guideTopic === 'overview' && width === 1280) {
+        check(await page.getByRole('heading', { name: 'Implementation authority' }).count() === 1, `${route} omits implementation authority`);
+        check(await page.getByRole('heading', { name: 'Versions and bindings' }).count() === 1, `${route} omits labeled versions`);
+        const factsPath = `/${contract.brandSlug}/facts/documentation.json`;
+        check(await page.locator(`a[href="${factsPath}"]`).count() === 1, `${route} omits the direct public facts link`);
+        const factsResponse = await page.request.get(base + factsPath);
+        check(factsResponse.ok() && JSON.stringify(await factsResponse.json()) === JSON.stringify(portal.implementation), `${route} public facts do not agree with the generated portal`);
+        const ruleExplanation = await page.locator('section[aria-labelledby="implementation-authority"]').innerText();
+        check(Object.keys(portal.implementation.rules.overrides).length ? ruleExplanation.includes('default reference') : ruleExplanation.includes('default values'), `${route} does not explain its default interface rules`);
+        const versionCells = await page.locator('section[aria-labelledby="versions-and-bindings"] .metric-list > div').evaluateAll((elements) => elements.map((element) => ({ top: element.getBoundingClientRect().top, valueBottom: element.querySelector('dd').getBoundingClientRect().bottom })));
+        const firstVersionRow = versionCells.filter((cell) => Math.abs(cell.top - versionCells[0].top) <= 1);
+        check(firstVersionRow.length >= 2 && Math.max(...firstVersionRow.map((cell) => cell.valueBottom)) - Math.min(...firstVersionRow.map((cell) => cell.valueBottom)) <= 1, `${route} version values lose row alignment`);
+      }
+      check(await page.locator('.guide-footer .guide-host-exit[href="/"]').count() === 1, `${route} lacks a separate All brands exit`);
+      check(await page.locator('.shell, .site-footer').count() === 0, `${route} leaks the marketing-site shell into the guideline portal`);
+      const bodyText = (await page.locator('body').innerText()).toLowerCase();
+      check(!bodyText.includes('we build comprehensive brands'), `${route} leaks host marketing copy into the guideline portal`);
+      if (contract.guideTopic === 'color') {
+        check(await page.locator('.color-row').count() === portal.palettes.dark.length + portal.palettes.light.length, `${route} does not render every dark and light palette entry`);
+        check(await page.getByRole('heading', { name: 'Dark palette' }).count() === 1 && await page.getByRole('heading', { name: 'Light palette' }).count() === 1, `${route} lacks independently grouped dark and light palettes`);
+        const copy = page.locator('.guide-copy').first();
+        const copySize = await copy.evaluate((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height }));
+        check(copySize.width >= 44 && copySize.height >= 44, `${route} color copy target is smaller than 44px (${JSON.stringify(copySize)})`);
+        await copy.click();
+        const copyStatus = copy.locator('xpath=following-sibling::span[@data-copy-status][1]');
+        await copyStatus.waitFor({ state: 'attached' });
+        await page.waitForFunction((buttonLabel) => [...document.querySelectorAll('button')].find((button) => button.getAttribute('aria-label') === buttonLabel)?.nextElementSibling?.textContent?.startsWith('Copied '), await copy.getAttribute('aria-label'));
+        check((await copyStatus.textContent()).startsWith('Copied '), `${route} copy action did not announce success`);
+        await page.locator('.color-details').first().locator('summary').click();
+        check(await page.locator('.color-details[open]').count() === 1, `${route} cannot reveal one row's secondary color formats independently`);
+      }
+      if (contract.guideTopic === 'assets') {
+        check(await page.locator('.asset-tile').count() === portal.asset_families.reduce((total, family) => total + family.assets.length, 0), `${route} does not render every representative visual asset`);
+        check(await page.locator('.resource-list li').count() === portal.resources.length, `${route} does not render every nonvisual resource`);
+        const previewHeights = await page.locator('.asset-preview').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().height));
+        check(previewHeights.every((height) => height <= 193), `${route} contains an unbounded asset preview`);
+        const assetLinks = page.locator('a[data-kit-asset]');
+        const catalogHrefs = await assetLinks.evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+        const expectedHrefs = [...portal.asset_families.flatMap((family) => family.assets.flatMap((asset) => asset.deliveries.map((delivery) => delivery.url))), ...portal.resources.map((resource) => resource.url)];
+        check(new Set(catalogHrefs).size === catalogHrefs.length, `${route} repeats a delivery path in the catalog`);
+        check(expectedHrefs.length === catalogHrefs.length && expectedHrefs.every((href) => catalogHrefs.includes(href)), `${route} catalog does not exactly cover its generated deliveries and resources`);
+        await page.getByLabel('Search assets').fill('no-such-brand-asset');
+        check(await page.locator('.asset-empty').count() === 1 && (await page.locator('.asset-count').textContent()).startsWith('0 '), `${route} lacks an honest empty result state`);
+        await page.getByRole('button', { name: 'Show all assets' }).click();
+        check(await page.locator('.asset-tile').count() > 0 && new URL(page.url()).search === '', `${route} reset does not restore the full library and clean URL`);
+      }
+      if (width === 1280) {
+        await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+        const zoomOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        check(zoomOverflow <= 1, `${route} overflows horizontally at 200 percent zoom by ${zoomOverflow}px`);
+        await page.evaluate(() => { document.documentElement.style.zoom = ''; });
+      }
+    }
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    if (overflow > 1) {
+      const offenders = await page.evaluate(() => [...document.querySelectorAll('*')].filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 5).map((element) => `${element.tagName}.${element.className}`));
+      failures.push(`${route} overflows horizontally at ${width}px by ${overflow}px (${offenders.join(', ')})`);
+    }
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    for (const violation of results.violations) failures.push(`${route} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
+  };
+  const routeStart = performance.now();
+  const routePages = await Promise.all(Array.from({ length: 3 }, () => context.newPage()));
+  try {
+    await Promise.all(routePages.map(async (routePage, worker) => {
+      for (let index = worker; index < routeCases.length; index += routePages.length) {
+        await verifyRouteCase(routePage, routeCases[index]);
+      }
+    }));
+  } finally {
+    await Promise.all(routePages.map((routePage) => routePage.close()));
+  }
+  console.log(`completed ${routeCases.length} route and viewport checks in ${Math.round((performance.now() - routeStart) / 1000)}s with ${routePages.length} browser pages`);
   check(conformanceRoutes.length === conformanceRecords.length, 'public conformance route count differs from the generated brand inventory');
   for (const record of conformanceRecords) {
     const route = `/conformance/${record.slug}/`;
@@ -1095,43 +1109,55 @@ try {
     const disabled = await control.evaluate((element) => { const box = element.getBoundingClientRect(); const style = getComputedStyle(element); return { disabled: element.disabled, cursor: style.cursor, role: element.tagName.toLowerCase(), name: element.getAttribute('aria-label'), width: box.width, height: box.height }; });
     for (const problem of themeControlProblems(disabled)) failures.push(`documentation disabled theme control: ${problem} (${JSON.stringify(disabled)})`);
   }
-  const themeSurfaces = new Map();
-  for (const route of visualRoutes) {
-    for (const width of visualWidths) {
-      for (const theme of visualThemes) {
-        await page.setViewportSize({ width, height: 900 });
-        await page.goto(base + route);
-        await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
-        await page.reload({ waitUntil: 'networkidle' });
-        await page.waitForTimeout(350);
-        check(await page.locator('html').evaluate((element, selectedTheme) => element.classList.contains('dark') === (selectedTheme === 'dark'), theme), `${route} did not settle in the requested ${theme} theme`);
-        const brandRoute = ['guidelines', 'guidelines-topic', 'downloads'].includes(routeByPath.get(route)?.kind);
-        const surface = await page.evaluate((selectedBrandRoute) => { const element = selectedBrandRoute ? document.querySelector('.guideline-layout') : document.body; const style = getComputedStyle(element); return `${style.backgroundColor}|${style.color}`; }, brandRoute);
-        themeSurfaces.set(`${route}:${width}:${theme}`, surface);
-        if (brandRoute) {
-          const portal = portalBySlug.get(route.split('/')[1]);
-          check(await page.locator('.guideline-layout').getAttribute('data-guide-mode') === portal?.brand.surface_mode, `${route} does not use its declared brand guide mode at ${width}px`);
-          check(sameColor(surface.split('|')[0], portal.presentation.background), `${route} guide surface differs from its brand presentation at ${width}px (${surface})`);
-          check(await page.locator('.header-logo:visible').count() === 0, `${route} leaks the host ShruggieTech lockup into the brand-owned portal`);
-          check(await page.locator('.guide-nav-title').count() >= 1, `${route} lacks its brand-owned portal identity at ${width}px`);
-        } else {
-          const logo = page.locator('.header-logo:visible').first();
-          const logoBox = await logo.boundingBox();
-          check(Boolean(logoBox && logoBox.width >= 100 && logoBox.height >= 24), `${route} ${theme} header logo is not legible at ${width}px`);
-          const logoState = await logo.evaluate((element) => ({ complete: element.complete, naturalWidth: element.naturalWidth, naturalHeight: element.naturalHeight, path: new URL(element.src).pathname }));
-          check(logoState.complete && logoState.naturalWidth > 0 && logoState.naturalHeight > 0, `${route} ${theme} header logo did not load a decodable image at ${width}px`);
-          check(logoState.path === (theme === 'dark' ? '/shruggietech-logo-dark.svg' : '/shruggietech-logo-light.svg'), `${route} ${theme} uses the wrong visible ShruggieTech lockup`);
-        }
-        const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
-        for (const violation of results.violations) failures.push(`${route} in ${theme} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
-        const routeName = route === '/' ? 'home' : route.replace(/^\//, '').replace(/\/$/, '').replaceAll('/', '-');
-        const filename = `${routeName}-${theme}-${width}.png`;
-        await page.screenshot({ path: join(visualRoot, filename), fullPage: true });
+  const visualCases = visualRoutes.flatMap((route) => visualWidths.map((width) => ({ route, width })));
+  const verifyVisualCase = async (page, { route, width }) => {
+    const themeSurfaces = new Map();
+    for (const theme of visualThemes) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(base + route);
+      await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
+      await page.reload({ waitUntil: 'networkidle' });
+      await page.waitForTimeout(350);
+      check(await page.locator('html').evaluate((element, selectedTheme) => element.classList.contains('dark') === (selectedTheme === 'dark'), theme), `${route} did not settle in the requested ${theme} theme`);
+      const brandRoute = ['guidelines', 'guidelines-topic', 'downloads'].includes(routeByPath.get(route)?.kind);
+      const surface = await page.evaluate((selectedBrandRoute) => { const element = selectedBrandRoute ? document.querySelector('.guideline-layout') : document.body; const style = getComputedStyle(element); return `${style.backgroundColor}|${style.color}`; }, brandRoute);
+      themeSurfaces.set(`${route}:${width}:${theme}`, surface);
+      if (brandRoute) {
+        const portal = portalBySlug.get(route.split('/')[1]);
+        check(await page.locator('.guideline-layout').getAttribute('data-guide-mode') === portal?.brand.surface_mode, `${route} does not use its declared brand guide mode at ${width}px`);
+        check(sameColor(surface.split('|')[0], portal.presentation.background), `${route} guide surface differs from its brand presentation at ${width}px (${surface})`);
+        check(await page.locator('.header-logo:visible').count() === 0, `${route} leaks the host ShruggieTech lockup into the brand-owned portal`);
+        check(await page.locator('.guide-nav-title').count() >= 1, `${route} lacks its brand-owned portal identity at ${width}px`);
+      } else {
+        const logo = page.locator('.header-logo:visible').first();
+        const logoBox = await logo.boundingBox();
+        check(Boolean(logoBox && logoBox.width >= 100 && logoBox.height >= 24), `${route} ${theme} header logo is not legible at ${width}px`);
+        const logoState = await logo.evaluate((element) => ({ complete: element.complete, naturalWidth: element.naturalWidth, naturalHeight: element.naturalHeight, path: new URL(element.src).pathname }));
+        check(logoState.complete && logoState.naturalWidth > 0 && logoState.naturalHeight > 0, `${route} ${theme} header logo did not load a decodable image at ${width}px`);
+        check(logoState.path === (theme === 'dark' ? '/shruggietech-logo-dark.svg' : '/shruggietech-logo-light.svg'), `${route} ${theme} uses the wrong visible ShruggieTech lockup`);
       }
-      if (['guidelines', 'guidelines-topic', 'downloads'].includes(routeByPath.get(route)?.kind)) check(themeSurfaces.get(`${route}:${width}:light`) === themeSurfaces.get(`${route}:${width}:dark`), `${route} brand presentation changes with the host theme at ${width}px`);
-      else check(themeSurfaces.get(`${route}:${width}:light`) !== themeSurfaces.get(`${route}:${width}:dark`), `${route} light and dark themes resolve to the same surface at ${width}px`);
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+      for (const violation of results.violations) failures.push(`${route} in ${theme} at ${width}px fails ${violation.id}: ${violation.nodes.map((node) => `${node.target.join(' ')} (${node.failureSummary ?? 'no contrast detail'})`).join(', ')}`);
+      const routeName = route === '/' ? 'home' : route.replace(/^\//, '').replace(/\/$/, '').replaceAll('/', '-');
+      const filename = `${routeName}-${theme}-${width}.png`;
+      await page.screenshot({ path: join(visualRoot, filename), fullPage: true });
     }
+    if (['guidelines', 'guidelines-topic', 'downloads'].includes(routeByPath.get(route)?.kind)) check(themeSurfaces.get(`${route}:${width}:light`) === themeSurfaces.get(`${route}:${width}:dark`), `${route} brand presentation changes with the host theme at ${width}px`);
+    else check(themeSurfaces.get(`${route}:${width}:light`) !== themeSurfaces.get(`${route}:${width}:dark`), `${route} light and dark themes resolve to the same surface at ${width}px`);
+  };
+  const visualStart = performance.now();
+  const visualContexts = await Promise.all(Array.from({ length: 3 }, () => browser.newContext({ viewport: { width: 1280, height: 900 } })));
+  try {
+    const visualPages = await Promise.all(visualContexts.map((visualContext) => visualContext.newPage()));
+    await Promise.all(visualPages.map(async (visualPage, worker) => {
+      for (let index = worker; index < visualCases.length; index += visualPages.length) {
+        await verifyVisualCase(visualPage, visualCases[index]);
+      }
+    }));
+  } finally {
+    await Promise.all(visualContexts.map((visualContext) => visualContext.close()));
   }
+  console.log(`completed ${visualCases.length} visual route and viewport checks across ${visualThemes.length} themes in ${Math.round((performance.now() - visualStart) / 1000)}s`);
   await page.setViewportSize({ width: 1280, height: 900 });
   for (const route of tableRoutes) { await page.goto(base + route); check(await page.locator('table').count() > 0, `${route} does not render its Markdown table semantically`); }
   const portableGuideRoute = '/i-heart-pr-tours/downloads/files/i-heart-pr-tours-portable-guidelines.html';
