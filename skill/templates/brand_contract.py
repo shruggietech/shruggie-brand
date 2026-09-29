@@ -67,7 +67,9 @@ def derivative_configuration_sha256(brand):
 def social_copy(brand):
     """Return the explicitly approved words for the generated social image."""
     value = brand.get("social_copy")
-    _require(isinstance(value, dict) and set(value) == {"slogan", "layout", "description_lines", "approval"},
+    required = {"slogan", "layout", "description_lines", "approval"}
+    _require(isinstance(value, dict) and required <= set(value)
+             and set(value) <= required | {"composition"},
              "social_copy must declare slogan, layout, description_lines, and approval")
     slogan = value["slogan"]
     _require(isinstance(slogan, str) and slogan.strip() == slogan and slogan,
@@ -82,6 +84,11 @@ def social_copy(brand):
              "social_copy.description_lines are invalid")
     _require((not lines) if layout == "slogan-only" else bool(lines),
              "social_copy description lines disagree with selected layout")
+    composition = value.get("composition", "classic")
+    _require(composition in {"classic", "centered-single-line"},
+             "social_copy.composition is invalid")
+    _require(composition != "centered-single-line" or layout == "slogan-only",
+             "social_copy centered-single-line composition requires slogan-only layout")
     _require(len(lines) <= 3, "social_copy.description_lines cannot fit more than three lines")
     approval = value["approval"]
     _require(isinstance(approval, dict) and set(approval) == {"approved_by", "approved_on", "source"},

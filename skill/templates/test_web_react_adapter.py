@@ -25,6 +25,16 @@ class WebReactAdapterTests(unittest.TestCase):
         generate_web_react(kit / "brand.json", kit)
         return kit
 
+    def test_local_companion_cues_follow_system_ink_in_forced_colors(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "local-companion"
+            kit.mkdir()
+            shutil.copy2(ROOT / "brands" / "local-companion" / "brand.json", kit / "brand.json")
+            generate_web_react(kit / "brand.json", kit)
+            css = (kit / "web" / "components.css").read_text(encoding="utf-8")
+            self.assertIn(".bb-status-badge[data-status=success] { color: var(--bb-cue-success); }", css)
+            self.assertIn("@media (forced-colors: active) { .bb-status-badge[data-status], .bb-toast[data-variant] { color: CanvasText; } }", css)
+
     def test_output_is_deterministic_complete_and_server_safe(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = self.generate(temporary)

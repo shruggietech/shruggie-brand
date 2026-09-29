@@ -1297,6 +1297,17 @@ class SocialCopyTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "more than three lines"):
             social_copy(brand)
 
+    def test_centered_social_composition_is_explicit_and_single_line(self):
+        brand = {"social_copy": {"slogan": "Chosen", "layout": "slogan-only",
+                                 "description_lines": [], "composition": "centered-single-line",
+                                 "approval": {"approved_by": "owner", "approved_on": "2026-09-28",
+                                              "source": "decision"}}}
+        self.assertEqual("centered-single-line", social_copy(brand)["composition"])
+        brand["social_copy"]["layout"] = "slogan-description"
+        brand["social_copy"]["description_lines"] = ["Another line"]
+        with self.assertRaisesRegex(ContractError, "requires slogan-only"):
+            social_copy(brand)
+
     def test_social_image_approval_rejects_missing_and_changed_artifacts(self):
         brand = {"slug": "example"}
         with self.assertRaisesRegex(ContractError, "social_image_approval"):

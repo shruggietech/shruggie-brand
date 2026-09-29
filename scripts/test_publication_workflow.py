@@ -26,6 +26,7 @@ PRODUCTION = (
     "glitchpad",
     "go-schedule",
     "i-heart-pr-tours",
+    "local-companion",
     "shruggietech",
 )
 EXPECTED_ACTIONS = {
@@ -278,8 +279,8 @@ class PublicationArtifactAuditTests(unittest.TestCase):
             root = Path(tmp)
             kits, site = create_publication_trees(root)
             result = audit_publication_artifacts.audit(root, kits, site)
-            self.assertEqual(8, result["kit_markers"])
-            self.assertEqual(8, result["site_markers"])
+            self.assertEqual(9, result["kit_markers"])
+            self.assertEqual(9, result["site_markers"])
 
     def test_symlink_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:

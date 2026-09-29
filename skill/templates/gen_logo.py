@@ -899,12 +899,16 @@ def main():
         if not os.path.isfile(horizontal):
             raise ValueError("approved horizontal color lockup is required for a social image")
         lockup_width, lockup_height = _image_dimensions(pathlib.Path(horizontal))
-        lockup_scale = min(1080.0 / lockup_width, 320.0 / lockup_height)
+        centered_single_line = copy.get("composition") == "centered-single-line"
+        lockup_scale = min((1020.0 if centered_single_line else 1080.0) / lockup_width,
+                           (280.0 if centered_single_line else 320.0) / lockup_height)
         shown_width, shown_height = lockup_width * lockup_scale, lockup_height * lockup_scale
-        lockup_x, lockup_y = (1280.0 - shown_width) / 2.0, 70.0 + (320.0 - shown_height) / 2.0
+        lockup_x = (1280.0 - shown_width) / 2.0
+        lockup_y = 205.0 if centered_single_line else 70.0 + (320.0 - shown_height) / 2.0
         with open(horizontal, encoding="utf-8") as handle:
             lockup_markup = handle.read()
-        lines = [(copy["slogan"], 430.0, 60)]
+        lines = [(copy["slogan"], 410.0 if centered_single_line else 430.0,
+                  48 if centered_single_line else 60)]
         lines.extend((line, 515.0 + index * 42.0, 34)
                      for index, line in enumerate(copy["description_lines"]))
         text_shapes = []

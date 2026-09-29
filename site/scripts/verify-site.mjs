@@ -484,9 +484,9 @@ try {
   const portfolioAction = page.locator('.hero-portfolio-link');
   const portfolioSpacing = await portfolioAction.evaluate((element) => { const previous = element.previousElementSibling; const link = element.getBoundingClientRect(); const prior = previous?.getBoundingClientRect(); const cue = element.querySelector('[aria-hidden="true"]'); const cueBox = cue?.getBoundingClientRect(); return { gap: prior ? link.top - prior.bottom : 0, linkCenter: link.top + link.height / 2, cueCenter: cueBox ? cueBox.top + cueBox.height / 2 : 0, cue: cue?.textContent, hidden: cue?.getAttribute('aria-hidden') }; });
   check(portfolioSpacing.gap >= 20 && Math.abs(portfolioSpacing.linkCenter - portfolioSpacing.cueCenter) <= 1 && portfolioSpacing.cue === '↓' && portfolioSpacing.hidden === 'true', `homepage portfolio supporting action spacing or cue alignment failed (${JSON.stringify(portfolioSpacing)})`);
-  check(await page.locator('.brand-card').count() === 8, 'homepage must render exactly eight desktop brand cards');
-  check(await page.locator('.brand-accordion').count() === 8, 'homepage must render exactly eight mobile brand disclosures');
-  check(await page.locator('.brand-card a').count() === 16, 'desktop cards must expose exactly two actions per brand');
+  check(await page.locator('.brand-card').count() === brands.length, 'homepage desktop brand card count differs from inventory');
+  check(await page.locator('.brand-accordion').count() === brands.length, 'homepage mobile disclosure count differs from inventory');
+  check(await page.locator('.brand-card a').count() === brands.length * 2, 'desktop cards must expose exactly two actions per brand');
   let darkPortfolioPresentation;
   for (const theme of ['dark', 'light']) {
     await page.evaluate((selectedTheme) => localStorage.setItem('theme', selectedTheme), theme);
@@ -496,7 +496,7 @@ try {
       const style = getComputedStyle(element); const title = element.querySelector('h3, .mobile-brand-title'); const description = element.querySelector('.brand-card-description, .brand-accordion-panel > p'); const action = element.querySelector('.brand-actions a');
       return { surface: element.getAttribute('data-portfolio-surface'), backgroundColor: style.backgroundColor, backgroundImage: style.backgroundImage, color: style.color, titleColor: title ? getComputedStyle(title).color : null, descriptionColor: description ? getComputedStyle(description).color : null, actionColor: action ? getComputedStyle(action).color : null };
     }));
-    check(presentation.length === 16 && presentation.every((sample, index) => {
+    check(presentation.length === brands.length * 2 && presentation.every((sample, index) => {
       const brand = brands[index % brands.length];
       return sample.surface === 'governed-dark' && sample.backgroundImage === 'none' && sameColor(sample.backgroundColor, brand.portfolioSurface) && [sample.color, sample.titleColor, sample.descriptionColor, sample.actionColor].every((color) => isWhiteColor(color) && contrastRatio(color, sample.backgroundColor) >= 4.5);
     }), `homepage ${theme} portfolio surface or copy violates the dark-card contract (${JSON.stringify(presentation)})`);
@@ -871,7 +871,7 @@ try {
   const noScriptContext = await browser.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });
   const noScriptPage = await noScriptContext.newPage();
   await noScriptPage.goto(base + '/');
-  check(await noScriptPage.locator('.brand-card a').count() === 16 && await noScriptPage.locator('.brand-card a').first().isVisible() && await noScriptPage.locator('.brand-accordion summary').count() === 8, 'no-script homepage does not retain visible guidelines, downloads, and disclosures');
+  check(await noScriptPage.locator('.brand-card a').count() === brands.length * 2 && await noScriptPage.locator('.brand-card a').first().isVisible() && await noScriptPage.locator('.brand-accordion summary').count() === brands.length, 'no-script homepage does not retain visible guidelines, downloads, and disclosures');
   await noScriptPage.goto(base + '/glitchpad/guidelines/assets/');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a').count() === portalBySlug.get('glitchpad')?.topics.length, 'no-script guideline fallback does not expose the complete navigation hierarchy');
   check(await noScriptPage.locator('.hierarchy-noscript-nav a[aria-current="page"]').count() === 1, 'no-script guideline fallback does not identify the current topic');

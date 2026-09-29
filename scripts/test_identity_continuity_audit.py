@@ -5,17 +5,21 @@ from __future__ import annotations
 
 import copy
 import json
+import shutil
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "skill" / "templates"))
 
-from audit_identity_continuity import BRAND_CLASSES, build_record, compare_brand_state, discover_brands
+from audit_identity_continuity import (BRAND_CLASSES, MIGRATION_BASELINE_REVISION, audit,
+                                       build_record, compare_brand_state, compare_historical_identity,
+                                       discover_brands)
 from identity_continuity import validate_brand_continuity
 
 
@@ -26,6 +30,7 @@ class IdentityContinuityAuditTests(unittest.TestCase):
         self.assertEqual("legacy-constructed", BRAND_CLASSES["covarity"])
         self.assertEqual("authoritative", BRAND_CLASSES["eso-weave"])
         self.assertEqual("authoritative", BRAND_CLASSES["i-heart-pr-tours"])
+        self.assertEqual("glyphkit-constructed", BRAND_CLASSES["local-companion"])
 
     def test_historical_record_is_revision_bound_without_fake_approval(self):
         source = ROOT / "brands" / "cueson"
@@ -57,6 +62,43 @@ class IdentityContinuityAuditTests(unittest.TestCase):
             brand = json.loads((source / "brand.json").read_text(encoding="utf-8"))
             validate_brand_continuity(brand, source)
         self.assertEqual([], missing)
+
+    def test_check_mode_preserves_historical_identity_after_nonidentity_updates(self):
+        report = audit(MIGRATION_BASELINE_REVISION, write=False)
+        self.assertEqual([], report["problems"])
+        preservation = {item["brand"]: item["preservation"] for item in report["brands"]}
+        self.assertEqual("baseline-preserved", preservation["cueson"])
+        self.assertEqual("baseline-preserved", preservation["go-schedule"])
+        self.assertEqual("new-approved-source", preservation["local-companion"])
+
+    def test_check_mode_rejects_rewritten_historical_identity_and_record(self):
+        for change, expected in (("palette", "palette"), ("geometry", "geometry")):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as temporary:
+                source = Path(temporary) / "cueson"
+                shutil.copytree(ROOT / "brands" / "cueson", source)
+                brand_path = source / "brand.json"
+                brand = json.loads(brand_path.read_text(encoding="utf-8"))
+                if change == "palette":
+                    brand["accent"]["bright"] = "#FFFFFF"
+                else:
+                    brand["logo"]["paths"]["full"][0]["d"] += " m1 0"
+                with brand_path.open("w", encoding="utf-8", newline="\n") as handle:
+                    handle.write(json.dumps(brand, indent=2) + "\n")
+                record = build_record(source, brand, BRAND_CLASSES["cueson"], MIGRATION_BASELINE_REVISION, "2026-09-09")
+                with (source / "identity-continuity.json").open("w", encoding="utf-8", newline="\n") as handle:
+                    handle.write(json.dumps(record, indent=2) + "\n")
+                brands = discover_brands(ROOT)
+                brands["cueson"] = source
+                with mock.patch("audit_identity_continuity.discover_brands", return_value=brands):
+                    report = audit(MIGRATION_BASELINE_REVISION, write=False)
+                self.assertIn("cueson: %s changed" % expected, report["problems"])
+
+    def test_approved_shruggietech_baseline_rejects_later_framing_drift(self):
+        brand = json.loads((ROOT / "brands" / "shruggietech" / "brand.json").read_text(encoding="utf-8"))
+        self.assertEqual([], compare_historical_identity("shruggietech", MIGRATION_BASELINE_REVISION, brand))
+        brand["logo"]["reduced_viewbox"][0] += 1
+        self.assertIn("derivative_settings changed", compare_historical_identity(
+            "shruggietech", MIGRATION_BASELINE_REVISION, brand))
 
 
 if __name__ == "__main__":
