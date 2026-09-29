@@ -256,6 +256,44 @@ class PipelineTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "escapes staged kit"):
                 self.build_image_specimen(brand_path)
 
+    def test_png_backed_svg_specimen_renders_visible_source_pixels_and_detects_drift(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "specimen-image-fixture"
+            brand_path, source = self.image_specimen_fixture(kit)
+            pixels = BytesIO()
+            image = Image.new("RGBA", (100, 100), (0, 0, 0, 0))
+            for y in range(25, 75):
+                for x in range(25, 75):
+                    image.putpixel((x, y), (237, 27, 36, 255))
+            image.save(pixels, format="PNG")
+            source.write_text(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">'
+                '<rect width="100" height="100" fill="#000000"/>'
+                '<image width="100" height="100" href="data:image/png;base64,%s"/></svg>\n'
+                % base64.b64encode(pixels.getvalue()).decode("ascii"), encoding="utf-8")
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["surfaces"]["base"] = "#000000"
+            brand["authoritative_inputs"][0]["sha256"] = sha256_file(source)
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+            specimen = self.build_image_specimen(brand_path)
+            root = verify.ET.parse(str(specimen)).getroot()
+            mark = next(node for node in root.iter() if node.get("id") == "specimen-mark")
+            embedded = next(node for node in mark.iter() if node.tag.rsplit("}", 1)[-1] == "image")
+            self.assertTrue(embedded.get("href").startswith("data:image/png;base64,"))
+            self.write_probe(kit)
+            report = verify.Report()
+            verify.c_specimen(str(kit), brand, report)
+            self.assertFalse(report.problems, report.problems)
+            blank = BytesIO()
+            Image.new("RGBA", (100, 100), (0, 0, 0, 255)).save(blank, format="PNG")
+            wrong = "data:image/png;base64," + base64.b64encode(blank.getvalue()).decode("ascii")
+            embedded.set("href", wrong)
+            embedded.set("{http://www.w3.org/1999/xlink}href", wrong)
+            verify.ET.ElementTree(root).write(str(specimen), encoding="unicode")
+            report = verify.Report()
+            verify.c_specimen(str(kit), brand, report)
+            self.assertTrue(any("flattened pixels differ" in problem for problem in report.problems), report.problems)
+
     def test_image_specimen_prefers_an_approved_supplied_horizontal_lockup(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary) / "specimen-image-fixture"
@@ -297,10 +335,27 @@ class PipelineTests(unittest.TestCase):
             image = next(node for node in root.iter() if node.tag.rsplit("}", 1)[-1] == "image")
             payload = base64.b64decode(image.get("href").split(",", 1)[1], validate=True)
             source = kit / "assets" / "source" / "horizontal_darkbg.svg"
-            self.assertEqual(source.read_bytes(), payload)
+            self.assertEqual(sha256_file(source), image.get("data-source-sha256"))
+            self.assertTrue(image.get("href").startswith("data:image/png;base64,"))
+            expected = kit / "expected-wide.png"
+            gen_logo.raster(["-w", str(gen_logo._image_dimensions(source)[0]), str(source), "-o", str(expected)])
+            with Image.open(expected) as rendered, Image.open(BytesIO(payload)) as embedded:
+                self.assertEqual(rendered.size, embedded.size)
+                self.assertEqual(rendered.convert("RGBA").tobytes(), embedded.convert("RGBA").tobytes())
             self.assertEqual(("39", "95.625", "297", "183.75"), tuple(
                 image.get(name) for name in ("x", "y", "width", "height")
             ))
+
+    def test_wrapped_social_tagline_fits_inside_the_logo_width(self):
+        lines = ["Expert alignments, tire repair,", "and honest automotive service."]
+        layout = gen_logo.wrapped_social_slogan_lines(
+            lines, ROOT / "assets" / "fonts" / "ttf" / "SourceSans3-SemiBold.ttf", 580.0)
+        self.assertEqual(2, len(layout))
+        self.assertTrue(all(item["width"] * item["scale"] <= 580.0 * 0.82 + 0.01
+                            for item in layout))
+        self.assertTrue(all(item["top"] + item["height"] * item["scale"] <= 640.0
+                            for item in layout))
+        self.assertGreater(layout[1]["top"], layout[0]["top"] + layout[0]["height"] * layout[0]["scale"])
 
     def test_specimen_rendered_mark_gate_rejects_invisible_pixels(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -1435,6 +1490,12 @@ class PipelineTests(unittest.TestCase):
             self.assertNotIn("A ShruggieTech project", generated)
             self.assertIn("Brand system by ShruggieTech", generated)
             manifest = json.loads((kit / "manifest.json").read_text(encoding="utf-8"))
+            shipped_verification = (kit / "VERIFY.md").read_bytes()
+            verified_again = subprocess.run([sys.executable, str(HERE / "verify.py"), str(kit)],
+                                            cwd=ROOT, capture_output=True, text=True,
+                                            **hidden_process_kwargs())
+            self.assertEqual(0, verified_again.returncode, verified_again.stdout + verified_again.stderr)
+            self.assertEqual(shipped_verification, (kit / "VERIFY.md").read_bytes())
             self.assertIsNone(manifest["parent"])
             self.assertEqual("third-party", manifest["affiliation"]["ownership"])
             fonts_ts = (kit / "nextjs" / "fonts.ts").read_text(encoding="utf-8")
@@ -2379,7 +2440,7 @@ class PipelineTests(unittest.TestCase):
             taskbar_frame = verify._expected_authoritative_icon(
                 {"source_variant": "reduced", "width": 16, "role": "classic-ico", "appearance": "default"},
                 {"reduced": exemplar}, profile)
-            self.assertEqual(255, web_frame.getpixel((0, 0))[3])
+            self.assertEqual(0, web_frame.getpixel((0, 0))[3])
             self.assertEqual(0, taskbar_frame.getpixel((0, 0))[3])
             problems = []
             verify._validate_web_manifest(str(kit), problems)

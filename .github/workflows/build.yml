@@ -81,6 +81,11 @@ jobs:
           npm install --prefix skill/templates --no-save --no-package-lock @resvg/resvg-js@2.6.2
       - name: Export exact approved identity evidence
         run: python scripts/export_approved_identity_proofs.py brands/i-heart-pr-tours dist/ci-approved-proofs/i-heart-pr-tours
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 26.5.0
+      - name: Export Scruggs approved identity evidence
+        run: python scripts/export_approved_identity_proofs.py brands/scruggs-tire-alignment dist/ci-approved-proofs/scruggs-tire-alignment
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
           name: approved-identity-proofs-${{ github.sha }}
@@ -162,8 +167,15 @@ jobs:
           python scripts/check_markdown.py
       - name: Probe capabilities
         run: python skill/templates/probe.py
-      - name: Build and verify every kit
-        run: python scripts/build_all.py
+      - name: Build and verify kits approved with Node 24
+        run: python scripts/build_all.py --exclude scruggs-tire-alignment
+        env:
+          GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 26.5.0
+      - name: Build and verify Scruggs with its approved renderer
+        run: python scripts/build_all.py scruggs-tire-alignment
         env:
           GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
       - name: Install audited WordPress fixture runner

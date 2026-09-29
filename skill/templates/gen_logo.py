@@ -291,6 +291,26 @@ def wordmark_outline(text, ttf, size=200, x_offset=0.0):
     return " ".join(commands), advance * scale
 
 
+def wrapped_social_slogan_lines(lines, font_path, logo_width):
+    """Outline approved line breaks at a common scale within the displayed logo width."""
+    prepared = []
+    for value in lines:
+        outline, _ = wordmark_outline(value, str(font_path), 54)
+        bounds = tuple(float(part) for part in Path(outline).bbox())
+        width, height = bounds[2] - bounds[0], bounds[3] - bounds[1]
+        if width <= 0 or height <= 0:
+            raise ValueError("approved social slogan line has no visible outline")
+        prepared.append({"outline": outline, "bounds": bounds, "width": width, "height": height})
+    scale = min(1.0, logo_width * 0.82 / max(item["width"] for item in prepared))
+    step = max(60.0, max(item["height"] for item in prepared) * scale + 20.0)
+    for index, item in enumerate(prepared):
+        item["scale"] = scale
+        item["top"] = 430.0 + index * step
+        if item["top"] + item["height"] * scale > 640.0:
+            raise ValueError("approved social slogan lines exceed the 640-pixel canvas")
+    return prepared
+
+
 def main():
     spec_path, kit = sys.argv[1], sys.argv[2]
     options = sys.argv[3:]
@@ -860,10 +880,23 @@ def main():
         lockup_x, lockup_y = (1280.0 - shown_width) / 2.0, 70.0 + (320.0 - shown_height) / 2.0
         with open(horizontal, encoding="utf-8") as handle:
             lockup_markup = handle.read()
-        lines = [(copy["slogan"], 430.0, 60)]
-        lines.extend((line, 515.0 + index * 42.0, 34)
-                     for index, line in enumerate(copy["description_lines"]))
         text_shapes = []
+        if "slogan_lines" in copy:
+            face, _ = font_face_path(brand, kit, "body", max(families["body"]["weights"]), outline=True)
+            wrapped = wrapped_social_slogan_lines(copy["slogan_lines"], face, shown_width)
+            for item in wrapped:
+                bounds, scale, top = item["bounds"], item["scale"], item["top"]
+                center_x = 640.0 - (bounds[0] + bounds[2]) * scale / 2.0
+                baseline_y = top - bounds[1] * scale
+                text_shapes.append('  <path d="%s" fill="#F5F5F5" transform="translate(%g,%g) scale(%g)"/>'
+                                   % (item["outline"], center_x, baseline_y, scale))
+            description_top = max(515.0, wrapped[-1]["top"] + wrapped[-1]["height"] * wrapped[-1]["scale"] + 28.0)
+            lines = [(line, description_top + index * 42.0, 34)
+                     for index, line in enumerate(copy["description_lines"])]
+        else:
+            lines = [(copy["slogan"], 430.0, 60)]
+            lines.extend((line, 515.0 + index * 42.0, 34)
+                         for index, line in enumerate(copy["description_lines"]))
         for value, top, size in lines:
             face, _ = font_face_path(brand, kit, "display", min(families["display"]["weights"]), outline=True)
             outline, _ = wordmark_outline(value, str(face), size)

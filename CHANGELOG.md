@@ -4,6 +4,26 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Added
+
+- Added the approved, source-bound Scruggs Tire & Alignment client brand and its exact two-line social tagline to the standard brand contract and public site.
+- Allowed an optional exact social slogan wrap that fits within the visible logo width.
+
+### Changed
+
+- Routed Scruggs identity proof export and kit generation through its approved Node 26.5.0 renderer while existing brands retain Node 24.11.0 in CI.
+- Let portfolio cards grow beyond their 20rem minimum when a longer brand title or enlarged text needs room.
+
+### Fixed
+
+- Verified raster-backed source artwork in icon, specimen, and favicon output; preserved the source-backed specimen pixels; decoded escaped client affiliation notices; measured dark muted text on its actual fill; and closed guide image reads.
+- Kept standalone verifier reruns from rewriting the checksum-bound shipped `VERIFY.md`; the builder continues to write it explicitly before sealing the final manifest.
+- Declared the WordPress runtime fixture's `axe-core` dependency directly so its accessibility check works with strict pnpm installs.
+
+### Decisions
+
+- On 2026-09-29, retained the exact approved Scruggs Node 26.5.0 renderer binding for identity proof export and kit generation while leaving the other brands on Node 24.11.0. The approved social tagline is a source-bound optional field in the existing brand schema; the supplied client archive does not define generator structure.
+
 ## [2.7.0] - 2026-09-27
 
 ### Added

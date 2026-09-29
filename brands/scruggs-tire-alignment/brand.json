@@ -1,0 +1,549 @@
+{
+  "slug": "scruggs-tire-alignment",
+  "wordmark_text": "Scruggs Tire & Alignment",
+  "typography": {
+    "mode": "fixed",
+    "families": {
+      "display": {
+        "name": "Poppins",
+        "weights": [
+          700
+        ]
+      },
+      "body": {
+        "name": "Source Sans 3",
+        "weights": [
+          400,
+          600
+        ]
+      },
+      "mono": {
+        "name": "Courier Prime",
+        "weights": [
+          400
+        ]
+      }
+    },
+    "faces": [
+      {
+        "role": "display",
+        "path": "fonts/ttf/Poppins-Bold.ttf",
+        "weight": 700,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "7219547ee25334cbac0fe4b3acf0bf631e48ebb622c71af038edaaa652c60875",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied Poppins.zip",
+        "usage_status": "approved"
+      },
+      {
+        "role": "body",
+        "path": "fonts/ttf/SourceSans3-Regular.ttf",
+        "weight": 400,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "393fb5b878ceed04aebc34b097e853ae5138c51d0c34b496ce8e2b47e0d0b94a",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied Source_Sans_3.zip",
+        "usage_status": "approved"
+      },
+      {
+        "role": "body",
+        "path": "fonts/ttf/SourceSans3-SemiBold.ttf",
+        "weight": 600,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "bd2550fce2d295b0bf20bd8b1b7f1477da834f1066bd850aafdb4787a67a63ca",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied Source_Sans_3.zip",
+        "usage_status": "approved"
+      },
+      {
+        "role": "mono",
+        "path": "fonts/ttf/CourierPrime-Regular.ttf",
+        "weight": 400,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "b4da920fa50d874bce2cab0517e4732384a6eef8fe7e1e653d2befcb8aac1aa6",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied Courier_Prime.zip",
+        "usage_status": "approved"
+      }
+    ]
+  },
+  "affiliation": {
+    "ownership": "third-party",
+    "showcase": "public",
+    "parent": null,
+    "inheritance": "independent",
+    "endorsement": "none",
+    "service_credit": "none"
+  },
+  "accent": {
+    "bright": "#ED1B24",
+    "deep": "#7D0B13",
+    "accessible": "#7D0B13",
+    "dim": "#C0C0C0"
+  },
+  "semantic_colors": {
+    "emphasis": "#ED1B24",
+    "action": "#7D0B13"
+  },
+  "surfaces": {
+    "base": "#000000",
+    "card": "#414141",
+    "popover": "#414141",
+    "secondary": "#5F5F5F",
+    "hover": "#7D0B13"
+  },
+  "legacy_palette": [
+    "#ED1B24",
+    "#7D0B13",
+    "#000000",
+    "#FFFFFF",
+    "#414141"
+  ],
+  "approval_ledger": {
+    "source_hashes": {
+      "full-clear-square-candidate": "9fda1a0c266af644c1e5727e8c5ddc1af8361983cc67ffdf74050f0b9fe6e4e6",
+      "full-white-square-candidate": "4c1e15521370be928ced3584bed2875db1062e0d2536df916b51d6888b5a2191",
+      "full-dark-square-candidate": "2ea434a6cd8b4a3d16d51255e0eb557f2bd367e8451bd7a74db9765027fab03f",
+      "full-clear-native-candidate": "6eba6bc68024acf256d64a554aaed5a45dc9706b16066ea24865a5571fec4428",
+      "full-white-native-candidate": "ccdeeaee75e6fbafa5a2d0d7917891c6cf27bd64b73ec8e38ac5304c6a3269f6",
+      "full-dark-native-candidate": "9d6725d244b58b88734094c0c2659b89e9c6ccd10cf89bdd056385b2158ab040",
+      "reduced-original-candidate": "358cd2ab99034d89935be7e1eb1b5df59c01afb0defda204203a9ff47439601b"
+    },
+    "gate_1": {
+      "status": "approved",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-29",
+      "scope": [
+        "reduced-and-platform",
+        "horizontal-lockup",
+        "stacked-lockup",
+        "single-ink"
+      ],
+      "unavailable_derivatives": {
+        "wordmark-only": "No standalone approved wordmark source exists; the supplied lockup contains the lettering."
+      },
+      "derivative_config_sha256": "7e7ab1e9b13d7c14108d7fed5ad30d73b16ea48a6967d5556d03c46c98a79b0f",
+      "canonical_source_sha256": "2ee8452bd60e1fbc5428000f0042e3a43ac7a28bf174f3f7f5e2ed70c62df26b"
+    },
+    "gate_2": {
+      "status": "approved",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-29",
+      "derivative_manifest_sha256": "c1f91879f83fc36b637c55e72dbc41b07672b090b142251769f1fc78226d42f2",
+      "surfaces": [
+        "showcase-card",
+        "brand-landing-page",
+        "guideline-topics",
+        "downloads",
+        "registry-endpoints",
+        "public-metadata",
+        "structured-data",
+        "social-preview"
+      ]
+    }
+  },
+  "authoritative_inputs": [
+    {
+      "id": "full-clear-square-candidate",
+      "role": "mark",
+      "path": "assets/source/full-clear-square.svg",
+      "format": "svg",
+      "sha256": "9fda1a0c266af644c1e5727e8c5ddc1af8361983cc67ffdf74050f0b9fe6e4e6",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Client-supplied source approved for Scruggs brand production",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "full-white-square-candidate",
+      "role": "lockup",
+      "path": "assets/source/full-white-square.svg",
+      "format": "svg",
+      "sha256": "4c1e15521370be928ced3584bed2875db1062e0d2536df916b51d6888b5a2191",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Client-supplied source approved for Scruggs brand production",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup"
+      ]
+    },
+    {
+      "id": "full-dark-square-candidate",
+      "role": "lockup",
+      "path": "assets/source/full-dark-square.svg",
+      "format": "svg",
+      "sha256": "2ea434a6cd8b4a3d16d51255e0eb557f2bd367e8451bd7a74db9765027fab03f",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Client-supplied source approved for Scruggs brand production",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup"
+      ]
+    },
+    {
+      "id": "full-clear-native-candidate",
+      "role": "lockup",
+      "path": "assets/source/full-clear-native.svg",
+      "format": "svg",
+      "sha256": "6eba6bc68024acf256d64a554aaed5a45dc9706b16066ea24865a5571fec4428",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Client-supplied source approved for Scruggs brand production",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "full-white-native-candidate",
+      "role": "lockup",
+      "path": "assets/source/full-white-native.svg",
+      "format": "svg",
+      "sha256": "ccdeeaee75e6fbafa5a2d0d7917891c6cf27bd64b73ec8e38ac5304c6a3269f6",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Client-supplied source approved for Scruggs brand production",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "full-dark-native-candidate",
+      "role": "lockup",
+      "path": "assets/source/full-dark-native.svg",
+      "format": "svg",
+      "sha256": "9d6725d244b58b88734094c0c2659b89e9c6ccd10cf89bdd056385b2158ab040",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Client-supplied source approved for Scruggs brand production",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "reduced-original-candidate",
+      "role": "reduced-mark",
+      "path": "assets/source/reduced-original.svg",
+      "format": "svg",
+      "sha256": "358cd2ab99034d89935be7e1eb1b5df59c01afb0defda204203a9ff47439601b",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Client-supplied source approved for Scruggs brand production",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "derive-single-ink"
+      ]
+    }
+  ],
+  "logo": {
+    "source_mode": "authoritative",
+    "direct_source_outputs": true,
+    "authoritative_input_ids": {
+      "full": "full-clear-square-candidate",
+      "reduced": "reduced-original-candidate"
+    },
+    "full_colourway_input_ids": {
+      "color": "full-dark-square-candidate",
+      "light": "full-white-square-candidate"
+    },
+    "supplied_lockup_input_ids": {
+      "horizontal": {
+        "color": "full-dark-native-candidate",
+        "light": "full-white-native-candidate"
+      },
+      "stacked": {
+        "color": "full-dark-square-candidate",
+        "light": "full-white-square-candidate"
+      }
+    },
+    "colourways": [
+      "color",
+      "light",
+      "black",
+      "white"
+    ],
+    "grid": 512,
+    "canvas_width": 512,
+    "canvas_height": 512,
+    "artwork_width": 448,
+    "artwork_height": 254.1538461538,
+    "reduced_artwork_width": 400,
+    "reduced_artwork_height": 400,
+    "standalone_padding_units": {
+      "full": 32,
+      "reduced": 56
+    },
+    "clear_space_units": 32,
+    "reduced_below_px": 128,
+    "min_px": {
+      "mark": 128,
+      "horizontal": 160,
+      "stacked": 128
+    },
+    "application_icon": {
+      "background": "#FFFFFF",
+      "source_variant": "reduced",
+      "monochrome_platforms": false,
+      "transparent_web_icons": true,
+      "framing": {
+        "content_ratio": 0.82,
+        "vertical_offset_ratio": 0.0
+      }
+    },
+    "single_ink": {
+      "full_input_id": "full-clear-square-candidate",
+      "reduced_input_id": "reduced-original-candidate",
+      "horizontal_input_id": "full-clear-native-candidate",
+      "stacked_input_id": "full-clear-square-candidate",
+      "alpha_floor": 112,
+      "alpha_transition": 80,
+      "white_knockout_floor": 239,
+      "white_knockout_transition": 56
+    },
+    "paths": {
+      "full": [
+        {
+          "element": "image",
+          "role": "accent",
+          "source": "assets/source/full-clear-square.svg",
+          "x": 0,
+          "y": 0,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "reduced": [
+        {
+          "element": "image",
+          "role": "accent",
+          "source": "assets/source/reduced-original.svg",
+          "x": 56,
+          "y": 56,
+          "width": 400,
+          "height": 400
+        }
+      ]
+    },
+    "geometry_provenance": "imported",
+    "geometry_provenance_reason": "The candidate embeds supplied PNG bytes unchanged in passive SVG wrappers.",
+    "prohibitions": [
+      "Do not recreate the embedded Scruggs lettering with a substitute font.",
+      "Do not trace, normalize, or alter the supplied tire geometry.",
+      "Do not combine this client mark with the ShruggieTech mark."
+    ]
+  },
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "scruggs-tire-alignment",
+  "kind": "independent-brand",
+  "title": "Scruggs Tire & Alignment",
+  "version": "1.0.0",
+  "showcase_surface": "light.card",
+  "homepage": "https://scruggstires.com/",
+  "registry_base": "https://brand.shruggie.tech/scruggs-tire-alignment/brand",
+  "vendor_boundary": {
+    "required": true,
+    "notice": "Scruggs Tire & Alignment is an independent third-party client brand. Scruggs Tire & Alignment owns its trademarks. Scruggs Tire & Alignment is responsible for its products, services, and applicable terms.",
+    "entities": [
+      "Scruggs Tire & Alignment"
+    ],
+    "trademark_owner": "Scruggs Tire & Alignment",
+    "terms_responsibility": "Scruggs Tire & Alignment is responsible for its products, services, and applicable terms."
+  },
+  "descriptor": "Tires, alignment, and automotive service in Greer, South Carolina.",
+  "functional_descriptor": "Help drivers find tire, wheel, alignment, and related vehicle service with clear, practical information.",
+  "category": "Tire and automotive service",
+  "role": "Present dependable, straightforward tire and alignment service to drivers around Greer.",
+  "audience": "Drivers in Greer and nearby Greenville, South Carolina, looking for tire and alignment service.",
+  "brand_idea": "Ready for the road",
+  "social_copy": {
+    "slogan": "Expert alignments, tire repair, and honest automotive service.",
+    "slogan_lines": [
+      "Expert alignments, tire repair,",
+      "and honest automotive service."
+    ],
+    "layout": "slogan-only",
+    "description_lines": [],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-29",
+      "source": "Owner message: Tagline: \"Expert alignments, tire repair, and honest automotive service.\" - no description. Wrap as needed to avoid having tagline width that is wider than the logo above it."
+    }
+  },
+  "social_image_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-29",
+    "source": "Owner selected Approve revised image for private Gate 2 packet SHA-256 4ff5f087267495989ca5984a0a5660549666d8cbc8819e3c683e02073e9943cb after requesting slightly smaller and lighter tagline text.",
+    "svg_sha256": "84ffb71053750c7eef792e804e9a06d63bc0274ab57dae30f8f1ee792a400969",
+    "png_sha256": "8f0d4f81e6fe76b43dc11d0535101e8221acb667962fc7c4a010748c82aa1dfb"
+  },
+  "governing_principle": "Give drivers clear information and competent service without inflated claims.",
+  "voice": {
+    "qualities": [
+      "direct",
+      "knowledgeable",
+      "practical",
+      "neighborly"
+    ],
+    "lead_with": [
+      "the service needed",
+      "a clear next step",
+      "plain explanations"
+    ],
+    "avoid": [
+      "unsupported performance guarantees",
+      "pressure tactics",
+      "unexplained jargon"
+    ]
+  },
+  "register": "practical-professional",
+  "shruggie_flourish": false,
+  "assumptions": [
+    "Scruggs Tire & Alignment owns this independent client identity.",
+    "The current logo PNG and tire-only PNG are embedded byte-for-byte in passive SVG wrappers.",
+    "Public site, registry, release, and deployment require final validation and publication."
+  ],
+  "color_roles": {
+    "identity": [
+      {
+        "id": "tire-red",
+        "label": "Tire Red",
+        "source": "brand.accent.bright",
+        "use": "Tire artwork and accessible emphasis on black"
+      },
+      {
+        "id": "readable-red",
+        "label": "Readable Red",
+        "source": "brand.accent.deep",
+        "use": "Accessible red text and actions on white"
+      },
+      {
+        "id": "ink",
+        "label": "Black Ink",
+        "source": "brand.legacy_palette.2",
+        "use": "Logo wording on white"
+      }
+    ],
+    "combinations": [
+      {
+        "id": "full-light",
+        "label": "Full mark on white",
+        "colors": [
+          "tire-red",
+          "ink"
+        ],
+        "artwork": "logo.full",
+        "use": "Primary logo on a true white square"
+      },
+      {
+        "id": "digital-red",
+        "label": "Readable digital accent",
+        "colors": [
+          "readable-red"
+        ],
+        "artwork": "brand.applications",
+        "use": "Text and controls on light surfaces"
+      }
+    ]
+  },
+  "light_surfaces": {
+    "base": "#FFFFFF",
+    "card": "#FFFFFF",
+    "popover": "#FFFFFF",
+    "secondary": "#F4F4F4",
+    "hover": "#F1E7E8",
+    "foreground": "#111111",
+    "muted_foreground": "#555555"
+  },
+  "domain_components": {
+    "ServiceCard": [
+      "service_name",
+      "summary",
+      "next_step"
+    ],
+    "TireListing": [
+      "brand",
+      "size",
+      "fitment_context",
+      "availability_context"
+    ],
+    "AppointmentPrompt": [
+      "service",
+      "location",
+      "contact_action"
+    ]
+  },
+  "guide": {
+    "surface_mode": "light",
+    "idea": "Ready for the road",
+    "descriptor": "Tires, alignment, and automotive service in Greer, South Carolina.",
+    "written_form": "Use Scruggs Tire & Alignment as the formal brand name. Do not redraw the lettering, change the tire motif, or treat a text rendering as a replacement logo.",
+    "foundation_title": "Practical service for the road ahead",
+    "foundation": "Scruggs Tire & Alignment presents tire, alignment, and vehicle service in clear terms that help local drivers choose their next step.",
+    "personality": [
+      [
+        "Direct",
+        "Names the service and next step clearly",
+        "Vague promotional language"
+      ],
+      [
+        "Knowledgeable",
+        "Explains relevant choices in plain language",
+        "Unexplained technical claims"
+      ],
+      [
+        "Neighborly",
+        "Speaks to local drivers with respect",
+        "Pressure tactics"
+      ]
+    ],
+    "promises": [
+      "Make tire and alignment information clear.",
+      "Help drivers understand the service they are considering.",
+      "Keep the path to contacting the shop straightforward."
+    ],
+    "in_scope": [
+      "Tire service",
+      "Wheel and alignment service",
+      "Vehicle service information",
+      "Contact and visit guidance"
+    ],
+    "out_of_scope": [
+      "Unsupported performance guarantees",
+      "Unverified pricing claims",
+      "Artificial urgency"
+    ],
+    "sharp_edge": "Use deep red #7D0B13 for ordinary text and actions on white. Bright tire red #ED1B24 is also readable on a true black base and serves dark-surface emphasis. Never use bright red as ordinary text on white. Maintain WCAG 2.1 AA contrast for all actual combinations.",
+    "logo": "Use the exact white-square Full lockup for light surfaces, the black-square Full lockup for dark surfaces, and the unchanged tire-only motif for small icons. Preserve the lettering and tire shape in every output.",
+    "palette": "The tire motif uses bright red. True white and black are the primary logo grounds; bright red provides dark-surface emphasis and deep red provides readable light-surface actions. Neutral surfaces support clear service information.",
+    "specimen_line": "Scruggs Tire & Alignment",
+    "specimen_body": "Tires, alignment, and automotive service in Greer, South Carolina."
+  },
+  "custom_assets": [],
+  "canon": "1.6.0",
+  "identity_continuity": {
+    "record": "identity-continuity.json",
+    "status": "approved-canonical"
+  }
+}

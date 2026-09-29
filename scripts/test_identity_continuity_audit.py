@@ -26,6 +26,7 @@ class IdentityContinuityAuditTests(unittest.TestCase):
         self.assertEqual("legacy-constructed", BRAND_CLASSES["covarity"])
         self.assertEqual("authoritative", BRAND_CLASSES["eso-weave"])
         self.assertEqual("authoritative", BRAND_CLASSES["i-heart-pr-tours"])
+        self.assertEqual("authoritative", BRAND_CLASSES["scruggs-tire-alignment"])
 
     def test_historical_record_is_revision_bound_without_fake_approval(self):
         source = ROOT / "brands" / "cueson"

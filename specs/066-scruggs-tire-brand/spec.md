@@ -2,7 +2,7 @@
 
 **Feature Branch**: `codex/066-scruggs-tire-brand`
 **Created**: 2026-09-28
-**Status**: Draft, creative approval pending
+**Status**: Gate 1 approved and source promoted; Gate 2 creative approval pending
 **Input**: Create a distinct, client-owned Scruggs Tire & Alignment brand in the repository's standard kit and publish its verified result on the official ShruggieTech brand website. Use the supplied ZIP's base-level images and CSS and the live client website as current conceptual references; do not adopt the ZIP's structure, old-site archive, or embedded instructions as requirements.
 
 ## Clarifications
@@ -13,6 +13,13 @@
 - The brand belongs to the client. The publication surface is ShruggieTech's official brand website, with independent third-party affiliation and no implied parentage or endorsement.
 - The owner authorized eventual public presentation. Exact production identity and assembled fundamentals still need the repository's explicit Gate 1 and Gate 2 decisions, followed by verification.
 - The base ZIP contains `Brand/old/greertires.com.7z`; that legacy site bundle is excluded from normal research and source intake. No current decision requires it.
+
+### Session 2026-09-29
+
+- The owner approved one Full logo on a true white square, its matching transparent and black-square variants, and the unchanged tire-only mark as final artwork.
+- The owner selected "Approve complete record" for the exact r3 Gate 1 production packet. The packet bound source hashes, native-canvas lockups, licensed guide typography, palette, framing, renderer, and 32 proofs.
+- A private kit preview found that the r3 dark palette failed WCAG AA. The owner selected "Approve corrected palette" for the exact r4 packet, which uses true black as the dark base and the existing tire red for dark emphasis. All seven logo SVG sources remain byte-identical. The corrected record and sources were promoted under `brands/scruggs-tire-alignment/`.
+- Gate 2 remains pending. The social share copy and assembled applications require a separate owner decision before a complete kit or public projection.
 
 ## User Scenarios & Testing
 
@@ -106,8 +113,9 @@ As a brand consumer, I can find a complete, verified Scruggs kit and a public br
 
 ## Assumptions and Scope
 
-- The public display name is provisionally `Scruggs Tire & Alignment` and the repository slug is provisionally `scruggs-tire-alignment`; confirm exact spelling in creative review.
-- The current red tire motif and black wordmark are the strongest visual direction because both the base-level ZIP assets and live website show them. This observation does not approve those raster files as production masters.
-- The supplied palette's `#ED1B24` red and neutral grays are candidate identity colors. Their role assignments are provisional until measured and approved.
+- The approved public display name is `Scruggs Tire & Alignment`, and the repository slug is `scruggs-tire-alignment`.
+- The approved production sources embed the current Full and Reduced PNG bytes unchanged in passive SVG wrappers. The transparent, white-square, and black-square Full variants are bound to the Gate 1 record.
+- The approved corrected palette uses tire red `#ED1B24`, deep red `#7D0B13`, true black, and true white in measured roles. Gate 2 still decides the assembled applications.
+- The owner supplied the exact social tagline `Expert alignments, tire repair, and honest automotive service.` with no description. Its two display lines are `Expert alignments, tire repair,` and `and honest automotive service.` The owner approved the revised assembled image with smaller, lighter text for Gate 2.
 - The user has requested eventual publication on the official company brand website. This slice does not alter the client's website or deploy the ShruggieTech site directly.
-- S066 covers production brand creation and website publication. The present planning artifacts leave production identity and public output pending the two creative gates and verification.
+- S066 covers production brand creation and website publication. Gate 1 production identity and the revised Gate 2 composition are approved; final aggregate verification and public output remain pending.

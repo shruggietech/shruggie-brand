@@ -468,10 +468,30 @@ def c_specimen(kit, brand, rep):
             except ValueError as error:
                 raise ValueError("governed source escapes staged kit") from error
             expected_media = SPECIMEN_MEDIA_TYPES.get(source.suffix.lower())
-            if expected_media is None or media_type != expected_media:
-                problems.append("image %d media type %s does not match %s" % (index, media_type, expected_media))
-            if not source.is_file() or payload != source.read_bytes():
-                problems.append("image %d embedded bytes differ from governed source %s" % (index, item["source"]))
+            if not source.is_file():
+                problems.append("image %d governed source is missing: %s" % (index, item["source"]))
+                continue
+            source_bytes = source.read_bytes()
+            if image.get("data-source-sha256") != hashlib.sha256(source_bytes).hexdigest():
+                problems.append("image %d governed source hash differs" % index)
+            if media_type == expected_media and payload == source_bytes:
+                pass
+            elif (expected_media == "image/svg+xml" and media_type == "image/png"
+                  and b"data:image/" in source_bytes):
+                from PIL import Image
+                from gen_logo import raster
+
+                width, _ = _image_dimensions(source)
+                with tempfile.TemporaryDirectory(prefix="specimen-source-check-") as temporary:
+                    rendered = os.path.join(temporary, "rendered.png")
+                    raster(["-w", str(width), str(source), "-o", rendered])
+                    with Image.open(rendered) as expected, Image.open(BytesIO(payload)) as embedded:
+                        if not _same_rgba(expected, embedded):
+                            problems.append("image %d flattened pixels differ from governed source %s"
+                                            % (index, item["source"]))
+            else:
+                problems.append("image %d embedded content differs from governed source %s"
+                                % (index, item["source"]))
         except (KeyError, OSError, ValueError) as error:
             problems.append("image %d %s" % (index, error))
         for attribute in ("x", "y", "width", "height"):
@@ -486,7 +506,7 @@ def c_specimen(kit, brand, rep):
     if problems:
         rep.bad("specimen-portability", "; ".join(problems[:12]))
     else:
-        rep.ok("specimen-portability", "%d references self-contained; %d image sources byte-exact" %
+        rep.ok("specimen-portability", "%d references self-contained; %d source-bound image(s)" %
                (len(references), len(expected_images)))
 
     try:
@@ -904,7 +924,7 @@ def _expected_authoritative_icon(item, masters, profile):
         return contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset)
     if appearance in {"dark-unplated", "light-unplated"}:
         return contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset)
-    if role in {"favicon", "apple-touch", "installable"} and profile.get("transparent_web_icons", False):
+    if role in {"favicon", "favicon-ico", "apple-touch", "installable"} and profile.get("transparent_web_icons", False):
         return contain_visible(mark, size, ratio, vertical_offset_ratio=offset)
     background = ("#000000" if appearance == "dark" else
                   "#FFFFFF" if appearance == "tinted" else
@@ -1138,8 +1158,15 @@ def c_icon_suites(kit, brand, rep):
                     href = None if len(images) != 1 else images[0].get("href")
                     master = os.path.join(kit, expected_masters[item["source_variant"]].replace("/", os.sep))
                     expected_href = "data:image/svg+xml;base64," + base64.b64encode(Path(master).read_bytes()).decode("ascii")
-                    transformed = expected_profile.get("shadow_suppression") and isinstance(href, str) and href.startswith("data:image/png;base64,")
-                    if href != expected_href and not transformed:
+                    raster_wrapper = isinstance(href, str) and href.startswith("data:image/png;base64,")
+                    if raster_wrapper and expected_profile.get("transparent_web_icons") and identity_masters:
+                        from PIL import Image
+                        encoded = base64.b64decode(href[len("data:image/png;base64,"):], validate=True)
+                        expected_identity = _expected_authoritative_icon(item, identity_masters, expected_profile)
+                        with Image.open(BytesIO(encoded)) as embedded:
+                            if expected_identity is None or not _same_rgba(expected_identity, embedded):
+                                problems.append("%s embedded transparent icon disagrees with declared master" % relative)
+                    elif href != expected_href and not (raster_wrapper and expected_profile.get("shadow_suppression")):
                         problems.append("%s does not embed its declared authoritative SVG master" % relative)
             except Exception as error:
                 problems.append("%s cannot be parsed as SVG: %s" % (relative, error))
@@ -2518,8 +2545,9 @@ def main():
     if rep.problems:
         lines += ["## Problems", ""] + ["- %s" % p for p in rep.problems] + [""]
     md = "\n".join(lines)
-    out = a.out or os.path.join(kit, "VERIFY.md")
-    with open(out, "w", encoding="utf-8", newline="\n") as f: f.write(md)
+    if a.out:
+        with open(a.out, "w", encoding="utf-8", newline="\n") as f:
+            f.write(md)
     print(md)
     sys.exit(min(len(rep.problems), 125))
 

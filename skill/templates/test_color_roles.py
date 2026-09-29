@@ -9,7 +9,7 @@ from pathlib import Path
 from coloraide import Color
 
 from color_roles import ColorRoleError, resolve_color_roles
-from gen_nextjs import build_slots, emit_theme_item, oklch
+from gen_nextjs import build_slots, emit_theme_item, oklch, ratio
 from gen_web_react import emit_tokens
 from interface_contract import resolve_interface_contract
 from verify import Report, c_accent, c_color_roles
@@ -24,6 +24,11 @@ def brand(slug):
 
 
 class ColorRoleTests(unittest.TestCase):
+    def test_scruggs_dark_muted_text_clears_aa_on_declared_fill(self):
+        dark, _ = build_slots(CANON, brand("scruggs-tire-alignment"))
+        self.assertEqual("#5F5F5F", dark["muted"])
+        self.assertGreaterEqual(ratio(dark["muted-foreground"], dark["muted"]), 4.5)
+
     def test_all_production_brands_resolve_eight_cues_in_both_themes(self):
         for path in sorted((ROOT / "brands").glob("*/brand.json")):
             source = json.loads(path.read_text(encoding="utf-8"))

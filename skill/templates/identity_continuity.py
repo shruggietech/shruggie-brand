@@ -55,6 +55,8 @@ LIFECYCLE_TRANSITIONS = {
 LEGACY_PROOF_ICONKIT_SHA256 = "f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b"
 LEGACY_PROOF_FUNCTIONS_SHA256 = "9406bcbb747d1cf40c3592786d7446c4c34a72b83ee51cb51c8eef74daf7dd21"
 PROOF_ICONKIT_FUNCTIONS = {"_pillow", "_visible_crop", "_hex_rgb", "contain_visible"}
+LEGACY_PROOF_GEN_LOGO_SHA256 = "bcddd3bfe546f725f51acd193dd395361f2f19461b9b52234949e463e75a6f99"
+LEGACY_PROOF_GEN_LOGO_SEMANTIC_SHA256 = "223fc6eb7ef74498c4e800f572c0034f02b8b2685caa345e975456e71164b580"
 FRAMING_FIELDS = (
     "grid", "canvas_width", "canvas_height", "artwork_width", "artwork_height",
     "reduced_artwork_width", "reduced_artwork_height", "clear_space_units", "standalone_padding_units",
@@ -104,6 +106,48 @@ def proof_iconkit_digest(source):
     semantic = canonical_digest(bound)
     if semantic == LEGACY_PROOF_FUNCTIONS_SHA256:
         return LEGACY_PROOF_ICONKIT_SHA256
+    return canonical_digest(source)
+
+
+def _gen_logo_proof_semantic_digest(source):
+    """Fingerprint generator code that can run in the approved proof stage."""
+    source_text = source.decode("utf-8")
+    tree = ast.parse(source_text)
+    bound = []
+    main_count = social_count = 0
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef) and node.name == "wrapped_social_slogan_lines":
+            continue
+        if isinstance(node, ast.FunctionDef) and node.name == "main":
+            main_count += 1
+            statements = []
+            proof_return_seen = False
+            for statement in node.body:
+                if (isinstance(statement, ast.If)
+                        and ast.get_source_segment(source_text, statement.test) == "proof_stage_only"
+                        and any(isinstance(child, ast.Return) for child in statement.body)):
+                    proof_return_seen = True
+                social = (isinstance(statement, ast.If)
+                          and ast.get_source_segment(source_text, statement.test) == '"social_copy" in brand')
+                if social:
+                    _require(proof_return_seen, "social composition must follow the proof-stage return")
+                    social_count += 1
+                    continue
+                statements.append((type(statement).__name__, ast.get_source_segment(source_text, statement)))
+            bound.append(("FunctionDef", "main", statements))
+            continue
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+            continue
+        bound.append((type(node).__name__, getattr(node, "name", ""), ast.get_source_segment(source_text, node)))
+    _require(main_count == 1 and social_count == 1, "logo generator proof and social stages are not separable")
+    return canonical_digest(bound)
+
+
+def proof_gen_logo_digest(source):
+    """Retain approved proof identity when only the later social composition changes."""
+    semantic = _gen_logo_proof_semantic_digest(source)
+    if semantic == LEGACY_PROOF_GEN_LOGO_SEMANTIC_SHA256:
+        return LEGACY_PROOF_GEN_LOGO_SHA256
     return canonical_digest(source)
 
 
@@ -605,7 +649,7 @@ def production_renderer_contract(brand=None):
         "surfaces": list(PROOF_SURFACES),
         "variants": list(PROOF_VARIANTS),
         "surface_mapping": {name: list(values) for name, values in proof_surface_mapping(brand).items()},
-        "gen_logo_sha256": canonical_digest((here / "gen_logo.py").read_bytes()),
+        "gen_logo_sha256": proof_gen_logo_digest((here / "gen_logo.py").read_bytes()),
         # Legacy approval key: bind proof-relevant code to its approved fingerprint; exact 32-image comparison remains mandatory.
         "iconkit_sha256": proof_iconkit_digest((here / "iconkit.py").read_bytes()),
         "resvg_adapter_sha256": canonical_digest((here / "rsvg-convert.js").read_bytes()),

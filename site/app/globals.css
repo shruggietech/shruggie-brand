@@ -74,7 +74,7 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 2rem; margin-bottom: 2rem; }
 .section-heading > p { max-width: 42ch; color: var(--muted-text); }
 .brand-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 1rem; }
-.brand-card { box-sizing: border-box; display: flex; height: 20rem; flex-direction: column; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-portfolio-surface); color: #fff; transition: border-color .2s, box-shadow .2s; }
+.brand-card { box-sizing: border-box; display: flex; min-height: 20rem; flex-direction: column; padding: 1.35rem; overflow: hidden; border: 1px solid var(--line); border-radius: .65rem; background: var(--brand-portfolio-surface); color: #fff; transition: border-color .2s, box-shadow .2s; }
 .brand-card:hover, .brand-card:focus-within { border-color: var(--brand-accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-accent) 55%, transparent); }
 .brand-card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 4px var(--brand-accent); }
 .brand-icon { box-sizing: border-box; display: grid; width: 4.25rem; height: 4.25rem; flex: 0 0 4.25rem; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: stretch; padding: .65rem; border-radius: 1rem; background: #050708; box-shadow: 0 1rem 3rem color-mix(in srgb, var(--brand-accent) 18%, transparent); }

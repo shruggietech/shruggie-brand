@@ -59,8 +59,32 @@ The first source proposal used authoritative passive SVG sources that embed the 
 
 ## 2026-09-29 source candidate revision, r2
 
-The [current Gate 1 review](gate1-review.md) binds the already-transparent Full PNG to a clear square master, a true white square with black wording, and a true black square with white wording. The black-to-white wording transform uses the original pixel alpha through a passive SVG filter, preserving the supplied red tire pixels and all letter contours. The tire-only Reduced source and its 16 proof hashes remain unchanged. Existing `full_colourway_input_ids` supply the two contextual Full variants without changing schemas or generator code. This revision is still a candidate pending the exact Gate 1 owner decision.
+The [Gate 1 review](gate1-review.md) binds the already-transparent Full PNG to a clear square master, a true white square with black wording, and a true black square with white wording. The black-to-white wording transform uses the original pixel alpha through a passive SVG filter, preserving the supplied red tire pixels and all letter contours. The tire-only Reduced source and its 16 proof hashes remain unchanged. Existing `full_colourway_input_ids` supply the two contextual Full variants without changing schemas or generator code. Revision r2 was the reviewed visual direction.
+
+## 2026-09-29 Gate 1 approval and source promotion, r3
+
+Revision r3 binds native-canvas horizontal sources and licensed guide typography to the same visual artwork. The four reviewed source hashes and all 32 production proof hashes match r2. The owner selected "Approve complete record" for packet digest `d8fa645bc4b68e79185f30307ea360e403ad1e4720f414d10dce6d0bcbff832f`. The canonical record validates, and `promote_identity.py` installed the exact seven approved SVG sources and brand files in `brands/scruggs-tire-alignment/`. Gate 2 remains pending.
+
+## 2026-09-29 dark palette correction and approval, r4
+
+A private full-kit preview found AA failures with bright red and immutable fault red against the r3 `#222222` dark base, and deep red dark emphasis was unreadable there. The corrected r4 packet keeps all seven SVG logo source hashes unchanged, switches the dark base to true black, and uses existing tire red for dark emphasis. The owner selected "Approve corrected palette" for exact packet digest `3f9a932c157e3b69b8df453d59f0447f1320d5437e911712fd1e6a56efa55206`. The revised canonical source was promoted after validation. The private kit rebuild with generator repairs completed with zero verification, affiliation, image, and PDF problems; Gate 2 remains pending.
 
 ## Downstream verification
 
-`quickstart.md` names the existing build flow and approval stops. A planning-only commit can be checked for specification quality, formatting, and repository hygiene. It cannot claim production kit, glyph, or hosted publication results before approved source and implementation exist.
+`quickstart.md` names the existing build flow and approval stops. The approved Gate 1 source produced a clean private kit preview, with exact commands and observations in [verification.md](verification.md). Final aggregate and site publication checks depend on Gate 2 approval; the private preview is not a hosted result.
+
+## 2026-09-29 owner supplied social copy and CI renderer routing
+
+The owner supplied `Expert alignments, tire repair, and honest automotive service.` and explicitly omitted the description. The generator accepts optional exact `slogan_lines` and fits the two lines inside the logo's visible width without altering the 32-image identity proof stage. A proof-relevant semantic fingerprint excludes only this social-copy branch while still invalidating any proof-stage edit. The private Gate 2 packet is validated and the one assembled image is awaiting the owner's visual decision.
+
+The approved Scruggs proof renderer is Node 26.5.0, while existing CI kits are pinned to Node 24.11.0. Local Node 24 replay reproduced all 32 approved Scruggs proof hashes, but the exact approved renderer contract still requires Node 26.5.0. CI now exports Scruggs proofs and builds its kit with Node 26.5.0, and retains Node 24.11.0 for existing kit builds. This preserves both exact approval contracts without changing the owner's approved record.
+
+The first assembled image used the display bold face at 60 px. The owner asked to reduce its text size and weight. The revised candidate uses the licensed Source Sans 3 semibold face at 54 px and caps the visible two-line width at 82% of the logo width. Its measured tagline width is 464 px beneath a 552 px logo. The revised packet supersedes the first Gate 2 candidate and is awaiting the owner's decision.
+
+## 2026-09-29 Gate 2 approval and production validation
+
+The owner selected "Approve revised image" for packet `4ff5f087267495989ca5984a0a5660549666d8cbc8819e3c683e02073e9943cb`. The source ledger binds social SVG `84ffb71053750c7eef792e804e9a06d63bc0274ab57dae30f8f1ee792a400969`, PNG `8f0d4f81e6fe76b43dc11d0535101e8221acb667962fc7c4a010748c82aa1dfb`, and the complete derivative manifest. The Gate 1 source binding remains unchanged. The Scruggs kit builds clean, and the separate Node 24 aggregate build reports eight clean existing kits. Site preparation now includes all nine.
+
+The first complete site run exposed fixed eight-brand test counts and a fixed-height card that clipped the longer client title. The page now lets cards grow from a 20rem minimum and tests count the generated brand inventory. A second verifier run also changed the checksum-bound `VERIFY.md` report; the verifier now writes only when `--out` is explicit, as the builder already does. The full site browser rerun remains underway.
+
+The rebuilt static site and full browser rerun passed, checking 103 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations. The local registry consumer test passed for all nine brands. The source-only release packaging produced nine verified current-release assets; this step did not publish them. The final native WordPress fixtures and release-inclusive audit remain in progress.

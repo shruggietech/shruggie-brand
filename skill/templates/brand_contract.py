@@ -7,6 +7,7 @@ from __future__ import annotations
 import base64
 import binascii
 import hashlib
+import html
 import json
 import os
 import re
@@ -67,13 +68,21 @@ def derivative_configuration_sha256(brand):
 def social_copy(brand):
     """Return the explicitly approved words for the generated social image."""
     value = brand.get("social_copy")
-    _require(isinstance(value, dict) and set(value) == {"slogan", "layout", "description_lines", "approval"},
+    required = {"slogan", "layout", "description_lines", "approval"}
+    _require(isinstance(value, dict) and required <= set(value) <= required | {"slogan_lines"},
              "social_copy must declare slogan, layout, description_lines, and approval")
     slogan = value["slogan"]
     _require(isinstance(slogan, str) and slogan.strip() == slogan and slogan,
              "social_copy.slogan must be exact nonempty approved text")
     _require("\n" not in slogan and "\r" not in slogan,
              "social_copy.slogan must use one approved line")
+    if "slogan_lines" in value:
+        wrapped = value["slogan_lines"]
+        _require(isinstance(wrapped, list) and 1 <= len(wrapped) <= 3
+                 and all(isinstance(line, str) and line.strip() == line and line
+                         and "\n" not in line and "\r" not in line for line in wrapped)
+                 and " ".join(wrapped) == slogan,
+                 "social_copy slogan lines must preserve the exact approved words in at most three lines")
     layout = value["layout"]
     lines = value["description_lines"]
     _require(layout in {"slogan-only", "slogan-description"}, "social_copy.layout is invalid")
@@ -1527,6 +1536,6 @@ def scan_affiliation_output(brand, kit):
         )
         for relative in generated_surfaces:
             path = root / relative
-            if not path.is_file() or boundary["notice"].lower() not in path.read_text(encoding="utf-8", errors="replace").lower():
+            if not path.is_file() or boundary["notice"].lower() not in html.unescape(path.read_text(encoding="utf-8", errors="replace")).lower():
                 problems.append("%s omits the required vendor boundary" % relative)
     return problems

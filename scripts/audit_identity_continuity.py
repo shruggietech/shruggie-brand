@@ -27,6 +27,7 @@ BRAND_CLASSES = {
     "glitchpad": "legacy-constructed",
     "go-schedule": "legacy-constructed",
     "i-heart-pr-tours": "authoritative",
+    "scruggs-tire-alignment": "authoritative",
     "shruggietech": "authoritative",
 }
 REFERENCE = {"record": "identity-continuity.json", "status": "historical-baseline"}

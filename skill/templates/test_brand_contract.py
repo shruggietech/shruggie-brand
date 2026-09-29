@@ -563,7 +563,7 @@ class AffiliationTests(unittest.TestCase):
     def test_output_scan_requires_each_generated_vendor_boundary_surface(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary)
-            notice = "Acme is independent. Users are responsible."
+            notice = "Acme & Sons is independent. Users are responsible."
             brand = owned_brand()
             brand["affiliation"] = {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}
             brand["semantic_colors"] = {"emphasis": "#6750A4", "action": "#5B3F98"}
@@ -573,7 +573,8 @@ class AffiliationTests(unittest.TestCase):
             for relative in expected:
                 path = kit / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(notice, encoding="utf-8")
+                path.write_text(notice.replace("&", "&amp;") if relative.endswith(".html") else notice,
+                                encoding="utf-8")
             self.assertEqual([], scan_affiliation_output(brand, kit))
             (kit / expected[0]).write_text("missing", encoding="utf-8")
             self.assertEqual(["guidelines/portal.json omits the required vendor boundary"], scan_affiliation_output(brand, kit))
@@ -1259,6 +1260,18 @@ class SocialCopyTests(unittest.TestCase):
                                  "description_lines": ["one", "two", "three", "four"],
                                  "approval": {"approved_by": "owner", "approved_on": "2026-09-26", "source": "decision"}}}
         with self.assertRaisesRegex(ContractError, "more than three lines"):
+            social_copy(brand)
+
+    def test_social_copy_binds_optional_wrap_to_the_exact_approved_words(self):
+        brand = {"social_copy": {
+            "slogan": "Expert alignments, tire repair, and honest automotive service.",
+            "slogan_lines": ["Expert alignments, tire repair,", "and honest automotive service."],
+            "layout": "slogan-only", "description_lines": [],
+            "approval": {"approved_by": "owner", "approved_on": "2026-09-29", "source": "owner message"},
+        }}
+        self.assertEqual(2, len(social_copy(brand)["slogan_lines"]))
+        brand["social_copy"]["slogan_lines"][1] = "and misleading service."
+        with self.assertRaisesRegex(ContractError, "slogan lines"):
             social_copy(brand)
 
     def test_social_image_approval_rejects_missing_and_changed_artifacts(self):

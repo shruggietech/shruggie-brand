@@ -31,6 +31,7 @@ from identity_continuity import (  # noqa: E402
     identity_snapshot,
     measured_oklch,
     palette_roles,
+    proof_gen_logo_digest,
     proof_iconkit_digest,
     record_digest,
     safe_path,
@@ -159,6 +160,21 @@ def proof_artifact_bytes(size):
 
 
 class IdentityContinuityTests(unittest.TestCase):
+    def test_social_layout_edits_preserve_proofs_but_proof_stage_edits_invalidate_them(self):
+        source = (HERE / "gen_logo.py").read_bytes()
+        self.assertEqual("bcddd3bfe546f725f51acd193dd395361f2f19461b9b52234949e463e75a6f99",
+                         proof_gen_logo_digest(source))
+        social_edit = source.replace(b"logo_width * 0.82", b"logo_width * 0.81", 1)
+        self.assertNotEqual(source, social_edit)
+        self.assertEqual(proof_gen_logo_digest(source), proof_gen_logo_digest(social_edit))
+        proof_edit = source.replace(b'proof_stage_only = "--proof-stage-only" in options',
+                                    b'proof_stage_only = "--wrong-stage" in options', 1)
+        self.assertNotEqual(source, proof_edit)
+        self.assertNotEqual(proof_gen_logo_digest(source), proof_gen_logo_digest(proof_edit))
+        missing_guard = source.replace(b"if proof_stage_only:\n", b"if wrong_proof_stage_only:\n", 1)
+        with self.assertRaisesRegex(ContinuityError, "social composition must follow"):
+            proof_gen_logo_digest(missing_guard)
+
     def test_icon_role_edits_preserve_approved_proof_binding_only_while_proof_functions_match(self):
         source = (HERE / "iconkit.py").read_bytes()
         self.assertEqual("f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b",

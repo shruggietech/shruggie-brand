@@ -1,0 +1,1318 @@
+{
+  "schema_version": 1,
+  "brand": "scruggs-tire-alignment",
+  "status": "approved-canonical",
+  "source_class": "authoritative",
+  "recorded_on": "2026-09-29",
+  "source_revision": "scruggs-g1-r4:3f9a932c157e3b69b8df453d59f0447f1320d5437e911712fd1e6a56efa55206",
+  "source_files": [
+    {
+      "path": "brand.json",
+      "purpose": "canonical brand source",
+      "bytes": 18263,
+      "sha256": "0fb76daf5031fe37afbfbf5878467583e500e4d2675de8d1097b254db4d19fa7"
+    },
+    {
+      "path": "README.md",
+      "purpose": "human-readable source contract",
+      "bytes": 1010,
+      "sha256": "faa3f51462462bc5bf1e66b6f72e828f5aa6a8752e3566dac33b66a4b971a951"
+    },
+    {
+      "path": "assets/source/full-clear-square.svg",
+      "purpose": "approved authoritative logo source",
+      "bytes": 34740,
+      "sha256": "9fda1a0c266af644c1e5727e8c5ddc1af8361983cc67ffdf74050f0b9fe6e4e6"
+    },
+    {
+      "path": "assets/source/full-white-square.svg",
+      "purpose": "approved authoritative logo source",
+      "bytes": 34788,
+      "sha256": "4c1e15521370be928ced3584bed2875db1062e0d2536df916b51d6888b5a2191"
+    },
+    {
+      "path": "assets/source/full-dark-square.svg",
+      "purpose": "approved authoritative logo source",
+      "bytes": 35449,
+      "sha256": "2ea434a6cd8b4a3d16d51255e0eb557f2bd367e8451bd7a74db9765027fab03f"
+    },
+    {
+      "path": "assets/source/full-clear-native.svg",
+      "purpose": "approved authoritative logo source",
+      "bytes": 34715,
+      "sha256": "6eba6bc68024acf256d64a554aaed5a45dc9706b16066ea24865a5571fec4428"
+    },
+    {
+      "path": "assets/source/full-white-native.svg",
+      "purpose": "approved authoritative logo source",
+      "bytes": 34763,
+      "sha256": "ccdeeaee75e6fbafa5a2d0d7917891c6cf27bd64b73ec8e38ac5304c6a3269f6"
+    },
+    {
+      "path": "assets/source/full-dark-native.svg",
+      "purpose": "approved authoritative logo source",
+      "bytes": 35424,
+      "sha256": "9d6725d244b58b88734094c0c2659b89e9c6ccd10cf89bdd056385b2158ab040"
+    },
+    {
+      "path": "assets/source/reduced-original.svg",
+      "purpose": "approved authoritative logo source",
+      "bytes": 7271,
+      "sha256": "358cd2ab99034d89935be7e1eb1b5df59c01afb0defda204203a9ff47439601b"
+    }
+  ],
+  "identity_snapshot": {
+    "source_class": "authoritative",
+    "geometry": {
+      "source_mode": "authoritative",
+      "geometry_provenance": "imported",
+      "paths": {
+        "full": [
+          {
+            "element": "image",
+            "role": "accent",
+            "source": "assets/source/full-clear-square.svg",
+            "x": 0,
+            "y": 0,
+            "width": 512,
+            "height": 512
+          }
+        ],
+        "reduced": [
+          {
+            "element": "image",
+            "role": "accent",
+            "source": "assets/source/reduced-original.svg",
+            "x": 56,
+            "y": 56,
+            "width": 400,
+            "height": 400
+          }
+        ]
+      },
+      "authoritative_input_ids": {
+        "full": "full-clear-square-candidate",
+        "reduced": "reduced-original-candidate"
+      }
+    },
+    "derivative_settings": {
+      "source_mode": "authoritative",
+      "direct_source_outputs": true,
+      "authoritative_input_ids": {
+        "full": "full-clear-square-candidate",
+        "reduced": "reduced-original-candidate"
+      },
+      "full_colourway_input_ids": {
+        "color": "full-dark-square-candidate",
+        "light": "full-white-square-candidate"
+      },
+      "supplied_lockup_input_ids": {
+        "horizontal": {
+          "color": "full-dark-native-candidate",
+          "light": "full-white-native-candidate"
+        },
+        "stacked": {
+          "color": "full-dark-square-candidate",
+          "light": "full-white-square-candidate"
+        }
+      },
+      "colourways": [
+        "color",
+        "light",
+        "black",
+        "white"
+      ],
+      "grid": 512,
+      "canvas_width": 512,
+      "canvas_height": 512,
+      "artwork_width": 448,
+      "artwork_height": 254.1538461538,
+      "reduced_artwork_width": 400,
+      "reduced_artwork_height": 400,
+      "standalone_padding_units": {
+        "full": 32,
+        "reduced": 56
+      },
+      "clear_space_units": 32,
+      "reduced_below_px": 128,
+      "min_px": {
+        "mark": 128,
+        "horizontal": 160,
+        "stacked": 128
+      },
+      "application_icon": {
+        "background": "#FFFFFF",
+        "source_variant": "reduced",
+        "monochrome_platforms": false,
+        "transparent_web_icons": true,
+        "framing": {
+          "content_ratio": 0.82,
+          "vertical_offset_ratio": 0.0
+        }
+      },
+      "single_ink": {
+        "full_input_id": "full-clear-square-candidate",
+        "reduced_input_id": "reduced-original-candidate",
+        "horizontal_input_id": "full-clear-native-candidate",
+        "stacked_input_id": "full-clear-square-candidate",
+        "alpha_floor": 112,
+        "alpha_transition": 80,
+        "white_knockout_floor": 239,
+        "white_knockout_transition": 56
+      },
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "The candidate embeds supplied PNG bytes unchanged in passive SVG wrappers.",
+      "prohibitions": [
+        "Do not recreate the embedded Scruggs lettering with a substitute font.",
+        "Do not trace, normalize, or alter the supplied tire geometry.",
+        "Do not combine this client mark with the ShruggieTech mark."
+      ]
+    },
+    "topology": {
+      "full": {
+        "path_count": 1,
+        "subpath_count": 0,
+        "closed_subpaths": 0,
+        "role_counts": {
+          "accent": 1
+        },
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        }
+      },
+      "reduced": {
+        "path_count": 1,
+        "subpath_count": 0,
+        "closed_subpaths": 0,
+        "role_counts": {
+          "accent": 1
+        },
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        }
+      }
+    },
+    "framing": {
+      "grid": 512,
+      "canvas_width": 512,
+      "canvas_height": 512,
+      "artwork_width": 448,
+      "artwork_height": 254.1538461538,
+      "reduced_artwork_width": 400,
+      "reduced_artwork_height": 400,
+      "clear_space_units": 32,
+      "standalone_padding_units": {
+        "full": 32,
+        "reduced": 56
+      }
+    },
+    "palette": {
+      "accent": {
+        "bright": "#ED1B24",
+        "deep": "#7D0B13",
+        "accessible": "#7D0B13",
+        "dim": "#C0C0C0"
+      },
+      "semantic_colors": {
+        "emphasis": "#ED1B24",
+        "action": "#7D0B13"
+      },
+      "surfaces": {
+        "base": "#000000",
+        "card": "#414141",
+        "popover": "#414141",
+        "secondary": "#5F5F5F",
+        "hover": "#7D0B13"
+      },
+      "legacy_palette": [
+        "#ED1B24",
+        "#7D0B13",
+        "#000000",
+        "#FFFFFF",
+        "#414141"
+      ],
+      "logo_role_colors": null
+    },
+    "typography": {
+      "wordmark_text": "Scruggs Tire & Alignment",
+      "typography": {
+        "mode": "fixed",
+        "families": {
+          "display": {
+            "name": "Poppins",
+            "weights": [
+              700
+            ]
+          },
+          "body": {
+            "name": "Source Sans 3",
+            "weights": [
+              400,
+              600
+            ]
+          },
+          "mono": {
+            "name": "Courier Prime",
+            "weights": [
+              400
+            ]
+          }
+        },
+        "faces": [
+          {
+            "role": "display",
+            "path": "fonts/ttf/Poppins-Bold.ttf",
+            "weight": 700,
+            "style": "normal",
+            "format": "ttf",
+            "sha256": "7219547ee25334cbac0fe4b3acf0bf631e48ebb622c71af038edaaa652c60875",
+            "license": "OFL-1.1",
+            "provenance": "Owner-supplied Poppins.zip",
+            "usage_status": "approved"
+          },
+          {
+            "role": "body",
+            "path": "fonts/ttf/SourceSans3-Regular.ttf",
+            "weight": 400,
+            "style": "normal",
+            "format": "ttf",
+            "sha256": "393fb5b878ceed04aebc34b097e853ae5138c51d0c34b496ce8e2b47e0d0b94a",
+            "license": "OFL-1.1",
+            "provenance": "Owner-supplied Source_Sans_3.zip",
+            "usage_status": "approved"
+          },
+          {
+            "role": "body",
+            "path": "fonts/ttf/SourceSans3-SemiBold.ttf",
+            "weight": 600,
+            "style": "normal",
+            "format": "ttf",
+            "sha256": "bd2550fce2d295b0bf20bd8b1b7f1477da834f1066bd850aafdb4787a67a63ca",
+            "license": "OFL-1.1",
+            "provenance": "Owner-supplied Source_Sans_3.zip",
+            "usage_status": "approved"
+          },
+          {
+            "role": "mono",
+            "path": "fonts/ttf/CourierPrime-Regular.ttf",
+            "weight": 400,
+            "style": "normal",
+            "format": "ttf",
+            "sha256": "b4da920fa50d874bce2cab0517e4732384a6eef8fe7e1e653d2befcb8aac1aa6",
+            "license": "OFL-1.1",
+            "provenance": "Owner-supplied Courier_Prime.zip",
+            "usage_status": "approved"
+          }
+        ]
+      }
+    },
+    "sha256": "4c28e4270a602702fac3d1bbbef6694044671014849a505dc3e3db2db077eae7"
+  },
+  "topology": {
+    "full": {
+      "path_count": 1,
+      "subpath_count": 0,
+      "closed_subpaths": 0,
+      "role_counts": {
+        "accent": 1
+      },
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      }
+    },
+    "reduced": {
+      "path_count": 1,
+      "subpath_count": 0,
+      "closed_subpaths": 0,
+      "role_counts": {
+        "accent": 1
+      },
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      }
+    }
+  },
+  "framing": {
+    "grid": 512,
+    "canvas_width": 512,
+    "canvas_height": 512,
+    "artwork_width": 448,
+    "artwork_height": 254.1538461538,
+    "reduced_artwork_width": 400,
+    "reduced_artwork_height": 400,
+    "clear_space_units": 32,
+    "standalone_padding_units": {
+      "full": 32,
+      "reduced": 56
+    }
+  },
+  "palette": {
+    "accent": {
+      "bright": "#ED1B24",
+      "deep": "#7D0B13",
+      "accessible": "#7D0B13",
+      "dim": "#C0C0C0"
+    },
+    "semantic_colors": {
+      "emphasis": "#ED1B24",
+      "action": "#7D0B13"
+    },
+    "surfaces": {
+      "base": "#000000",
+      "card": "#414141",
+      "popover": "#414141",
+      "secondary": "#5F5F5F",
+      "hover": "#7D0B13"
+    },
+    "legacy_palette": [
+      "#ED1B24",
+      "#7D0B13",
+      "#000000",
+      "#FFFFFF",
+      "#414141"
+    ],
+    "logo_role_colors": null
+  },
+  "palette_qualification": {
+    "status": "passed",
+    "srgb_roles": {
+      "accent.accessible": "#7D0B13",
+      "accent.bright": "#ED1B24",
+      "accent.deep": "#7D0B13",
+      "accent.dim": "#C0C0C0",
+      "legacy_palette.0": "#ED1B24",
+      "legacy_palette.1": "#7D0B13",
+      "legacy_palette.2": "#000000",
+      "legacy_palette.3": "#FFFFFF",
+      "legacy_palette.4": "#414141",
+      "semantic_colors.action": "#7D0B13",
+      "semantic_colors.emphasis": "#ED1B24",
+      "surfaces.base": "#000000",
+      "surfaces.card": "#414141",
+      "surfaces.hover": "#7D0B13",
+      "surfaces.popover": "#414141",
+      "surfaces.secondary": "#5F5F5F"
+    },
+    "oklch_roles": {
+      "accent.accessible": [
+        0.377223,
+        0.144949,
+        25.466064
+      ],
+      "accent.bright": [
+        0.602611,
+        0.23509,
+        26.908498
+      ],
+      "accent.deep": [
+        0.377223,
+        0.144949,
+        25.466064
+      ],
+      "accent.dim": [
+        0.807796,
+        0.0,
+        0.0
+      ],
+      "legacy_palette.0": [
+        0.602611,
+        0.23509,
+        26.908498
+      ],
+      "legacy_palette.1": [
+        0.377223,
+        0.144949,
+        25.466064
+      ],
+      "legacy_palette.2": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "legacy_palette.3": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "legacy_palette.4": [
+        0.375299,
+        0.0,
+        0.0
+      ],
+      "semantic_colors.action": [
+        0.377223,
+        0.144949,
+        25.466064
+      ],
+      "semantic_colors.emphasis": [
+        0.602611,
+        0.23509,
+        26.908498
+      ],
+      "surfaces.base": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "surfaces.card": [
+        0.375299,
+        0.0,
+        0.0
+      ],
+      "surfaces.hover": [
+        0.377223,
+        0.144949,
+        25.466064
+      ],
+      "surfaces.popover": [
+        0.375299,
+        0.0,
+        0.0
+      ],
+      "surfaces.secondary": [
+        0.485497,
+        0.0,
+        0.0
+      ]
+    },
+    "checks": {
+      "contrast": true,
+      "color_vision": true,
+      "semantic_roles": true,
+      "surfaces": true,
+      "single_ink": true,
+      "rendered_color": true
+    },
+    "evidence_sha256": "2c0a8cdee4a437a4c88b4741379f1d117a742c511addb1f356e2677a104edc4b"
+  },
+  "renderer": {
+    "id": "node-resvg",
+    "version": "v26.5.0",
+    "settings_sha256": "eb433396f87be1b3cc9a9454e1a7e91ce91f80c79911aab5d43c3e5b4c5c8fb1"
+  },
+  "proofs": [
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "dark",
+      "path": "proofs/full-256-dark.png",
+      "sha256": "13e520c88ae30484e16cd35a49e8316a28b97730d0e673ee176b2c3bfe8e894e",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-dark/comparison-side-by-side.png",
+          "sha256": "38895c534d1b957dca3f11f824627d25879ce0795fa8b5a46f0233c77ce2de9f"
+        },
+        "overlay": {
+          "path": "evidence/full-256-dark/comparison-overlay.png",
+          "sha256": "13e520c88ae30484e16cd35a49e8316a28b97730d0e673ee176b2c3bfe8e894e"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-dark/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-dark/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "light",
+      "path": "proofs/full-256-light.png",
+      "sha256": "cf221988ec9bd29e26d6ed4c3fb52d9739bbce73fed70427327458b4179869d8",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-light/comparison-side-by-side.png",
+          "sha256": "70484838ccfbc51d70a12c0134661a9ad40cf71cd194776c4ed363ab7565f425"
+        },
+        "overlay": {
+          "path": "evidence/full-256-light/comparison-overlay.png",
+          "sha256": "cf221988ec9bd29e26d6ed4c3fb52d9739bbce73fed70427327458b4179869d8"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-light/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-light/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "black",
+      "path": "proofs/full-256-black.png",
+      "sha256": "8f32d333c3f054a94a1f6c2cc3774cda11f445979e62af229b7f37b766277da7",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-black/comparison-side-by-side.png",
+          "sha256": "beab28adc5fa91dc073f7f1c1844d5015fdd0d135edc89cde7d300579c8c30bc"
+        },
+        "overlay": {
+          "path": "evidence/full-256-black/comparison-overlay.png",
+          "sha256": "8f32d333c3f054a94a1f6c2cc3774cda11f445979e62af229b7f37b766277da7"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-black/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-black/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "white",
+      "path": "proofs/full-256-white.png",
+      "sha256": "589cd38fc25d88d71ee06a94e650ea98d0e69b9b36c02ee60211c1001ba2d192",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-white/comparison-side-by-side.png",
+          "sha256": "e9be3c52b0af7d62f4cf265ee75815b0ac12451ba5e83216d81090a2f3288565"
+        },
+        "overlay": {
+          "path": "evidence/full-256-white/comparison-overlay.png",
+          "sha256": "589cd38fc25d88d71ee06a94e650ea98d0e69b9b36c02ee60211c1001ba2d192"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-white/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-white/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "dark",
+      "path": "proofs/full-64-dark.png",
+      "sha256": "ff1d747d0e4e712a7f6ed8a63651a8024282cf8f7cea397f4890661b678caab1",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-dark/comparison-side-by-side.png",
+          "sha256": "e7ad4991a806fd2f03b352a0c69a7896efd5126d60b16e9ccbccea0010db6e64"
+        },
+        "overlay": {
+          "path": "evidence/full-64-dark/comparison-overlay.png",
+          "sha256": "ff1d747d0e4e712a7f6ed8a63651a8024282cf8f7cea397f4890661b678caab1"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-dark/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-dark/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "light",
+      "path": "proofs/full-64-light.png",
+      "sha256": "cc72c1992b0caa021412a9062fb437c4b5ed8b62fa4086a41e4f2534df8f5308",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-light/comparison-side-by-side.png",
+          "sha256": "40577cb60e95e3e06ed90b2e7ab9c2e1d7d2e4aec61f75dc79f4f69131b30b82"
+        },
+        "overlay": {
+          "path": "evidence/full-64-light/comparison-overlay.png",
+          "sha256": "cc72c1992b0caa021412a9062fb437c4b5ed8b62fa4086a41e4f2534df8f5308"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-light/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-light/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "black",
+      "path": "proofs/full-64-black.png",
+      "sha256": "19266c2dc3a268fefd4f1ccb535fc801998fa760c4133f9d8a5d5067e2221d46",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-black/comparison-side-by-side.png",
+          "sha256": "f26dfe8f560a9d60e7797cbe4f09bcc31f112409f2cc26cbe43c216cac83d4dd"
+        },
+        "overlay": {
+          "path": "evidence/full-64-black/comparison-overlay.png",
+          "sha256": "19266c2dc3a268fefd4f1ccb535fc801998fa760c4133f9d8a5d5067e2221d46"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-black/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-black/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "white",
+      "path": "proofs/full-64-white.png",
+      "sha256": "3b45fa5fd8bfcee1cda02817870febb20f90c081f4f09ed435771c625719588a",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-white/comparison-side-by-side.png",
+          "sha256": "9c088c316e9874d93894d488961e2e631674ab662f0ce5a719cdb45a3989f9ea"
+        },
+        "overlay": {
+          "path": "evidence/full-64-white/comparison-overlay.png",
+          "sha256": "3b45fa5fd8bfcee1cda02817870febb20f90c081f4f09ed435771c625719588a"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-white/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-white/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "dark",
+      "path": "proofs/full-32-dark.png",
+      "sha256": "d4cfb6cbfc2818fc42c6ff102b47af3160cc34aeb3a12e656a684d3893b6ffb5",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-dark/comparison-side-by-side.png",
+          "sha256": "6ac3ef2e29fc16a452c28ab79f7f0a2a46bf9bd346bbbe316f0f6a89a465a46d"
+        },
+        "overlay": {
+          "path": "evidence/full-32-dark/comparison-overlay.png",
+          "sha256": "d4cfb6cbfc2818fc42c6ff102b47af3160cc34aeb3a12e656a684d3893b6ffb5"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-dark/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-dark/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "light",
+      "path": "proofs/full-32-light.png",
+      "sha256": "74a8c898a00a8e589158b3552b77c57fe2c4cd9c9650beb07ce76f6a6a249e4e",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-light/comparison-side-by-side.png",
+          "sha256": "ef9988b33089811d4256b908565baddf31643fe7d21ef78f9c3109561ff1bca4"
+        },
+        "overlay": {
+          "path": "evidence/full-32-light/comparison-overlay.png",
+          "sha256": "74a8c898a00a8e589158b3552b77c57fe2c4cd9c9650beb07ce76f6a6a249e4e"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-light/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-light/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "black",
+      "path": "proofs/full-32-black.png",
+      "sha256": "335a451c88774ec92c064f30e4bbb36ebd24059c49e2afb1a7c200cf330e68dd",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-black/comparison-side-by-side.png",
+          "sha256": "5a7cc07afaef46dec7716af109bd31deebba4eab4bb738e880bf8230b1b1c419"
+        },
+        "overlay": {
+          "path": "evidence/full-32-black/comparison-overlay.png",
+          "sha256": "335a451c88774ec92c064f30e4bbb36ebd24059c49e2afb1a7c200cf330e68dd"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-black/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-black/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "white",
+      "path": "proofs/full-32-white.png",
+      "sha256": "ab1b70505131fab0d4eee0c28f6b4e61fb813c1dbd7a18701b3e756e7cfd8331",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-white/comparison-side-by-side.png",
+          "sha256": "1b93e36a0b998f6880458c38cef091c1481450d3a750744bb27c9363ac62a8b6"
+        },
+        "overlay": {
+          "path": "evidence/full-32-white/comparison-overlay.png",
+          "sha256": "ab1b70505131fab0d4eee0c28f6b4e61fb813c1dbd7a18701b3e756e7cfd8331"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-white/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-white/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "dark",
+      "path": "proofs/full-16-dark.png",
+      "sha256": "ac55fada79bdfbdba9a8c1fe4cb4a5a2ea712cb681cf4301c762e02fb4157b44",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-dark/comparison-side-by-side.png",
+          "sha256": "576eea4cf2bf5849030cc5cabf6a26999d85c747b258bd871ef9ba69f36fd002"
+        },
+        "overlay": {
+          "path": "evidence/full-16-dark/comparison-overlay.png",
+          "sha256": "ac55fada79bdfbdba9a8c1fe4cb4a5a2ea712cb681cf4301c762e02fb4157b44"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-dark/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-dark/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "light",
+      "path": "proofs/full-16-light.png",
+      "sha256": "9d8a8e216e35cee54a5c6c5fdb1899917e7fbe58921666e534d0d08765f487f5",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-light/comparison-side-by-side.png",
+          "sha256": "bd66a2bcb8c864cd9850b19209526ca97f63fb2c6172228e8132d94d592586f7"
+        },
+        "overlay": {
+          "path": "evidence/full-16-light/comparison-overlay.png",
+          "sha256": "9d8a8e216e35cee54a5c6c5fdb1899917e7fbe58921666e534d0d08765f487f5"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-light/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-light/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "black",
+      "path": "proofs/full-16-black.png",
+      "sha256": "b87cec9e81723a3b01f4ea49fd4b127e14877d19900185cfd10974a0d309c873",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-black/comparison-side-by-side.png",
+          "sha256": "61204f1f4cf8325dd0cef2e27ea8478ce41d11f0bec29ac4da0f1f222190ba2d"
+        },
+        "overlay": {
+          "path": "evidence/full-16-black/comparison-overlay.png",
+          "sha256": "b87cec9e81723a3b01f4ea49fd4b127e14877d19900185cfd10974a0d309c873"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-black/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-black/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "white",
+      "path": "proofs/full-16-white.png",
+      "sha256": "f3410ac5bc973be5af80f690fc664bf53a2b6e8848ec5b4ad01f04fa98b597d9",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-white/comparison-side-by-side.png",
+          "sha256": "01987b7ea0de6cad6a2789ffcc4fd8a4bc9613a20c4952dde7d611e07eba3f46"
+        },
+        "overlay": {
+          "path": "evidence/full-16-white/comparison-overlay.png",
+          "sha256": "f3410ac5bc973be5af80f690fc664bf53a2b6e8848ec5b4ad01f04fa98b597d9"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-white/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-white/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "dark",
+      "path": "proofs/reduced-256-dark.png",
+      "sha256": "9fea25c935a844b416ee876bb9641eae5a6e5299dae02f135c27c8cbd6cbaf69",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-dark/comparison-side-by-side.png",
+          "sha256": "c6d972c45887c648ecf471e244e1c9d58f5339952b71d18704b4edd1160572d5"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-dark/comparison-overlay.png",
+          "sha256": "9fea25c935a844b416ee876bb9641eae5a6e5299dae02f135c27c8cbd6cbaf69"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-dark/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-dark/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "light",
+      "path": "proofs/reduced-256-light.png",
+      "sha256": "739b77aa914689f785ae4df9efad614f25af1da84470c11da7cb011d84892545",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-light/comparison-side-by-side.png",
+          "sha256": "81302cdc5581ca806497ade76b3b99aa71e53de12b35fa3dca28d7a2f4e6fff9"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-light/comparison-overlay.png",
+          "sha256": "739b77aa914689f785ae4df9efad614f25af1da84470c11da7cb011d84892545"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-light/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-light/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "black",
+      "path": "proofs/reduced-256-black.png",
+      "sha256": "d392573288a8c7c5c6517ba5761ede0fadb57dc412132ec6a64e060fb2e3e308",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-black/comparison-side-by-side.png",
+          "sha256": "ca2a7f1aa813615885007de8337adaeeddfed35ac1aa72837338ff5fcdbfa128"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-black/comparison-overlay.png",
+          "sha256": "d392573288a8c7c5c6517ba5761ede0fadb57dc412132ec6a64e060fb2e3e308"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-black/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-black/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "white",
+      "path": "proofs/reduced-256-white.png",
+      "sha256": "8694e8145e388d11c542bb403aed0ff14626235d07117e0808cc3d3131560b8a",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-white/comparison-side-by-side.png",
+          "sha256": "f9d65bf806cfeba4daf2829673a3c08ee9f9b0b4463cdd23ebd12bc46ed8dcc7"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-white/comparison-overlay.png",
+          "sha256": "8694e8145e388d11c542bb403aed0ff14626235d07117e0808cc3d3131560b8a"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-white/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-white/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "dark",
+      "path": "proofs/reduced-64-dark.png",
+      "sha256": "7431c70d79a5b6f44647468d610d7d30d795607f2b44971209409903c0fca355",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-dark/comparison-side-by-side.png",
+          "sha256": "9b10c1c52ecb68fa770ec00ff7c76690c6e1a3225acf52d8b172d9bac61b21fc"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-dark/comparison-overlay.png",
+          "sha256": "7431c70d79a5b6f44647468d610d7d30d795607f2b44971209409903c0fca355"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-dark/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-dark/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "light",
+      "path": "proofs/reduced-64-light.png",
+      "sha256": "771bd0c8eae1a055cd62df86b948b3f445d15bda1dd9ed831370dcbaba8c523d",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-light/comparison-side-by-side.png",
+          "sha256": "a4086a5d6c8f1e21a85ab14a1eb9bf3a3ed8df7c8fa03ab57dcc09373490af7e"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-light/comparison-overlay.png",
+          "sha256": "771bd0c8eae1a055cd62df86b948b3f445d15bda1dd9ed831370dcbaba8c523d"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-light/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-light/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "black",
+      "path": "proofs/reduced-64-black.png",
+      "sha256": "ac64a0b03798ef6f24d56c5f950c491c7f5941e7362d1403f4b6cf0feb2fee69",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-black/comparison-side-by-side.png",
+          "sha256": "978a168805cf3d4c7fb4f04d534df5eb0e27df96240c324b1db3a8689d858efa"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-black/comparison-overlay.png",
+          "sha256": "ac64a0b03798ef6f24d56c5f950c491c7f5941e7362d1403f4b6cf0feb2fee69"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-black/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-black/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "white",
+      "path": "proofs/reduced-64-white.png",
+      "sha256": "62173e2c1e1be179a42a0466c265981a234b12e1e070f6cee8826eda185fe76f",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-white/comparison-side-by-side.png",
+          "sha256": "244358a595857720f7b5b052c89b005ea17656cb9d2a3bb60eb898c9e71828eb"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-white/comparison-overlay.png",
+          "sha256": "62173e2c1e1be179a42a0466c265981a234b12e1e070f6cee8826eda185fe76f"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-white/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-white/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "dark",
+      "path": "proofs/reduced-32-dark.png",
+      "sha256": "a97932964113271b46ee203efa3927afeea187ee6e8cc04dd7e6a7eed8100b68",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-dark/comparison-side-by-side.png",
+          "sha256": "2967e111d79c902db553c19f49d3d95138733d218ecc0c2397b9b2c176324f57"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-dark/comparison-overlay.png",
+          "sha256": "a97932964113271b46ee203efa3927afeea187ee6e8cc04dd7e6a7eed8100b68"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-dark/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-dark/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "light",
+      "path": "proofs/reduced-32-light.png",
+      "sha256": "1ea68974b857102a8f47b76d4633feeb1a3df79e6b85463bea1ce42001e3cf7c",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-light/comparison-side-by-side.png",
+          "sha256": "90c9e047b5ae1ffa41093eb59f28eca54fba64b6e15575fdb8ead41456a9bd35"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-light/comparison-overlay.png",
+          "sha256": "1ea68974b857102a8f47b76d4633feeb1a3df79e6b85463bea1ce42001e3cf7c"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-light/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-light/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "black",
+      "path": "proofs/reduced-32-black.png",
+      "sha256": "f2ad9111fec721e4541b1ff90391930d397726926d2a6598179dfc17f1251dad",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-black/comparison-side-by-side.png",
+          "sha256": "0e7c12e4fd34aa6d2ca49827537faae178a6232c0dbfc026e15f218cfa513f90"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-black/comparison-overlay.png",
+          "sha256": "f2ad9111fec721e4541b1ff90391930d397726926d2a6598179dfc17f1251dad"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-black/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-black/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "white",
+      "path": "proofs/reduced-32-white.png",
+      "sha256": "e2423ef71d6b73e21e638d08b728325610f38b20625ad8dfb815089260631c62",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-white/comparison-side-by-side.png",
+          "sha256": "017a28263f409eee97cf3713f9056dfb10d321aacf4c09c8b7bfee75b70e273a"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-white/comparison-overlay.png",
+          "sha256": "e2423ef71d6b73e21e638d08b728325610f38b20625ad8dfb815089260631c62"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-white/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-white/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "dark",
+      "path": "proofs/reduced-16-dark.png",
+      "sha256": "ecc4e8e508b46cdad04df661b92189d1c4f9dfedc3dc16c83dcd35a89c70a3ec",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-dark/comparison-side-by-side.png",
+          "sha256": "7fb287ffd9c1be3abeeab458763bda43e04e7a99ef4769567e0fbed757aeb692"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-dark/comparison-overlay.png",
+          "sha256": "ecc4e8e508b46cdad04df661b92189d1c4f9dfedc3dc16c83dcd35a89c70a3ec"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-dark/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-dark/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "light",
+      "path": "proofs/reduced-16-light.png",
+      "sha256": "fc4c900e9859fa249e5fba0c9237bdeb2ac2ae80b13b5f0b24388f8415948a4d",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-light/comparison-side-by-side.png",
+          "sha256": "887ff831a89584d74e997a347d794ffceb2cab4a22cd03c3f51616718ee1addd"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-light/comparison-overlay.png",
+          "sha256": "fc4c900e9859fa249e5fba0c9237bdeb2ac2ae80b13b5f0b24388f8415948a4d"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-light/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-light/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "black",
+      "path": "proofs/reduced-16-black.png",
+      "sha256": "72c4c6d379fbc6a357684c9bb5ac7fba95ccef69147e524c77cfab88d50b69bb",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-black/comparison-side-by-side.png",
+          "sha256": "9b8b204ea7cdcc315ef1ecb9d57dc9af5f57fa7cd14873fce1754cdb2d257f51"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-black/comparison-overlay.png",
+          "sha256": "72c4c6d379fbc6a357684c9bb5ac7fba95ccef69147e524c77cfab88d50b69bb"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-black/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-black/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "white",
+      "path": "proofs/reduced-16-white.png",
+      "sha256": "adf75170556deddbcb03ce1d187f76dd69a8601e65bd892e3c1d1b463173f9e6",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-white/comparison-side-by-side.png",
+          "sha256": "1fbe14ddd30f689e4a7cf32b56791d85d9d6782eeb1659078b82b7d390ac0b53"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-white/comparison-overlay.png",
+          "sha256": "adf75170556deddbcb03ce1d187f76dd69a8601e65bd892e3c1d1b463173f9e6"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-white/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-white/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    }
+  ],
+  "approval": {
+    "bundle_id": "scruggs-g1-r4",
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-29",
+    "owner_wording": "Approve corrected palette",
+    "scope": [
+      "full-master",
+      "reduced-master",
+      "palette",
+      "framing",
+      "topology",
+      "renderer",
+      "proof-matrix"
+    ],
+    "proposal_sha256": "3f9a932c157e3b69b8df453d59f0447f1320d5437e911712fd1e6a56efa55206",
+    "source_snapshot_sha256": "4c28e4270a602702fac3d1bbbef6694044671014849a505dc3e3db2db077eae7"
+  },
+  "historical_evidence": null,
+  "record_sha256": "6a558cf87856b5934b60b54945c9cce053c962edb14a9e1ab49d94285ffd2b8f"
+}
