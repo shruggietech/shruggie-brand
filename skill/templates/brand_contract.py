@@ -69,7 +69,8 @@ def social_copy(brand):
     """Return the explicitly approved words for the generated social image."""
     value = brand.get("social_copy")
     required = {"slogan", "layout", "description_lines", "approval"}
-    _require(isinstance(value, dict) and required <= set(value) <= required | {"slogan_lines"},
+    _require(isinstance(value, dict) and required <= set(value)
+             and set(value) <= required | {"composition", "slogan_lines"},
              "social_copy must declare slogan, layout, description_lines, and approval")
     slogan = value["slogan"]
     _require(isinstance(slogan, str) and slogan.strip() == slogan and slogan,
@@ -91,6 +92,11 @@ def social_copy(brand):
              "social_copy.description_lines are invalid")
     _require((not lines) if layout == "slogan-only" else bool(lines),
              "social_copy description lines disagree with selected layout")
+    composition = value.get("composition", "classic")
+    _require(composition in {"classic", "centered-single-line"},
+             "social_copy.composition is invalid")
+    _require(composition != "centered-single-line" or layout == "slogan-only",
+             "social_copy centered-single-line composition requires slogan-only layout")
     _require(len(lines) <= 3, "social_copy.description_lines cannot fit more than three lines")
     approval = value["approval"]
     _require(isinstance(approval, dict) and set(approval) == {"approved_by", "approved_on", "source"},
@@ -1062,7 +1068,7 @@ def authoritative_inputs(brand, kit):
     identifiers = set()
     protected_roles = set()
     by_path = {}
-    allowed_transforms = {"embed-unchanged", "recolor-mask", "resize", "place-in-lockup",
+    allowed_transforms = {"embed-unchanged", "recolor-mask", "resize", "frame-viewport", "place-in-lockup",
                           "palette-analysis", "derive-single-ink"}
     normalized = []
     for index, record in enumerate(records):
@@ -1088,7 +1094,7 @@ def authoritative_inputs(brand, kit):
         _require(isinstance(transforms, list) and len(transforms) == len(set(transforms)) and set(transforms).issubset(allowed_transforms), "authoritative input %s has invalid approved transformations" % record["id"])
         _require(DIGEST.fullmatch(record["sha256"] or ""), "authoritative input %s has an invalid SHA-256" % record["id"])
         if present_mask_fields:
-            _require(record["approved_mask"] in {"alpha", "luminance"}, "authoritative input %s has an invalid approved mask" % record["id"])
+            _require(record["approved_mask"] in {"alpha", "luminance", "luminance-normalized"}, "authoritative input %s has an invalid approved mask" % record["id"])
             _require(DIGEST.fullmatch(record["mask_source_sha256"] or ""), "authoritative input %s has an invalid mask-approval SHA-256" % record["id"])
             _require(isinstance(record["mask_approved_by"], str) and record["mask_approved_by"].strip(), "authoritative input %s lacks a mask approver" % record["id"])
             _require(re.fullmatch(r"\d{4}-\d{2}-\d{2}", record["mask_approved_on"] or ""), "authoritative input %s has an invalid mask approval date" % record["id"])
@@ -1182,6 +1188,20 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
     _require(isinstance(paths, dict), "logo.paths is required")
     for variant in ("full", "reduced"):
         _require(isinstance(paths.get(variant), list) and paths[variant], "%s logo paths must be a non-empty array" % variant)
+    _require(logo.get("standalone_mark_variant", "full") in {"full", "reduced"},
+             "logo.standalone_mark_variant must be full or reduced")
+    reduced_viewbox = logo.get("reduced_viewbox")
+    if reduced_viewbox is not None:
+        _require(isinstance(reduced_viewbox, list) and len(reduced_viewbox) == 4
+                 and all(isinstance(value, (int, float)) and not isinstance(value, bool)
+                         for value in reduced_viewbox),
+                 "logo.reduced_viewbox must contain four numeric coordinates")
+        x, y, width, height = reduced_viewbox
+        canvas_width = logo.get("canvas_width", logo.get("grid", 512))
+        canvas_height = logo.get("canvas_height", logo.get("grid", 512))
+        _require(x >= 0 and y >= 0 and width > 0 and width == height
+                 and x + width <= canvas_width and y + height <= canvas_height,
+                 "logo.reduced_viewbox must be a square window inside the canvas")
 
     normalized_inputs = authoritative_inputs(brand, kit) if normalized_inputs is None else normalized_inputs
     records = {record["id"]: (record, path) for record, path in normalized_inputs}
@@ -1248,6 +1268,9 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
                  "%s authoritative input %s does not approve %s" % (variant, input_id, required))
         _require("resize" in record["approved_transformations"],
                  "%s authoritative input %s does not approve resize" % (variant, input_id))
+        if variant == "reduced" and reduced_viewbox is not None:
+            _require("frame-viewport" in record["approved_transformations"],
+                     "reduced authoritative input %s does not approve frame-viewport" % input_id)
         if variant == "full":
             _require("place-in-lockup" in record["approved_transformations"],
                      "full authoritative input %s does not approve place-in-lockup" % input_id)

@@ -123,6 +123,12 @@ MIGRATIONS = {
         "starter. Existing approved identity geometry and Web/React and egui adapter APIs remain unchanged. "
         "Saved WordPress Site Editor content and overrides require explicit staging reconciliation."
     ),
+    "2.8.0": (
+        "Existing kits need migration: **no required identity migration**. Regenerate and repin a kit only "
+        "to adopt the 2.8.0 compiler and its opt-in single-line social composition. Existing approved logo "
+        "and social-image bytes remain authoritative. Local Companion 1.0.0 is a new, separately approved "
+        "brand kit with exact archive checksums and public-site assets."
+    ),
 }
 
 

@@ -5,7 +5,11 @@
     "canvas_height": 500,
     "canvas_width": 919,
     "clear_space_units": 92,
-    "grid": 919
+    "grid": 919,
+    "standalone_padding_units": {
+      "full": 92,
+      "reduced": 55
+    }
   },
   "historical_evidence": {
     "approval_completeness": "unknown",
@@ -17,7 +21,8 @@
   "identity_snapshot": {
     "derivative_settings": {
       "application_icon": {
-        "background": "#000000"
+        "background": "#000000",
+        "source_variant": "reduced"
       },
       "authoritative_input_ids": {
         "full": "full-mark-master",
@@ -44,6 +49,12 @@
         "Do not combine a sub-brand mark with the parent mark inside one lockup."
       ],
       "reduced_below_px": 48,
+      "reduced_viewbox": [
+        238.5,
+        30,
+        440,
+        440
+      ],
       "role_colors": {
         "color": {
           "accent": "#2BCC73"
@@ -52,13 +63,22 @@
           "accent": "#037B40"
         }
       },
-      "source_mode": "authoritative"
+      "source_mode": "authoritative",
+      "standalone_mark_variant": "reduced",
+      "standalone_padding_units": {
+        "full": 92,
+        "reduced": 55
+      }
     },
     "framing": {
       "canvas_height": 500,
       "canvas_width": 919,
       "clear_space_units": 92,
-      "grid": 919
+      "grid": 919,
+      "standalone_padding_units": {
+        "full": 92,
+        "reduced": 55
+      }
     },
     "geometry": {
       "authoritative_input_ids": {
@@ -83,7 +103,7 @@
           {
             "element": "image",
             "height": 500,
-            "mask": "luminance",
+            "mask": "luminance-normalized",
             "role": "accent",
             "source": "assets/socialmedia_logo.png",
             "width": 500,
@@ -153,7 +173,7 @@
         "secondary": "#0D0F12"
       }
     },
-    "sha256": "b5dfb48f365a35beda99ac87af901bd269a640883b034ddc0712e026d7595524",
+    "sha256": "bdaaab0f6dc78a127d82ed0cb804549d52c67558039c7612a03ac0fea649c6a5",
     "source_class": "authoritative",
     "topology": {
       "full": {
@@ -270,7 +290,7 @@
     }
   },
   "proofs": [],
-  "record_sha256": "66e40f4e7f47797d7769e8758d1dfcfc6cf8d01f39c8a2325eb203a84c152f19",
+  "record_sha256": "715ed9848265438b50a947399681f627aaa7c46b92dcc04b122f020938ea2c3f",
   "recorded_on": "2026-09-09",
   "renderer": null,
   "schema_version": 1,

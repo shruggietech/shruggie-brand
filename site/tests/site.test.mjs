@@ -92,7 +92,7 @@ export function interactionStyleProblems(styles) {
 if (interactionStyleProblems(globalStyles).length > 0) throw new Error(`interaction style contract failed: ${interactionStyleProblems(globalStyles).join(', ')}`);
 
 export const routeRecords = routeContract.routes;
-const expectedBrandSlugs = ['covarity', 'cueson', 'dancewithme865', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'i-heart-pr-tours', 'scruggs-tire-alignment', 'shruggietech'];
+const expectedBrandSlugs = ['covarity', 'cueson', 'dancewithme865', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'i-heart-pr-tours', 'local-companion', 'scruggs-tire-alignment', 'shruggietech'];
 export function formalSourceHex(brand, reference) {
   const [root, ...path] = reference.split('.');
   const semantic = brand.affiliation?.inheritance === 'shruggietech-house'

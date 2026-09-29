@@ -135,7 +135,7 @@ def _ships(kit):
             % (tbl(rows[:half]), tbl(rows[half:])))
 
 
-def _variants(kit, slug, img):
+def _variants(brand, kit, slug, img):
     """Show the colourways that were actually produced, at the sizes they matter."""
     from _guidekit import b64 as _b64
     pngs = os.path.join(kit, "logos", "png")
@@ -143,11 +143,15 @@ def _variants(kit, slug, img):
         p = os.path.join(pngs, n)
         return _b64(p) if os.path.exists(p) else None
     cells = []
-    for fn, label, preview_class in (
+    square_face = (brand.get("logo") or {}).get("standalone_mark_variant") == "reduced"
+    variants = [
         ("%s-horizontal-color-1024.png" % slug, "Horizontal, product surface", " dark-preview"),
-        ("%s-mark-color-1024.png" % slug, "Mark", " dark-preview"),
+        ("%s-mark-color-1024.png" % slug, "Face-only square mark" if square_face else "Mark", " dark-preview"),
         ("%s-horizontal-light-1024.png" % slug, "Light surface", " lite"),
-        ("%s-mark-reduced-color-1024.png" % slug, "Reduced master", " lite")):
+        (("%s-mark-reduced-light-1024.png" % slug if square_face else "%s-mark-reduced-color-1024.png" % slug),
+         "Face-only square mark, light" if square_face else "Reduced master", " lite"),
+    ]
+    for fn, label, preview_class in variants:
         b = has(fn)
         if not b: continue
         cells.append('<div class="card%s" style="text-align:center;padding:5mm 2mm">%s'
@@ -325,14 +329,18 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
                  else "Title case in prose, lowercase in identifiers"),
             ] if v), type_["display_regular"], A, B.get("brand_idea", title), _personality(B)), 2))
 
+    mark_size_guidance = (
+        "The face-only reduced master is the standalone mark at every size. Use the supplied icon files for each platform."
+        if LG.get("standalone_mark_variant") == "reduced" else
+        "Below %d px the reduced master takes over. It ships as its own file. Do not rasterize the full mark down at runtime."
+        % LG.get("reduced_below_px", 32))
     pages.append(pg("Logo system", "Marks and lockups",
         '<p>%s Mark means symbol; wide and stacked lockups are separate. Clear means transparent; light and dark name the viewing surface. See Asset Language in the main manual.</p><div class="card" style="text-align:center;padding:9mm 4mm;margin:4mm 0">%s</div>'
         '<div class="two"><div><h3 style="margin-top:0">Clear space</h3>'
         '<p class="dim">One clear-space unit on every side: %d units on the %d × %d canvas, '
         '%.1f percent of artwork width. No text, border, icon or crop enters that band.</p></div>'
         '<div class="card"><div class="ey">Minimum size</div><table>%s</table>'
-        '<p class="m dim" style="margin-top:3mm">Below %d px the reduced master takes over. '
-        'It ships as its own file. Do not rasterize the full mark down at runtime.</p></div></div>'
+        '<p class="m dim" style="margin-top:3mm">%s</p></div></div>'
         '<div class="rule"></div><h3>Fixed lockup proportions</h3>'
         '<table><tr><th>Lockup</th><th>Mark height</th><th>Gap</th><th>Alignment</th></tr>'
         '<tr><td>Horizontal</td><td>%.0f units</td><td>%.0f units</td><td>Optical center</td></tr>'
@@ -348,14 +356,14 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             img(mono_logo, "", "height:17mm"), cs, canvas_width, canvas_height, 100.0 * cs / artwork_width,
             "".join("<tr><td>%s</td><td>%s px</td></tr>" % (k, v)
                     for k, v in (LG.get("min_px") or {}).items()),
-            LG.get("reduced_below_px", 32),
+            mark_size_guidance,
             float(horizontal_lockup.get("mark_height_units", 160.0)),
             float(horizontal_lockup.get("gap_units", 34.0)),
             float(stacked_lockup.get("mark_height_c", 1.8)),
             float(stacked_lockup.get("gap_c", 0.45)),
             ("Never combine the %s and ShruggieTech marks into one lockup." % slug)
             if aff["parent"] else "Never combine this mark with another organization’s mark into one lockup.")
-        + _variants(kit, slug, img), 3))
+        + _variants(B, kit, slug, img), 3))
 
     i_heart_cta = slug == "i-heart-pr-tours"
     role_grid = "grid5" if i_heart_cta else "grid4"

@@ -14,6 +14,7 @@ from pathlib import Path
 from unittest import mock
 
 from PIL import Image, ImageDraw
+from PIL.PngImagePlugin import PngInfo
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
@@ -180,6 +181,8 @@ class IdentityContinuityTests(unittest.TestCase):
         source = (HERE / "iconkit.py").read_bytes()
         self.assertEqual("f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b",
                          proof_iconkit_digest(source))
+        self.assertEqual("96dcecb82bab50874b1229151ac9f118abb079bd4790f23fe250a3597992332a",
+                         proof_iconkit_digest(source, {"slug": "local-companion"}))
         changed = source.replace(b"maximum = max(1, int(round(size * ratio)))",
                                  b"maximum = max(1, int(round(size * ratio * 0.9)))", 1)
         self.assertNotEqual(proof_iconkit_digest(source), proof_iconkit_digest(changed))
@@ -194,6 +197,8 @@ class IdentityContinuityTests(unittest.TestCase):
         revised["logo"]["reduced_colourway_input_ids"] = {"light": "reviewed-reduced"}
         self.assertEqual("73f17e8cfa23b4148e35823ef27e4fa91333243972121d1f1ff45d0d4bedc2a8",
                          proof_gen_logo_digest(source, revised))
+        self.assertEqual("00bab05a294a3d62a1d2594064e71efec7763186a831cfe64ad036af1ed40953",
+                         proof_gen_logo_digest(source, {"slug": "local-companion"}))
         changed = source.replace(b"import binascii", b"import binascii\nimport secrets", 1)
         self.assertNotEqual(LEGACY_GEN_LOGO_SHA256, proof_gen_logo_digest(changed, legacy))
 
@@ -502,13 +507,16 @@ class IdentityContinuityTests(unittest.TestCase):
                 target.write_bytes((source / item["path"]).read_bytes())
             result = validate_current_proof_matrix(record, source, renderer=record["renderer"])
             self.assertEqual("passed", result["status"])
+            changed_settings = dict(record["renderer"], version="2", settings_sha256="0" * 64)
+            self.assertEqual("passed", validate_current_proof_matrix(
+                record, source, renderer=changed_settings)["status"])
             with self.assertRaisesRegex(ContinuityError, "renderer"):
                 validate_current_proof_matrix(record, source, renderer={"id": "changed", "version": "1",
                                                                        "settings_sha256": "0" * 64})
             first = generated / "full-256-dark.png"
             first.write_bytes(first.read_bytes() + b"drift")
             with self.assertRaisesRegex(ContinuityError, "proof drift"):
-                validate_current_proof_matrix(record, source, renderer=record["renderer"])
+                validate_current_proof_matrix(record, source, renderer=changed_settings)
 
     def test_portable_proof_matrix_is_hash_bound_before_measured_comparison(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -527,15 +535,52 @@ class IdentityContinuityTests(unittest.TestCase):
             with mock.patch.dict(os.environ, {"GP_APPROVED_PROOF_ROOT": str(root / "portable")}):
                 local_renderer = dict(record["renderer"])
                 local_renderer["version"] = "different-runtime"
-                result = validate_current_proof_matrix(
-                    record, source, renderer=local_renderer, brand={"slug": "example"}
+                with self.assertRaisesRegex(ContinuityError, "attestation is missing"):
+                    validate_current_proof_matrix(
+                        record, source, renderer=local_renderer, brand={"slug": "example"})
+                changed_settings = dict(record["renderer"], version="2", settings_sha256="0" * 64)
+                attestation = {
+                    "brand": "example", "record_sha256": record["record_sha256"],
+                    "proof_validation": {"status": "passed", "renderer": dict(changed_settings),
+                                         "proofs": [dict(
+                                             {key: item[key] for key in ("variant", "size_px", "surface", "sha256")},
+                                             comparison={"passes": True, "same_renderer": True,
+                                                         "evidence": {kind: {"sha256": evidence["sha256"]}
+                                                                      for kind, evidence in item["evidence"].items()}},
+                                         )
+                                                    for item in record["proofs"]]},
+                }
+                attestation["report_sha256"] = canonical_digest(attestation)
+                report = portable.parent.parent / "identity-continuity-report.json"
+                report.write_text(json.dumps(attestation), encoding="utf-8")
+                portable_result = validate_current_proof_matrix(
+                    record, source, renderer=changed_settings, brand={"slug": "example"}
                 )
-                self.assertTrue(all(not item["comparison"]["same_renderer"] for item in result["proofs"]))
+                self.assertTrue(all(not item["comparison"]["same_renderer"] for item in portable_result["proofs"]))
+                produced = generated / "full-256-dark.png"
+                with Image.open(produced) as image:
+                    pixels = image.copy()
+                metadata = PngInfo()
+                metadata.add_text("host", "portable-test")
+                pixels.save(produced, pnginfo=metadata)
+                self.assertEqual("passed", validate_current_proof_matrix(
+                    record, source, renderer=changed_settings, brand={"slug": "example"})["status"])
+                attestation["proof_validation"]["renderer"]["settings_sha256"] = "1" * 64
+                attestation["report_sha256"] = canonical_digest(
+                    {key: value for key, value in attestation.items() if key != "report_sha256"})
+                report.write_text(json.dumps(attestation), encoding="utf-8")
+                with self.assertRaisesRegex(ContinuityError, "attestation settings drift"):
+                    validate_current_proof_matrix(
+                        record, source, renderer=changed_settings, brand={"slug": "example"})
+                attestation["proof_validation"]["renderer"]["settings_sha256"] = "0" * 64
+                attestation["report_sha256"] = canonical_digest(
+                    {key: value for key, value in attestation.items() if key != "report_sha256"})
+                report.write_text(json.dumps(attestation), encoding="utf-8")
                 first = portable / "full-256-dark.png"
                 first.write_bytes(first.read_bytes() + b"drift")
                 with self.assertRaisesRegex(ContinuityError, "portable approved proof hash drift"):
                     validate_current_proof_matrix(
-                        record, source, renderer=local_renderer, brand={"slug": "example"}
+                        record, source, renderer=changed_settings, brand={"slug": "example"}
                     )
 
     def test_approved_report_binds_fresh_production_proof_matrix(self):

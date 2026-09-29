@@ -27,6 +27,7 @@ PRODUCTION = (
     "glitchpad",
     "go-schedule",
     "i-heart-pr-tours",
+    "local-companion",
     "scruggs-tire-alignment",
     "shruggietech",
 )
@@ -407,6 +408,16 @@ class PublicationWorkflowContractTests(unittest.TestCase):
             self.assertIn(name, text)
         self.assertGreaterEqual(text.count("include-hidden-files: true"), 2)
         self.assertIn("python scripts/audit_publication_artifacts.py --kits dist --site site/out", text)
+
+    def test_verified_artifact_contains_every_production_kit(self):
+        text = workflow_text()
+        upload = text.split("name: verified-brand-kits-${{ github.sha }}", 1)[1].split(
+            "if-no-files-found:", 1)[0]
+        for slug in PRODUCTION:
+            with self.subTest(slug=slug):
+                self.assertIn("dist/%s/" % slug, upload)
+        self.assertIn("--exclude scruggs-tire-alignment --exclude dancewithme865", text)
+        self.assertIn("scripts/build_all.py scruggs-tire-alignment dancewithme865", text)
 
     def test_terminal_build_fails_unless_every_verifier_succeeds(self):
         block = job_block(workflow_text(), "build")

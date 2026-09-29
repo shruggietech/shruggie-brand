@@ -721,7 +721,7 @@ reading surface and is never text there. The light block substitutes <code>%(AL)
 <section id="assets"><div class="eyebrow">Delivery</div><h2>Complete asset catalog</h2>
 <p class="lead">A brand mark is the symbol alone; a logo lockup combines approved elements. Wide and stacked layouts are separate designs. Full and reduced identify source detail. Full color or monochrome identifies ink treatment. A clear background is transparent; for light or dark names the intended viewing surface. Social share images are separate opaque compositions. Preferred descriptive filenames and existing paths contain the same approved artwork. <a href="https://brand.shruggie.tech/docs/asset-glossary/">Full asset glossary</a>.</p>
 <p class="lead">Canvas %(canvas_width)d × %(canvas_height)d units, clear space %(cs)d units (%(cspct).1f percent of artwork width).
-Below %(red)d px the reduced master takes over.</p>
+%(mark_size_guidance)s</p>
 <h3>Fixed lockup proportions</h3>
 <table><tr><th>lockup</th><th>mark height</th><th>gap</th><th>alignment</th></tr>
 <tr><td>horizontal</td><td>%(hmark).0f units</td><td>%(hgap).0f units</td><td>optical center</td></tr>
@@ -771,7 +771,10 @@ if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;
         "light_vars": escape(";".join("--%s:%s" % item for item in L.items()), quote=True),
         "mini_bars": "".join('<span style="--bar:%s;--height:%d%%"></span>' % (D["chart-%d" % i], 36 + i * 10) for i in range(1, 6)),
         "mini_bars_light": "".join('<span style="--bar:%s;--height:%d%%"></span>' % (L["chart-%d" % i], 36 + i * 10) for i in range(1, 6)),
-        "red": (B.get("logo") or {}).get("reduced_below_px", 32),
+        "mark_size_guidance": (
+            "The face-only reduced master is the standalone mark at every size. Use the supplied icon files for each platform."
+            if (B.get("logo") or {}).get("standalone_mark_variant") == "reduced" else
+            "Below %d px the reduced master takes over." % (B.get("logo") or {}).get("reduced_below_px", 32)),
         "endorsement": "" if not endorsement else '<div class="endorse">%s</div>' % escape(endorsement),
         "vendor_boundary": "" if not boundary else '<section aria-labelledby="vendor-boundary"><div class="eyebrow">Third-party boundary</div><h2 id="vendor-boundary">Vendor and trademark notice</h2><p class="lead">%s</p></section>' % escape(boundary["notice"]),
         **type_,

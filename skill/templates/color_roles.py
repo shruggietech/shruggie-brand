@@ -14,6 +14,7 @@ HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
 SEGMENT = re.compile(r"^[a-z][a-z0-9_-]*$")
 IDENTITY_SOURCE = re.compile(r"^(?:brand\.accent\.(?:bright|deep|accessible|dim)|brand\.logo\.role_colors\.color\.[a-z][a-z0-9_]*|brand\.legacy_palette\.[0-9]+|semantic\.(?:action|emphasis))$")
 CUES = ("action", "warning", "error", "success", "information", "focus", "selection", "disabled")
+FUNCTIONAL_CUES = ("warning", "error", "success", "information")
 
 
 class ColorRoleError(ValueError):
@@ -61,6 +62,36 @@ def _foreground(fill):
     return ("#000000", black) if black >= white else ("#FFFFFF", white)
 
 
+def functional_cue_colors(brand):
+    """Validate optional application state colors without changing identity colors."""
+    declared = brand.get("functional_colors")
+    if declared is None:
+        return None
+    _require(isinstance(declared, dict) and set(declared) == set(FUNCTIONAL_CUES),
+             "functional_colors must define warning, error, success, and information")
+    result = {}
+    for cue in FUNCTIONAL_CUES:
+        pair = declared[cue]
+        _require(isinstance(pair, dict) and set(pair) == {"dark", "light"},
+                 "functional_colors.%s needs dark and light values" % cue)
+        result[cue] = {}
+        for theme in ("dark", "light"):
+            value = pair[theme]
+            _require(isinstance(value, str) and HEX.fullmatch(value),
+                     "functional_colors.%s.%s must be a six-digit hex color" % (cue, theme))
+            value = value.upper()
+            surfaces = brand.get("surfaces" if theme == "dark" else "light_surfaces") or {}
+            _require(all(name in surfaces for name in ("base", "card", "popover", "secondary", "hover")),
+                     "%s functional cue surfaces are incomplete" % theme)
+            for surface in ("base", "card", "popover", "secondary", "hover"):
+                _require(_ratio(value, surfaces[surface]) + 1e-9 >= 4.5,
+                         "%s %s cue falls below 4.5 on %s" % (theme, cue, surface))
+            _require(_foreground(value)[1] + 1e-9 >= 4.5,
+                     "%s %s cue has no AA fill foreground" % (theme, cue))
+            result[cue][theme] = value
+    return result
+
+
 def resolve_color_roles(brand, canon):
     """Return JSON-ready role records without changing any approved input color."""
     declaration = brand.get("color_roles")
@@ -104,6 +135,7 @@ def resolve_color_roles(brand, canon):
         combination_ids.add(identifier)
 
     model = ((canon.get("color") or {}).get("role_model") or {}).get("interface_cues")
+    functional = functional_cue_colors(brand)
     _require(isinstance(model, dict) and set(model) == set(CUES), "canon interface cue model must define eight roles")
     surfaces = {"dark": (brand.get("surfaces") or {}).get("base", "#000000"),
                 "light": (brand.get("light_surfaces") or {}).get("base", "#F8F8F6")}
@@ -116,8 +148,9 @@ def resolve_color_roles(brand, canon):
                      for key in ("label", "use", "non_color_cue")),
                  "interface cue needs meaning and non-color cue: %s" % cue)
         for theme in ("dark", "light"):
-            source = definition[theme]
-            value = _source_value(source, brand, canon)
+            source = ("brand.functional_colors.%s.%s" % (cue, theme)
+                      if functional and cue in functional else definition[theme])
+            value = functional[cue][theme] if functional and cue in functional else _source_value(source, brand, canon)
             surface = surfaces[theme]
             _require(isinstance(surface, str) and HEX.fullmatch(surface), "invalid %s surface" % theme)
             foreground, foreground_ratio = _foreground(value)

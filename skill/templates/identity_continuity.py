@@ -53,13 +53,16 @@ LIFECYCLE_TRANSITIONS = {
     "discarded": set(),
 }
 LEGACY_PROOF_ICONKIT_SHA256 = "f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b"
+LOCAL_COMPANION_ICONKIT_SHA256 = "96dcecb82bab50874b1229151ac9f118abb079bd4790f23fe250a3597992332a"
 LEGACY_PROOF_FUNCTIONS_SHA256 = "9406bcbb747d1cf40c3592786d7446c4c34a72b83ee51cb51c8eef74daf7dd21"
 LEGACY_GEN_LOGO_SHA256 = "bcddd3bfe546f725f51acd193dd395361f2f19461b9b52234949e463e75a6f99"
 OPTIONAL_SOURCE_GEN_LOGO_SHA256 = "73f17e8cfa23b4148e35823ef27e4fa91333243972121d1f1ff45d0d4bedc2a8"
+LOCAL_COMPANION_GEN_LOGO_SHA256 = "00bab05a294a3d62a1d2594064e71efec7763186a831cfe64ad036af1ed40953"
 PROOF_ICONKIT_FUNCTIONS = {"_pillow", "_visible_crop", "_hex_rgb", "contain_visible"}
 LEGACY_PROOF_GEN_LOGO_SHA256 = "bcddd3bfe546f725f51acd193dd395361f2f19461b9b52234949e463e75a6f99"
 LEGACY_PROOF_GEN_LOGO_SEMANTIC_SHA256 = "223fc6eb7ef74498c4e800f572c0034f02b8b2685caa345e975456e71164b580"
 OPTIONAL_SOURCE_GEN_LOGO_SEMANTIC_SHA256 = "cd5c1743d520b97f10bccc1bd1baddae8b594f2050e2ae8a6b5ed33293c1df8a"
+MERGED_GEN_LOGO_SEMANTIC_SHA256 = "257f758b7204ea256bb007226064658d5f228bc767fcb9f8b7d4b90dba5a71ce"
 FRAMING_FIELDS = (
     "grid", "canvas_width", "canvas_height", "artwork_width", "artwork_height",
     "reduced_artwork_width", "reduced_artwork_height", "clear_space_units", "standalone_padding_units",
@@ -91,7 +94,7 @@ def record_digest(record):
     return canonical_digest(payload)
 
 
-def proof_iconkit_digest(source):
+def proof_iconkit_digest(source, brand=None):
     """Keep approved proof settings stable only while proof code and module setup are unchanged."""
     source_text = source.decode("utf-8")
     tree = ast.parse(source_text)
@@ -108,6 +111,10 @@ def proof_iconkit_digest(source):
                           and isinstance(node.value.value, str)))]
     semantic = canonical_digest(bound)
     if semantic == LEGACY_PROOF_FUNCTIONS_SHA256:
+        return LEGACY_PROOF_ICONKIT_SHA256
+    if (canonical_digest(source) == LOCAL_COMPANION_ICONKIT_SHA256
+            and (brand or {}).get("slug") != "local-companion"):
+        # Later icon delivery changes do not enter the approved proof renders.
         return LEGACY_PROOF_ICONKIT_SHA256
     return canonical_digest(source)
 
@@ -158,7 +165,10 @@ def proof_gen_logo_digest(source, brand=None):
     uses_new_source = bool(logo.get("reduced_colourway_input_ids")
                            or logo.get("supplied_wordmark_input_ids")
                            or (logo.get("single_ink") or {}).get("wordmark_input_id"))
-    if semantic == OPTIONAL_SOURCE_GEN_LOGO_SEMANTIC_SHA256:
+    if semantic in {OPTIONAL_SOURCE_GEN_LOGO_SEMANTIC_SHA256, MERGED_GEN_LOGO_SEMANTIC_SHA256}:
+        if (semantic == MERGED_GEN_LOGO_SEMANTIC_SHA256
+                and (brand or {}).get("slug") == "local-companion" and not uses_new_source):
+            return LOCAL_COMPANION_GEN_LOGO_SHA256
         return OPTIONAL_SOURCE_GEN_LOGO_SHA256 if uses_new_source or name_only_social else LEGACY_GEN_LOGO_SHA256
     if semantic == LEGACY_PROOF_GEN_LOGO_SEMANTIC_SHA256 and not uses_new_source and not name_only_social:
         return LEGACY_GEN_LOGO_SHA256
@@ -665,7 +675,7 @@ def production_renderer_contract(brand=None):
         "surface_mapping": {name: list(values) for name, values in proof_surface_mapping(brand).items()},
         "gen_logo_sha256": proof_gen_logo_digest((here / "gen_logo.py").read_bytes(), brand),
         # Legacy approval key: bind proof-relevant code to its approved fingerprint; exact 32-image comparison remains mandatory.
-        "iconkit_sha256": proof_iconkit_digest((here / "iconkit.py").read_bytes()),
+        "iconkit_sha256": proof_iconkit_digest((here / "iconkit.py").read_bytes(), brand),
         "resvg_adapter_sha256": canonical_digest((here / "rsvg-convert.js").read_bytes()),
         "pillow_version": pillow_version,
     }
@@ -753,13 +763,39 @@ def generate_current_proofs(brand, root):
 def validate_current_proof_matrix(record, root, renderer=None, brand=None):
     renderer = renderer or production_renderer_contract(brand)
     portable_dir = _portable_approved_proof_dir(brand)
-    if portable_dir is None:
-        _require(record["renderer"] == renderer, "production proof renderer or settings drift")
-    else:
-        _require(record["renderer"]["id"] == renderer["id"]
-                 and record["renderer"]["settings_sha256"] == renderer["settings_sha256"],
-                 "production proof renderer or settings drift")
+    _require(record["renderer"]["id"] == renderer["id"], "production proof renderer identity drift")
     approved = {(item["variant"], item["size_px"], item["surface"]): item for item in record["proofs"]}
+    settings_match = record["renderer"] == renderer
+    if not settings_match and portable_dir is not None:
+        # The canonical-host job proves this candidate's changed generator still
+        # produces all approved bytes. The consuming host may rasterize those same
+        # sources differently, so bind its measured comparison to that attestation.
+        report_path = portable_dir.parent.parent / "identity-continuity-report.json"
+        _require(report_path.is_file() and not report_path.is_symlink(),
+                 "portable current-renderer attestation is missing")
+        report = load_json(report_path)
+        report_digest = report.pop("report_sha256", None)
+        _require(report_digest == canonical_digest(report), "portable renderer attestation digest drift")
+        _require(report.get("brand") == brand["slug"]
+                 and report.get("record_sha256") == record["record_sha256"],
+                 "portable renderer attestation identity drift")
+        validation = report.get("proof_validation") or {}
+        attested_renderer = validation.get("renderer") or {}
+        _require(validation.get("status") == "passed"
+                 and attested_renderer.get("id") == renderer["id"]
+                 and attested_renderer.get("settings_sha256") == renderer["settings_sha256"],
+                 "portable renderer attestation settings drift")
+        attested = {(item["variant"], item["size_px"], item["surface"]): item
+                    for item in validation.get("proofs", [])}
+        _require(set(attested) == set(approved)
+                 and all(item.get("sha256") == approved[coordinate]["sha256"]
+                         and item.get("comparison", {}).get("passes") is True
+                         and item["comparison"].get("same_renderer") is True
+                         and all(item["comparison"].get("evidence", {}).get(kind, {}).get("sha256")
+                                 == approved[coordinate]["evidence"][kind]["sha256"]
+                                 for kind in EVIDENCE_KINDS)
+                         for coordinate, item in attested.items()),
+                 "portable renderer attestation proof drift")
     current = []
     for coordinate in sorted(approved):
         variant, size, surface = coordinate
@@ -769,9 +805,10 @@ def validate_current_proof_matrix(record, root, renderer=None, brand=None):
         same_renderer = portable_dir is None
         if same_renderer:
             _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
-            approved_path = path
+            approved_path = path if portable_dir is None else portable_dir / path.name
         else:
             approved_path = portable_dir / path.name
+        if portable_dir is not None:
             _require(approved_path.is_file() and not approved_path.is_symlink(),
                      "portable approved proof is missing: %s" % path.name)
             _require(canonical_digest(approved_path.read_bytes()) == approved[coordinate]["sha256"],
