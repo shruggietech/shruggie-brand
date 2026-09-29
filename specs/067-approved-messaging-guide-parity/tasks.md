@@ -45,9 +45,9 @@
 
 ## Phase 6: Polish and gates
 
-- [ ] T016 Run focused tests and full documented kit, glyph, PDF, site, accessibility, and publication gates; record results in specs/067-approved-messaging-guide-parity/verification.md
-- [ ] T017 Update CHANGELOG.md with S067 behavior and architecture decision, check UTF-8 LF and mojibake, and commit source-only changes
-- [ ] T018 Push codex/067-approved-messaging-guide-parity and open an official PR linked to #296 and #297
+- [x] T016 Run focused tests and full documented kit, glyph, PDF, site, accessibility, and publication gates; record results in specs/067-approved-messaging-guide-parity/verification.md
+- [x] T017 Update CHANGELOG.md with S067 behavior and architecture decision, check UTF-8 LF and mojibake, and commit source-only changes
+- [x] T018 Push codex/067-approved-messaging-guide-parity and open an official PR linked to #296 and #297
 - [ ] T019 Resolve all first-round Codex and security bot comments, run and resolve at most one requested second Codex round, and wait for green required CI before owner merge handoff
 
 ## Dependencies

@@ -494,11 +494,12 @@ try {
     check(await page.locator('html').evaluate((element) => element.classList.contains('dark')) === (theme === 'dark'), `homepage did not apply the requested ${theme} theme`);
     const presentation = await page.locator('.brand-card, .brand-accordion').evaluateAll((elements) => elements.map((element) => {
       const style = getComputedStyle(element); const title = element.querySelector('h3, .mobile-brand-title'); const description = element.querySelector('.brand-card-description, .brand-accordion-panel > p'); const action = element.querySelector('.brand-actions a');
-      return { surface: element.getAttribute('data-portfolio-surface'), backgroundColor: style.backgroundColor, backgroundImage: style.backgroundImage, color: style.color, titleColor: title ? getComputedStyle(title).color : null, descriptionColor: description ? getComputedStyle(description).color : null, actionColor: action ? getComputedStyle(action).color : null };
+      return { surface: element.getAttribute('data-portfolio-surface'), backgroundColor: style.backgroundColor, backgroundImage: style.backgroundImage, color: style.color, titleColor: title ? getComputedStyle(title).color : null, description: description?.textContent?.trim() ?? null, descriptionColor: description ? getComputedStyle(description).color : null, actionColor: action ? getComputedStyle(action).color : null };
     }));
     check(presentation.length === brands.length * 2 && presentation.every((sample, index) => {
       const brand = brands[index % brands.length];
-      return sample.surface === 'governed-dark' && sample.backgroundImage === 'none' && sameColor(sample.backgroundColor, brand.portfolioSurface) && [sample.color, sample.titleColor, sample.descriptionColor, sample.actionColor].every((color) => isWhiteColor(color) && contrastRatio(color, sample.backgroundColor) >= 4.5);
+      const approvedDescription = brand.approvedMessaging.short_description ?? null;
+      return sample.surface === 'governed-dark' && sample.backgroundImage === 'none' && sameColor(sample.backgroundColor, brand.portfolioSurface) && sample.description === approvedDescription && (approvedDescription === null ? sample.descriptionColor === null : isWhiteColor(sample.descriptionColor) && contrastRatio(sample.descriptionColor, sample.backgroundColor) >= 4.5) && [sample.color, sample.titleColor, sample.actionColor].every((color) => isWhiteColor(color) && contrastRatio(color, sample.backgroundColor) >= 4.5);
     }), `homepage ${theme} portfolio surface or copy violates the dark-card contract (${JSON.stringify(presentation)})`);
     if (theme === 'dark') darkPortfolioPresentation = presentation;
     else check(JSON.stringify(presentation) === JSON.stringify(darkPortfolioPresentation), `portfolio surfaces or foregrounds change with the site theme (${JSON.stringify({ dark: darkPortfolioPresentation, light: presentation })})`);
@@ -541,12 +542,13 @@ try {
     const measureCardLayout = async () => card.evaluate((element) => ({ x: element.offsetLeft, y: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight }));
     const before = await measureCardLayout();
     const resting = await card.evaluate((element) => {
-      const cardStyle = getComputedStyle(element); const titleStyle = getComputedStyle(element.querySelector('h3')); const description = element.querySelector('.brand-card-description'); const descriptionStyle = getComputedStyle(description); const actions = element.querySelector('.brand-actions'); const actionsStyle = getComputedStyle(actions); const cardBox = element.getBoundingClientRect(); const descriptionBox = description.getBoundingClientRect();
-      return { cardColor: cardStyle.color, titleColor: titleStyle.color, descriptionColor: descriptionStyle.color, descriptionOpacity: descriptionStyle.opacity, actionsOpacity: actionsStyle.opacity, actionsVisibility: actionsStyle.visibility, actionsPointerEvents: actionsStyle.pointerEvents, descriptionBottomClearance: cardBox.bottom - descriptionBox.bottom };
+      const cardStyle = getComputedStyle(element); const titleStyle = getComputedStyle(element.querySelector('h3')); const description = element.querySelector('.brand-card-description'); const descriptionStyle = description ? getComputedStyle(description) : null; const actions = element.querySelector('.brand-actions'); const actionsStyle = getComputedStyle(actions); const cardBox = element.getBoundingClientRect(); const descriptionBox = description?.getBoundingClientRect();
+      return { cardColor: cardStyle.color, titleColor: titleStyle.color, descriptionColor: descriptionStyle?.color ?? null, descriptionOpacity: descriptionStyle?.opacity ?? null, actionsOpacity: actionsStyle.opacity, actionsVisibility: actionsStyle.visibility, actionsPointerEvents: actionsStyle.pointerEvents, descriptionBottomClearance: descriptionBox ? cardBox.bottom - descriptionBox.bottom : null };
     });
-    check([resting.cardColor, resting.titleColor, resting.descriptionColor].every(isWhiteColor), `${brands[index].slug} desktop copy differs from the required white foreground (${JSON.stringify(resting)})`);
-    check(resting.descriptionOpacity === '1' && resting.actionsOpacity === '0' && resting.actionsVisibility === 'hidden' && resting.actionsPointerEvents === 'none', `${brands[index].slug} resting action layer is visible or interactive (${JSON.stringify(resting)})`);
-    check(resting.descriptionBottomClearance >= 16, `${brands[index].slug} description has only ${resting.descriptionBottomClearance.toFixed(2)} CSS pixels of bottom clearance`);
+    const hasDescription = Boolean(brands[index].approvedMessaging.short_description);
+    check([resting.cardColor, resting.titleColor].every(isWhiteColor) && (hasDescription ? isWhiteColor(resting.descriptionColor) : resting.descriptionColor === null), `${brands[index].slug} desktop copy differs from the required white foreground (${JSON.stringify(resting)})`);
+    check((hasDescription ? resting.descriptionOpacity === '1' : resting.descriptionOpacity === null) && resting.actionsOpacity === '0' && resting.actionsVisibility === 'hidden' && resting.actionsPointerEvents === 'none', `${brands[index].slug} resting action layer is visible or interactive (${JSON.stringify(resting)})`);
+    check(hasDescription ? resting.descriptionBottomClearance >= 16 : resting.descriptionBottomClearance === null, `${brands[index].slug} description clearance differs from approved presence (${JSON.stringify(resting)})`);
     const links = await card.locator('.brand-actions a').evaluateAll((anchors) => anchors.map((anchor) => ({ label: anchor.textContent?.trim(), href: anchor.getAttribute('href'), download: anchor.getAttribute('download') })));
     check(JSON.stringify(links) === JSON.stringify([
       { label: 'Guidelines', href: brands[index].guidelinesPath, download: null },
@@ -584,12 +586,12 @@ try {
     check(Boolean(before && hovered && focused && portfolioGeometryProblems(before, hovered).length === 0 && portfolioGeometryProblems(before, focused).length === 0), `${brands[index].slug} card geometry changes across interaction states`);
     await page.keyboard.press('Escape');
     await page.waitForTimeout(200);
-    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity === '0' && getComputedStyle(element).visibility === 'hidden') && await card.locator('.brand-card-description').evaluate((element) => getComputedStyle(element).opacity) === '1', `${brands[index].slug} action panel is not dismissible with Escape`);
+    check(await card.locator('.brand-actions').evaluate((element) => getComputedStyle(element).opacity === '0' && getComputedStyle(element).visibility === 'hidden') && (hasDescription ? await card.locator('.brand-card-description').evaluate((element) => getComputedStyle(element).opacity) === '1' : await card.locator('.brand-card-description').count() === 0), `${brands[index].slug} action panel is not dismissible with Escape`);
   }
   const glitchpadCard = page.locator('.brand-card', { hasText: 'Glitchpad' });
-  const glitchpadCardStyle = await glitchpadCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: getComputedStyle(element.querySelector('.brand-card-description')).color, surface: element.getAttribute('data-portfolio-surface'), shadow: getComputedStyle(element.querySelector('.brand-icon')).boxShadow }));
+  const glitchpadCardStyle = await glitchpadCard.evaluate((element) => ({ backgroundColor: getComputedStyle(element).backgroundColor, backgroundImage: getComputedStyle(element).backgroundImage, foreground: getComputedStyle(element).color, bodyForeground: element.querySelector('.brand-card-description') ? getComputedStyle(element.querySelector('.brand-card-description')).color : null, surface: element.getAttribute('data-portfolio-surface'), shadow: getComputedStyle(element.querySelector('.brand-icon')).boxShadow }));
   check(glitchpadCardStyle.surface === 'governed-dark' && glitchpadCardStyle.backgroundColor === 'rgb(18, 20, 22)' && glitchpadCardStyle.backgroundImage === 'none', `Glitchpad card does not retain its governed dark surface (${JSON.stringify(glitchpadCardStyle)})`);
-  check(isWhiteColor(glitchpadCardStyle.foreground) && isWhiteColor(glitchpadCardStyle.bodyForeground), `Glitchpad card does not use its generated contrast foreground (${JSON.stringify(glitchpadCardStyle)})`);
+  check(isWhiteColor(glitchpadCardStyle.foreground) && glitchpadCardStyle.bodyForeground === null, `Glitchpad card does not use its generated contrast foreground or omits unresolved copy (${JSON.stringify(glitchpadCardStyle)})`);
   check(glitchpadCardStyle.shadow === 'none', `Glitchpad card retains an accent showcase glow (${glitchpadCardStyle.shadow})`);
   const ihprtCard = page.locator('.brand-card', { hasText: 'I Heart PR Tours' });
   const ihprt = brands.find((brand) => brand.slug === 'i-heart-pr-tours');
@@ -602,7 +604,7 @@ try {
     check(style.surface === 'governed-dark' && style.image === 'none', `${await card.locator('h3').textContent()} has an unexpected portfolio surface (${JSON.stringify(style)})`);
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  const reducedCard = page.locator('.brand-card').first();
+  const reducedCard = page.locator('.brand-card:has(.brand-card-description)').first();
   await reducedCard.hover();
   const reducedPortfolioMotion = await reducedCard.evaluate((element) => ({ cardDuration: getComputedStyle(element).transitionDuration, cardTransform: getComputedStyle(element).transform, descriptionDuration: getComputedStyle(element.querySelector('.brand-card-description')).transitionDuration, actionsDuration: getComputedStyle(element.querySelector('.brand-actions')).transitionDuration, linkDuration: getComputedStyle(element.querySelector('.brand-actions a')).transitionDuration, reduced: matchMedia('(prefers-reduced-motion: reduce)').matches }));
   check(reducedPortfolioMotion.reduced && [reducedPortfolioMotion.cardDuration, reducedPortfolioMotion.descriptionDuration, reducedPortfolioMotion.actionsDuration, reducedPortfolioMotion.linkDuration].every((value) => Number.parseFloat(value) <= 0.001) && reducedPortfolioMotion.cardTransform === 'none', `portfolio reduced-motion contract failed (${JSON.stringify(reducedPortfolioMotion)})`);
@@ -614,8 +616,8 @@ try {
   await page.goto(base + '/');
   await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
   for (const card of await page.locator('.brand-card').all()) {
-    const clearance = await card.evaluate((element) => { const cardBox = element.getBoundingClientRect(); const descriptionBox = element.querySelector('.brand-card-description').getBoundingClientRect(); return { bottom: cardBox.bottom - descriptionBox.bottom, clipped: element.scrollHeight > element.clientHeight + 1 }; });
-    check(clearance.bottom >= 16 && !clearance.clipped, `${await card.locator('h3').textContent()} loses clearance or clips at 200 percent zoom (${JSON.stringify(clearance)})`);
+    const clearance = await card.evaluate((element) => { const cardBox = element.getBoundingClientRect(); const descriptionBox = element.querySelector('.brand-card-description')?.getBoundingClientRect(); return { bottom: descriptionBox ? cardBox.bottom - descriptionBox.bottom : null, clipped: element.scrollHeight > element.clientHeight + 1 }; });
+    check((clearance.bottom === null || clearance.bottom >= 16) && !clearance.clipped, `${await card.locator('h3').textContent()} loses clearance or clips at 200 percent zoom (${JSON.stringify(clearance)})`);
   }
   await page.evaluate(() => { document.documentElement.style.zoom = ''; });
   const homeText = (await page.locator('body').innerText()).toLowerCase();
@@ -641,8 +643,8 @@ try {
   await page.keyboard.press('Enter');
   check(await firstDisclosure.evaluate((element) => element.open), 'keyboard activation does not expand a mobile disclosure');
   check(await firstDisclosure.locator('.brand-actions a').count() === 2 && await firstDisclosure.locator('.brand-actions a').first().isVisible(), 'expanded mobile disclosure lacks both visible actions');
-  const openDisclosure = await firstDisclosure.evaluate((element) => { const panel = element.querySelector('.brand-accordion-panel'); const description = panel.querySelector('p'); const actions = panel.querySelector('.brand-actions'); const lastAction = actions.querySelector('a:last-child'); const outer = element.getBoundingClientRect(); const actionBox = lastAction.getBoundingClientRect(); return { descriptionColor: getComputedStyle(description).color, actionColors: [...actions.querySelectorAll('a')].map((action) => getComputedStyle(action).color), bottomClearance: outer.bottom - actionBox.bottom }; });
-  check(isWhiteColor(openDisclosure.descriptionColor) && openDisclosure.actionColors.every(isWhiteColor), `expanded mobile disclosure copy is not uniformly white (${JSON.stringify(openDisclosure)})`);
+  const openDisclosure = await firstDisclosure.evaluate((element) => { const panel = element.querySelector('.brand-accordion-panel'); const description = panel.querySelector('p'); const actions = panel.querySelector('.brand-actions'); const lastAction = actions.querySelector('a:last-child'); const outer = element.getBoundingClientRect(); const actionBox = lastAction.getBoundingClientRect(); return { descriptionColor: description ? getComputedStyle(description).color : null, actionColors: [...actions.querySelectorAll('a')].map((action) => getComputedStyle(action).color), bottomClearance: outer.bottom - actionBox.bottom }; });
+  check(openDisclosure.descriptionColor === null && openDisclosure.actionColors.every(isWhiteColor), `expanded mobile disclosure copy differs from approved presence or white foreground (${JSON.stringify(openDisclosure)})`);
   check(openDisclosure.bottomClearance >= 16, `expanded mobile actions have only ${openDisclosure.bottomClearance.toFixed(2)} CSS pixels of bottom clearance`);
   await measurePortfolioIcons('.brand-accordion', 'mobile');
   await page.evaluate(() => { document.documentElement.style.zoom = '2'; });

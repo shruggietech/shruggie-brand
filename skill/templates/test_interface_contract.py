@@ -98,8 +98,8 @@ class InterfaceCanonTests(unittest.TestCase):
             set(policy["domains"]),
         )
         versions = {
-            "brand_canon": "1.6.0", "interface_canon": "1.0.1", "component_recipes": "1.1.0",
-            "web_react_adapter": "1.1.0", "egui_adapter": "1.0.2", "wordpress_adapter": "1.0.0", "compiler": "2.8.0", "brand": "1.0.0",
+            "brand_canon": "2.0.0", "interface_canon": "1.0.1", "component_recipes": "1.1.0",
+            "web_react_adapter": "1.1.0", "egui_adapter": "1.0.2", "wordpress_adapter": "1.0.0", "compiler": "3.0.0", "brand": "1.0.0",
         }
         self.assertEqual("compatible", validate_version_combination(versions, policy)["status"])
         incompatible = dict(versions, brand_canon="9.0.0")
@@ -108,7 +108,7 @@ class InterfaceCanonTests(unittest.TestCase):
         incompatible_adapter = dict(versions, egui_adapter="2.0.0")
         with self.assertRaisesRegex(InterfaceContractError, "policy major 2.*migrate"):
             validate_version_combination(incompatible_adapter, policy)
-        promoted_identity = dict(versions, brand="2.0.0", brand_canon="1.6.0", interface_canon="1.0.1")
+        promoted_identity = dict(versions, brand="2.0.0")
         self.assertEqual("compatible", validate_version_combination(promoted_identity, policy)["status"])
 
         incomplete = copy.deepcopy(policy)
@@ -118,8 +118,8 @@ class InterfaceCanonTests(unittest.TestCase):
 
     def test_release_impact_is_closed_and_rejects_downstream_evidence_fields(self):
         impact = load_release_impact()
-        self.assertEqual("2.8.0", impact["brandbuilder_version"])
-        self.assertTrue(impact["identity_redesign"])
+        self.assertEqual("3.0.0", impact["brandbuilder_version"])
+        self.assertFalse(impact["identity_redesign"])
         self.assertIn("unchanged", impact["surfaces"]["identity"]["summary"])
         self.assertEqual(
             {"identity", "palette", "typography", "platform_assets", "web_react", "egui", "wordpress", "documentation", "recovery"},
@@ -362,7 +362,7 @@ class ConsumerContractTests(unittest.TestCase):
             self.assertEqual("1.0.0", first["versions"]["wordpress_adapter_version"])
             self.assertEqual("compatible", first["compatibility"]["status"])
             self.assertNotIn("adoption_status", first["compatibility"])
-            expected_package = "shruggietech-brand-%s-bb2.8.0" % brand["version"]
+            expected_package = "shruggietech-brand-%s-bb3.0.0" % brand["version"]
             self.assertEqual(expected_package, first["bundle"]["package"]["id"])
             self.assertEqual(expected_package + ".zip", first["bundle"]["package"]["filename"])
             self.assertEqual(brand["version"], first["bundle"]["package"]["brand_version"])

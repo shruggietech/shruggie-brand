@@ -11,7 +11,7 @@ as SKIP with the reason, never silently passed.
 
 Exit code is the number of problems found, capped at 125.
 """
-import argparse, base64, copy, hashlib, json, os, re, struct, sys, tempfile, unicodedata, zlib
+import argparse, base64, copy, hashlib, importlib.util, json, os, re, struct, sys, tempfile, unicodedata, zlib
 from html.parser import HTMLParser
 from io import BytesIO
 from pathlib import Path
@@ -1339,7 +1339,7 @@ class _MessageParser(HTMLParser):
         self.depth -= 1
 
 
-def message_projection_problems(kit, brand):
+def message_projection_problems(kit, brand, check_pdf=True):
     """Check exact approved roles in portable, print, portal, and extracted PDF."""
     expected = approved_messages(brand, "visual-guide")
     labels = {"slogan": "Slogan", "short_description": "Short description",
@@ -1374,7 +1374,7 @@ def message_projection_problems(kit, brand):
     except (OSError, UnicodeError, ValueError, KeyError, TypeError) as error:
         problems.append("guidelines/portal.json cannot be checked: " + str(error))
     pdf_path = Path(kit, "brand-guide.pdf")
-    if pdf_path.is_file():
+    if check_pdf and pdf_path.is_file():
         try:
             import fitz
             with fitz.open(pdf_path) as document:
@@ -1388,15 +1388,25 @@ def message_projection_problems(kit, brand):
 
 
 def c_messaging(kit, rep):
+    pdf_path = Path(kit, "brand-guide.pdf")
+    pdf_extractor_available = importlib.util.find_spec("fitz") is not None
     try:
         brand = json.loads(Path(kit, "brand.json").read_text(encoding="utf-8"))
-        problems = message_projection_problems(kit, brand)
+        problems = message_projection_problems(kit, brand, check_pdf=pdf_extractor_available)
     except (OSError, UnicodeError, ValueError) as error:
         problems = [str(error)]
     if problems:
         rep.bad("approved-messaging", "; ".join(problems[:8]))
     else:
-        rep.ok("approved-messaging", "approved roles match PDF, portable, and portal projections")
+        rep.ok("approved-messaging", "approved roles match portable and portal projections")
+    if not pdf_path.is_file():
+        rep.skip("approved-messaging-pdf", "brand-guide.pdf is absent")
+    elif not pdf_extractor_available:
+        rep.skip("approved-messaging-pdf", "PyMuPDF is unavailable; PDF text extraction was not checked")
+    elif any("brand-guide.pdf" in problem for problem in problems):
+        rep.bad("approved-messaging-pdf", "PDF text differs from approved messages")
+    else:
+        rep.ok("approved-messaging-pdf", "approved roles match extracted PDF cover text")
 
 
 def c_pdf(kit, rep):

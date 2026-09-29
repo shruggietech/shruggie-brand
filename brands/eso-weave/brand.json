@@ -4,7 +4,7 @@
   "kind": "independent-brand",
   "title": "ESO Weave",
   "slug": "eso-weave",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "showcase_surface": "card",
   "affiliation": {
     "ownership": "third-party",
@@ -206,7 +206,7 @@
     "logo": "The badge-less woven carets identify dark lockups. The existing self-contained badge protects reduced and light-surface uses. Single-ink reproduction uses uninterrupted source centerlines without an artificial crossing segment.",
     "palette": "Teal identifies active state and emphasis. Accessible gold identifies actions on light surfaces. Dark ink surfaces keep game and application status primary."
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
@@ -216,7 +216,12 @@
       "status": "unresolved"
     },
     "short_description": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "Cross-platform desktop companion for The Elder Scrolls Online",
+      "uses": ["site-metadata"],
+      "source": "brand.json approval_ledger.gate_2, showcase-card and public-metadata surfaces",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-26"
     },
     "long_description": {
       "status": "unresolved"

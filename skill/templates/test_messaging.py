@@ -6,10 +6,11 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from messaging import MessageError, approved_messages, validate_messaging
 from authoring_brief import TOPICS, BriefError, validate_brief
-from verify import message_projection_problems
+from verify import Report, c_messaging, message_projection_problems
 from schema_validation import validate_json_schema
 
 
@@ -117,6 +118,14 @@ class MessagingContractTests(unittest.TestCase):
             (root / "guidelines" / "index.html").write_text(correct, encoding="utf-8")
             (root / "build" / "brand-guide.print.html").write_text(correct, encoding="utf-8")
             self.assertEqual([], message_projection_problems(root, brand))
+            (root / "brand.json").write_text(json.dumps(brand), encoding="utf-8")
+            (root / "brand-guide.pdf").write_bytes(b"%PDF-test-fixture")
+            with patch("verify.importlib.util.find_spec", return_value=None):
+                report = Report()
+                c_messaging(root, report)
+            self.assertEqual([], report.problems)
+            self.assertTrue(any("PyMuPDF is unavailable" in skip for skip in report.skips))
+            (root / "brand-guide.pdf").unlink()
             (root / "guidelines" / "index.html").write_text(correct.replace("We’ll", "We will"),
                                                               encoding="utf-8")
             self.assertTrue(any("exact approved" in item for item in message_projection_problems(root, brand)))

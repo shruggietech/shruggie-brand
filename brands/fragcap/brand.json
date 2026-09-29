@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "fragcap",
   "slug": "fragcap",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",
@@ -174,7 +174,7 @@
     "logo": "The triple-bladed F represents parallel packet lanes. Four separated corners form a capture frame without a weapon-like crosshair. Orange terminals identify the isolated bytes, and the shorter lower lane keeps the silhouette legible as an F.",
     "palette": "Signal Cyan marks observed data, links, focus, and active capture. Capture Orange identifies isolated terminals and warnings, and remains scarce. Fault is reserved for failed capture or hard errors. Near-black surfaces keep packet data primary."
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

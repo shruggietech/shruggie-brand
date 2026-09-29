@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 3.0.0 - 2026-09-29
+
+- Advanced Brand Canon to 2.0.0 for explicit messaging roles and the `guide` to `guidance` source migration, and BrandBuilder to 3.0.0 for literal PDF and portable guide projections. All eleven affected brand records receive patch versions with unchanged identity geometry and approved social compositions.
+- Kept six exact Gate 2 showcase descriptions approved for site metadata only. Public portfolio records omit unresolved legacy descriptors and ideas.
+- Verifiers compare approved guide roles across PDF, portable, and portal outputs. Python 3.8 and 3.9 report a named PDF extraction skip when PyMuPDF is unavailable while preserving the other message checks.
+- Regenerate each kit and pin its new package ID and checksum before adoption; previously published 2.8.0 artifacts remain immutable recovery inputs.
+
 ## 2.8.0 - 2026-09-29
 
 - Added a separately approved Local Companion 1.0.0 kit and public catalog entry with its calm-orbit identity, graphite and indigo palette, app-matched functional cues, local type, platform assets, and social image.

@@ -4,7 +4,7 @@
   "kind": "independent-brand",
   "title": "I Heart PR Tours",
   "slug": "i-heart-pr-tours",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "showcase_surface": "light.card",
   "affiliation": {
     "ownership": "third-party",
@@ -530,7 +530,7 @@
       "preview": {"well": "light", "fit": "contain"}
     }
   ],
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "approved-canonical"
@@ -540,7 +540,12 @@
       "status": "unresolved"
     },
     "short_description": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "Thoughtfully guided tours on the island we love.",
+      "uses": ["site-metadata"],
+      "source": "brand.json approval_ledger.gate_2, showcase-card and public-metadata surfaces",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-26"
     },
     "long_description": {
       "status": "unresolved"

@@ -129,6 +129,13 @@ MIGRATIONS = {
         "and social-image bytes remain authoritative. Local Companion 1.0.0 is a new, separately approved "
         "brand kit with exact archive checksums and public-site assets."
     ),
+    "3.0.0": (
+        "Existing kits need migration: **yes for the source and guide contract**. Regenerate and repin each "
+        "kit under Brand Canon 2.0.0 and BrandBuilder 3.0.0 with its distinct brand patch version, package "
+        "ID, and checksum. Review exact approved message roles and site-only approvals. Previously published "
+        "2.8.0 packages remain immutable recovery inputs; approved logo geometry and social compositions "
+        "are unchanged."
+    ),
 }
 
 

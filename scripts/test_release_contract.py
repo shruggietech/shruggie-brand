@@ -285,49 +285,49 @@ class ReleaseContractTests(unittest.TestCase):
                                                    inputs[input_id]["mask_approved_by"],
                                                    inputs[input_id]["mask_approved_on"]))
 
-    def test_repository_metadata_and_notes_agree_for_2_8_0(self):
-        metadata = release_contract.load_metadata(ROOT, "2.8.0")
+    def test_repository_metadata_and_notes_agree_for_3_0_0(self):
+        metadata = release_contract.load_metadata(ROOT, "3.0.0")
         notes = release_contract.render_notes(metadata)
 
-        self.assertEqual(metadata["skill_version"], "2.8.0")
-        self.assertEqual(metadata["canon_version"], "1.6.0")
-        self.assertEqual(metadata["site_version"], "2.8.0")
-        self.assertEqual(release_contract.current_version(ROOT), "2.8.0")
-        self.assertIn("Skill version: `2.8.0`", notes)
-        self.assertIn("Canon version: `1.6.0`", notes)
-        self.assertIn("Existing kits need migration: **no required identity migration**", notes)
-        self.assertIn("Local Companion 1.0.0", notes)
+        self.assertEqual(metadata["skill_version"], "3.0.0")
+        self.assertEqual(metadata["canon_version"], "2.0.0")
+        self.assertEqual(metadata["site_version"], "3.0.0")
+        self.assertEqual(release_contract.current_version(ROOT), "3.0.0")
+        self.assertIn("Skill version: `3.0.0`", notes)
+        self.assertIn("Canon version: `2.0.0`", notes)
+        self.assertIn("Existing kits need migration: **yes for the source and guide contract**", notes)
+        self.assertIn("distinct brand patch version", notes)
         self.assertIn("## Governed release impact", notes)
         self.assertIn("unchanged", notes)
         self.assertIn("WordPress adapter version: `1.0.0`", notes)
         self.assertNotIn("## [Unreleased]", notes)
 
     def test_expected_assets_are_exact_and_use_embedded_brand_versions(self):
-        metadata = release_contract.load_metadata(ROOT, "2.8.0")
+        metadata = release_contract.load_metadata(ROOT, "3.0.0")
 
         self.assertEqual(set(release_contract.expected_assets(metadata)), {
-            "shruggie-brandbuilder-2.8.0.skill",
-            "shruggie-brandbuilder-2.8.0-portable.zip",
-            "shruggietech-brand-1.1.0-bb2.8.0.zip",
-            "fragcap-brand-1.2.0-bb2.8.0.zip",
-            "go-schedule-brand-2.0.0-bb2.8.0.zip",
-            "glitchpad-brand-1.2.0-bb2.8.0.zip",
-            "covarity-brand-1.1.0-bb2.8.0.zip",
-            "eso-weave-brand-1.1.0-bb2.8.0.zip",
-            "cueson-brand-1.1.0-bb2.8.0.zip",
-            "local-companion-brand-1.0.0-bb2.8.0.zip",
+            "shruggie-brandbuilder-3.0.0.skill",
+            "shruggie-brandbuilder-3.0.0-portable.zip",
+            "shruggietech-brand-1.1.1-bb3.0.0.zip",
+            "fragcap-brand-1.2.1-bb3.0.0.zip",
+            "go-schedule-brand-2.0.1-bb3.0.0.zip",
+            "glitchpad-brand-1.2.1-bb3.0.0.zip",
+            "covarity-brand-1.1.1-bb3.0.0.zip",
+            "eso-weave-brand-1.1.1-bb3.0.0.zip",
+            "cueson-brand-1.1.1-bb3.0.0.zip",
+            "local-companion-brand-1.0.1-bb3.0.0.zip",
         })
         self.assertEqual(
             {slug: values["version"] for slug, values in metadata["brands"].items()},
             {
-                "shruggietech": "1.1.0",
-                "fragcap": "1.2.0",
-                "go-schedule": "2.0.0",
-                "glitchpad": "1.2.0",
-                "covarity": "1.1.0",
-                "eso-weave": "1.1.0",
-                "cueson": "1.1.0",
-                "local-companion": "1.0.0",
+                "shruggietech": "1.1.1",
+                "fragcap": "1.2.1",
+                "go-schedule": "2.0.1",
+                "glitchpad": "1.2.1",
+                "covarity": "1.1.1",
+                "eso-weave": "1.1.1",
+                "cueson": "1.1.1",
+                "local-companion": "1.0.1",
             },
         )
 
@@ -375,9 +375,9 @@ class ReleaseContractTests(unittest.TestCase):
             release_contract, "read_text", side_effect=read_with_stale_site
         ):
             with self.assertRaisesRegex(
-                ValueError, "site package version 1.1.2 does not match release 2.8.0"
+                ValueError, "site package version 1.1.2 does not match release 3.0.0"
             ):
-                release_contract.load_metadata(ROOT, "2.8.0")
+                release_contract.load_metadata(ROOT, "3.0.0")
 
     def test_wordpress_adapter_rejects_unsupported_older_canon(self):
         original_read_text = release_contract.read_text
@@ -385,7 +385,7 @@ class ReleaseContractTests(unittest.TestCase):
         def read_with_supported_older_canon(path):
             value = original_read_text(path)
             if path == ROOT / "skill" / "SKILL.md":
-                return value.replace("  canon: 1.6.0", "  canon: 1.2.0")
+                return value.replace("  canon: 2.0.0", "  canon: 1.2.0")
             if path == ROOT / "skill" / "references" / "01-canon.json":
                 payload = json.loads(value)
                 payload["version"] = "1.2.0"
@@ -400,7 +400,7 @@ class ReleaseContractTests(unittest.TestCase):
             release_contract, "read_text", side_effect=read_with_supported_older_canon
         ):
             with self.assertRaisesRegex(ValueError, "wordpress_adapter 1.0.0 is incompatible with brand_canon 1.2.0"):
-                release_contract.load_metadata(ROOT, "2.8.0")
+                release_contract.load_metadata(ROOT, "3.0.0")
 
     def test_archive_paths_reject_parent_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:

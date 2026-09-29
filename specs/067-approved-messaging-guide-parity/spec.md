@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: In Review
 
 **Input**: S067 implements issues #296 and #297 against the current eleven-brand inventory.
 

@@ -358,7 +358,7 @@
   "id": "scruggs-tire-alignment",
   "kind": "independent-brand",
   "title": "Scruggs Tire & Alignment",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "showcase_surface": "light.card",
   "homepage": "https://scruggstires.com/",
   "registry_base": "https://brand.shruggie.tech/scruggs-tire-alignment/brand",
@@ -382,7 +382,12 @@
       "status": "unresolved"
     },
     "short_description": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "Tires, alignment, and automotive service in Greer, South Carolina.",
+      "uses": ["site-metadata"],
+      "source": "brand.json approval_ledger.gate_2, showcase-card and public-metadata surfaces",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-29"
     },
     "long_description": {
       "status": "unresolved"
@@ -548,7 +553,7 @@
     "palette": "The tire motif uses bright red. True white and black are the primary logo grounds; bright red provides dark-surface emphasis and deep red provides readable light-surface actions. Neutral surfaces support clear service information."
   },
   "custom_assets": [],
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "approved-canonical"

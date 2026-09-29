@@ -25,15 +25,15 @@ This map applies to all eleven production brands. The [migration inventory](migr
 | Brand | General visual-guide slogan | Short description | Long description | Legacy guidance source |
 | --- | --- | --- | --- | --- |
 | covarity | unresolved | unresolved | unresolved | historical source |
-| cueson | unresolved | unresolved | unresolved | Gate 2 guide surface |
-| dancewithme865 | unresolved | unresolved | unresolved | Gate 2 guide surface |
-| eso-weave | unresolved | unresolved | unresolved | Gate 2 guide surface |
+| cueson | unresolved | approved for site metadata only | unresolved | Gate 2 guide surface |
+| dancewithme865 | unresolved | approved for site metadata only | unresolved | Gate 2 guide surface |
+| eso-weave | unresolved | approved for site metadata only | unresolved | Gate 2 guide surface |
 | fragcap | unresolved | unresolved | unresolved | historical source |
 | glitchpad | unresolved | unresolved | unresolved | historical source |
 | go-schedule | unresolved | unresolved | unresolved | historical source |
-| i-heart-pr-tours | unresolved | unresolved | unresolved | Gate 2 guide surface |
-| local-companion | unresolved | unresolved | unresolved | Gate 2 guide surface |
-| scruggs-tire-alignment | unresolved | unresolved | unresolved | Gate 2 guide surface |
+| i-heart-pr-tours | unresolved | approved for site metadata only | unresolved | Gate 2 guide surface |
+| local-companion | unresolved | approved for site metadata only | unresolved | Gate 2 guide surface |
+| scruggs-tire-alignment | unresolved | approved for site metadata only | unresolved | Gate 2 guide surface |
 | shruggietech | approved exact text per #295 | unresolved | unresolved | historical source |
 
-An unresolved role is intentionally absent from public guide message sections. This is an honest classification of existing evidence, not a new owner decision. Root descriptor and brand_idea fields remain in source for legacy consumers until those consumers can migrate; guides do not display them as approved slogan or description.
+An unresolved role is intentionally absent from public guide message sections. This is an honest classification of existing evidence, not a new owner decision. The six owner-approved Gate 2 showcase and metadata descriptors retain their exact site wording, with no visual-guide promotion. Root descriptor and brand_idea fields remain in source for legacy review, while public site records expose only approved message roles.

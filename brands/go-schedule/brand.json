@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "go-schedule",
   "slug": "go-schedule",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",
@@ -285,7 +285,7 @@
     "logo": "The current primary mark is the exact prompt and cursor geometry from the shipped favicon. Anchor Blue draws the prompt and Interval Mint draws the cursor. Pair it with the outlined go-schedule wordmark in horizontal and stacked lockups.",
     "palette": "Night, Panel, and Line provide the infrastructure surface. Anchor Blue carries identity, links, focus, and exact run points. Interval Mint carries recurrence and success. Hold Amber and Stop Red remain scarce operational signals."
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

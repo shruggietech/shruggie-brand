@@ -57,6 +57,6 @@ def asset(kit, *cands):
         if os.path.exists(p): return b64(p)
     return None
 
-def copy_for(B, key, default):
+def copy_for(B, key):
     """Return exact canonical guidance only; never synthesize brand prose."""
     return (B.get("guidance") or {}).get(key, "")

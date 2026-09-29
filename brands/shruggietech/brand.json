@@ -4,7 +4,7 @@
   "kind": "parent-brand",
   "title": "ShruggieTech",
   "slug": "shruggietech",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",
@@ -258,7 +258,7 @@
     "logo": "The custom stylized shruggie face is paid artwork, not a Unicode glyph. Paired lockups use the complete arms, eyes, and smile. Standalone marks and application icons use the approved vivid face-only square projection.",
     "palette": "Pure black and restrained near-black surfaces carry the parent identity. Bright green marks identity, links, focus, and the shruggie face on dark surfaces. Accessible green replaces it for text on light surfaces. Orange remains rare emphasis."
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

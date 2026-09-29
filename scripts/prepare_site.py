@@ -715,8 +715,6 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "slug": slug,
         "title": brand["title"],
         "kind": brand.get("kind", "sub-brand"),
-        "descriptor": brand["descriptor"],
-        "idea": brand["brand_idea"],
         "approvedMessaging": approved_messages(brand, "site-metadata"),
         "consumerMessaging": approved_messages(brand, "consumer-data"),
         "messagingStates": {role: item["status"] for role, item in brand["messaging"].items()},

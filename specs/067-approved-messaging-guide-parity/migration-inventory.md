@@ -30,7 +30,7 @@ This inventory records exact legacy source values before source migration. An ex
 
 | Source path | Exact legacy value | Disposition |
 | --- | --- | --- |
-| `brand.json.descriptor` | `"A lossless, structured interchange layer for subtitle and caption content."` | Retained as legacy source; reusable message role unresolved |
+| `brand.json.descriptor` | `"A lossless, structured interchange layer for subtitle and caption content."` | Gate 2 approved showcase-card and public-metadata copy; approved as site-metadata short description only; visual-guide use unresolved |
 | `brand.json.brand_idea` | `"Universal captions and subtitles"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.functional_descriptor` | `"Universal subtitle and caption interchange"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.category` | `"Media data infrastructure"` | Retained as legacy source; reusable message role unresolved |
@@ -55,7 +55,7 @@ This inventory records exact legacy source values before source migration. An ex
 
 | Source path | Exact legacy value | Disposition |
 | --- | --- | --- |
-| `brand.json.descriptor` | `"An independent dance brand."` | Retained as legacy source; reusable message role unresolved |
+| `brand.json.descriptor` | `"An independent dance brand."` | Gate 2 approved showcase-card and public-metadata copy; approved as site-metadata short description only; visual-guide use unresolved |
 | `brand.json.brand_idea` | `"DanceWithMe865"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.category` | `"Dance brand"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.social_copy.slogan` | `"DanceWithMe865"` | Owner-approved social image composition; general slogan role unresolved |
@@ -65,7 +65,7 @@ This inventory records exact legacy source values before source migration. An ex
 
 | Source path | Exact legacy value | Disposition |
 | --- | --- | --- |
-| `brand.json.descriptor` | `"Cross-platform desktop companion for The Elder Scrolls Online"` | Retained as legacy source; reusable message role unresolved |
+| `brand.json.descriptor` | `"Cross-platform desktop companion for The Elder Scrolls Online"` | Gate 2 approved showcase-card and public-metadata copy; approved as site-metadata short description only; visual-guide use unresolved |
 | `brand.json.brand_idea` | `"Unofficial automation for ESO"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.functional_descriptor` | `"Cross-platform desktop companion for The Elder Scrolls Online"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.category` | `"Cross-platform desktop game companion"` | Retained as legacy source; reusable message role unresolved |
@@ -155,7 +155,7 @@ This inventory records exact legacy source values before source migration. An ex
 
 | Source path | Exact legacy value | Disposition |
 | --- | --- | --- |
-| `brand.json.descriptor` | `"Thoughtfully guided tours on the island we love."` | Retained as legacy source; reusable message role unresolved |
+| `brand.json.descriptor` | `"Thoughtfully guided tours on the island we love."` | Gate 2 approved showcase-card and public-metadata copy; approved as site-metadata short description only; visual-guide use unresolved |
 | `brand.json.brand_idea` | `"Experience Puerto Rico"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.functional_descriptor` | `"Thoughtfully guide guests through Puerto Rico's places, stories, landscapes, and local character."` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.category` | `"Puerto Rico guided tour service"` | Retained as legacy source; reusable message role unresolved |
@@ -182,7 +182,7 @@ This inventory records exact legacy source values before source migration. An ex
 
 | Source path | Exact legacy value | Disposition |
 | --- | --- | --- |
-| `brand.json.descriptor` | `"A private Windows workspace for personalized AI companions"` | Retained as legacy source; reusable message role unresolved |
+| `brand.json.descriptor` | `"A private Windows workspace for personalized AI companions"` | Gate 2 approved showcase-card and public-metadata copy; approved as site-metadata short description only; visual-guide use unresolved |
 | `brand.json.brand_idea` | `"A private space for the companions you shape"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.functional_descriptor` | `"Private desktop workspace for AI companions"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.category` | `"Windows desktop application"` | Retained as legacy source; reusable message role unresolved |
@@ -207,7 +207,7 @@ This inventory records exact legacy source values before source migration. An ex
 
 | Source path | Exact legacy value | Disposition |
 | --- | --- | --- |
-| `brand.json.descriptor` | `"Tires, alignment, and automotive service in Greer, South Carolina."` | Retained as legacy source; reusable message role unresolved |
+| `brand.json.descriptor` | `"Tires, alignment, and automotive service in Greer, South Carolina."` | Gate 2 approved showcase-card and public-metadata copy; approved as site-metadata short description only; visual-guide use unresolved |
 | `brand.json.brand_idea` | `"Ready for the road"` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.functional_descriptor` | `"Help drivers find tire, wheel, alignment, and related vehicle service with clear, practical information."` | Retained as legacy source; reusable message role unresolved |
 | `brand.json.category` | `"Tire and automotive service"` | Retained as legacy source; reusable message role unresolved |

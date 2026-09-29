@@ -290,7 +290,7 @@ class PrepareSiteTests(unittest.TestCase):
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchiveFilename"])
                 self.assertEqual("alpha-brand-1.0.0-bb2.0.0", record["packageId"])
                 self.assertEqual("2.0.0", record["brandbuilderVersion"])
-                self.assertEqual("1.6.0", archive_writer.call_args.kwargs["expected_canon"])
+                self.assertEqual("2.0.0", archive_writer.call_args.kwargs["expected_canon"])
                 self.assertEqual("Exact alpha slogan", record["socialSlogan"])
                 brand["showcase_surface"] = "card"
                 record = prepare_site.copy_kit(source, brand)

@@ -118,17 +118,20 @@ for (const record of conformanceRecords) {
 if (!conformanceReferenceSource.includes('Browser emulation cannot promote either state.') || !conformanceReferenceSource.includes('aria-pressed={item.id === profile}')) throw new Error('conformance reference omits the evidence boundary or accessible profile state');
 if (!conformanceIndexSource.includes('Cross-host conformance') || !conformanceIndexSource.includes('Native host fixtures remain distinct from browser evidence and product outcome claims.')) throw new Error('conformance index omits its purpose or native evidence boundary');
 const esoWeave = brands.find((brand) => brand.slug === 'eso-weave');
-if (esoWeave?.idea !== 'Unofficial automation for ESO' || esoWeave?.descriptor !== 'Cross-platform desktop companion for The Elder Scrolls Online') throw new Error('ESO Weave public wording differs from the Gate 2 approval');
+if (esoWeave?.approvedMessaging.short_description !== 'Cross-platform desktop companion for The Elder Scrolls Online') throw new Error('ESO Weave site description differs from the Gate 2 approval');
 if (!esoWeave?.vendorBoundary?.includes('not affiliated with')) throw new Error('ESO Weave public record omits the required vendor boundary');
 const cueson = brands.find((brand) => brand.slug === 'cueson');
-if (cueson?.idea !== 'Universal captions and subtitles' || cueson?.descriptor !== 'A lossless, structured interchange layer for subtitle and caption content.') throw new Error('Cueson public wording differs from the Gate 2 approval');
+if (cueson?.approvedMessaging.short_description !== 'A lossless, structured interchange layer for subtitle and caption content.') throw new Error('Cueson site description differs from the Gate 2 approval');
 if (cueson?.parent !== 'ShruggieTech' || cueson?.endorsement !== 'shruggietech-project' || cueson?.ownership !== 'shruggietech-owned') throw new Error('Cueson public affiliation differs from the approved owned-project contract');
 const ihprt = brands.find((brand) => brand.slug === 'i-heart-pr-tours');
-if (ihprt?.idea !== 'Experience Puerto Rico' || ihprt?.descriptor !== 'Thoughtfully guided tours on the island we love.') throw new Error('I Heart PR Tours public wording differs from the Gate 2 approval');
+if (ihprt?.approvedMessaging.short_description !== 'Thoughtfully guided tours on the island we love.') throw new Error('I Heart PR Tours site description differs from the Gate 2 approval');
 if (ihprt?.ownership !== 'third-party' || ihprt?.showcase !== 'public' || ihprt?.showcaseSurface !== '#FFFFFF' || ihprt?.showcaseForeground !== '#000000') throw new Error('I Heart PR Tours public affiliation or light showcase differs from the approved contract');
 if (ihprt?.guideSurfaceMode !== 'light' || ihprt?.showcaseMode !== 'light' || ihprt?.showcaseTokens?.foreground !== '#111111') throw new Error('I Heart PR Tours generated light presentation is missing');
 if (!ihprt?.vendorBoundary?.includes('I Heart PR Tours owns its trademarks')) throw new Error('I Heart PR Tours public record omits the required vendor boundary');
 for (const brand of brands) {
+  const source = JSON.parse(readFileSync(new URL(`../../brands/${brand.slug}/brand.json`, import.meta.url), 'utf8'));
+  const approved = Object.fromEntries(Object.entries(source.messaging).filter(([, item]) => item.status === 'approved' && item.uses.includes('site-metadata')).map(([role, item]) => [role, item.text]));
+  if (JSON.stringify(brand.approvedMessaging) !== JSON.stringify(approved) || 'descriptor' in brand || 'idea' in brand) throw new Error(`${brand.slug} public record contains unapproved or mismatched message copy`);
   const expectedArchive = `/${brand.slug}/downloads/${brand.packageId}.zip`;
   if (brand.guidelinesPath !== `/${brand.slug}/guidelines/overview/` || brand.kitArchive !== expectedArchive || brand.kitArchiveFilename !== expectedArchive.split('/').at(-1)) throw new Error(`${brand.slug} generated action destinations are incomplete or inconsistent`);
   if (brand.brandbuilderVersion !== publication.version || brand.packageId !== `${brand.slug}-brand-${brand.version}-bb${publication.version}`) throw new Error(`${brand.slug} package identity differs from the publication record`);

@@ -359,8 +359,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         '<div class="callout"><div class="ey">Prohibited</div><p style="margin:0" class="dim">'
         'No rotation, skew, stretch, outline, bevel or glow. Never recolor individual elements. '
         'Never set the wordmark in live text or a substitute typeface. %s</p></div>' % (
-            copy_for(B, "logo", "The mark is built on a declared grid and ships as filled outlines, "
-                                "never live text."),
+            copy_for(B, "logo"),
             img(mono_logo, "", "height:17mm"), cs, canvas_width, canvas_height, 100.0 * cs / artwork_width,
             "".join("<tr><td>%s</td><td>%s px</td></tr>" % (k, v)
                     for k, v in (LG.get("min_px") or {}).items()),
@@ -388,14 +387,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
         'The bright accent %s measures <b style="color:%s">%s:1</b> on the light reading surface and is '
         'never text there. The light token block substitutes %s at %s:1 automatically. The legal '
         'foreground on an accent fill is %s at %s:1.%s</p></div>' % (
-            copy_for(B, "palette", ("White-paper first. The accessible accent structures the light "
-                                    "surface; the brand-specific emphasis marks attention."
-                                    if light_first else
-                                    "Dark and close to monochrome. The accent is the signal; the "
-                                    "inherited orange marks a state needing attention."
-                                    if inherits_house else
-                                    "Dark and close to monochrome. The accent is the signal; the "
-                                    "brand-specific emphasis color marks a state needing attention.")),
+            copy_for(B, "palette"),
             role_grid, chips(D, role_tokens),
             chips(D, ["background", "card", "secondary", "border"]),
             AL, chips(L, ["primary", "background", "muted", "muted-foreground"], True),

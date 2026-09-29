@@ -10,10 +10,12 @@ Alternative: map existing social slogans to reusable slogans. Rejected because #
 
 ## Source guidance and historical wording
 
-Inventory guide copy with original spelling and context. Approved visual instructions may move to canonical source guidance; unsupported claims remain migration evidence and omit from public message roles. guide.surface_mode remains presentation configuration.
+Inventory guide copy with original spelling and context. Approved visual instructions move to canonical source `guidance`; unsupported claims remain migration evidence and omit from public message roles. `guidance.surface_mode` remains presentation configuration. The six Gate 2 ledgers with approved showcase-card and public-metadata descriptors authorize exact site-metadata short descriptions, without granting visual-guide use.
 
 Alternative: preserve guide override priority for compatibility. Rejected because it recreates #297.
 
 ## Verification
 
 Inspect extracted PDF text, portable HTML, portal JSON, rendered hosted text, and social metadata by exact role. Verify asset paths and hashes. Run full documented gates without byte comparison of PDFs.
+
+PyMuPDF requires Python 3.10 or later. On Python 3.8/3.9, the verifier reports a named PDF messaging skip when the module is unavailable and continues HTML and portal verification. Production kit builds on supported Python versions verify PDF text.
