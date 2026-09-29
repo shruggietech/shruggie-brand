@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "skill" / "templates"))
 
-from audit_identity_continuity import (BRAND_CLASSES, MIGRATION_BASELINE_REVISION, audit,
+from audit_identity_continuity import (BRAND_CLASSES, MIGRATION_BASELINE_BRANDS, MIGRATION_BASELINE_REVISION, audit,
                                        build_record, compare_brand_state, compare_historical_identity,
                                        discover_brands)
 from identity_continuity import validate_brand_continuity
@@ -31,7 +31,10 @@ class IdentityContinuityAuditTests(unittest.TestCase):
         self.assertEqual("authoritative", BRAND_CLASSES["eso-weave"])
         self.assertEqual("authoritative", BRAND_CLASSES["i-heart-pr-tours"])
         self.assertEqual("authoritative", BRAND_CLASSES["scruggs-tire-alignment"])
+        self.assertEqual("authoritative", BRAND_CLASSES["dancewithme865"])
         self.assertEqual("glyphkit-constructed", BRAND_CLASSES["local-companion"])
+        self.assertTrue({"dancewithme865", "scruggs-tire-alignment", "local-companion"}.isdisjoint(
+            MIGRATION_BASELINE_BRANDS))
 
     def test_historical_record_is_revision_bound_without_fake_approval(self):
         source = ROOT / "brands" / "cueson"

@@ -32,7 +32,9 @@ BRAND_CLASSES = {
     "scruggs-tire-alignment": "authoritative",
     "shruggietech": "authoritative",
 }
-MIGRATION_BASELINE_BRANDS = set(BRAND_CLASSES) - {"i-heart-pr-tours", "local-companion"}
+MIGRATION_BASELINE_BRANDS = set(BRAND_CLASSES) - {
+    "i-heart-pr-tours", "local-companion", "dancewithme865", "scruggs-tire-alignment",
+}
 MIGRATION_BASELINE_REVISION = "011f35303ef1d555dbbbcf6708447cc321df40db"
 # S057 approved the current go-schedule mark after the historical migration.
 # The source commit binds that owner-approved snapshot independently of the
