@@ -487,6 +487,8 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         self.assertIn("needs: [build, release-preflight]", publisher)
         self.assertIn("GH_REPO: ${{ github.repository }}", publisher)
         self.assertIn("gh release create", publisher)
+        self.assertNotIn("gh release upload", publisher)
+        self.assertNotIn("--clobber", publisher)
         self.assertIn('"$CANDIDATE/SHA256SUMS"', publisher)
         self.assertIn("sha256sum -- ./*.skill ./*.zip", text)
         self.assertNotIn("sha256sum -- ./* |", text)

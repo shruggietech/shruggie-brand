@@ -132,9 +132,10 @@ MIGRATIONS = {
     "3.0.0": (
         "Existing kits need migration: **yes for the source and guide contract**. Regenerate and repin each "
         "kit under Brand Canon 2.0.0 and BrandBuilder 3.0.0 with its distinct brand patch version, package "
-        "ID, and checksum. Review exact approved message roles and site-only approvals. Previously published "
-        "2.8.0 packages remain immutable recovery inputs; approved logo geometry and social compositions "
-        "are unchanged."
+        "ID, and checksum. Review exact approved message roles, site-only approvals, and the source-bound "
+        "Brand essentials and Usage limits delivered across hosted, portable, and PDF guides. Previously "
+        "published 2.8.0 packages remain immutable recovery inputs; approved logo geometry and social "
+        "compositions are unchanged."
     ),
 }
 
