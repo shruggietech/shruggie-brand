@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   python-38-compatibility:
+    needs: approved-identity-proofs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -35,6 +36,10 @@ jobs:
         run: |
           python -m pip install brotli==1.1.0 coloraide==3.3 fonttools==4.55.8 pillow==10.4.0 svgelements==1.9.6 jsonschema==4.17.3
           npm install --prefix skill/templates --no-save --no-package-lock @resvg/resvg-js@2.6.2
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: approved-identity-proofs-${{ github.sha }}
+          path: approved-identity-proofs
       - name: Compile and discover kits on the minimum Python
         run: |
           python -m compileall -q scripts skill/templates
@@ -60,7 +65,7 @@ jobs:
           python skill/templates/test_conformance.py
           python skill/templates/test_identity_continuity.py
           python skill/templates/test_iconkit.py
-          python skill/templates/test_pipeline.py
+          GP_APPROVED_PROOF_ROOT="$GITHUB_WORKSPACE/approved-identity-proofs" python skill/templates/test_pipeline.py
           python skill/templates/test_registry_contract.py
           python scripts/check_markdown.py
 

@@ -387,8 +387,11 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         self.assertGreaterEqual(text.count("node-version: 24.11.0"), 3)
         self.assertGreaterEqual(text.count("@resvg/resvg-js@2.6.2"), 3)
         minimum_python = job_block(text, "python-38-compatibility")
+        self.assertIn("needs: approved-identity-proofs", minimum_python)
         self.assertIn("node-version: 24.11.0", minimum_python)
         self.assertIn("@resvg/resvg-js@2.6.2", minimum_python)
+        self.assertIn("name: approved-identity-proofs-${{ github.sha }}", minimum_python)
+        self.assertIn('GP_APPROVED_PROOF_ROOT="$GITHUB_WORKSPACE/approved-identity-proofs" python skill/templates/test_pipeline.py', minimum_python)
         self.assertNotIn("rsvg-convert", text)
         self.assertNotIn("librsvg", text)
 
