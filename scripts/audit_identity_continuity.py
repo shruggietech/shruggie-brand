@@ -31,6 +31,13 @@ BRAND_CLASSES = {
     "shruggietech": "authoritative",
 }
 MIGRATION_BASELINE_BRANDS = set(BRAND_CLASSES) - {"i-heart-pr-tours", "local-companion"}
+MIGRATION_BASELINE_REVISION = "011f35303ef1d555dbbbcf6708447cc321df40db"
+# S057 approved the current go-schedule mark after the historical migration.
+# The source commit binds that owner-approved snapshot independently of the
+# historical record, whose status must remain truthful.
+OWNER_APPROVED_IDENTITY_REVISIONS = {
+    "go-schedule": "d33cb8c658eac2f66b58e715274e0c791bad9ba3",
+}
 REFERENCE = {"record": "identity-continuity.json", "status": "historical-baseline"}
 COVARITY_REASON = "The custom arc and path serializer predates glyphkit. Its shipped path bytes remain unchanged as historical identity source."
 
@@ -127,12 +134,28 @@ def _git_brand(revision, slug):
     return json.loads(result.stdout)
 
 
+def compare_historical_identity(slug, revision, brand):
+    """Reject identity drift even if current brand and continuity record agree."""
+    approved_revision = OWNER_APPROVED_IDENTITY_REVISIONS.get(slug)
+    baseline = _git_brand(approved_revision or revision, slug)
+    source_class = BRAND_CLASSES[slug]
+    before = identity_snapshot(_normalized_for_preservation(slug, baseline), source_class)
+    after = identity_snapshot(_normalized_for_preservation(slug, brand), source_class)
+    if approved_revision:
+        approval = baseline.get("current_mark_approval") or {}
+        if approval.get("identity_snapshot_sha256") != before["sha256"]:
+            return ["approved identity baseline lacks its exact owner-bound snapshot"]
+    return ["%s changed" % key for key in before if key != "sha256" and before[key] != after[key]]
+
+
 def audit(revision, write=False, recorded_on="2026-09-09", report_path=None):
     brands = discover_brands(ROOT)
     problems = []
     results = []
     if set(brands) != set(BRAND_CLASSES):
         problems.append("production brand inventory does not match the explicit migration map")
+    if not write and revision != MIGRATION_BASELINE_REVISION:
+        problems.append("historical migration baseline revision changed")
     for slug, source in brands.items():
         brand_path = source / "brand.json"
         brand = json.loads(brand_path.read_text(encoding="utf-8"))
@@ -165,11 +188,15 @@ def audit(revision, write=False, recorded_on="2026-09-09", report_path=None):
                     problems.extend("%s: %s" % (slug, item) for item in drift)
                 results.append(dict(result, preservation="passed" if not drift else "failed"))
             else:
-                # The historical migration comparison was a one-time source
-                # preservation gate. Later approved source changes must still
-                # validate against each committed identity record, but cannot
-                # equal the pre-migration brand.json byte-for-byte forever.
-                results.append(dict(result, preservation="record-validated"))
+                # Nonidentity copy and schema updates can differ from the old
+                # source; governed identity must match its pinned baseline.
+                if result["status"] == "approved-canonical":
+                    results.append(dict(result, preservation="new-approved-source"))
+                else:
+                    drift = compare_historical_identity(slug, MIGRATION_BASELINE_REVISION, brand)
+                    if drift:
+                        problems.extend("%s: %s" % (slug, item) for item in drift)
+                    results.append(dict(result, preservation="baseline-preserved" if not drift else "failed"))
         except Exception as error:
             problems.append("%s: %s" % (slug, error))
     report = {"schema_version": 1, "baseline_revision": revision, "brands": results, "problems": problems}
