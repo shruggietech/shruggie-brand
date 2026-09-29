@@ -48,6 +48,7 @@
       "additionalProperties": false,
       "properties": {
         "slogan": {"type": "string", "minLength": 1, "pattern": "^[^\\r\\n]+$"},
+        "slogan_lines": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"type": "string", "minLength": 1, "pattern": "^[^\\r\\n]+$"}},
         "layout": {"enum": ["slogan-only", "slogan-description"]},
         "description_lines": {"type": "array", "maxItems": 3, "items": {"type": "string", "minLength": 1, "pattern": "^[^\\r\\n]+$"}},
         "approval": {

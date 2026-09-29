@@ -11,14 +11,16 @@ Glyphs are outlined from the bundled TTFs, so the specimen never depends on a
 font being installed. That defect is item four on the fragcap 1.1.0 list.
 """
 import base64
+import hashlib
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
-from brand_contract import font_face_path, specimen_mark_paths, typography_families
+from brand_contract import _image_dimensions, font_face_path, specimen_mark_paths, typography_families
 
 
 IMAGE_MEDIA_TYPES = {
@@ -31,7 +33,7 @@ IMAGE_MEDIA_TYPES = {
 
 
 def embedded_image_uri(kit, relative):
-    """Return exact governed source bytes as a contained, media-typed data URI."""
+    """Embed source bytes, flattening nested raster SVGs through the production renderer."""
     if not isinstance(relative, str) or not relative or Path(relative).is_absolute():
         raise ValueError("specimen image source must be a relative path inside the staged kit")
     root = Path(kit).resolve()
@@ -45,8 +47,21 @@ def embedded_image_uri(kit, relative):
     media_type = IMAGE_MEDIA_TYPES.get(source.suffix.lower())
     if media_type is None:
         raise ValueError("specimen image source has unsupported media type: %s" % relative)
-    payload = base64.b64encode(source.read_bytes()).decode("ascii")
-    return "data:%s;base64,%s" % (media_type, payload)
+    original = source.read_bytes()
+    source_hash = hashlib.sha256(original).hexdigest()
+    if media_type == "image/svg+xml" and b"data:image/" in original:
+        from gen_logo import raster
+
+        width, _ = _image_dimensions(source)
+        with tempfile.TemporaryDirectory(prefix="specimen-source-") as temporary:
+            rendered = Path(temporary) / "rendered.png"
+            raster(["-w", str(width), str(source), "-o", str(rendered)])
+            payload = rendered.read_bytes()
+        media_type = "image/png"
+    else:
+        payload = original
+    encoded = base64.b64encode(payload).decode("ascii")
+    return "data:%s;base64,%s" % (media_type, encoded), source_hash
 
 def outlined_text(text, font_path, size, x, baseline, fill):
     font = TTFont(font_path)
@@ -72,6 +87,13 @@ def clip(text, n):
     return text[:n].rsplit(" ", 1)[0].rstrip(",;:") + "."
 
 
+def placement_number(value):
+    """Retain legacy SVG text when its rounding is within the verifier tolerance."""
+    value = float(value)
+    legacy = "%g" % value
+    return legacy if abs(float(legacy) - value) <= 1e-5 else "%.12g" % value
+
+
 def mark(brand, kit, x, y, height):
     """The governed specimen lockup, scaled into the specimen header."""
     lg = brand.get("logo") or {}
@@ -86,12 +108,12 @@ def mark(brand, kit, x, y, height):
     for item in paths:
         colour = roles.get(item.get("role", "accent"), acc)
         if item.get("element", "path") == "image":
-            source = embedded_image_uri(kit, item["source"])
+            source, source_hash = embedded_image_uri(kit, item["source"])
             elements.append(
-                '<image x="%g" y="%g" width="%g" height="%g" '
-                'preserveAspectRatio="xMidYMid meet" href="%s" xlink:href="%s"/>' % (
-                    float(item.get("x", 0)), float(item.get("y", 0)),
-                    float(item["width"]), float(item["height"]), source, source))
+                '<image x="%s" y="%s" width="%s" height="%s" '
+                'preserveAspectRatio="xMidYMid meet" data-source-sha256="%s" href="%s" xlink:href="%s"/>' % (
+                    placement_number(item.get("x", 0)), placement_number(item.get("y", 0)),
+                    placement_number(item["width"]), placement_number(item["height"]), source_hash, source, source))
             continue
         stroked = item.get("fill") == "none" or item.get("stroke_width") is not None
         paint = (' fill="none" stroke="%s"' % colour) if stroked else (' fill="%s"' % colour)

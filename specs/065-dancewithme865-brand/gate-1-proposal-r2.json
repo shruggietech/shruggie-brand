@@ -1,0 +1,1604 @@
+{
+  "application_icon_review": {
+    "previews": [
+      {
+        "path": "dist/s065-gate1-r2/icon-preview/kit/icons/windows/msix/Assets/Square44x44Logo.targetsize-16.png",
+        "sha256": "7675ca923bee9d2eaad746fbb3c1941f4a0edbcb5565961fd9ecfcc70e514c66",
+        "size_px": 16
+      },
+      {
+        "path": "dist/s065-gate1-r2/icon-preview/kit/icons/windows/msix/Assets/Square44x44Logo.targetsize-32.png",
+        "sha256": "45d6eab5bc6ccf83e23d129abea4b498e5096edcac9d0ebf05fa11c634f54d34",
+        "size_px": 32
+      },
+      {
+        "path": "dist/s065-gate1-r2/icon-preview/kit/icons/windows/msix/Assets/Square44x44Logo.targetsize-256.png",
+        "sha256": "03ee8fafda4f83d34f159b75e366c9506e58c4e4ecac368f66e3e7ec8f084141",
+        "size_px": 256
+      }
+    ],
+    "taskbar_frame_check": "passed",
+    "treatment": "Supplied Reduced DWM, unchanged, centered on a signature red plate for Windows taskbar frames"
+  },
+  "approval": {
+    "approved_by": null,
+    "approved_on": null,
+    "owner_wording": null,
+    "scope": [
+      "full-master",
+      "reduced-master",
+      "palette",
+      "framing",
+      "topology",
+      "renderer",
+      "proof-matrix"
+    ],
+    "status": "pending"
+  },
+  "branch": "codex/065-dancewithme865-restart",
+  "candidate_id": "dwm865-s065-g1-r2",
+  "construction_provenance": {
+    "glyphkit_helper": null,
+    "method": "authoritative supplied passive SVG",
+    "path_policy": "Preserve source bytes and path data without tracing, normalization, or reconstruction",
+    "primitive_vocabulary": [
+      "path",
+      "rect",
+      "g"
+    ]
+  },
+  "framing": {
+    "artwork_height": 269.35,
+    "artwork_width": 849.4,
+    "canvas_height": 1000,
+    "canvas_width": 1000,
+    "clear_space_units": 75,
+    "grid": 1000,
+    "reduced_artwork_height": 269.35,
+    "reduced_artwork_width": 849.4,
+    "standalone_padding_units": 75
+  },
+  "identity_snapshot": {
+    "derivative_settings": {
+      "application_icon": {
+        "background": "#DF221E",
+        "source_variant": "reduced",
+        "windows_unplated": false
+      },
+      "artwork_height": 269.35,
+      "artwork_width": 849.4,
+      "authoritative_input_ids": {
+        "full": "mark-color",
+        "reduced": "mark-reduced-color"
+      },
+      "canvas_height": 1000,
+      "canvas_width": 1000,
+      "clear_space_units": 75,
+      "colourways": [
+        "color",
+        "light",
+        "black",
+        "white"
+      ],
+      "direct_source_outputs": true,
+      "full_colourway_input_ids": {
+        "light": "mark-light"
+      },
+      "geometry_provenance": "imported",
+      "geometry_provenance_reason": "Owner-supplied DWM vectors are preserved byte for byte; no path reconstruction is permitted.",
+      "grid": 1000,
+      "reduced_artwork_height": 269.35,
+      "reduced_artwork_width": 849.4,
+      "reduced_below_px": 32,
+      "reduced_colourway_input_ids": {
+        "light": "mark-reduced-light"
+      },
+      "single_ink": {
+        "alpha_floor": 112,
+        "alpha_transition": 80,
+        "full_input_id": "mark-light",
+        "horizontal_input_id": "horizontal-light",
+        "reduced_input_id": "mark-reduced-light",
+        "stacked_input_id": "stacked-light",
+        "white_knockout_floor": 239,
+        "white_knockout_transition": 56,
+        "wordmark_input_id": "wordmark-light"
+      },
+      "source_mode": "authoritative",
+      "standalone_padding_units": 75,
+      "supplied_lockup_input_ids": {
+        "horizontal": {
+          "color": "horizontal-color",
+          "light": "horizontal-light"
+        },
+        "stacked": {
+          "color": "stacked-color",
+          "light": "stacked-light"
+        }
+      },
+      "supplied_wordmark_input_ids": {
+        "color": "wordmark-color",
+        "light": "wordmark-light"
+      }
+    },
+    "framing": {
+      "artwork_height": 269.35,
+      "artwork_width": 849.4,
+      "canvas_height": 1000,
+      "canvas_width": 1000,
+      "clear_space_units": 75,
+      "grid": 1000,
+      "reduced_artwork_height": 269.35,
+      "reduced_artwork_width": 849.4,
+      "standalone_padding_units": 75
+    },
+    "geometry": {
+      "authoritative_input_ids": {
+        "full": "mark-color",
+        "reduced": "mark-reduced-color"
+      },
+      "geometry_provenance": "imported",
+      "paths": {
+        "full": [
+          {
+            "element": "image",
+            "height": 1000,
+            "source": "assets/source/mark-color.svg",
+            "width": 1000,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "reduced": [
+          {
+            "element": "image",
+            "height": 1000,
+            "source": "assets/source/mark-reduced-color.svg",
+            "width": 1000,
+            "x": 0,
+            "y": 0
+          }
+        ]
+      },
+      "source_mode": "authoritative"
+    },
+    "palette": {
+      "accent": {
+        "accessible": "#BE1F1C",
+        "bright": "#FF493D",
+        "deep": "#DF221E",
+        "dim": "#F77B72"
+      },
+      "legacy_palette": [
+        "#08090A",
+        "#F8F8F6",
+        "#DF221E",
+        "#FF493D",
+        "#FFFFFF",
+        "#000000"
+      ],
+      "logo_role_colors": null,
+      "semantic_colors": {
+        "action": "#BE1F1C",
+        "emphasis": "#FF493D"
+      },
+      "surfaces": {
+        "base": "#08090A",
+        "card": "#17181B",
+        "hover": "#202126",
+        "popover": "#1A1B1E",
+        "secondary": "#1D1E22"
+      }
+    },
+    "sha256": "2712be5b647c5338b19d08a2af0dc618dc2e731a54821986c6b6d08b99479252",
+    "source_class": "authoritative",
+    "topology": {
+      "full": {
+        "closed_subpaths": 0,
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        },
+        "path_count": 1,
+        "role_counts": {
+          "": 1
+        },
+        "subpath_count": 0
+      },
+      "reduced": {
+        "closed_subpaths": 0,
+        "command_counts": {},
+        "fill_rules": {
+          "nonzero": 1
+        },
+        "path_count": 1,
+        "role_counts": {
+          "": 1
+        },
+        "subpath_count": 0
+      }
+    },
+    "typography": {
+      "typography": {
+        "faces": [
+          {
+            "format": "ttf",
+            "license": "OFL-1.1",
+            "path": "fonts/ttf/Kanit-900-normal.ttf",
+            "provenance": "Owner-supplied font binary; upstream Google Fonts OFL text in assets/fonts/licenses",
+            "role": "display",
+            "sha256": "5d290c2cc9926764bd782aa6abc47a8f55bd64641d0afb56e115ee522698ee7e",
+            "style": "normal",
+            "usage_status": "approved",
+            "weight": 900
+          },
+          {
+            "format": "ttf",
+            "license": "OFL-1.1",
+            "path": "fonts/ttf/Rubik-Regular.ttf",
+            "provenance": "Owner-supplied font binary; upstream Google Fonts OFL text in assets/fonts/licenses",
+            "role": "body",
+            "sha256": "bd1490f4314d27ca1ac5d8869fdda068852edd623318c9bee13e812b793b301b",
+            "style": "normal",
+            "usage_status": "approved",
+            "weight": 400
+          },
+          {
+            "format": "ttf",
+            "license": "OFL-1.1",
+            "path": "fonts/ttf/Rubik-Bold.ttf",
+            "provenance": "Owner-supplied font binary; upstream Google Fonts OFL text in assets/fonts/licenses",
+            "role": "body",
+            "sha256": "b1c36dfcbc5fe5011c552c76725c84d989a71d56440e8bfbfa0cb68b593dbad6",
+            "style": "normal",
+            "usage_status": "approved",
+            "weight": 700
+          },
+          {
+            "format": "ttf",
+            "license": "OFL-1.1",
+            "path": "fonts/ttf/SourceCodePro-Regular.ttf",
+            "provenance": "Owner-supplied font binary; upstream Google Fonts OFL text in assets/fonts/licenses",
+            "role": "mono",
+            "sha256": "f144137f557805c7327fc4b14d1d730f6e1822e0124170251ff1bcd723a693f1",
+            "style": "normal",
+            "usage_status": "approved",
+            "weight": 400
+          }
+        ],
+        "families": {
+          "body": {
+            "name": "Rubik",
+            "weights": [
+              400,
+              700
+            ]
+          },
+          "display": {
+            "name": "Kanit",
+            "weights": [
+              900
+            ]
+          },
+          "mono": {
+            "name": "Source Code Pro",
+            "weights": [
+              400
+            ]
+          }
+        },
+        "mode": "fixed"
+      },
+      "wordmark_text": "DANCEWITHME865"
+    }
+  },
+  "packet_sha256": "5abca4ea8c0e238fb01d0b8f8aaea8feac20e6c5b9ada062fb64d7a2649ee5e8",
+  "palette_evidence": {
+    "minimum_text_contrast": 4.503031,
+    "path": "dist/s065-gate1-r2/palette-evidence.json",
+    "sha256": "fef40ab3092ef6837514e510e2296d45a30c125b960e0777eba2512583fc5288"
+  },
+  "palette_qualification": {
+    "checks": {
+      "color_vision": true,
+      "contrast": true,
+      "rendered_color": true,
+      "semantic_roles": true,
+      "single_ink": true,
+      "surfaces": true
+    },
+    "evidence_sha256": "630069c77728d92c354751f345543a282427831b3668640c4c0859b04a2ef2f2",
+    "oklch_roles": {
+      "accent.accessible": [
+        0.516628,
+        0.193328,
+        28.023837
+      ],
+      "accent.bright": [
+        0.667214,
+        0.220035,
+        28.373015
+      ],
+      "accent.deep": [
+        0.579687,
+        0.220683,
+        28.346993
+      ],
+      "accent.dim": [
+        0.723585,
+        0.153549,
+        25.826291
+      ],
+      "legacy_palette.0": [
+        0.13895,
+        0.002948,
+        246.256057
+      ],
+      "legacy_palette.1": [
+        0.978573,
+        0.002641,
+        106.44831
+      ],
+      "legacy_palette.2": [
+        0.579687,
+        0.220683,
+        28.346993
+      ],
+      "legacy_palette.3": [
+        0.667214,
+        0.220035,
+        28.373015
+      ],
+      "legacy_palette.4": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "legacy_palette.5": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "semantic_colors.action": [
+        0.516628,
+        0.193328,
+        28.023837
+      ],
+      "semantic_colors.emphasis": [
+        0.667214,
+        0.220035,
+        28.373015
+      ],
+      "surfaces.base": [
+        0.13895,
+        0.002948,
+        246.256057
+      ],
+      "surfaces.card": [
+        0.209238,
+        0.006108,
+        271.115933
+      ],
+      "surfaces.hover": [
+        0.248816,
+        0.009542,
+        276.700283
+      ],
+      "surfaces.popover": [
+        0.222322,
+        0.006013,
+        271.139274
+      ],
+      "surfaces.secondary": [
+        0.235659,
+        0.007789,
+        274.606313
+      ]
+    },
+    "srgb_roles": {
+      "accent.accessible": "#BE1F1C",
+      "accent.bright": "#FF493D",
+      "accent.deep": "#DF221E",
+      "accent.dim": "#F77B72",
+      "legacy_palette.0": "#08090A",
+      "legacy_palette.1": "#F8F8F6",
+      "legacy_palette.2": "#DF221E",
+      "legacy_palette.3": "#FF493D",
+      "legacy_palette.4": "#FFFFFF",
+      "legacy_palette.5": "#000000",
+      "semantic_colors.action": "#BE1F1C",
+      "semantic_colors.emphasis": "#FF493D",
+      "surfaces.base": "#08090A",
+      "surfaces.card": "#17181B",
+      "surfaces.hover": "#202126",
+      "surfaces.popover": "#1A1B1E",
+      "surfaces.secondary": "#1D1E22"
+    },
+    "status": "passed"
+  },
+  "production_source_inventory": [
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ],
+      "bytes": 756,
+      "element_counts": {
+        "g": 0,
+        "path": 3,
+        "rect": 0
+      },
+      "fills": [
+        "#F8F8F6"
+      ],
+      "id": "mark-color",
+      "path": "assets/source/mark-color.svg",
+      "role": "mark",
+      "sha256": "8520437bc7ff10585f08437b99bb5c2ae1d7c558c88577dfdcbb268604a44fb8",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 1000 1000"
+    },
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ],
+      "bytes": 756,
+      "element_counts": {
+        "g": 0,
+        "path": 3,
+        "rect": 0
+      },
+      "fills": [
+        "#08090A"
+      ],
+      "id": "mark-light",
+      "path": "assets/source/mark-light.svg",
+      "role": "lockup",
+      "sha256": "665b20d244ff8b61666a6e391038cd9ffcc3c8063480db8d923d13c309fe9bb5",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 1000 1000"
+    },
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ],
+      "bytes": 747,
+      "element_counts": {
+        "g": 0,
+        "path": 3,
+        "rect": 0
+      },
+      "fills": [
+        "#F8F8F6"
+      ],
+      "id": "mark-reduced-color",
+      "path": "assets/source/mark-reduced-color.svg",
+      "role": "reduced-mark",
+      "sha256": "c3ccd7d758d5487daa77463fb133795bc6d637c1a8511e9e226ef694bbeeebfb",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 1000 1000"
+    },
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ],
+      "bytes": 747,
+      "element_counts": {
+        "g": 0,
+        "path": 3,
+        "rect": 0
+      },
+      "fills": [
+        "#08090A"
+      ],
+      "id": "mark-reduced-light",
+      "path": "assets/source/mark-reduced-light.svg",
+      "role": "lockup",
+      "sha256": "042845984eeeae0b96912e2b9281dca34aea15621994759dabaa9ec097c192ab",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 1000 1000"
+    },
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ],
+      "bytes": 7030,
+      "element_counts": {
+        "g": 2,
+        "path": 5,
+        "rect": 1
+      },
+      "fills": [
+        "#08090A",
+        "#F8F8F6",
+        "#FF493D"
+      ],
+      "id": "horizontal-color",
+      "path": "assets/source/horizontal-color.svg",
+      "role": "lockup",
+      "sha256": "9bff92488079ce42f47d1b176897077bc92d81045524908dfe82cf1c83a3a69c",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 1154.38 210"
+    },
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ],
+      "bytes": 7030,
+      "element_counts": {
+        "g": 2,
+        "path": 5,
+        "rect": 1
+      },
+      "fills": [
+        "#08090A",
+        "#DF221E",
+        "#F8F8F6"
+      ],
+      "id": "horizontal-light",
+      "path": "assets/source/horizontal-light.svg",
+      "role": "lockup",
+      "sha256": "c76476a5ed747512359e703cd64604886c8524848a282e89824e0a9422f8694a",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 1154.38 210"
+    },
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ],
+      "bytes": 7048,
+      "element_counts": {
+        "g": 2,
+        "path": 5,
+        "rect": 1
+      },
+      "fills": [
+        "#08090A",
+        "#F8F8F6",
+        "#FF493D"
+      ],
+      "id": "stacked-color",
+      "path": "assets/source/stacked-color.svg",
+      "role": "lockup",
+      "sha256": "bc0fc8e112f59377524c72092650242f679bff9c397d8115f8681019e52ce7fe",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 749.345 369.421"
+    },
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ],
+      "bytes": 7048,
+      "element_counts": {
+        "g": 2,
+        "path": 5,
+        "rect": 1
+      },
+      "fills": [
+        "#08090A",
+        "#DF221E",
+        "#F8F8F6"
+      ],
+      "id": "stacked-light",
+      "path": "assets/source/stacked-light.svg",
+      "role": "lockup",
+      "sha256": "49512e24f3d9ed2c9b649441a51bd8697e2429278b1d526e4f2f6c1ff7e68cf4",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 749.345 369.421"
+    },
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ],
+      "bytes": 6322,
+      "element_counts": {
+        "g": 1,
+        "path": 2,
+        "rect": 1
+      },
+      "fills": [
+        "#08090A",
+        "#F8F8F6",
+        "#FF493D"
+      ],
+      "id": "wordmark-color",
+      "path": "assets/source/wordmark-color.svg",
+      "role": "wordmark",
+      "sha256": "930400d442e25d0ac8ae59e5330c33d0b3a26e5588cee49a78cd8b51c1c7fa2e",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 1147 136"
+    },
+    {
+      "allowed_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ],
+      "bytes": 6322,
+      "element_counts": {
+        "g": 1,
+        "path": 2,
+        "rect": 1
+      },
+      "fills": [
+        "#08090A",
+        "#DF221E",
+        "#F8F8F6"
+      ],
+      "id": "wordmark-light",
+      "path": "assets/source/wordmark-light.svg",
+      "role": "lockup",
+      "sha256": "216600bef8fc87446fb53f9e798123754195383ba1868324a2acdbec3a5be895",
+      "usage_basis": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "view_box": "0 0 1147 136"
+    },
+    {
+      "bytes": 176856,
+      "id": "font-display-900",
+      "license": "OFL-1.1",
+      "path": "fonts/ttf/Kanit-900-normal.ttf",
+      "role": "font",
+      "sha256": "5d290c2cc9926764bd782aa6abc47a8f55bd64641d0afb56e115ee522698ee7e"
+    },
+    {
+      "bytes": 136624,
+      "id": "font-body-400",
+      "license": "OFL-1.1",
+      "path": "fonts/ttf/Rubik-Regular.ttf",
+      "role": "font",
+      "sha256": "bd1490f4314d27ca1ac5d8869fdda068852edd623318c9bee13e812b793b301b"
+    },
+    {
+      "bytes": 140396,
+      "id": "font-body-700",
+      "license": "OFL-1.1",
+      "path": "fonts/ttf/Rubik-Bold.ttf",
+      "role": "font",
+      "sha256": "b1c36dfcbc5fe5011c552c76725c84d989a71d56440e8bfbfa0cb68b593dbad6"
+    },
+    {
+      "bytes": 138680,
+      "id": "font-mono-400",
+      "license": "OFL-1.1",
+      "path": "fonts/ttf/SourceCodePro-Regular.ttf",
+      "role": "font",
+      "sha256": "f144137f557805c7327fc4b14d1d730f6e1822e0124170251ff1bcd723a693f1"
+    },
+    {
+      "bytes": 13727,
+      "id": "brand-definition",
+      "path": "brand.json",
+      "role": "brand-source",
+      "sha256": "09d02d956d66ccdaea27feb3b43ba9fd411c6c86874eb0b1fd6506981df2fd74"
+    }
+  ],
+  "proof_comparison_mode": "same renderer candidate versus production-path baseline; approved production must later match exact hashes",
+  "proof_matrix": [
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-dark/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-dark/comparison-overlay.png",
+          "sha256": "2b94b9fe97b29fb803914373bdaa43e8355af1b45b658da1e85a9a8c1213a001"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-dark/comparison-side-by-side.png",
+          "sha256": "0e1eac6638236c858d77c662ee8c0177c2334621224dd74a3ff38b795884a4c1"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-dark/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-256-dark.png",
+      "sha256": "2b94b9fe97b29fb803914373bdaa43e8355af1b45b658da1e85a9a8c1213a001",
+      "size_px": 256,
+      "surface": "dark",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-light/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-light/comparison-overlay.png",
+          "sha256": "9f7d53983b37b5827a7a137322f8c4269eba77e31360af0e6018ca985f46c0b2"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-light/comparison-side-by-side.png",
+          "sha256": "acbf7590b67bd6c54a670a1718ab91176d37d6952601f254d18d8bd22b53bdcc"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-light/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-256-light.png",
+      "sha256": "9f7d53983b37b5827a7a137322f8c4269eba77e31360af0e6018ca985f46c0b2",
+      "size_px": 256,
+      "surface": "light",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-black/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-black/comparison-overlay.png",
+          "sha256": "4f0c427d4190d875694bbbbc9e84ca30b97458f90bbc481e7457c2a0e0e8816a"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-black/comparison-side-by-side.png",
+          "sha256": "f900abe1c684f5b1319e1fef58bd3c3763fe20635309bcd5ee981bec7a1ad703"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-black/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-256-black.png",
+      "sha256": "4f0c427d4190d875694bbbbc9e84ca30b97458f90bbc481e7457c2a0e0e8816a",
+      "size_px": 256,
+      "surface": "black",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-white/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-white/comparison-overlay.png",
+          "sha256": "844a9dcc19b2ea3346d400365861ef9c36e81ed95b6ce9c5772d79bb456d9625"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-white/comparison-side-by-side.png",
+          "sha256": "d2360f521618bb19681e360e6c2e51c908f506dd09a7d6acdec07e37ceab3147"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-256-white/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-256-white.png",
+      "sha256": "844a9dcc19b2ea3346d400365861ef9c36e81ed95b6ce9c5772d79bb456d9625",
+      "size_px": 256,
+      "surface": "white",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-dark/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-dark/comparison-overlay.png",
+          "sha256": "52ac98dd9badf5436ed1ed6ba08ca8c6bcad224b3e6ce161cc3555f62a4c351c"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-dark/comparison-side-by-side.png",
+          "sha256": "6c04170a2429e54ba7848d5310353e257967a4791948c13215aed83954ee6395"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-dark/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-64-dark.png",
+      "sha256": "52ac98dd9badf5436ed1ed6ba08ca8c6bcad224b3e6ce161cc3555f62a4c351c",
+      "size_px": 64,
+      "surface": "dark",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-light/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-light/comparison-overlay.png",
+          "sha256": "45c593ff27ede18dcc936aaadad08a057f6e8a990be829842f1078f614440944"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-light/comparison-side-by-side.png",
+          "sha256": "4d2b828ec44c68de6dfd5639fc55461de159721d7131deb809daef4060e42fed"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-light/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-64-light.png",
+      "sha256": "45c593ff27ede18dcc936aaadad08a057f6e8a990be829842f1078f614440944",
+      "size_px": 64,
+      "surface": "light",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-black/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-black/comparison-overlay.png",
+          "sha256": "94fefae7e215799f0aa2e551e781c21422bf8de87452ed85f9ac15aab4f46510"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-black/comparison-side-by-side.png",
+          "sha256": "0a7a0dbf2bf5be2df188a0fe3886fe18f2382d1e26f4063a7c428592a50abb09"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-black/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-64-black.png",
+      "sha256": "94fefae7e215799f0aa2e551e781c21422bf8de87452ed85f9ac15aab4f46510",
+      "size_px": 64,
+      "surface": "black",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-white/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-white/comparison-overlay.png",
+          "sha256": "0e8b173f9254f01c4988d51efba52df8221947440cbf6f5496b8a3c6f882ace9"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-white/comparison-side-by-side.png",
+          "sha256": "e68816df459e504451a0c261ab8088ba2a43b4f960eb220eb0eee3a113d5812d"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-64-white/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-64-white.png",
+      "sha256": "0e8b173f9254f01c4988d51efba52df8221947440cbf6f5496b8a3c6f882ace9",
+      "size_px": 64,
+      "surface": "white",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-dark/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-dark/comparison-overlay.png",
+          "sha256": "434099bd84767c4ba8aaef570383c684d5c68f72fcd489ffac2564314048ca4c"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-dark/comparison-side-by-side.png",
+          "sha256": "f1dd1aeeb552f510a241d30e6619be3fc738be68583d5971cf79e825e557fa04"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-dark/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-32-dark.png",
+      "sha256": "434099bd84767c4ba8aaef570383c684d5c68f72fcd489ffac2564314048ca4c",
+      "size_px": 32,
+      "surface": "dark",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-light/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-light/comparison-overlay.png",
+          "sha256": "f1dd854c36b3dcb2c84b8e2ab1cde7b1af3b80cc044c4cb7cf3231cee455b885"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-light/comparison-side-by-side.png",
+          "sha256": "cfec258cf84c1e947c3ff4546f831a53a763f54e6622651c8145fb5080281a77"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-light/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-32-light.png",
+      "sha256": "f1dd854c36b3dcb2c84b8e2ab1cde7b1af3b80cc044c4cb7cf3231cee455b885",
+      "size_px": 32,
+      "surface": "light",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-black/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-black/comparison-overlay.png",
+          "sha256": "1052d1ed1e8e0e0b98efadbc50d3d5bc1c5595d2c8c6c7f4023fe5030af49da8"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-black/comparison-side-by-side.png",
+          "sha256": "48ed8af5572c9a65933112e8f594cd95b6a039f81871a91da3f21eca36db6efc"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-black/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-32-black.png",
+      "sha256": "1052d1ed1e8e0e0b98efadbc50d3d5bc1c5595d2c8c6c7f4023fe5030af49da8",
+      "size_px": 32,
+      "surface": "black",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-white/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-white/comparison-overlay.png",
+          "sha256": "e16393efe0a628c27d1c2839afcfd104f75b5d7eb9b4f1ca7a7d5b5338a06a91"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-white/comparison-side-by-side.png",
+          "sha256": "d6bd262371008cfeb138b418b098040c20654a17cf4b2cf5acc67eab212e5ec2"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-32-white/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-32-white.png",
+      "sha256": "e16393efe0a628c27d1c2839afcfd104f75b5d7eb9b4f1ca7a7d5b5338a06a91",
+      "size_px": 32,
+      "surface": "white",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-dark/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-dark/comparison-overlay.png",
+          "sha256": "4e7d9ba7fa08580a2a7462856b181d8585e447ba676a720cda1440d45407b535"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-dark/comparison-side-by-side.png",
+          "sha256": "dc8b6a54c3081be14d6afa3d5e8194d48a9d46f97bd455f646815a677299dd5b"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-dark/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-16-dark.png",
+      "sha256": "4e7d9ba7fa08580a2a7462856b181d8585e447ba676a720cda1440d45407b535",
+      "size_px": 16,
+      "surface": "dark",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-light/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-light/comparison-overlay.png",
+          "sha256": "3f254d8f22c40422079cd1bb92d9f5686443af01b2879d3499ab5daf562a445e"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-light/comparison-side-by-side.png",
+          "sha256": "980319c0e1fdba53e789c0d542113c6ebf6130c7b62a96c7b5375478a881e633"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-light/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-16-light.png",
+      "sha256": "3f254d8f22c40422079cd1bb92d9f5686443af01b2879d3499ab5daf562a445e",
+      "size_px": 16,
+      "surface": "light",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-black/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-black/comparison-overlay.png",
+          "sha256": "3586e8ec68029fa5f3f9aad98630641eca17e52836623800753fb7fd067d1b12"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-black/comparison-side-by-side.png",
+          "sha256": "8631c1191b26694babe92a0bffcc9c30d5e3c61f0fb5332899ef48941ba463c2"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-black/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-16-black.png",
+      "sha256": "3586e8ec68029fa5f3f9aad98630641eca17e52836623800753fb7fd067d1b12",
+      "size_px": 16,
+      "surface": "black",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-white/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-white/comparison-overlay.png",
+          "sha256": "439590701d9aa9c9e29d3303d6fa2f6e2e75c27578c5a94dfb90a0ee2df2d05c"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-white/comparison-side-by-side.png",
+          "sha256": "23a1f687a1873586255c23f5b551b095e9b344dfbec7e6d8a141e5d0f4e1e55a"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/full-16-white/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/full-16-white.png",
+      "sha256": "439590701d9aa9c9e29d3303d6fa2f6e2e75c27578c5a94dfb90a0ee2df2d05c",
+      "size_px": 16,
+      "surface": "white",
+      "variant": "full"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-dark/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-dark/comparison-overlay.png",
+          "sha256": "791db5cc84541b0103d5ebae421f60dbd1df36d8a56d738abe80d7cda76a8e1e"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-dark/comparison-side-by-side.png",
+          "sha256": "fd226ac7958495bf98705f6070630fc7bb04654566a1e7f86032df60de607439"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-dark/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-256-dark.png",
+      "sha256": "791db5cc84541b0103d5ebae421f60dbd1df36d8a56d738abe80d7cda76a8e1e",
+      "size_px": 256,
+      "surface": "dark",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-light/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-light/comparison-overlay.png",
+          "sha256": "5b232b4af5493c694bbd11459fae8a22072f80daedefbef7df4a8b329ec024f4"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-light/comparison-side-by-side.png",
+          "sha256": "3f23447f91bd145c830a07e31b92a128f792273e55121c36b049b756c20f4f20"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-light/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-256-light.png",
+      "sha256": "5b232b4af5493c694bbd11459fae8a22072f80daedefbef7df4a8b329ec024f4",
+      "size_px": 256,
+      "surface": "light",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-black/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-black/comparison-overlay.png",
+          "sha256": "2681919ce5d1b9308fb6f6ad6bea4202ffd784986be80b931c1c6ae64c83b8dd"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-black/comparison-side-by-side.png",
+          "sha256": "875753a28170ba271ab3dda0b906d70a53a6ca219480293ab31423aceb54fe4f"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-black/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-256-black.png",
+      "sha256": "2681919ce5d1b9308fb6f6ad6bea4202ffd784986be80b931c1c6ae64c83b8dd",
+      "size_px": 256,
+      "surface": "black",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-white/comparison-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-white/comparison-overlay.png",
+          "sha256": "60c6583b71d83d036761236599b5c4d0ae7a6c9a6b1083417cde3fe1b1064992"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-white/comparison-side-by-side.png",
+          "sha256": "9adc390a527f67569223d230e5edfbc627a45f1cc8c97ce8649df511abe31691"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-256-white/comparison-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-256-white.png",
+      "sha256": "60c6583b71d83d036761236599b5c4d0ae7a6c9a6b1083417cde3fe1b1064992",
+      "size_px": 256,
+      "surface": "white",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-dark/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-dark/comparison-overlay.png",
+          "sha256": "5c22f00ecb6b7e261de1a055f7b124d9741cc5451575029ddbb177f89a0197ae"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-dark/comparison-side-by-side.png",
+          "sha256": "1ed44e0640fa08d5a5c5ebe41a038b72a8365eb001021063d6925cfa1a539bba"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-dark/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-64-dark.png",
+      "sha256": "5c22f00ecb6b7e261de1a055f7b124d9741cc5451575029ddbb177f89a0197ae",
+      "size_px": 64,
+      "surface": "dark",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-light/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-light/comparison-overlay.png",
+          "sha256": "7869c86c95ca9f7e662cdc443903c142e1ee79ccf10e2d4fd76290fa0dc29a76"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-light/comparison-side-by-side.png",
+          "sha256": "a077fd44ae224819a5d2f46d2b6c78262b816c989af99f5ee0cf2aa927cc7068"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-light/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-64-light.png",
+      "sha256": "7869c86c95ca9f7e662cdc443903c142e1ee79ccf10e2d4fd76290fa0dc29a76",
+      "size_px": 64,
+      "surface": "light",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-black/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-black/comparison-overlay.png",
+          "sha256": "ef35ceee9c21d98625bad62248893c8cd50e8154f41504517ee909c36c87442c"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-black/comparison-side-by-side.png",
+          "sha256": "4783d75b0f2b20746c4855de1750d710939590e30d363d91f05d16bdabc8f657"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-black/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-64-black.png",
+      "sha256": "ef35ceee9c21d98625bad62248893c8cd50e8154f41504517ee909c36c87442c",
+      "size_px": 64,
+      "surface": "black",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-white/comparison-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-white/comparison-overlay.png",
+          "sha256": "423797bb14311803de6cf936487067004a4a39b98c6ed730d07632a4add6617e"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-white/comparison-side-by-side.png",
+          "sha256": "4de3b14d04ca59f46b5f6639a078fa58e8010e597f0276cc374c902ec90d9d74"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-64-white/comparison-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-64-white.png",
+      "sha256": "423797bb14311803de6cf936487067004a4a39b98c6ed730d07632a4add6617e",
+      "size_px": 64,
+      "surface": "white",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-dark/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-dark/comparison-overlay.png",
+          "sha256": "edc8186ddc48d9dd4020605340d4970cb519fe542766e7a31dbc42fe76bf9523"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-dark/comparison-side-by-side.png",
+          "sha256": "9553f0f8be12c9c25dfafc4e2599e852daf90e5a92681e27550ecd68f41760e9"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-dark/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-32-dark.png",
+      "sha256": "edc8186ddc48d9dd4020605340d4970cb519fe542766e7a31dbc42fe76bf9523",
+      "size_px": 32,
+      "surface": "dark",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-light/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-light/comparison-overlay.png",
+          "sha256": "20239130a5e6b1a58cedf8371665868612545512af6f065aa60e8b5d810566b0"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-light/comparison-side-by-side.png",
+          "sha256": "2565303cd2c7167eb671d741ffd02cd0a7f12200df267c5c83194b05f9de435a"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-light/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-32-light.png",
+      "sha256": "20239130a5e6b1a58cedf8371665868612545512af6f065aa60e8b5d810566b0",
+      "size_px": 32,
+      "surface": "light",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-black/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-black/comparison-overlay.png",
+          "sha256": "1052d1ed1e8e0e0b98efadbc50d3d5bc1c5595d2c8c6c7f4023fe5030af49da8"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-black/comparison-side-by-side.png",
+          "sha256": "48ed8af5572c9a65933112e8f594cd95b6a039f81871a91da3f21eca36db6efc"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-black/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-32-black.png",
+      "sha256": "1052d1ed1e8e0e0b98efadbc50d3d5bc1c5595d2c8c6c7f4023fe5030af49da8",
+      "size_px": 32,
+      "surface": "black",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-white/comparison-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-white/comparison-overlay.png",
+          "sha256": "e16393efe0a628c27d1c2839afcfd104f75b5d7eb9b4f1ca7a7d5b5338a06a91"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-white/comparison-side-by-side.png",
+          "sha256": "d6bd262371008cfeb138b418b098040c20654a17cf4b2cf5acc67eab212e5ec2"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-32-white/comparison-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-32-white.png",
+      "sha256": "e16393efe0a628c27d1c2839afcfd104f75b5d7eb9b4f1ca7a7d5b5338a06a91",
+      "size_px": 32,
+      "surface": "white",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-dark/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-dark/comparison-overlay.png",
+          "sha256": "4a5883a2d33bbd4b2cefe6732c9342000120742193452aca3d8bfd06eff46aae"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-dark/comparison-side-by-side.png",
+          "sha256": "61c8cee336a990dc7446949d1bd32af73d26d8f33b4704e78918b45d4c0b01c7"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-dark/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-16-dark.png",
+      "sha256": "4a5883a2d33bbd4b2cefe6732c9342000120742193452aca3d8bfd06eff46aae",
+      "size_px": 16,
+      "surface": "dark",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-light/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-light/comparison-overlay.png",
+          "sha256": "4c25ece6c16a63d0f44deedf3d9c6a6b2a10e3e2d6232ccafa479f38eedfac33"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-light/comparison-side-by-side.png",
+          "sha256": "667836f6d7c018fe069ac72ea790b1e50697c344b952b598cbd3009922299d39"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-light/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-16-light.png",
+      "sha256": "4c25ece6c16a63d0f44deedf3d9c6a6b2a10e3e2d6232ccafa479f38eedfac33",
+      "size_px": 16,
+      "surface": "light",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-black/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-black/comparison-overlay.png",
+          "sha256": "3586e8ec68029fa5f3f9aad98630641eca17e52836623800753fb7fd067d1b12"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-black/comparison-side-by-side.png",
+          "sha256": "8631c1191b26694babe92a0bffcc9c30d5e3c61f0fb5332899ef48941ba463c2"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-black/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-16-black.png",
+      "sha256": "3586e8ec68029fa5f3f9aad98630641eca17e52836623800753fb7fd067d1b12",
+      "size_px": 16,
+      "surface": "black",
+      "variant": "reduced"
+    },
+    {
+      "evidence": {
+        "color_difference": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-white/comparison-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        },
+        "overlay": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-white/comparison-overlay.png",
+          "sha256": "439590701d9aa9c9e29d3303d6fa2f6e2e75c27578c5a94dfb90a0ee2df2d05c"
+        },
+        "side_by_side": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-white/comparison-side-by-side.png",
+          "sha256": "23a1f687a1873586255c23f5b551b095e9b344dfbec7e6d8a141e5d0f4e1e55a"
+        },
+        "silhouette_xor": {
+          "path": "qc/identity-continuity-proofs/comparisons/reduced-16-white/comparison-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        }
+      },
+      "path": "qc/identity-continuity-proofs/reduced-16-white.png",
+      "sha256": "439590701d9aa9c9e29d3303d6fa2f6e2e75c27578c5a94dfb90a0ee2df2d05c",
+      "size_px": 16,
+      "surface": "white",
+      "variant": "reduced"
+    }
+  ],
+  "proof_sheet": {
+    "path": "dist/s065-gate1-r2/gate1-32-proof-sheet.png",
+    "sha256": "330aa6ca2dc80c5da6223046b9b3d94cb97deb98e1472e9a7e9589b00e76dac6"
+  },
+  "publication_eligible": false,
+  "recorded_on": "2026-09-29",
+  "reference": {
+    "changed_pixels_over_12": 8434,
+    "comparison_preview": "dist/s065-gate1-r2/natalie-vs-source.png",
+    "comparison_sha256": "81675c34e4705cbdfeb585adb700444989e9cb161c462bc352189101688446fa",
+    "path": "dist/s065-reset-reference/natalie-reference.png",
+    "raster_rgb_mae": [
+      0.738987,
+      0.682027,
+      1.113668
+    ],
+    "sha256": "258f5b631a45cc232a69f26251698e23042c62d96460608eebf434fdc1446b19"
+  },
+  "renderer": {
+    "id": "node-resvg",
+    "settings_sha256": "dc4af5b7497049aa78aca2e6b10623911ca5a01521f801b6f62711c523fbacba",
+    "version": "v26.5.0"
+  },
+  "schema_version": 1,
+  "small_size_evidence": {
+    "full-16": {
+      "bbox": [
+        1,
+        6,
+        15,
+        10
+      ],
+      "ink_height_px": 4,
+      "ink_width_px": 14
+    },
+    "full-32": {
+      "bbox": [
+        3,
+        12,
+        28,
+        20
+      ],
+      "ink_height_px": 8,
+      "ink_width_px": 25
+    },
+    "reduced-16": {
+      "bbox": [
+        1,
+        6,
+        15,
+        10
+      ],
+      "ink_height_px": 4,
+      "ink_width_px": 14
+    },
+    "reduced-32": {
+      "bbox": [
+        3,
+        12,
+        28,
+        20
+      ],
+      "ink_height_px": 8,
+      "ink_width_px": 25
+    }
+  },
+  "source_class": "authoritative",
+  "source_revision": "7334be6dd2da8c69f200bdc0d9db619f73ec043d2f3ffb1a4440372e65ca08a0",
+  "topology": {
+    "full": {
+      "closed_subpaths": 0,
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      },
+      "path_count": 1,
+      "role_counts": {
+        "": 1
+      },
+      "subpath_count": 0
+    },
+    "reduced": {
+      "closed_subpaths": 0,
+      "command_counts": {},
+      "fill_rules": {
+        "nonzero": 1
+      },
+      "path_count": 1,
+      "role_counts": {
+        "": 1
+      },
+      "subpath_count": 0
+    }
+  }
+}

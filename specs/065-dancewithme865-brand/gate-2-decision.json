@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "packet_sha256": "a8f4283ce4986b8b8ca09ed02e11d6aeed4821b2c1676e66a236001798086b64",
+  "gate_1_source_sha256": "fb59ab31d5bfa0d5edda61e3c76cc4c84a517e96c11597848d2780640cf75f3c",
+  "derivative_manifest_sha256": "9b6d6ae94885dc4a0b14edc8d4ba854d3f212cce526e06d555aa6a3b5aabe727",
+  "social_svg_sha256": "a41609cfe07320bc4d53cb9b1e1cdcb559acf5aa5fbd2ef353efbeef898e4fed",
+  "social_png_sha256": "3f94eb54331816c2950b25c74cc88666dec84a1ee6073047340337ca245440b8",
+  "status": "approved",
+  "approved_by": "repository owner",
+  "approved_on": "2026-09-29",
+  "owner_wording": "APPROVED. CONTINUE"
+}

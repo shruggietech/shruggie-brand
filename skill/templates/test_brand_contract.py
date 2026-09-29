@@ -563,7 +563,7 @@ class AffiliationTests(unittest.TestCase):
     def test_output_scan_requires_each_generated_vendor_boundary_surface(self):
         with tempfile.TemporaryDirectory() as temporary:
             kit = Path(temporary)
-            notice = "Acme is independent. Users are responsible."
+            notice = "Acme & Sons is independent. Users are responsible."
             brand = owned_brand()
             brand["affiliation"] = {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}
             brand["semantic_colors"] = {"emphasis": "#6750A4", "action": "#5B3F98"}
@@ -573,7 +573,8 @@ class AffiliationTests(unittest.TestCase):
             for relative in expected:
                 path = kit / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(notice, encoding="utf-8")
+                path.write_text(notice.replace("&", "&amp;") if relative.endswith(".html") else notice,
+                                encoding="utf-8")
             self.assertEqual([], scan_affiliation_output(brand, kit))
             (kit / expected[0]).write_text("missing", encoding="utf-8")
             self.assertEqual(["guidelines/portal.json omits the required vendor boundary"], scan_affiliation_output(brand, kit))
@@ -1071,6 +1072,53 @@ class AuthoritativeInputTests(unittest.TestCase):
             with self.assertRaisesRegex(ContractError, "generated wordmarks cannot replace approved masters"):
                 logo_source_contract(brand, kit)
 
+    def test_supplied_reduced_colourway_and_wordmark_bind_exact_sources(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _ = self.make_raster_brand(kit)
+            for name, role in (("reduced-light", "lockup"), ("wordmark-dark", "wordmark"),
+                               ("wordmark-light", "lockup"), ("stacked-light", "lockup")):
+                path = kit / "assets" / (name + ".svg")
+                path.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 1"><path fill="#112233" d="M0 0H2V1H0Z"/></svg>\n', encoding="utf-8")
+                brand["authoritative_inputs"].append({
+                    "id": name, "role": role, "path": "assets/%s.svg" % name,
+                    "format": "svg", "sha256": sha256_file(path), "color_profile": "none",
+                    "usage_status": "approved", "license": "Test fixture",
+                    "approved_transformations": ["embed-unchanged", "resize"],
+                })
+            brand["logo"].update({
+                "colourways": ["color", "light"],
+                "reduced_colourway_input_ids": {"light": "reduced-light"},
+                "supplied_lockup_input_ids": {"stacked": {"light": "stacked-light"}},
+                "supplied_wordmark_input_ids": {"color": "wordmark-dark", "light": "wordmark-light"},
+            })
+            resolved = logo_source_contract(brand, kit)
+            self.assertEqual("reduced-light", resolved["reduced_colourways"]["light"]["record"]["id"])
+            self.assertEqual("wordmark-light", resolved["supplied_wordmarks"]["light"]["record"]["id"])
+            self.assertEqual("stacked-light", resolved["supplied_lockups"]["stacked"]["light"]["record"]["id"])
+
+            broken = copy.deepcopy(brand)
+            broken["logo"]["supplied_wordmark_input_ids"]["light"] = "master-mark"
+            with self.assertRaisesRegex(ContractError, "wordmark light requires authoritative role"):
+                logo_source_contract(broken, kit)
+
+            source = next(item for item in brand["authoritative_inputs"] if item["id"] == "wordmark-light")
+            source["approved_transformations"].append("derive-single-ink")
+            brand["logo"]["colourways"] = ["color", "light", "black", "white"]
+            brand["logo"]["single_ink"] = {
+                "full_input_id": "wordmark-light", "reduced_input_id": "wordmark-light",
+                "horizontal_input_id": "wordmark-light", "stacked_input_id": "wordmark-light",
+                "wordmark_input_id": "wordmark-light", "alpha_floor": 0, "alpha_transition": 1,
+                "white_knockout_floor": 0, "white_knockout_transition": 1,
+            }
+            logo_source_contract(brand, kit)
+            for colourway in ("black", "white"):
+                overlapping = copy.deepcopy(brand)
+                overlapping["logo"]["supplied_wordmark_input_ids"][colourway] = "wordmark-light"
+                with self.subTest(colourway=colourway), self.assertRaisesRegex(
+                        ContractError, "supplied and derived single-ink wordmark colourways overlap"):
+                    logo_source_contract(overlapping, kit)
+
     def test_logo_colourways_include_required_downstream_variants(self):
         with tempfile.TemporaryDirectory() as temporary:
             brand = owned_brand()
@@ -1295,6 +1343,18 @@ class SocialCopyTests(unittest.TestCase):
                                  "description_lines": ["one", "two", "three", "four"],
                                  "approval": {"approved_by": "owner", "approved_on": "2026-09-26", "source": "decision"}}}
         with self.assertRaisesRegex(ContractError, "more than three lines"):
+            social_copy(brand)
+
+    def test_social_copy_binds_optional_wrap_to_the_exact_approved_words(self):
+        brand = {"social_copy": {
+            "slogan": "Expert alignments, tire repair, and honest automotive service.",
+            "slogan_lines": ["Expert alignments, tire repair,", "and honest automotive service."],
+            "layout": "slogan-only", "description_lines": [],
+            "approval": {"approved_by": "owner", "approved_on": "2026-09-29", "source": "owner message"},
+        }}
+        self.assertEqual(2, len(social_copy(brand)["slogan_lines"]))
+        brand["social_copy"]["slogan_lines"][1] = "and misleading service."
+        with self.assertRaisesRegex(ContractError, "slogan lines"):
             social_copy(brand)
 
     def test_centered_social_composition_is_explicit_and_single_line(self):

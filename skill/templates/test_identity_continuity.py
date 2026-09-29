@@ -32,6 +32,7 @@ from identity_continuity import (  # noqa: E402
     identity_snapshot,
     measured_oklch,
     palette_roles,
+    proof_gen_logo_digest,
     proof_iconkit_digest,
     record_digest,
     safe_path,
@@ -43,6 +44,7 @@ from identity_continuity import (  # noqa: E402
     validate_record,
     write_continuity_report,
 )
+from identity_continuity import LEGACY_GEN_LOGO_SHA256  # noqa: E402
 from promote_identity import PromotionError, promote  # noqa: E402
 
 
@@ -160,15 +162,45 @@ def proof_artifact_bytes(size):
 
 
 class IdentityContinuityTests(unittest.TestCase):
+    def test_social_layout_edits_preserve_proofs_but_proof_stage_edits_invalidate_them(self):
+        source = (HERE / "gen_logo.py").read_bytes()
+        self.assertEqual("bcddd3bfe546f725f51acd193dd395361f2f19461b9b52234949e463e75a6f99",
+                         proof_gen_logo_digest(source))
+        social_edit = source.replace(b"logo_width * 0.82", b"logo_width * 0.81", 1)
+        self.assertNotEqual(source, social_edit)
+        self.assertEqual(proof_gen_logo_digest(source), proof_gen_logo_digest(social_edit))
+        proof_edit = source.replace(b'proof_stage_only = "--proof-stage-only" in options',
+                                    b'proof_stage_only = "--wrong-stage" in options', 1)
+        self.assertNotEqual(source, proof_edit)
+        self.assertNotEqual(proof_gen_logo_digest(source), proof_gen_logo_digest(proof_edit))
+        missing_guard = source.replace(b"if proof_stage_only:\n", b"if wrong_proof_stage_only:\n", 1)
+        with self.assertRaisesRegex(ContinuityError, "social composition must follow"):
+            proof_gen_logo_digest(missing_guard)
+
     def test_icon_role_edits_preserve_approved_proof_binding_only_while_proof_functions_match(self):
         source = (HERE / "iconkit.py").read_bytes()
-        self.assertEqual("96dcecb82bab50874b1229151ac9f118abb079bd4790f23fe250a3597992332a",
+        self.assertEqual("f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b",
                          proof_iconkit_digest(source))
+        self.assertEqual("96dcecb82bab50874b1229151ac9f118abb079bd4790f23fe250a3597992332a",
+                         proof_iconkit_digest(source, {"slug": "local-companion"}))
         changed = source.replace(b"maximum = max(1, int(round(size * ratio)))",
                                  b"maximum = max(1, int(round(size * ratio * 0.9)))", 1)
         self.assertNotEqual(proof_iconkit_digest(source), proof_iconkit_digest(changed))
         changed_import = source.replace(b"import base64", b"import base64\nimport secrets", 1)
         self.assertNotEqual(proof_iconkit_digest(source), proof_iconkit_digest(changed_import))
+
+    def test_optional_logo_paths_preserve_only_unaffected_legacy_proof_digest(self):
+        source = (HERE / "gen_logo.py").read_bytes()
+        legacy = brand_fixture()
+        self.assertEqual(LEGACY_GEN_LOGO_SHA256, proof_gen_logo_digest(source, legacy))
+        revised = copy.deepcopy(legacy)
+        revised["logo"]["reduced_colourway_input_ids"] = {"light": "reviewed-reduced"}
+        self.assertEqual("73f17e8cfa23b4148e35823ef27e4fa91333243972121d1f1ff45d0d4bedc2a8",
+                         proof_gen_logo_digest(source, revised))
+        self.assertEqual("00bab05a294a3d62a1d2594064e71efec7763186a831cfe64ad036af1ed40953",
+                         proof_gen_logo_digest(source, {"slug": "local-companion"}))
+        changed = source.replace(b"import binascii", b"import binascii\nimport secrets", 1)
+        self.assertNotEqual(LEGACY_GEN_LOGO_SHA256, proof_gen_logo_digest(changed, legacy))
 
     def make_promotion_bundle(self, root):
         approval = root / "approval"
@@ -501,10 +533,11 @@ class IdentityContinuityTests(unittest.TestCase):
                 (generated / name).write_bytes(payload)
                 (portable / name).write_bytes(payload)
             with mock.patch.dict(os.environ, {"GP_APPROVED_PROOF_ROOT": str(root / "portable")}):
-                result = validate_current_proof_matrix(
-                    record, source, renderer=record["renderer"], brand={"slug": "example"}
-                )
-                self.assertTrue(all(not item["comparison"]["same_renderer"] for item in result["proofs"]))
+                local_renderer = dict(record["renderer"])
+                local_renderer["version"] = "different-runtime"
+                with self.assertRaisesRegex(ContinuityError, "attestation is missing"):
+                    validate_current_proof_matrix(
+                        record, source, renderer=local_renderer, brand={"slug": "example"})
                 changed_settings = dict(record["renderer"], version="2", settings_sha256="0" * 64)
                 attestation = {
                     "brand": "example", "record_sha256": record["record_sha256"],
@@ -539,11 +572,15 @@ class IdentityContinuityTests(unittest.TestCase):
                 with self.assertRaisesRegex(ContinuityError, "attestation settings drift"):
                     validate_current_proof_matrix(
                         record, source, renderer=changed_settings, brand={"slug": "example"})
+                attestation["proof_validation"]["renderer"]["settings_sha256"] = "0" * 64
+                attestation["report_sha256"] = canonical_digest(
+                    {key: value for key, value in attestation.items() if key != "report_sha256"})
+                report.write_text(json.dumps(attestation), encoding="utf-8")
                 first = portable / "full-256-dark.png"
                 first.write_bytes(first.read_bytes() + b"drift")
                 with self.assertRaisesRegex(ContinuityError, "portable approved proof hash drift"):
                     validate_current_proof_matrix(
-                        record, source, renderer=record["renderer"], brand={"slug": "example"}
+                        record, source, renderer=changed_settings, brand={"slug": "example"}
                     )
 
     def test_approved_report_binds_fresh_production_proof_matrix(self):

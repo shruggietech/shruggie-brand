@@ -7,6 +7,7 @@ from __future__ import annotations
 import base64
 import binascii
 import hashlib
+import html
 import json
 import os
 import re
@@ -69,13 +70,20 @@ def social_copy(brand):
     value = brand.get("social_copy")
     required = {"slogan", "layout", "description_lines", "approval"}
     _require(isinstance(value, dict) and required <= set(value)
-             and set(value) <= required | {"composition"},
+             and set(value) <= required | {"composition", "slogan_lines"},
              "social_copy must declare slogan, layout, description_lines, and approval")
     slogan = value["slogan"]
     _require(isinstance(slogan, str) and slogan.strip() == slogan and slogan,
              "social_copy.slogan must be exact nonempty approved text")
     _require("\n" not in slogan and "\r" not in slogan,
              "social_copy.slogan must use one approved line")
+    if "slogan_lines" in value:
+        wrapped = value["slogan_lines"]
+        _require(isinstance(wrapped, list) and 1 <= len(wrapped) <= 3
+                 and all(isinstance(line, str) and line.strip() == line and line
+                         and "\n" not in line and "\r" not in line for line in wrapped)
+                 and " ".join(wrapped) == slogan,
+                 "social_copy slogan lines must preserve the exact approved words in at most three lines")
     layout = value["layout"]
     lines = value["description_lines"]
     _require(layout in {"slogan-only", "slogan-description"}, "social_copy.layout is invalid")
@@ -1220,7 +1228,9 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
             "inputs": {},
             "colourways": tuple(colourways),
             "full_colourways": {},
+            "reduced_colourways": {},
             "supplied_lockups": {},
+            "supplied_wordmarks": {},
         }
 
     bindings = logo.get("authoritative_input_ids")
@@ -1320,6 +1330,15 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
         for colourway, input_id in full_colourways.items()
     }
 
+    reduced_colourways = logo.get("reduced_colourway_input_ids", {})
+    _require(isinstance(reduced_colourways, dict) and set(reduced_colourways).issubset(set(colourways)),
+             "logo.reduced_colourway_input_ids contains an unsupported colourway")
+    resolved["reduced_colourways"] = {
+        colourway: resolve_svg_binding(input_id, "reduced colourway %s" % colourway,
+                                       {"reduced-mark", "lockup"})
+        for colourway, input_id in reduced_colourways.items()
+    }
+
     supplied = logo.get("supplied_lockup_input_ids", {})
     _require(isinstance(supplied, dict) and set(supplied).issubset({"horizontal", "stacked"}),
              "logo.supplied_lockup_input_ids contains an unsupported family")
@@ -1331,24 +1350,45 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
             colourway: resolve_svg_binding(input_id, "%s %s lockup" % (family, colourway), {"lockup", "mark"})
             for colourway, input_id in mapping.items()
         }
+    supplied_wordmarks = logo.get("supplied_wordmark_input_ids", {})
+    _require(isinstance(supplied_wordmarks, dict) and set(supplied_wordmarks).issubset(set(colourways)),
+             "logo.supplied_wordmark_input_ids contains an unsupported colourway")
+    _require(not supplied_wordmarks or {"color", "light"}.issubset(set(supplied_wordmarks)),
+             "supplied wordmarks require color and light sources")
+    resolved["supplied_wordmarks"] = {
+        colourway: resolve_svg_binding(input_id, "wordmark %s" % colourway,
+                                       {"wordmark", "lockup"})
+        for colourway, input_id in supplied_wordmarks.items()
+    }
     unavailable = set(((((brand.get("approval_ledger") or {}).get("gate_1") or {})
                        .get("unavailable_derivatives") or {})))
-    _require(not resolved["supplied_lockups"] or "wordmark-only" in unavailable,
+    _require(not resolved["supplied_wordmarks"] or "wordmark-only" not in unavailable,
+             "supplied wordmarks cannot be declared unavailable")
+    _require(not resolved["supplied_lockups"] or resolved["supplied_wordmarks"]
+             or "wordmark-only" in unavailable,
              "supplied lockups require wordmark-only to be explicitly unavailable so generated wordmarks cannot replace approved masters")
     single = logo.get("single_ink")
     resolved["single_ink"] = None
     if single is not None:
         required = {"full_input_id", "reduced_input_id", "horizontal_input_id", "stacked_input_id",
                     "alpha_floor", "alpha_transition", "white_knockout_floor", "white_knockout_transition"}
-        _require(isinstance(single, dict) and set(single) == required,
-                 "logo.single_ink must contain exactly the approved deterministic transform fields")
+        optional = {"wordmark_input_id"}
+        _require(isinstance(single, dict) and required.issubset(set(single))
+                 and set(single).issubset(required | optional),
+                 "logo.single_ink must contain the approved deterministic transform fields")
         resolved_single = {}
-        for key in ("full_input_id", "reduced_input_id", "horizontal_input_id", "stacked_input_id"):
+        for key in ("full_input_id", "reduced_input_id", "horizontal_input_id", "stacked_input_id",
+                    "wordmark_input_id"):
+            if key not in single:
+                continue
             input_id = single[key]
             bound = resolved["inputs"].get(input_id)
             _require(bound is not None, "logo.single_ink references unknown input %s" % input_id)
             _require(bound["record"]["format"] == "svg" and bound["record"]["usage_status"] == "approved",
                      "logo.single_ink input %s must be an approved passive SVG" % input_id)
+            if key == "wordmark_input_id":
+                _require(bound["record"]["role"] in {"wordmark", "lockup"},
+                         "logo.single_ink wordmark source must have wordmark or lockup role")
             _require("derive-single-ink" in bound["record"]["approved_transformations"],
                      "logo.single_ink input %s does not approve derive-single-ink" % input_id)
             resolved_single[key] = bound
@@ -1359,6 +1399,10 @@ def logo_source_contract(brand, kit, normalized_inputs=None):
         _require(single["alpha_transition"] > 0 and single["white_knockout_transition"] > 0,
                  "logo.single_ink transitions must be positive")
         resolved_single["settings"] = {key: single[key] for key in required if key.endswith(("floor", "transition"))}
+        if "wordmark_input_id" in resolved_single:
+            overlap = {"black", "white"} & set(resolved["supplied_wordmarks"])
+            _require(not overlap, "supplied and derived single-ink wordmark colourways overlap: %s" %
+                     ", ".join(sorted(overlap)))
         resolved["single_ink"] = resolved_single
     return resolved
 
@@ -1551,6 +1595,6 @@ def scan_affiliation_output(brand, kit):
         )
         for relative in generated_surfaces:
             path = root / relative
-            if not path.is_file() or boundary["notice"].lower() not in path.read_text(encoding="utf-8", errors="replace").lower():
+            if not path.is_file() or boundary["notice"].lower() not in html.unescape(path.read_text(encoding="utf-8", errors="replace")).lower():
                 problems.append("%s omits the required vendor boundary" % relative)
     return problems

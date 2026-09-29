@@ -21,12 +21,14 @@ from package_release import write_brand_archive
 PRODUCTION = (
     "covarity",
     "cueson",
+    "dancewithme865",
     "eso-weave",
     "fragcap",
     "glitchpad",
     "go-schedule",
     "i-heart-pr-tours",
     "local-companion",
+    "scruggs-tire-alignment",
     "shruggietech",
 )
 

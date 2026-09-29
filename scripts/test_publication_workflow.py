@@ -21,12 +21,14 @@ WORKFLOW = ROOT / ".github" / "workflows" / "build.yml"
 PRODUCTION = (
     "covarity",
     "cueson",
+    "dancewithme865",
     "eso-weave",
     "fragcap",
     "glitchpad",
     "go-schedule",
     "i-heart-pr-tours",
     "local-companion",
+    "scruggs-tire-alignment",
     "shruggietech",
 )
 EXPECTED_ACTIONS = {
@@ -279,8 +281,8 @@ class PublicationArtifactAuditTests(unittest.TestCase):
             root = Path(tmp)
             kits, site = create_publication_trees(root)
             result = audit_publication_artifacts.audit(root, kits, site)
-            self.assertEqual(9, result["kit_markers"])
-            self.assertEqual(9, result["site_markers"])
+            self.assertEqual(len(PRODUCTION), result["kit_markers"])
+            self.assertEqual(len(PRODUCTION), result["site_markers"])
 
     def test_symlink_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -384,6 +386,10 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         text = workflow_text()
         self.assertGreaterEqual(text.count("node-version: 24.11.0"), 2)
         self.assertGreaterEqual(text.count("@resvg/resvg-js@2.6.2"), 2)
+        minimum_python = job_block(text, "python-38-compatibility")
+        self.assertIn("python skill/templates/test_pipeline.py", minimum_python)
+        self.assertNotIn("setup-node", minimum_python)
+        self.assertNotIn("@resvg/resvg-js", minimum_python)
         self.assertNotIn("rsvg-convert", text)
         self.assertNotIn("librsvg", text)
 
@@ -394,6 +400,16 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         self.assertIn("pnpm --dir site exec playwright install chromium --with-deps", block)
         self.assertLess(block.index("python -m playwright install chromium --with-deps"),
                         block.index("pnpm --dir site exec playwright install chromium --with-deps"))
+
+    def test_proof_bound_contracts_run_alongside_kit_builds(self):
+        text = workflow_text()
+        contracts = job_block(text, "contract-tests")
+        verified = job_block(text, "verified-build")
+        self.assertIn("needs: approved-identity-proofs", contracts)
+        self.assertIn("approved-identity-proofs-${{ github.sha }}", contracts)
+        self.assertIn("GP_APPROVED_PROOF_ROOT=\"$GITHUB_WORKSPACE/approved-identity-proofs\" python skill/templates/test_pipeline.py", contracts)
+        self.assertIn("python scripts/test_publication_workflow.py", contracts)
+        self.assertNotIn("Test geometry and publication contracts", verified)
 
     def test_artifacts_are_sha_qualified_and_hidden_files_follow_audit(self):
         text = workflow_text()
@@ -407,12 +423,23 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         self.assertGreaterEqual(text.count("include-hidden-files: true"), 2)
         self.assertIn("python scripts/audit_publication_artifacts.py --kits dist --site site/out", text)
 
+    def test_verified_artifact_contains_every_production_kit(self):
+        text = workflow_text()
+        upload = text.split("name: verified-brand-kits-${{ github.sha }}", 1)[1].split(
+            "if-no-files-found:", 1)[0]
+        for slug in PRODUCTION:
+            with self.subTest(slug=slug):
+                self.assertIn("dist/%s/" % slug, upload)
+        self.assertIn("--exclude scruggs-tire-alignment --exclude dancewithme865", text)
+        self.assertIn("scripts/build_all.py scruggs-tire-alignment dancewithme865", text)
+
     def test_terminal_build_fails_unless_every_verifier_succeeds(self):
         block = job_block(workflow_text(), "build")
         self.assertIn("if: ${{ always() }}", block)
         for dependency in (
             "python-38-compatibility",
             "approved-identity-proofs",
+            "contract-tests",
             "verified-build",
         ):
             self.assertIn(dependency, block)

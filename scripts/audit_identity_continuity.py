@@ -22,15 +22,19 @@ from process_utils import hidden_process_kwargs
 BRAND_CLASSES = {
     "covarity": "legacy-constructed",
     "cueson": "glyphkit-constructed",
+    "dancewithme865": "authoritative",
     "eso-weave": "authoritative",
     "fragcap": "legacy-constructed",
     "glitchpad": "legacy-constructed",
     "go-schedule": "legacy-constructed",
     "i-heart-pr-tours": "authoritative",
     "local-companion": "glyphkit-constructed",
+    "scruggs-tire-alignment": "authoritative",
     "shruggietech": "authoritative",
 }
-MIGRATION_BASELINE_BRANDS = set(BRAND_CLASSES) - {"i-heart-pr-tours", "local-companion"}
+MIGRATION_BASELINE_BRANDS = set(BRAND_CLASSES) - {
+    "i-heart-pr-tours", "local-companion", "dancewithme865", "scruggs-tire-alignment",
+}
 MIGRATION_BASELINE_REVISION = "011f35303ef1d555dbbbcf6708447cc321df40db"
 # S057 approved the current go-schedule mark after the historical migration.
 # The source commit binds that owner-approved snapshot independently of the

@@ -44,6 +44,17 @@ def legal_fg(fill):
     b, w = ratio("#000000", fill), ratio("#FFFFFF", fill)
     return "#000000" if b >= w else "#FFFFFF"
 
+def readable_muted_foreground(surface, starting="#9A9A9A"):
+    """Keep muted text quiet while measuring it against the muted fill."""
+    if ratio(starting, surface) >= 4.5:
+        return starting
+    start = Color(starting)
+    for step in range(1, 101):
+        candidate = start.mix(Color("#FFFFFF"), percent=step / 100, space="srgb").to_string(hex=True).upper()
+        if ratio(candidate, surface) >= 4.5:
+            return candidate
+    return "#FFFFFF"
+
 def accessible_light_border(foreground, surfaces):
     """Choose the quietest source-derived border that clears 3:1 everywhere."""
     base = Color(surfaces[0])
@@ -127,7 +138,7 @@ def build_slots(canon, brand):
         "popover": pop_dark,              "popover-foreground": "#FFFFFF",
         "primary": a,                     "primary-foreground": legal_fg(a),
         "secondary": second_dark,         "secondary-foreground": "#FFFFFF",
-        "muted": second_dark,             "muted-foreground": "#9A9A9A",
+        "muted": second_dark,             "muted-foreground": readable_muted_foreground(second_dark),
         "accent": hover_dark,             "accent-foreground": "#FFFFFF",
         "destructive": fault,
         "border": "#262626", "input": "#262626", "ring": a,

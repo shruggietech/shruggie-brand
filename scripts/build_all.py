@@ -87,6 +87,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("slugs", nargs="*", help="Build only these slugs")
     parser.add_argument("--list", action="store_true", help="List discovered slugs")
+    parser.add_argument("--exclude", action="append", default=[], help="Omit a slug from the aggregate build")
     args = parser.parse_args()
 
     available = sources()
@@ -98,9 +99,13 @@ def main() -> int:
     unknown = sorted(set(selected) - set(available))
     if unknown:
         parser.error("unknown slug(s): " + ", ".join(unknown))
+    unknown_exclusions = sorted(set(args.exclude) - set(available))
+    if unknown_exclusions:
+        parser.error("unknown excluded slug(s): " + ", ".join(unknown_exclusions))
+    selected = [slug for slug in selected if slug not in args.exclude]
 
     DIST.mkdir(parents=True, exist_ok=True)
-    if not args.slugs:
+    if not args.slugs and not args.exclude:
         for stale in DIST.iterdir():
             if stale.is_dir() and (stale / "brand.json").is_file() and stale.name not in available:
                 clean_destination(stale)

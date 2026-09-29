@@ -5,7 +5,8 @@ import base64, json, os, re
 from brand_contract import affiliation_text, font_faces, typography_families
 
 def tokens(kit):
-    css = open(os.path.join(kit, "nextjs", "globals.css"), encoding="utf-8").read()
+    with open(os.path.join(kit, "nextjs", "globals.css"), encoding="utf-8") as source:
+        css = source.read()
     def blk(n):
         m = re.search(r"^%s \{(.*?)^\}" % n, css, re.S | re.M)
         if not m: return {}
@@ -14,7 +15,8 @@ def tokens(kit):
     return blk(r"\.dark"), blk(":root")
 
 def b64(p):
-    return base64.b64encode(open(p, "rb").read()).decode()
+    with open(p, "rb") as source:
+        return base64.b64encode(source.read()).decode()
 
 def faces(kit, brand):
     out, families, selected = "", typography_families(brand), {}

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "candidate_id": "dwm865-s065-g1-r2",
+  "packet_sha256": "5abca4ea8c0e238fb01d0b8f8aaea8feac20e6c5b9ada062fb64d7a2649ee5e8",
+  "status": "approved",
+  "approved_by": "repository owner",
+  "approved_on": "2026-09-29",
+  "owner_wording": "approved",
+  "decision_context": "Approval followed review of the unchanged 32 mark proofs and revised red plated Windows icon treatment."
+}

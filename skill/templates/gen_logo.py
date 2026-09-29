@@ -328,6 +328,26 @@ def wordmark_outline(text, ttf, size=200, x_offset=0.0):
     return " ".join(commands), advance * scale
 
 
+def wrapped_social_slogan_lines(lines, font_path, logo_width):
+    """Outline approved line breaks at a common scale within the displayed logo width."""
+    prepared = []
+    for value in lines:
+        outline, _ = wordmark_outline(value, str(font_path), 54)
+        bounds = tuple(float(part) for part in Path(outline).bbox())
+        width, height = bounds[2] - bounds[0], bounds[3] - bounds[1]
+        if width <= 0 or height <= 0:
+            raise ValueError("approved social slogan line has no visible outline")
+        prepared.append({"outline": outline, "bounds": bounds, "width": width, "height": height})
+    scale = min(1.0, logo_width * 0.82 / max(item["width"] for item in prepared))
+    step = max(60.0, max(item["height"] for item in prepared) * scale + 20.0)
+    for index, item in enumerate(prepared):
+        item["scale"] = scale
+        item["top"] = 430.0 + index * step
+        if item["top"] + item["height"] * scale > 640.0:
+            raise ValueError("approved social slogan lines exceed the 640-pixel canvas")
+    return prepared
+
+
 def main():
     spec_path, kit = sys.argv[1], sys.argv[2]
     options = sys.argv[3:]
@@ -578,7 +598,7 @@ def main():
             "kind": kind,
             "variant": variant,
             "colourway": colourway,
-            "source_mode": authority["source_mode"] if variant else "constructed",
+            "source_mode": authority["source_mode"] if source else "constructed",
             "input_id": input_id,
             "source_sha256": source_sha256,
             "transformations": transformations,
@@ -656,8 +676,16 @@ def main():
             if not single:
                 raise ValueError("contextual single-ink output requires logo.paths.single-ink")
             return single, None, None
-        if reduced or selected == "reduced":
+        if reduced:
+            supplied = authority["reduced_colourways"].get(colourway)
+            if supplied:
+                element = dict(supplied["element"])
+                element["x"] = (canvas_width - float(element["width"])) / 2.0
+                element["y"] = (canvas_height - float(element["height"])) / 2.0
+                return [element], "reduced", supplied
             return paths.get("reduced") or paths["full"], "reduced", authority.get("reduced")
+        if selected == "reduced":
+            return contextual_mark(colourway, reduced=True)
         supplied = authority["full_colourways"].get(colourway)
         if supplied:
             element = dict(supplied["element"])
@@ -678,7 +706,8 @@ def main():
                 assert box[0] >= -0.5 and box[1] >= -0.5
                 assert box[2] <= canvas_width + 0.5 and box[3] <= canvas_height + 0.5
             filename = "%s-%s-%s.svg" % (slug, variant, colourway)
-            direct = bool(colourway not in {"white", "black"}
+            explicit_colourway = colourway in authority["reduced_colourways" if force_reduced else "full_colourways"]
+            direct = bool((colourway not in {"white", "black"} or explicit_colourway)
                           and source_entry and source_entry["record"]["format"] == "svg"
                           and logo.get("direct_source_outputs"))
             record = derivative_record(filename, "mark", source_variant, colourway,
@@ -721,6 +750,23 @@ def main():
                 write(output, svg(width, height, body, svg_metadata(record)))
             written.append(filename)
 
+    for colourway, source_entry in authority["supplied_wordmarks"].items():
+        element = source_entry["element"]
+        width = float(element["width"])
+        height = float(element["height"])
+        filename = "%s-wordmark-%s.svg" % (slug, colourway)
+        direct = bool(logo.get("direct_source_outputs"))
+        record = derivative_record(filename, "wordmark", None, colourway,
+                                   source_override=source_entry,
+                                   embedded_metadata=not direct)
+        output = os.path.join(svg_dir, filename)
+        if direct:
+            shutil.copyfile(str(source_entry["path"]), output)
+        else:
+            body = render_paths([element], role_maps[colourway])
+            write(output, svg(width, height, body, svg_metadata(record)))
+        written.append(filename)
+
     if authority.get("single_ink"):
         for family in ("horizontal", "stacked"):
             source = authority["single_ink"][family + "_input_id"]
@@ -728,6 +774,17 @@ def main():
             for colourway in ("black", "white"):
                 filename = "%s-%s-%s.svg" % (slug, family, colourway)
                 record = derivative_record(filename, "lockup", "full", colourway,
+                                           source_override=source, embedded_metadata=True)
+                record["transformations"] = ["derive-single-ink", "resize"]
+                write(os.path.join(svg_dir, filename), derive_single_ink(
+                    source, role_maps[colourway]["accent"], width, height, svg_metadata(record)))
+                written.append(filename)
+        if authority["single_ink"].get("wordmark_input_id"):
+            source = authority["single_ink"]["wordmark_input_id"]
+            width, height = _image_dimensions(source["path"])
+            for colourway in ("black", "white"):
+                filename = "%s-wordmark-%s.svg" % (slug, colourway)
+                record = derivative_record(filename, "wordmark", None, colourway,
                                            source_override=source, embedded_metadata=True)
                 record["transformations"] = ["derive-single-ink", "resize"]
                 write(os.path.join(svg_dir, filename), derive_single_ink(
@@ -744,7 +801,7 @@ def main():
     unavailable = set((((brand.get("approval_ledger") or {}).get("gate_1") or {})
                       .get("unavailable_derivatives", {})))
     ttf_path, _ = font_face_path(brand, kit, "display", max(families["display"]["weights"]), outline=True)
-    ttf = None if "wordmark-only" in unavailable else str(ttf_path)
+    ttf = None if "wordmark-only" in unavailable or authority["supplied_wordmarks"] else str(ttf_path)
 
     wordmark_d = ""
     wordmark_advance = 0
@@ -900,18 +957,35 @@ def main():
             raise ValueError("approved horizontal color lockup is required for a social image")
         lockup_width, lockup_height = _image_dimensions(pathlib.Path(horizontal))
         centered_single_line = copy.get("composition") == "centered-single-line"
+        name_only = (not centered_single_line and copy["layout"] == "slogan-only"
+                     and copy["slogan"].casefold() == brand["title"].casefold())
         lockup_scale = min((1020.0 if centered_single_line else 1080.0) / lockup_width,
-                           (280.0 if centered_single_line else 320.0) / lockup_height)
+                           (280.0 if centered_single_line else 430.0 if name_only else 320.0) / lockup_height)
         shown_width, shown_height = lockup_width * lockup_scale, lockup_height * lockup_scale
         lockup_x = (1280.0 - shown_width) / 2.0
-        lockup_y = 205.0 if centered_single_line else 70.0 + (320.0 - shown_height) / 2.0
+        lockup_y = (205.0 if centered_single_line else (640.0 - shown_height) / 2.0 if name_only
+                    else 70.0 + (320.0 - shown_height) / 2.0)
         with open(horizontal, encoding="utf-8") as handle:
             lockup_markup = handle.read()
-        lines = [(copy["slogan"], 410.0 if centered_single_line else 430.0,
-                  48 if centered_single_line else 60)]
-        lines.extend((line, 515.0 + index * 42.0, 34)
-                     for index, line in enumerate(copy["description_lines"]))
         text_shapes = []
+        if "slogan_lines" in copy:
+            face, _ = font_face_path(brand, kit, "body", max(families["body"]["weights"]), outline=True)
+            wrapped = wrapped_social_slogan_lines(copy["slogan_lines"], face, shown_width)
+            for item in wrapped:
+                bounds, scale, top = item["bounds"], item["scale"], item["top"]
+                center_x = 640.0 - (bounds[0] + bounds[2]) * scale / 2.0
+                baseline_y = top - bounds[1] * scale
+                text_shapes.append('  <path d="%s" fill="#F5F5F5" transform="translate(%g,%g) scale(%g)"/>'
+                                   % (item["outline"], center_x, baseline_y, scale))
+            description_top = max(515.0, wrapped[-1]["top"] + wrapped[-1]["height"] * wrapped[-1]["scale"] + 28.0)
+            lines = [(line, description_top + index * 42.0, 34)
+                     for index, line in enumerate(copy["description_lines"])]
+        else:
+            lines = ([] if name_only else
+                     [(copy["slogan"], 410.0 if centered_single_line else 430.0,
+                       48 if centered_single_line else 60)])
+            lines.extend((line, 515.0 + index * 42.0, 34)
+                         for index, line in enumerate(copy["description_lines"]))
         for value, top, size in lines:
             face, _ = font_face_path(brand, kit, "display", min(families["display"]["weights"]), outline=True)
             outline, _ = wordmark_outline(value, str(face), size)

@@ -92,7 +92,7 @@ export function interactionStyleProblems(styles) {
 if (interactionStyleProblems(globalStyles).length > 0) throw new Error(`interaction style contract failed: ${interactionStyleProblems(globalStyles).join(', ')}`);
 
 export const routeRecords = routeContract.routes;
-const expectedBrandSlugs = ['covarity', 'cueson', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'i-heart-pr-tours', 'local-companion', 'shruggietech'];
+const expectedBrandSlugs = ['covarity', 'cueson', 'dancewithme865', 'eso-weave', 'fragcap', 'glitchpad', 'go-schedule', 'i-heart-pr-tours', 'local-companion', 'scruggs-tire-alignment', 'shruggietech'];
 export function formalSourceHex(brand, reference) {
   const [root, ...path] = reference.split('.');
   const semantic = brand.affiliation?.inheritance === 'shruggietech-house'
@@ -104,8 +104,8 @@ export function formalSourceHex(brand, reference) {
 const independentFormalSource = { affiliation: { inheritance: 'independent' }, semantic_colors: { action: '#123456', emphasis: '#ABCDEF' } };
 if (formalSourceHex(independentFormalSource, 'semantic.action') !== '#123456' || formalSourceHex(independentFormalSource, 'semantic.emphasis') !== '#ABCDEF') throw new Error('independent semantic formal-color sources are unresolved');
 if (formalSourceHex({ affiliation: { inheritance: 'shruggietech-house' } }, 'semantic.action') !== canon.color.immutable['orange-cta'].hex) throw new Error('house semantic formal-color source is unresolved');
-if (JSON.stringify(brands.map((brand) => brand.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated brand inventory does not contain the nine production brands');
-if (JSON.stringify(conformanceRecords.map((record) => record.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated conformance inventory does not contain the nine production brands');
+if (JSON.stringify(brands.map((brand) => brand.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated brand inventory does not contain the expected production brands');
+if (JSON.stringify(conformanceRecords.map((record) => record.slug).sort()) !== JSON.stringify(expectedBrandSlugs)) throw new Error('generated conformance inventory does not contain the expected production brands');
 for (const record of conformanceRecords) {
   if (record.recipes.length !== 15 || record.profiles.length !== 7 || record.hostTracks.length !== 4) throw new Error(`${record.slug} conformance matrix is incomplete`);
   for (const track of record.hostTracks) {

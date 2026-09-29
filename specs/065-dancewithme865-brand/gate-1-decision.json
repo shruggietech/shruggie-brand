@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "candidate_id": "dwm865-s065-g1-r1",
+  "packet_sha256": "19a7cd432831f0085f858a6b52c0a253accf3c60a10d91371f34fa2a25343a2d",
+  "status": "approved",
+  "approved_by": "repository owner",
+  "approved_on": "2026-09-29",
+  "owner_wording": "Okay so it looks good then. CONTINUE",
+  "decision_context": "Owner approved the single Natalie-matched identity after the 16 px Reduced proof limitation was disclosed."
+}

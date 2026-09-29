@@ -88,8 +88,12 @@ def font_records(kit, theme, brand):
                               "fontWeight": str(weight), "src": ["file:./" + destination.relative_to(theme).as_posix()]})
         license_key = next((name for name in ("Space-Grotesk", "Source-Sans-3", "Poppins", "Geist", "Courier-Prime")
                             if name.lower().replace("-", "") in family.lower().replace(" ", "")), None)
+        normalized_family = "".join(character.lower() for character in family if character.isalnum())
         choices = ([kit / "fonts" / "licenses" / ("OFL-%s.txt" % license_key)] if license_key else []) + [
-            kit / "fonts" / ("OFL-%s.txt" % family.replace(" ", "-")), kit / "fonts" / "OFL.txt"]
+            kit / "fonts" / "licenses" / ("OFL-%s.txt" % normalized_family),
+            kit / "fonts" / ("OFL-%s.txt" % family.replace(" ", "-")),
+            kit / "fonts" / "OFL.txt",
+        ]
         license_source = next((path for path in choices if path.is_file() and family.lower().split()[0] in path.read_text(encoding="utf-8").lower()), None)
         require(license_source is not None, "WordPress font license is missing: %s" % family)
         license_target = theme / "assets" / "licenses" / license_source.name
