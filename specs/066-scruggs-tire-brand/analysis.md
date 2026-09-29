@@ -17,3 +17,5 @@ The two material creative decisions are genuine execution checkpoints, not missi
 ## 2026-09-29 candidate review
 
 Rechecked the new [Gate 1 review](gate1-review.md) against the source-bound approval contract. The packet's private status, 32 exact production proofs, palette qualification, comparison evidence, and pending owner decision remain consistent with the specification and tasks. The passive SVG source proposal does not create a new kit schema. No Gate 1 or Gate 2 approval is recorded, so implementation and public projection remain blocked by the stated creative gates.
+
+The owner's Full variant correction produced r2. Rechecked its transparent Full master, two contextual square sources, unchanged Reduced input, 32 exact proofs, and pending decision against the same contract. No new schema or generator behavior is required; the current packet supersedes r1. The owner praised the tire-only marks but did not approve the complete r2 source and proof packet, so the Gate 1 record remains pending.

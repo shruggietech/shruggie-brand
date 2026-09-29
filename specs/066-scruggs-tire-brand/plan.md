@@ -53,9 +53,13 @@ dist/                                      # Ignored provisional packets and gen
 
 **Structure Decision**: Reuse the repository's current source and generator schema. ZIP paths and old-site contents never become a parallel kit format.
 
-## 2026-09-29 source candidate decision
+## 2026-09-29 source candidate decision, r1 superseded
 
-The [Gate 1 review](gate1-review.md) proposes authoritative passive SVG sources that embed the current Full image and Reduced favicon without changing their supplied pixels. The Full source adds an explicit white plate so its black wordmark remains legible on dark surfaces. The Reduced mark is selected below 128 pixels because the Full wordmark is unreadable in the 64-pixel and smaller proofs. A newly constructed vector identity was considered and declined for this candidate because it would reinterpret the supplied geometry. These are candidate design choices awaiting the exact owner Gate 1 decision, not approved production bindings.
+The first source proposal used authoritative passive SVG sources that embed the current Full image and Reduced favicon without changing their supplied pixels. It added a white plate to the Full source so black wording would appear on dark surfaces. The Reduced mark was selected below 128 pixels because the Full wordmark is unreadable in the 64-pixel and smaller proofs. A newly constructed vector identity was considered and declined because it would reinterpret the supplied geometry. The owner requested a surgical revision to the Full variants before approving a production binding.
+
+## 2026-09-29 source candidate revision, r2
+
+The [current Gate 1 review](gate1-review.md) binds the already-transparent Full PNG to a clear square master, a true white square with black wording, and a true black square with white wording. The black-to-white wording transform uses the original pixel alpha through a passive SVG filter, preserving the supplied red tire pixels and all letter contours. The tire-only Reduced source and its 16 proof hashes remain unchanged. Existing `full_colourway_input_ids` supply the two contextual Full variants without changing schemas or generator code. This revision is still a candidate pending the exact Gate 1 owner decision.
 
 ## Downstream verification
 

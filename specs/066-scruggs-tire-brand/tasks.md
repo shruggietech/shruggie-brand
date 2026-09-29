@@ -1,7 +1,7 @@
 # Tasks: Scruggs Tire & Alignment Client Brand
 
 **Input**: [spec.md](spec.md), [plan.md](plan.md), [research.md](research.md), [data-model.md](data-model.md), [approval-and-publication.md](contracts/approval-and-publication.md)
-**Status**: Gate 1 candidate prepared on 2026-09-29; exact owner decision and production implementation remain pending. These checkboxes do not record creative approval.
+**Status**: Gate 1 candidate r2 prepared on 2026-09-29 after owner-directed Full variant revision; exact owner decision and production implementation remain pending. These checkboxes do not record creative approval.
 
 ## Phase 1: Foundation and evidence
 
