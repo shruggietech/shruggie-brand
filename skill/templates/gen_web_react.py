@@ -249,7 +249,8 @@ def generate_web_react(brand_source, kit):
     if interface.get("functional_cues"):
         component_css += ("\n.bb-status-badge[data-status=success] { color: var(--bb-cue-success); }"
                           "\n.bb-status-badge[data-status=warning], .bb-toast[data-variant=warning] { color: var(--bb-cue-warning); }"
-                          "\n.bb-status-badge[data-status=error], .bb-toast[data-variant=error] { color: var(--bb-cue-error); }\n")
+                          "\n.bb-status-badge[data-status=error], .bb-toast[data-variant=error] { color: var(--bb-cue-error); }"
+                          "\n@media (forced-colors: active) { .bb-status-badge[data-status], .bb-toast[data-variant] { color: CanvasText; } }\n")
     _write_text(kit / "tokens" / "interface.css", tokens)
     _write_text(kit / "web" / "components.css", component_css)
     _write_json(kit / "web" / "component-recipes.json", resolved)

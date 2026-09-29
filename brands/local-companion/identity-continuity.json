@@ -9,8 +9,8 @@
     {
       "path": "brand.json",
       "purpose": "canonical brand source",
-      "bytes": 13988,
-      "sha256": "e155338c37693d1d63bcca98847cd07ebc68b1a94e860138b144dad2a3fcec00"
+      "bytes": 13998,
+      "sha256": "234bba713e53818d2ec179d651bf9974a669a730aa21f8aff7946f55edf77443"
     },
     {
       "path": "build/mk_paths.py",
@@ -1293,5 +1293,5 @@
     },
     "evidence_sha256": "64e3422fc95493194f6993df72c89aa60e6d3091aec48b853762f1f715d25795"
   },
-  "record_sha256": "91964c8114278e057d4b73b9cd5871ebd223c45791f3ab3b6e3a2152a4d89e58"
+  "record_sha256": "209f067094819813b459f0f88f662cf044f379eeea6898275a365e03a2b6ec04"
 }

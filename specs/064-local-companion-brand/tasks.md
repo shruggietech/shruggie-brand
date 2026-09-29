@@ -30,7 +30,7 @@
 - [x] T009 [US4] Render private lockup, icon, social, and synthetic application previews under `dist/local-companion-gate2/` and `dist/local-companion-approval/`.
 - [x] T010 [US4] Finalize measured independent interface cue colors in `brands/local-companion/brand.json` and `skill/templates/color_roles.py` with focused tests. The owner chose app parity, and all four cue pairs meet AA on their assigned surfaces.
 - [x] T011 [US4] Complete Local Companion guidance and the owner-approved single-line social copy in the private Gate 2 source and checksummed review packet under `dist/local-companion-gate2/`.
-- [x] T012 [US4] Record owner Gate 2 approval for packet SHA-256 `2ab78758ea45a23d466207beb6536ad01e99af88324de2d4b54c513fda8e3470`, exact derivatives, social copy, SVG/PNG hashes, and public surface scope in `brands/local-companion/brand.json`.
+- [x] T012 [US4] Record owner approval for corrected Gate 2 packet SHA-256 `4f668c3e328fb84593812374791f7659156cd851785b62e3c02cd6e8409bf71c`, exact derivatives, social copy, SVG/PNG hashes, and public surface scope in `brands/local-companion/brand.json`.
 
 ## Phase 5: User Story 2, Verified Kit
 
