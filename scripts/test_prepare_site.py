@@ -478,6 +478,22 @@ class PrepareSiteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid or duplicate destination"):
             prepare_site.build_routes(brands, [], portals)
 
+    def test_overview_metadata_uses_only_approved_site_description(self):
+        brand = {"slug": "alpha", "title": "Alpha", "icon": "/alpha/mark.svg", "descriptor": "Legacy descriptor.",
+                 "approvedMessaging": {"short_description": "Owner-approved site description."}}
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "alpha"
+            write_minimal_portal(source)
+            portal = json.loads((source / "guidelines" / "portal.json").read_text(encoding="utf-8"))
+        portal["topics"][0]["description"] = "Visual guide foundation title."
+        route = next(item for item in prepare_site.build_routes([brand], [], [portal]) if item["kind"] == "guidelines")
+        self.assertEqual("Owner-approved site description.", route["description"])
+        self.assertNotIn("Visual guide foundation title.", json.dumps(route))
+        brand["approvedMessaging"] = {}
+        route = next(item for item in prepare_site.build_routes([brand], [], [portal]) if item["kind"] == "guidelines")
+        self.assertEqual("Brand identity guidelines and approved assets.", route["description"])
+        self.assertNotIn("Legacy descriptor.", json.dumps(route))
+
     def test_vendor_boundary_reaches_routes_metadata_and_structured_data(self):
         notice = "Acme is independent. Users are responsible."
         brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73", "vendorBoundary": notice}]
@@ -517,7 +533,7 @@ class PrepareSiteTests(unittest.TestCase):
             self.assertIn('name="twitter:card"', content)
             self.assertIn('type="application/ld+json"', content)
             self.assertIn('"BreadcrumbList"', content)
-            self.assertIn("Approved brand guidance", content)
+            self.assertIn("Brand identity guidelines and approved assets.", content)
             self.assertNotIn("One &amp; only.", content)
 
     def test_guideline_publication_rewrites_validated_assets_and_adds_one_exit(self):

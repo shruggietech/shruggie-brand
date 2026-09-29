@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from messaging import MessageError, approved_messages, validate_messaging
+from brand_contract import ContractError, validate_brand
 from authoring_brief import TOPICS, BriefError, validate_brief
 from verify import Report, c_messaging, message_projection_problems
 from schema_validation import validate_json_schema
@@ -77,6 +78,13 @@ class MessagingContractTests(unittest.TestCase):
                 brand = json.loads(source.read_text(encoding="utf-8"))
                 validate_messaging(brand)
                 validate_json_schema(brand, schema)
+
+    def test_canon_two_preflight_rejects_missing_messaging(self):
+        source = ROOT / "brands" / "shruggietech" / "brand.json"
+        brand = json.loads(source.read_text(encoding="utf-8"))
+        del brand["messaging"]
+        with self.assertRaisesRegex(ContractError, "requires messaging"):
+            validate_brand(brand, source.parent)
 
     def test_named_regressions_do_not_promote_legacy_idea(self):
         for slug in ("fragcap", "go-schedule", "glitchpad", "shruggietech"):

@@ -1511,6 +1511,9 @@ def validate_palette_approvals(brand, evidence):
 def validate_brand(brand, kit):
     _require(isinstance(brand.get("slug"), str) and ID.fullmatch(brand["slug"]), "brand slug is missing or invalid")
     _require("guide" not in brand, "guide overrides are obsolete; use canonical guidance and messaging")
+    canon_version = brand.get("canon", "")
+    if isinstance(canon_version, str) and canon_version.split(".", 1)[0].isdigit() and int(canon_version.split(".", 1)[0]) >= 2:
+        _require("messaging" in brand, "Brand Canon 2.0 and later requires messaging")
     if "messaging" in brand:
         from messaging import MessageError, validate_messaging
         try:

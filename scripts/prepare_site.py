@@ -287,11 +287,12 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
             validate_portal_navigation(portal, slug)
         overview = topics[0]
         guidelines_path = overview["path"]
+        overview_metadata = brand.get("approvedMessaging", {}).get("short_description") or "Brand identity guidelines and approved assets."
         assets_path = next(topic["path"] for topic in topics if topic["key"] == "assets")
         brand_crumb = {"name": brand["title"], "url": f"{SITE_URL}{guidelines_path}"}
         routes.extend([
             make_route(f"downloads-{slug}", "downloads", assets_path, f"{brand['title']} assets", f"Browse and download the complete {brand['title']} brand asset collection.", "Brand assets", [home, brand_crumb, {"name": "Assets", "url": f"{SITE_URL}{assets_path}"}], brand_slug=slug, guide_topic="assets", vendor_notice=vendor_notice),
-            make_route(f"guidelines-{slug}", "guidelines", guidelines_path, f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice, social_alt=(f"{brand['title']} logo with slogan: {brand['socialSlogan']}" if brand.get("socialSlogan") else None)),
+            make_route(f"guidelines-{slug}", "guidelines", guidelines_path, f"{brand['title']} guidelines", overview_metadata, "Brand guidelines", [home, brand_crumb], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice, social_alt=(f"{brand['title']} logo with slogan: {brand['socialSlogan']}" if brand.get("socialSlogan") else None)),
             make_route(f"conformance-{slug}", "conformance", f"/conformance/{slug}/", f"{brand['title']} interface conformance", f"Inspect the generated browser reference and cross-host evidence boundary for {brand['title']}.", "Interface conformance", [home, conformance_root, {"name": brand["title"], "url": f"{SITE_URL}/conformance/{slug}/"}], brand_slug=slug, vendor_notice=vendor_notice),
         ])
         for topic in topics[1:]:
