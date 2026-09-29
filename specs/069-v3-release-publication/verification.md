@@ -19,3 +19,7 @@
 ## Pending external gates
 
 S069 PR checks, two Codex review rounds, security review disposition, merge, exact tag preflight, release publication, and Pages deployment are pending. Local candidate archives are test evidence only; the official release must be built by CI from the tagged revision.
+
+## 2026-09-29: First external review
+
+- PR #308 first Codex review identified that the skill archive's own `skill/CHANGELOG.md` omitted S068 Brand essentials, Usage limits, and release navigation changes even though the root release notes included them. Updated the skill changelog at the same 3.0.0 heading before release publication. This is a source-documentation correction; no generated artifact or identity input changed.
