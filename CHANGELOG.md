@@ -4,6 +4,28 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-09-28
+
+### Added
+
+- Added the owner-approved Local Companion 1.0.0 source kit with a new abstract calm-orbit mark, independent graphite and indigo identity, app-matched functional cues, bundled portable fonts, and a distinct single-line social image.
+- Added Local Companion to the verified public catalog, release archive inventory, and CI identity proof export.
+
+### Changed
+
+- Added an opt-in centered social composition for a slogan-only brand image while retaining existing brands' approved social layouts and bytes.
+- Generated Local Companion's warning, error, success, and information cues into measured dark and light Web, React, Next.js, and vanilla tokens.
+
+### Fixed
+
+- Stage bundled house fonts during canonical-host identity proof export, so house-typography brands can render approved wordmarks in CI.
+- Preserve I Heart PR Tours' approved proof fingerprint for the one reviewed social-composition generator revision while requiring future generator changes to pass its continuity gate.
+- Validate current continuity records in audit check mode without replaying the one-time historical migration comparison against later approved brand changes.
+
+### Decisions
+
+- On 2026-09-28, bound the Local Companion source and 32 unchanged proofs to the CI-pinned Node v24.11.0 renderer after the owner's corrected Gate 1 approval. The owner approved the exact assembled Gate 2 packet, including social SVG and PNG hashes and the complete public surface set.
+
 ## [2.7.0] - 2026-09-27
 
 ### Added

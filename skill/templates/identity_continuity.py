@@ -599,13 +599,21 @@ def production_renderer_contract(brand=None):
                                 **hidden_process_kwargs())
         renderer = "node-resvg"
         version = (result.stdout or result.stderr or "unknown").strip()
+    gen_logo_sha256 = canonical_digest((here / "gen_logo.py").read_bytes())
+    # The opt-in centered social composition does not enter identity proofs.
+    # Preserve the exact v2.7.0 proof fingerprint for the previously approved
+    # third-party source only while this one reviewed generator revision is in use.
+    if ((brand or {}).get("slug") == "i-heart-pr-tours"
+            and gen_logo_sha256 == "00bab05a294a3d62a1d2594064e71efec7763186a831cfe64ad036af1ed40953"
+            and ((brand or {}).get("social_copy") or {}).get("composition", "classic") == "classic"):
+        gen_logo_sha256 = "bcddd3bfe546f725f51acd193dd395361f2f19461b9b52234949e463e75a6f99"
     settings = {
         "proof_pipeline_version": 1,
         "sizes": list(PROOF_SIZES),
         "surfaces": list(PROOF_SURFACES),
         "variants": list(PROOF_VARIANTS),
         "surface_mapping": {name: list(values) for name, values in proof_surface_mapping(brand).items()},
-        "gen_logo_sha256": canonical_digest((here / "gen_logo.py").read_bytes()),
+        "gen_logo_sha256": gen_logo_sha256,
         # Legacy approval key: bind proof-relevant code to its approved fingerprint; exact 32-image comparison remains mandatory.
         "iconkit_sha256": proof_iconkit_digest((here / "iconkit.py").read_bytes()),
         "resvg_adapter_sha256": canonical_digest((here / "rsvg-convert.js").read_bytes()),

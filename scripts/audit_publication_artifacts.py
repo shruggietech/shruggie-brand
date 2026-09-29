@@ -26,6 +26,7 @@ PRODUCTION = (
     "glitchpad",
     "go-schedule",
     "i-heart-pr-tours",
+    "local-companion",
     "shruggietech",
 )
 

@@ -44,6 +44,7 @@ RELEASE_AUTHORIZED_BRANDS = (
     "covarity",
     "eso-weave",
     "cueson",
+    "local-companion",
 )
 BACKWARD_BRAND_DEFAULTS = {
     "surfaces.base": "#000000",
@@ -501,6 +502,7 @@ def _legal_muted(brand, background, theme, minimum):
 
 
 def resolve_interface_contract(brand, canon=None, brand_canon=None):
+    from color_roles import functional_cue_colors
     canon = validate_interface_canon(canon or load_interface_canon())
     brand_canon = brand_canon or load_brand_canon()
     brand_canon_version = brand.get("canon") or brand_canon.get("version")
@@ -528,17 +530,22 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
         _require(set(colors) == {"action", "emphasis"},
                  "independent brand lacks semantic action and emphasis colors")
         semantic = colors
+    functional = functional_cue_colors(brand)
     def resolve_theme(theme):
         aliases = dict(canon["aliases"])
         aliases.update(canon["theme_aliases"][theme])
         aliases.update(overrides)
+        if functional:
+            aliases["action.destructive"] = "$brand.functional_colors.error.%s" % theme
         surface = "light_surfaces.base" if theme == "light" else "surfaces.base"
         background = _lookup_brand(brand, surface)
         accent = _lookup_brand(brand, "accent.accessible" if theme == "light" else "accent.bright")
-        destructive = brand_canon["color"]["immutable"]["fault-deep" if theme == "light" else "fault"]["hex"]
+        destructive = (functional["error"][theme] if functional else
+                       brand_canon["color"]["immutable"]["fault-deep" if theme == "light" else "fault"]["hex"])
         resolved_context = {
             "action": semantic["action"],
-            "emphasis": semantic["action" if theme == "light" else "emphasis"],
+            "emphasis": (functional["warning"][theme] if functional else
+                         semantic["action" if theme == "light" else "emphasis"]),
             "action_foreground": _legal_foreground(semantic["action"]),
             "destructive_foreground": _legal_foreground(destructive),
             "accent": accent,
@@ -590,7 +597,7 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
         return resolved_roles
 
     roles_by_theme = {theme: resolve_theme(theme) for theme in ("dark", "light")}
-    return {
+    result = {
         "interface_canon_version": canon["version"],
         "canon_version": brand_canon_version,
         "units": canon["units"],
@@ -600,6 +607,9 @@ def resolve_interface_contract(brand, canon=None, brand_canon=None):
         "roles_by_theme": roles_by_theme,
         "system_theme_resolution": ["light", "dark"],
     }
+    if functional:
+        result["functional_cues"] = functional
+    return result
 
 
 ROUTING_SIGNALS = {

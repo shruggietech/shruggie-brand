@@ -103,6 +103,26 @@ class ColorRoleTests(unittest.TestCase):
                         self.assertEqual(cues[cue]["hex"], adapter[role])
                     self.assertEqual(cues["error"]["foreground"], adapter["text.on_destructive"])
 
+    def test_local_companion_functional_cues_match_app_and_remain_separate(self):
+        source = brand("local-companion")
+        roles = resolve_color_roles(source, CANON)
+        self.assertEqual({"primary", "ink"}, {row["id"] for row in roles["identity"]})
+        for theme in ("dark", "light"):
+            cues = {row["id"]: row for row in roles["interface"][theme]}
+            for cue in ("warning", "error", "success", "information"):
+                self.assertEqual(source["functional_colors"][cue][theme], cues[cue]["hex"])
+                self.assertGreaterEqual(cues[cue]["surface_contrast"], 4.5)
+            tokens = (build_slots(CANON, source)[0] if theme == "dark"
+                      else build_slots(CANON, source)[1])
+            self.assertEqual(cues["success"]["hex"], tokens["brand-success"])
+            self.assertEqual(cues["information"]["hex"], tokens["brand-information"])
+            contract = resolve_interface_contract(source, brand_canon=CANON)
+            css = emit_tokens(contract)
+            self.assertIn("--bb-cue-success: %s;" % cues["success"]["hex"], css)
+        source["functional_colors"]["success"]["light"] = "#63D6AD"
+        with self.assertRaisesRegex(ColorRoleError, "below 4.5"):
+            resolve_color_roles(source, CANON)
+
     def test_verifier_rejects_registry_cue_drift(self):
         source = brand("covarity")
         roles = resolve_color_roles(source, CANON)

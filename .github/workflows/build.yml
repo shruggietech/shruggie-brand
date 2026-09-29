@@ -80,7 +80,9 @@ jobs:
           python -m pip install -r requirements.txt
           npm install --prefix skill/templates --no-save --no-package-lock @resvg/resvg-js@2.6.2
       - name: Export exact approved identity evidence
-        run: python scripts/export_approved_identity_proofs.py brands/i-heart-pr-tours dist/ci-approved-proofs/i-heart-pr-tours
+        run: |
+          python scripts/export_approved_identity_proofs.py brands/i-heart-pr-tours dist/ci-approved-proofs/i-heart-pr-tours
+          python scripts/export_approved_identity_proofs.py brands/local-companion dist/ci-approved-proofs/local-companion
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
           name: approved-identity-proofs-${{ github.sha }}
@@ -228,6 +230,7 @@ jobs:
             dist/glitchpad/
             dist/go-schedule/
             dist/i-heart-pr-tours/
+            dist/local-companion/
             dist/shruggietech/
           if-no-files-found: error
           include-hidden-files: true

@@ -27,8 +27,10 @@ BRAND_CLASSES = {
     "glitchpad": "legacy-constructed",
     "go-schedule": "legacy-constructed",
     "i-heart-pr-tours": "authoritative",
+    "local-companion": "glyphkit-constructed",
     "shruggietech": "authoritative",
 }
+MIGRATION_BASELINE_BRANDS = set(BRAND_CLASSES) - {"i-heart-pr-tours", "local-companion"}
 REFERENCE = {"record": "identity-continuity.json", "status": "historical-baseline"}
 COVARITY_REASON = "The custom arc and path serializer predates glyphkit. Its shipped path bytes remain unchanged as historical identity source."
 
@@ -134,6 +136,13 @@ def audit(revision, write=False, recorded_on="2026-09-09", report_path=None):
     for slug, source in brands.items():
         brand_path = source / "brand.json"
         brand = json.loads(brand_path.read_text(encoding="utf-8"))
+        if slug not in MIGRATION_BASELINE_BRANDS:
+            try:
+                result = validate_brand_continuity(brand, source)
+                results.append(dict(result, preservation="new-approved-source"))
+            except Exception as error:
+                problems.append("%s: %s" % (slug, error))
+            continue
         if write:
             updated = copy.deepcopy(brand)
             updated["identity_continuity"] = dict(REFERENCE)
@@ -149,11 +158,18 @@ def audit(revision, write=False, recorded_on="2026-09-09", report_path=None):
         try:
             brand = json.loads(brand_path.read_text(encoding="utf-8"))
             result = validate_brand_continuity(brand, source)
-            baseline = _git_brand(revision, slug)
-            drift = compare_brand_state(slug, baseline, brand)
-            if drift:
-                problems.extend("%s: %s" % (slug, item) for item in drift)
-            results.append(dict(result, preservation="passed" if not drift else "failed"))
+            if write:
+                baseline = _git_brand(revision, slug)
+                drift = compare_brand_state(slug, baseline, brand)
+                if drift:
+                    problems.extend("%s: %s" % (slug, item) for item in drift)
+                results.append(dict(result, preservation="passed" if not drift else "failed"))
+            else:
+                # The historical migration comparison was a one-time source
+                # preservation gate. Later approved source changes must still
+                # validate against each committed identity record, but cannot
+                # equal the pre-migration brand.json byte-for-byte forever.
+                results.append(dict(result, preservation="record-validated"))
         except Exception as error:
             problems.append("%s: %s" % (slug, error))
     report = {"schema_version": 1, "baseline_revision": revision, "brands": results, "problems": problems}
@@ -177,7 +193,9 @@ def main():
     revision = args.baseline_revision
     if revision is None:
         revisions = set()
-        for source in discover_brands(ROOT).values():
+        for slug, source in discover_brands(ROOT).items():
+            if slug not in MIGRATION_BASELINE_BRANDS:
+                continue
             path = source / "identity-continuity.json"
             if path.is_file():
                 revisions.add(json.loads(path.read_text(encoding="utf-8")).get("source_revision"))

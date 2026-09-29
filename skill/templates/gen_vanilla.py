@@ -14,6 +14,7 @@ uses.
 import json, os, sys
 from coloraide import Color
 from brand_contract import affiliation, semantic_colors, typography_families
+from color_roles import functional_cue_colors
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -144,6 +145,7 @@ def main():
     fams = typography_families(B)
     aff = affiliation(B)
     semantic = semantic_colors(B, canon)
+    functional = functional_cue_colors(B)
 
     P = B["slug"][:2].lower()
     A = B["accent"]
@@ -152,6 +154,14 @@ def main():
     lg = B.get("logo") or {}
     fg_on_accent = (B.get("color") or {}).get("accent", {}).get(
         "bright", {}).get("legal_foreground_when_used_as_fill", {}).get("color", "#000000")
+    warning_dark = functional["warning"]["dark"] if functional else "var(--%s-emphasis)" % P
+    warning_light = functional["warning"]["light"] if functional else "var(--%s-action)" % P
+    danger_dark = functional["error"]["dark"] if functional else "var(--%s-fault)" % P
+    danger_light = functional["error"]["light"] if functional else "var(--%s-fault-deep)" % P
+    functional_dark_extra = ("\n  --%s-success: %s;\n  --%s-information: %s;" %
+                             (P, functional["success"]["dark"], P, functional["information"]["dark"])) if functional else ""
+    functional_light_extra = ("\n  --%s-success: %s;\n  --%s-information: %s;" %
+                              (P, functional["success"]["light"], P, functional["information"]["light"])) if functional else ""
 
     def w(rel, text):
         p = os.path.join(kit, rel)
@@ -196,8 +206,8 @@ def main():
   --{p}-fg-muted: var(--{p}-text-muted);
   --{p}-link: var(--{p}-accent);
   --{p}-focus: var(--{p}-accent);
-  --{p}-warning: var(--{p}-emphasis);
-  --{p}-danger: var(--{p}-fault);
+  --{p}-warning: {warning_dark};
+  --{p}-danger: {danger_dark};{functional_dark_extra}
   --{p}-primary-foreground: {fgacc};
 }}
 
@@ -213,8 +223,8 @@ def main():
   --{p}-accent-deep: var(--{p}-accent-accessible);
   --{p}-link: var(--{p}-accent-accessible);
   --{p}-focus: var(--{p}-accent-accessible);
-  --{p}-warning: var(--{p}-action);
-  --{p}-danger: var(--{p}-fault-deep);
+  --{p}-warning: {warning_light};
+  --{p}-danger: {danger_light};{functional_light_extra}
   --{p}-primary-foreground: #FFFFFF;
 }}
 """.format(title=title, p=P, acc=A["bright"], deep=A["deep"], accessible=A["accessible"],
@@ -226,8 +236,12 @@ def main():
            border=ramp["border-dark"]["hex"], muted_dark=ramp["gray-400"]["hex"],
            light=ramp["light-base"]["hex"], gray950=ramp["gray-950"]["hex"],
            muted_light=ramp["gray-600"]["hex"], gray200=ramp["gray-200"]["hex"],
-           acc_rgb=rgb_parts(A["bright"]), emphasis_rgb=rgb_parts(semantic["emphasis"]),
-           fa_rgb=rgb_parts(imm["fault"]["hex"]), fgacc=fg_on_accent)
+           acc_rgb=rgb_parts(A["bright"]),
+           emphasis_rgb=rgb_parts(functional["warning"]["dark"] if functional else semantic["emphasis"]),
+           fa_rgb=rgb_parts(functional["error"]["dark"] if functional else imm["fault"]["hex"]),
+           fgacc=fg_on_accent, warning_dark=warning_dark, warning_light=warning_light,
+           danger_dark=danger_dark, danger_light=danger_light,
+           functional_dark_extra=functional_dark_extra, functional_light_extra=functional_light_extra)
     w("tokens/colors.css", colors)
 
     # ---- tokens/typography.css

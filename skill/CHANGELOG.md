@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 2.8.0 - 2026-09-28
+
+- Added a separately approved Local Companion 1.0.0 kit and public catalog entry with its calm-orbit identity, graphite and indigo palette, app-matched functional cues, local type, platform assets, and social image.
+- Generated Local Companion's four functional cues in dark and light Web, React, Next.js, and vanilla token output.
+- Added an opt-in centered composition for slogan-only social images without changing existing brands' approved social output.
+- Copied bundled house fonts into canonical-host proof staging and retained the prior I Heart PR Tours proof fingerprint for this reviewed generator revision.
+- Existing brand identity and social bytes remain authoritative; regenerate and repin only when adopting the 2.8.0 compiler or the new Local Companion kit.
+
 ## 2.7.0 - 2026-09-27
 
 - Generated native WordPress adapter 1.0.0 and installable branded block-theme starters with source-bound presets, local fonts and approved PNG alternatives, editable core-block patterns, a deterministic ZIP inventory, and client update guidance.

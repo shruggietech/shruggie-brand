@@ -142,6 +142,7 @@ def c_color_roles(kit, canon, brand, rep):
             return rep.bad("color-roles", "Web interface tokens are missing")
         css = Path(web_tokens).read_text(encoding="utf-8")
         resolved = resolve_interface_contract(brand, brand_canon=canon)["roles_by_theme"]
+        functional = brand.get("functional_colors") is not None
         adapter_by_cue = {"action": "action.primary", "warning": "action.emphasis",
                           "error": "action.destructive", "focus": "focus.ring"}
         for surface, selector in (("dark", ":root"), ("light", ".bb-light")):
@@ -150,6 +151,12 @@ def c_color_roles(kit, canon, brand, rep):
                 return rep.bad("color-roles", "%s Web token block is missing" % surface)
             for cue in expected["interface"][surface]:
                 role = adapter_by_cue.get(cue["id"])
+                if functional and cue["id"] in {"success", "information"}:
+                    token = "--bb-cue-" + cue["id"]
+                    emitted = re.search(r"(?:^|;)\s*" + re.escape(token) + r":\s*(#[0-9A-Fa-f]{6})\s*;", block.group(1))
+                    if not emitted or emitted.group(1).upper() != cue["hex"]:
+                        return rep.bad("color-roles", "%s Web %s differs from %s cue" %
+                                       (surface, token, cue["id"]))
                 if not role:
                     continue
                 token = "--bb-" + role.replace(".", "-")
@@ -165,6 +172,8 @@ def c_color_roles(kit, canon, brand, rep):
             return rep.bad("color-roles", "registry theme omits the role-record guidance")
         slot_by_cue = {"action": "brand-cta", "warning": "brand-emphasis", "error": "destructive",
                        "focus": "ring", "selection": "primary"}
+        if functional:
+            slot_by_cue.update({"success": "brand-success", "information": "brand-information"})
         for surface in ("dark", "light"):
             slots = theme_item["cssVars"][surface]
             for cue in expected["interface"][surface]:
@@ -172,6 +181,23 @@ def c_color_roles(kit, canon, brand, rep):
                 if slot and slots.get(slot) != oklch(cue["hex"]):
                     return rep.bad("color-roles", "%s registry %s differs from %s cue" %
                                    (surface, slot, cue["id"]))
+        if functional:
+            vanilla = Path(kit) / "tokens" / "colors.css"
+            if not vanilla.is_file():
+                return rep.bad("color-roles", "vanilla cue tokens are missing")
+            vanilla_css = vanilla.read_text(encoding="utf-8")
+            prefix = brand["slug"][:2].lower()
+            for surface, selector in (("dark", ":root"), ("light", ".%s-light" % prefix)):
+                block = re.search(re.escape(selector) + r"\s*\{([^}]*)\}", vanilla_css, re.S)
+                if not block:
+                    return rep.bad("color-roles", "%s vanilla token block is missing" % surface)
+                cues = {cue["id"]: cue["hex"] for cue in expected["interface"][surface]}
+                for cue, suffix in (("warning", "warning"), ("error", "danger"),
+                                    ("success", "success"), ("information", "information")):
+                    declaration = "--%s-%s: %s;" % (prefix, suffix, cues[cue])
+                    if declaration not in block.group(1):
+                        return rep.bad("color-roles", "%s vanilla %s differs from %s cue" %
+                                       (surface, suffix, cue))
     except (ColorRoleError, OSError, ValueError, TypeError, KeyError) as error:
         return rep.bad("color-roles", str(error))
     rep.ok("color-roles", "%d formal colors and %d cues in both themes match source and guide" %

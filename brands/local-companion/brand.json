@@ -1,0 +1,337 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "local-companion",
+  "kind": "sub-brand",
+  "title": "Local Companion",
+  "slug": "local-companion",
+  "version": "1.0.0",
+  "showcase_surface": "card",
+  "affiliation": {
+    "ownership": "shruggietech-owned",
+    "showcase": "public",
+    "parent": "ShruggieTech",
+    "inheritance": "independent",
+    "endorsement": "shruggietech-project",
+    "service_credit": "none"
+  },
+  "registry_base": "https://brand.shruggie.tech/local-companion/brand",
+  "descriptor": "A private Windows workspace for personalized AI companions",
+  "description_lines": [
+    "Chat, create images, and manage your companions",
+    "and local models in one private Windows workspace."
+  ],
+  "functional_descriptor": "Private desktop workspace for AI companions",
+  "category": "Windows desktop application",
+  "role": "Chat with personalized AI companions, create images, and manage the local characters and models behind those experiences.",
+  "audience": "People who run and manage personalized AI companion experiences on their own Windows computer.",
+  "brand_idea": "A private space for the companions you shape",
+  "governing_principle": "Keep the owner in control of the workspace, its companions, and its local models.",
+  "voice": {
+    "qualities": [
+      "calm",
+      "personal",
+      "clear",
+      "owner-operated"
+    ],
+    "lead_with": [
+      "the private Windows workspace",
+      "owner control",
+      "companion and image creation"
+    ],
+    "avoid": [
+      "claims about content that has not been approved for publication",
+      "companion imagery as the product mark",
+      "claims of cloud independence beyond the configured experience"
+    ]
+  },
+  "register": "calm-direct",
+  "shruggie_flourish": false,
+  "wordmark_text": "Local Companion",
+  "assumptions": [
+    "The owner selected the calm-orbit abstract direction and retained graphite and indigo as the product identity.",
+    "The reduced master is used at and below 32 pixels. The full master is presented at 16 pixels for the continuity proof matrix only; its fragmented two-arc silhouette is not a recommended 16-pixel application.",
+    "The current app's Segoe UI Variable and Cascadia Mono stack is implementation context. The portable kit uses licensed local fonts."
+  ],
+  "color_roles": {
+    "identity": [
+      {
+        "id": "primary",
+        "label": "Companion indigo",
+        "source": "brand.accent.bright",
+        "use": "Primary mark and identity accent"
+      },
+      {
+        "id": "ink",
+        "label": "Graphite mark ink",
+        "source": "brand.logo.role_colors.color.ink",
+        "use": "Full mark and wordmark on dark surfaces"
+      }
+    ],
+    "combinations": [
+      {
+        "id": "core-mark",
+        "label": "Local Companion orbit",
+        "colors": [
+          "primary",
+          "ink"
+        ],
+        "artwork": "logo.full",
+        "use": "Split orbit and centered core on graphite"
+      }
+    ]
+  },
+  "accent": {
+    "bright": "#8B9CFF",
+    "deep": "#7184EB",
+    "accessible": "#4B5CC0",
+    "dim": "#A8B5FF"
+  },
+  "semantic_colors": {
+    "emphasis": "#8B9CFF",
+    "action": "#4B5CC0"
+  },
+  "functional_colors": {
+    "warning": {
+      "dark": "#F2BD68",
+      "light": "#8A5600"
+    },
+    "error": {
+      "dark": "#FF7B91",
+      "light": "#B32D4A"
+    },
+    "success": {
+      "dark": "#63D6AD",
+      "light": "#08704A"
+    },
+    "information": {
+      "dark": "#70B8FF",
+      "light": "#1B5EAB"
+    }
+  },
+  "chart_palette": {
+    "dark_target_lightness": 0.68,
+    "rationale": "Indigo identifies Local Companion; derived chart colors remain functional and secondary."
+  },
+  "surfaces": {
+    "base": "#090B10",
+    "card": "#11151D",
+    "popover": "#11151D",
+    "secondary": "#1D2230",
+    "hover": "#272E40"
+  },
+  "light_surfaces": {
+    "base": "#F7F8FC",
+    "card": "#FFFFFF",
+    "popover": "#FFFFFF",
+    "secondary": "#EDF0F8",
+    "hover": "#E1E6F5",
+    "foreground": "#11151D",
+    "muted_foreground": "#4D5670"
+  },
+  "typography": {
+    "mode": "house",
+    "families": {
+      "display": {
+        "name": "Space Grotesk",
+        "weights": [
+          500,
+          700
+        ]
+      },
+      "body": {
+        "name": "Geist",
+        "weights": [
+          400,
+          500
+        ]
+      },
+      "mono": {
+        "name": "Geist Mono",
+        "weights": [
+          400
+        ]
+      }
+    }
+  },
+  "logo": {
+    "source_mode": "constructed",
+    "geometry_provenance": "glyphkit",
+    "grid": 512,
+    "canvas_width": 512,
+    "canvas_height": 512,
+    "artwork_width": 412,
+    "artwork_height": 412,
+    "reduced_artwork_width": 412,
+    "reduced_artwork_height": 412,
+    "clear_space_units": 48,
+    "reduced_below_px": 32,
+    "min_px": {
+      "mark": 24,
+      "horizontal": 160,
+      "stacked": 128,
+      "wordmark": 120
+    },
+    "application_icon": {
+      "background": "#090B10"
+    },
+    "role_colors": {
+      "color": {
+        "accent": "#8B9CFF",
+        "ink": "#F4F6FB",
+        "wordmark": "#F4F6FB"
+      },
+      "light": {
+        "accent": "#4B5CC0",
+        "ink": "#11151D",
+        "wordmark": "#11151D"
+      },
+      "black": {
+        "accent": "#000000",
+        "ink": "#000000",
+        "wordmark": "#000000"
+      },
+      "white": {
+        "accent": "#FFFFFF",
+        "ink": "#FFFFFF",
+        "wordmark": "#FFFFFF"
+      }
+    },
+    "construction": "A 512-unit grid anchors two open orbit bands around a circular center. The full master separates a near-white left arc and indigo right arc. The reduced master uses one heavier indigo band and center disc for small applications. All paths are generated from glyphkit primitives in build/mk_paths.py.",
+    "paths": {
+      "full": [
+        {
+          "role": "ink",
+          "d": "M325.08 66.17 C276.65 48.54 223.31 50.1 175.98 70.51 C128.66 90.92 90.92 128.66 70.51 175.98 C50.1 223.31 48.54 276.65 66.17 325.08 C67.9 329.81 71.43 333.67 76 335.8 C80.56 337.93 85.79 338.16 90.52 336.43 C95.26 334.71 99.12 331.18 101.25 326.61 C103.38 322.04 103.6 316.82 101.88 312.08 C87.57 272.76 88.83 229.46 105.4 191.03 C121.98 152.61 152.61 121.98 191.03 105.4 C229.46 88.83 272.76 87.57 312.08 101.88 C316.82 103.6 322.04 103.38 326.61 101.25 C331.18 99.12 334.71 95.26 336.43 90.52 C338.16 85.79 337.93 80.56 335.8 76 C333.67 71.43 329.81 67.9 325.08 66.17 Z"
+        },
+        {
+          "role": "accent",
+          "d": "M154.99 430.93 C193.5 453.16 238.27 462.07 282.36 456.26 C326.44 450.46 367.38 430.27 398.83 398.83 C430.27 367.38 450.46 326.44 456.26 282.36 C462.07 238.27 453.16 193.5 430.93 154.99 C428.41 150.63 424.26 147.44 419.39 146.14 C414.52 144.83 409.34 145.52 404.97 148.04 C400.61 150.56 397.42 154.71 396.12 159.57 C394.82 164.44 395.5 169.63 398.02 173.99 C416.07 205.26 423.3 241.6 418.59 277.4 C413.87 313.19 397.48 346.43 371.96 371.96 C346.43 397.48 313.19 413.87 277.4 418.59 C241.6 423.3 205.26 416.07 173.99 398.02 C169.63 395.5 164.44 394.82 159.57 396.12 C154.71 397.42 150.56 400.61 148.04 404.97 C145.52 409.34 144.83 414.52 146.14 419.39 C147.44 424.26 150.63 428.41 154.99 430.93 Z"
+        },
+        {
+          "role": "accent",
+          "d": "M325.99 255.99 C325.99 237.42 318.62 219.62 305.49 206.49 C292.36 193.36 274.56 185.99 255.99 185.99 C237.42 185.99 219.62 193.36 206.49 206.49 C193.36 219.62 185.99 237.42 185.99 255.99 C185.99 274.56 193.36 292.36 206.49 305.49 C219.62 318.62 237.42 325.99 255.99 325.99 C274.56 325.99 292.36 318.62 305.49 305.49 C318.62 292.36 325.99 274.56 325.99 255.99 Z"
+        }
+      ],
+      "reduced": [
+        {
+          "role": "accent",
+          "d": "M374.49 87.26 C331.92 57.46 279.65 44.84 228.17 51.94 C176.69 59.05 129.79 85.35 96.89 125.57 C63.98 165.8 47.49 216.97 50.73 268.84 C53.97 320.71 76.69 369.44 114.34 405.26 C152 441.08 201.8 461.35 253.76 461.99 C305.73 462.64 356.02 443.62 394.55 408.75 C433.09 373.88 457.02 325.74 461.55 273.96 C462.16 266.96 459.96 260 455.45 254.62 C450.93 249.24 444.46 245.87 437.46 245.26 C430.46 244.64 423.5 246.84 418.11 251.35 C412.73 255.87 409.36 262.34 408.75 269.34 C405.38 307.8 387.61 343.56 358.99 369.46 C330.37 395.35 293.02 409.48 254.42 409 C215.83 408.52 178.84 393.47 150.87 366.86 C122.91 340.26 106.03 304.06 103.63 265.54 C101.22 227.02 113.47 189.01 137.91 159.13 C162.35 129.26 197.18 109.72 235.41 104.45 C273.65 99.17 312.47 108.54 344.09 130.68 C349.84 134.71 356.97 136.29 363.89 135.07 C370.81 133.85 376.96 129.93 380.99 124.17 C385.03 118.41 386.6 111.29 385.38 104.37 C384.16 97.45 380.24 91.3 374.49 87.26 Z"
+        },
+        {
+          "role": "accent",
+          "d": "M334.33 256.01 C334.33 235.32 326.11 215.48 311.48 200.86 C296.86 186.23 277.02 178.01 256.33 178.01 C235.64 178.01 215.8 186.23 201.18 200.86 C186.55 215.48 178.33 235.32 178.33 256.01 C178.33 276.7 186.55 296.54 201.18 311.16 C215.8 325.79 235.64 334.01 256.33 334.01 C277.02 334.01 296.86 325.79 311.48 311.16 C326.11 296.54 334.33 276.7 334.33 256.01 Z"
+        }
+      ]
+    },
+    "prohibitions": [
+      "Do not substitute the rejected LC monogram or W placeholder packaging icon.",
+      "Do not combine companion character imagery with the product mark.",
+      "Do not rotate, skew, stretch, outline, bevel, or glow the mark.",
+      "Use the reduced master at and below 32 pixels."
+    ]
+  },
+  "guide": {
+    "idea": "A private space for the companions you shape",
+    "descriptor": "A private Windows workspace for personalized AI companions",
+    "foundation_title": "One workspace, under your control",
+    "foundation": "Local Companion brings personalized conversations, image creation, and the local characters and models behind them into one owner-operated Windows workspace. Its product identity belongs to the workspace itself; individual companions and private content keep their own context.",
+    "personality": [
+      [
+        "Calm",
+        "Uses clear space, composed hierarchy, and measured motion",
+        "Noisy spectacle around private work"
+      ],
+      [
+        "Personal",
+        "Speaks to the owner's chosen companions and creative work",
+        "A fixed character as the product mascot"
+      ],
+      [
+        "Capable",
+        "Names chat, image, character, and model tasks directly",
+        "Vague claims about AI magic"
+      ],
+      [
+        "Discreet",
+        "Uses synthetic examples and protects unpublished personal content",
+        "Real chats or portraits in generic brand examples"
+      ]
+    ],
+    "promises": [
+      "Chat with personalized AI companions from a dedicated Windows workspace.",
+      "Create images and organize the characters behind those experiences.",
+      "Manage the local models available to the workspace."
+    ],
+    "in_scope": [
+      "Product identity, interface guidance, and platform assets",
+      "Chat, image, character, and model workflow language",
+      "Clearly labeled synthetic application examples"
+    ],
+    "out_of_scope": [
+      "Private chat excerpts, user files, and local model contents",
+      "Companion character art used as the product logo",
+      "Unapproved application screenshots"
+    ],
+    "sharp_edge": "Local Companion is the workspace identity. A companion portrait or conversation belongs to its own context and should not become the default product mark or a public sample without separate approval.",
+    "logo": "The calm orbit places a centered disc inside two open bands. The open shape suggests an owner-controlled space with room for different companions. A thicker Reduced master keeps the same center and opening clear at small icon sizes.",
+    "palette": "Graphite provides a quiet desktop canvas and indigo carries the product identity. Use the accessible darker indigo on light surfaces. Functional interface cues are measured separately and include text, shape, or control-state cues.",
+    "specimen_line": "Your companions, your space.",
+    "specimen_body": "Chat, create images, and manage the local characters and models behind them."
+  },
+  "canon": "1.6.0",
+  "identity_continuity": {
+    "record": "identity-continuity.json",
+    "status": "approved-canonical"
+  },
+  "approval_ledger": {
+    "source_hashes": {},
+    "gate_1": {
+      "status": "approved",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-28",
+      "scope": [
+        "reduced-and-platform",
+        "horizontal-lockup",
+        "stacked-lockup",
+        "wordmark-only",
+        "single-ink"
+      ],
+      "derivative_config_sha256": "5ba2ef5d6f18baea34ca85cb537c20d2a9a95be1dbe081033ed7ed671c345644",
+      "canonical_source_sha256": "9eb329b4ad3483d22b154f7cc74e20726c95e56c222cff0a2ffd5f72aaf3e531"
+    },
+    "gate_2": {
+      "status": "approved",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-28",
+      "derivative_manifest_sha256": "016aa3ec4eaf1ac96d16534f55683d53cb54bca4ca89956992f9f9ac0ecf490d",
+      "surfaces": [
+        "showcase-card",
+        "brand-landing-page",
+        "guideline-topics",
+        "downloads",
+        "registry-endpoints",
+        "public-metadata",
+        "structured-data",
+        "social-preview"
+      ]
+    }
+  },
+  "social_copy": {
+    "slogan": "A private space for your AI companions",
+    "layout": "slogan-only",
+    "composition": "centered-single-line",
+    "description_lines": [],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-28",
+      "source": "Owner approval of revised single-line social text and layout on 2026-09-28"
+    }
+  },
+  "social_image_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-28",
+    "source": "Owner approval of private Gate 2 packet SHA-256 2ab78758ea45a23d466207beb6536ad01e99af88324de2d4b54c513fda8e3470",
+    "svg_sha256": "c2ea7dd5ac51f303e336318efc665ec3b331400a60848130b0ee10d71850514c",
+    "png_sha256": "7c6fe6af35e16f9faaf1c1ccaa0c3cbea567358840412012ccfd9735b746a06a"
+  }
+}

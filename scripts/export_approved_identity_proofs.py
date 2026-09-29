@@ -51,6 +51,7 @@ def _export_once(source, destination):
     result = validate_brand_continuity(brand, destination)
     if result["status"] != "approved-canonical":
         raise ValueError("canonical-host proof export requires an approved-canonical brand")
+    shutil.copytree(str(ROOT / "assets" / "fonts"), str(destination / "fonts"), dirs_exist_ok=True)
     for face in (brand.get("typography") or {}).get("faces", []):
         relative = Path(face["path"])
         try:

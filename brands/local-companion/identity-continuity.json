@@ -1,0 +1,1297 @@
+{
+  "schema_version": 1,
+  "brand": "local-companion",
+  "status": "approved-canonical",
+  "source_class": "glyphkit-constructed",
+  "recorded_on": "2026-09-28",
+  "source_revision": "gate1-calm-orbit-r2-5c9c2c49398e",
+  "source_files": [
+    {
+      "path": "brand.json",
+      "purpose": "canonical brand source",
+      "bytes": 13988,
+      "sha256": "e155338c37693d1d63bcca98847cd07ebc68b1a94e860138b144dad2a3fcec00"
+    },
+    {
+      "path": "build/mk_paths.py",
+      "purpose": "identity construction source",
+      "bytes": 2702,
+      "sha256": "9647f9c76bb926a94bbdbb257b74b82bddffff3856a7f9e5123a65af4ba8d3af"
+    }
+  ],
+  "identity_snapshot": {
+    "source_class": "glyphkit-constructed",
+    "geometry": {
+      "source_mode": "constructed",
+      "geometry_provenance": "glyphkit",
+      "paths": {
+        "full": [
+          {
+            "role": "ink",
+            "d": "M325.08 66.17 C276.65 48.54 223.31 50.1 175.98 70.51 C128.66 90.92 90.92 128.66 70.51 175.98 C50.1 223.31 48.54 276.65 66.17 325.08 C67.9 329.81 71.43 333.67 76 335.8 C80.56 337.93 85.79 338.16 90.52 336.43 C95.26 334.71 99.12 331.18 101.25 326.61 C103.38 322.04 103.6 316.82 101.88 312.08 C87.57 272.76 88.83 229.46 105.4 191.03 C121.98 152.61 152.61 121.98 191.03 105.4 C229.46 88.83 272.76 87.57 312.08 101.88 C316.82 103.6 322.04 103.38 326.61 101.25 C331.18 99.12 334.71 95.26 336.43 90.52 C338.16 85.79 337.93 80.56 335.8 76 C333.67 71.43 329.81 67.9 325.08 66.17 Z"
+          },
+          {
+            "role": "accent",
+            "d": "M154.99 430.93 C193.5 453.16 238.27 462.07 282.36 456.26 C326.44 450.46 367.38 430.27 398.83 398.83 C430.27 367.38 450.46 326.44 456.26 282.36 C462.07 238.27 453.16 193.5 430.93 154.99 C428.41 150.63 424.26 147.44 419.39 146.14 C414.52 144.83 409.34 145.52 404.97 148.04 C400.61 150.56 397.42 154.71 396.12 159.57 C394.82 164.44 395.5 169.63 398.02 173.99 C416.07 205.26 423.3 241.6 418.59 277.4 C413.87 313.19 397.48 346.43 371.96 371.96 C346.43 397.48 313.19 413.87 277.4 418.59 C241.6 423.3 205.26 416.07 173.99 398.02 C169.63 395.5 164.44 394.82 159.57 396.12 C154.71 397.42 150.56 400.61 148.04 404.97 C145.52 409.34 144.83 414.52 146.14 419.39 C147.44 424.26 150.63 428.41 154.99 430.93 Z"
+          },
+          {
+            "role": "accent",
+            "d": "M325.99 255.99 C325.99 237.42 318.62 219.62 305.49 206.49 C292.36 193.36 274.56 185.99 255.99 185.99 C237.42 185.99 219.62 193.36 206.49 206.49 C193.36 219.62 185.99 237.42 185.99 255.99 C185.99 274.56 193.36 292.36 206.49 305.49 C219.62 318.62 237.42 325.99 255.99 325.99 C274.56 325.99 292.36 318.62 305.49 305.49 C318.62 292.36 325.99 274.56 325.99 255.99 Z"
+          }
+        ],
+        "reduced": [
+          {
+            "role": "accent",
+            "d": "M374.49 87.26 C331.92 57.46 279.65 44.84 228.17 51.94 C176.69 59.05 129.79 85.35 96.89 125.57 C63.98 165.8 47.49 216.97 50.73 268.84 C53.97 320.71 76.69 369.44 114.34 405.26 C152 441.08 201.8 461.35 253.76 461.99 C305.73 462.64 356.02 443.62 394.55 408.75 C433.09 373.88 457.02 325.74 461.55 273.96 C462.16 266.96 459.96 260 455.45 254.62 C450.93 249.24 444.46 245.87 437.46 245.26 C430.46 244.64 423.5 246.84 418.11 251.35 C412.73 255.87 409.36 262.34 408.75 269.34 C405.38 307.8 387.61 343.56 358.99 369.46 C330.37 395.35 293.02 409.48 254.42 409 C215.83 408.52 178.84 393.47 150.87 366.86 C122.91 340.26 106.03 304.06 103.63 265.54 C101.22 227.02 113.47 189.01 137.91 159.13 C162.35 129.26 197.18 109.72 235.41 104.45 C273.65 99.17 312.47 108.54 344.09 130.68 C349.84 134.71 356.97 136.29 363.89 135.07 C370.81 133.85 376.96 129.93 380.99 124.17 C385.03 118.41 386.6 111.29 385.38 104.37 C384.16 97.45 380.24 91.3 374.49 87.26 Z"
+          },
+          {
+            "role": "accent",
+            "d": "M334.33 256.01 C334.33 235.32 326.11 215.48 311.48 200.86 C296.86 186.23 277.02 178.01 256.33 178.01 C235.64 178.01 215.8 186.23 201.18 200.86 C186.55 215.48 178.33 235.32 178.33 256.01 C178.33 276.7 186.55 296.54 201.18 311.16 C215.8 325.79 235.64 334.01 256.33 334.01 C277.02 334.01 296.86 325.79 311.48 311.16 C326.11 296.54 334.33 276.7 334.33 256.01 Z"
+          }
+        ]
+      },
+      "authoritative_input_ids": null
+    },
+    "derivative_settings": {
+      "source_mode": "constructed",
+      "geometry_provenance": "glyphkit",
+      "grid": 512,
+      "canvas_width": 512,
+      "canvas_height": 512,
+      "artwork_width": 412,
+      "artwork_height": 412,
+      "reduced_artwork_width": 412,
+      "reduced_artwork_height": 412,
+      "clear_space_units": 48,
+      "reduced_below_px": 32,
+      "min_px": {
+        "mark": 24,
+        "horizontal": 160,
+        "stacked": 128,
+        "wordmark": 120
+      },
+      "application_icon": {
+        "background": "#090B10"
+      },
+      "role_colors": {
+        "color": {
+          "accent": "#8B9CFF",
+          "ink": "#F4F6FB",
+          "wordmark": "#F4F6FB"
+        },
+        "light": {
+          "accent": "#4B5CC0",
+          "ink": "#11151D",
+          "wordmark": "#11151D"
+        },
+        "black": {
+          "accent": "#000000",
+          "ink": "#000000",
+          "wordmark": "#000000"
+        },
+        "white": {
+          "accent": "#FFFFFF",
+          "ink": "#FFFFFF",
+          "wordmark": "#FFFFFF"
+        }
+      },
+      "construction": "A 512-unit grid anchors two open orbit bands around a circular center. The full master separates a near-white left arc and indigo right arc. The reduced master uses one heavier indigo band and center disc for small applications. All paths are generated from glyphkit primitives in build/mk_paths.py.",
+      "prohibitions": [
+        "Do not substitute the rejected LC monogram or W placeholder packaging icon.",
+        "Do not combine companion character imagery with the product mark.",
+        "Do not rotate, skew, stretch, outline, bevel, or glow the mark.",
+        "Use the reduced master at and below 32 pixels."
+      ]
+    },
+    "topology": {
+      "full": {
+        "path_count": 3,
+        "subpath_count": 3,
+        "closed_subpaths": 3,
+        "role_counts": {
+          "accent": 2,
+          "ink": 1
+        },
+        "command_counts": {
+          "C": 38,
+          "M": 3,
+          "Z": 3
+        },
+        "fill_rules": {
+          "nonzero": 3
+        }
+      },
+      "reduced": {
+        "path_count": 2,
+        "subpath_count": 2,
+        "closed_subpaths": 2,
+        "role_counts": {
+          "accent": 2
+        },
+        "command_counts": {
+          "C": 30,
+          "M": 2,
+          "Z": 2
+        },
+        "fill_rules": {
+          "nonzero": 2
+        }
+      }
+    },
+    "framing": {
+      "grid": 512,
+      "canvas_width": 512,
+      "canvas_height": 512,
+      "artwork_width": 412,
+      "artwork_height": 412,
+      "reduced_artwork_width": 412,
+      "reduced_artwork_height": 412,
+      "clear_space_units": 48
+    },
+    "palette": {
+      "accent": {
+        "bright": "#8B9CFF",
+        "deep": "#7184EB",
+        "accessible": "#4B5CC0",
+        "dim": "#A8B5FF"
+      },
+      "semantic_colors": {
+        "emphasis": "#8B9CFF",
+        "action": "#4B5CC0"
+      },
+      "surfaces": {
+        "base": "#090B10",
+        "card": "#11151D",
+        "popover": "#11151D",
+        "secondary": "#1D2230",
+        "hover": "#272E40"
+      },
+      "chart_palette": {
+        "dark_target_lightness": 0.68,
+        "rationale": "Indigo identifies Local Companion; derived chart colors remain functional and secondary."
+      },
+      "logo_role_colors": {
+        "color": {
+          "accent": "#8B9CFF",
+          "ink": "#F4F6FB",
+          "wordmark": "#F4F6FB"
+        },
+        "light": {
+          "accent": "#4B5CC0",
+          "ink": "#11151D",
+          "wordmark": "#11151D"
+        },
+        "black": {
+          "accent": "#000000",
+          "ink": "#000000",
+          "wordmark": "#000000"
+        },
+        "white": {
+          "accent": "#FFFFFF",
+          "ink": "#FFFFFF",
+          "wordmark": "#FFFFFF"
+        }
+      }
+    },
+    "typography": {
+      "wordmark_text": "Local Companion",
+      "typography": {
+        "mode": "house",
+        "families": {
+          "display": {
+            "name": "Space Grotesk",
+            "weights": [
+              500,
+              700
+            ]
+          },
+          "body": {
+            "name": "Geist",
+            "weights": [
+              400,
+              500
+            ]
+          },
+          "mono": {
+            "name": "Geist Mono",
+            "weights": [
+              400
+            ]
+          }
+        }
+      }
+    },
+    "sha256": "d2a58dc162dc7f6b745a6e2f17dc95e39208331769a30bf89fa737e7bd6ed967"
+  },
+  "topology": {
+    "full": {
+      "path_count": 3,
+      "subpath_count": 3,
+      "closed_subpaths": 3,
+      "role_counts": {
+        "accent": 2,
+        "ink": 1
+      },
+      "command_counts": {
+        "C": 38,
+        "M": 3,
+        "Z": 3
+      },
+      "fill_rules": {
+        "nonzero": 3
+      }
+    },
+    "reduced": {
+      "path_count": 2,
+      "subpath_count": 2,
+      "closed_subpaths": 2,
+      "role_counts": {
+        "accent": 2
+      },
+      "command_counts": {
+        "C": 30,
+        "M": 2,
+        "Z": 2
+      },
+      "fill_rules": {
+        "nonzero": 2
+      }
+    }
+  },
+  "framing": {
+    "grid": 512,
+    "canvas_width": 512,
+    "canvas_height": 512,
+    "artwork_width": 412,
+    "artwork_height": 412,
+    "reduced_artwork_width": 412,
+    "reduced_artwork_height": 412,
+    "clear_space_units": 48
+  },
+  "palette": {
+    "accent": {
+      "bright": "#8B9CFF",
+      "deep": "#7184EB",
+      "accessible": "#4B5CC0",
+      "dim": "#A8B5FF"
+    },
+    "semantic_colors": {
+      "emphasis": "#8B9CFF",
+      "action": "#4B5CC0"
+    },
+    "surfaces": {
+      "base": "#090B10",
+      "card": "#11151D",
+      "popover": "#11151D",
+      "secondary": "#1D2230",
+      "hover": "#272E40"
+    },
+    "chart_palette": {
+      "dark_target_lightness": 0.68,
+      "rationale": "Indigo identifies Local Companion; derived chart colors remain functional and secondary."
+    },
+    "logo_role_colors": {
+      "color": {
+        "accent": "#8B9CFF",
+        "ink": "#F4F6FB",
+        "wordmark": "#F4F6FB"
+      },
+      "light": {
+        "accent": "#4B5CC0",
+        "ink": "#11151D",
+        "wordmark": "#11151D"
+      },
+      "black": {
+        "accent": "#000000",
+        "ink": "#000000",
+        "wordmark": "#000000"
+      },
+      "white": {
+        "accent": "#FFFFFF",
+        "ink": "#FFFFFF",
+        "wordmark": "#FFFFFF"
+      }
+    }
+  },
+  "renderer": {
+    "id": "node-resvg",
+    "version": "v24.11.0",
+    "settings_sha256": "7fd1ed6a38732cb7262501e7b01df4197a798175247df44553174d06e7454f83"
+  },
+  "proofs": [
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "dark",
+      "path": "proofs/full-256-dark.png",
+      "sha256": "03351710648238379608e7d5b38007f6bd778d8d627739ad1f172dbd41d42ba3",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-dark-side-by-side.png",
+          "sha256": "0e91530765f48d8ffa6099100d92c480a2f3a2ced2d8a88d2357f6f540325380"
+        },
+        "overlay": {
+          "path": "evidence/full-256-dark-overlay.png",
+          "sha256": "03351710648238379608e7d5b38007f6bd778d8d627739ad1f172dbd41d42ba3"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-dark-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-dark-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "light",
+      "path": "proofs/full-256-light.png",
+      "sha256": "a51738683b9d2a9fc8b019ec27734a4648a1a13ee9d75cb79016cf9a76a9c14c",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-light-side-by-side.png",
+          "sha256": "2da2e24c8ce2fe2658e6c1d4e3d54f681d4c616830cb4f40f8b33ccdc2100bb1"
+        },
+        "overlay": {
+          "path": "evidence/full-256-light-overlay.png",
+          "sha256": "a51738683b9d2a9fc8b019ec27734a4648a1a13ee9d75cb79016cf9a76a9c14c"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-light-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-light-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "black",
+      "path": "proofs/full-256-black.png",
+      "sha256": "5ba6bcd618eb0e1d73866959240c528b35eaa677797a7bf2844540a3996c1a04",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-black-side-by-side.png",
+          "sha256": "9add870e10198bd92ccc0b5acec38e2390e6256db94ff9f7aa9a85a5f10e6f1b"
+        },
+        "overlay": {
+          "path": "evidence/full-256-black-overlay.png",
+          "sha256": "5ba6bcd618eb0e1d73866959240c528b35eaa677797a7bf2844540a3996c1a04"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-black-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-black-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 256,
+      "surface": "white",
+      "path": "proofs/full-256-white.png",
+      "sha256": "f910c47b8ceb673c9a0858f96ab021e58e36f74c289d6d992e78c6a394c9aabb",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-256-white-side-by-side.png",
+          "sha256": "47d5860631c4897a66a4fcbf1cc439fc46a4155348f3d96ebe6a7ee24f834825"
+        },
+        "overlay": {
+          "path": "evidence/full-256-white-overlay.png",
+          "sha256": "f910c47b8ceb673c9a0858f96ab021e58e36f74c289d6d992e78c6a394c9aabb"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-256-white-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/full-256-white-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "dark",
+      "path": "proofs/full-64-dark.png",
+      "sha256": "50357060077b537541f7b4e3f283f09b9e63c2231115652ba3fb8a9ad6bce595",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-dark-side-by-side.png",
+          "sha256": "d883d8af3bb6b727c90e9792ffe0b0ac00ae4d007b8084ee2acf40ba2b22751a"
+        },
+        "overlay": {
+          "path": "evidence/full-64-dark-overlay.png",
+          "sha256": "50357060077b537541f7b4e3f283f09b9e63c2231115652ba3fb8a9ad6bce595"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-dark-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-dark-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "light",
+      "path": "proofs/full-64-light.png",
+      "sha256": "16d9f8f54ce8902d78b103431cbeaa9fb7705b76941fd1f10b46b884ba26c67c",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-light-side-by-side.png",
+          "sha256": "51c65811218e9432ce1888398efc0105001cc8b3167b671726cf5a8698a59f09"
+        },
+        "overlay": {
+          "path": "evidence/full-64-light-overlay.png",
+          "sha256": "16d9f8f54ce8902d78b103431cbeaa9fb7705b76941fd1f10b46b884ba26c67c"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-light-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-light-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "black",
+      "path": "proofs/full-64-black.png",
+      "sha256": "2bd9b7804445759431674b1948147d15e0cbfecac0986fb914349031b36092ee",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-black-side-by-side.png",
+          "sha256": "a71694d2a061a47b78aa45b7b5a091f66bf2b24915cc8181f42e21e62d16d571"
+        },
+        "overlay": {
+          "path": "evidence/full-64-black-overlay.png",
+          "sha256": "2bd9b7804445759431674b1948147d15e0cbfecac0986fb914349031b36092ee"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-black-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-black-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 64,
+      "surface": "white",
+      "path": "proofs/full-64-white.png",
+      "sha256": "16aa51c3e191132e12187fe3846b0372c40361945ca5dfd019f144a1d21d55c2",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-64-white-side-by-side.png",
+          "sha256": "cc53b2f9674b22ccbf4828b64e69c2100197f7a1de9471514edfa599821bf3e7"
+        },
+        "overlay": {
+          "path": "evidence/full-64-white-overlay.png",
+          "sha256": "16aa51c3e191132e12187fe3846b0372c40361945ca5dfd019f144a1d21d55c2"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-64-white-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/full-64-white-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "dark",
+      "path": "proofs/full-32-dark.png",
+      "sha256": "385094c420a31b0b43333aad5bb85f208ff608a77d39ee57356054035585cb50",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-dark-side-by-side.png",
+          "sha256": "7a5fcc4163167afea026636f594556ef22cdcd0ec2c4d8b6a9cd5f81a2af9e41"
+        },
+        "overlay": {
+          "path": "evidence/full-32-dark-overlay.png",
+          "sha256": "385094c420a31b0b43333aad5bb85f208ff608a77d39ee57356054035585cb50"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-dark-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-dark-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "light",
+      "path": "proofs/full-32-light.png",
+      "sha256": "00be2a62e049ee0a2bbbb1e1bd0ea2b2d369e72acfa7d318a26a6d5c20619a3c",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-light-side-by-side.png",
+          "sha256": "35f1a3aab1695687ca57cf7d3bcc227b3b6959c5be3a0b94607b2a988f588649"
+        },
+        "overlay": {
+          "path": "evidence/full-32-light-overlay.png",
+          "sha256": "00be2a62e049ee0a2bbbb1e1bd0ea2b2d369e72acfa7d318a26a6d5c20619a3c"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-light-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-light-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "black",
+      "path": "proofs/full-32-black.png",
+      "sha256": "5a41dfae509e6cab509b5814077cbe9d27f71e826c7a95c931fbe650d1320dba",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-black-side-by-side.png",
+          "sha256": "6da7bc7ddb3ddd9a985e3f4617addd6aa3c2e80a7e0760c771127eaf248694b9"
+        },
+        "overlay": {
+          "path": "evidence/full-32-black-overlay.png",
+          "sha256": "5a41dfae509e6cab509b5814077cbe9d27f71e826c7a95c931fbe650d1320dba"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-black-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-black-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 32,
+      "surface": "white",
+      "path": "proofs/full-32-white.png",
+      "sha256": "db64aa1472dafa9d27f99232d4b07f4200ccdb54c1711625175528e0e77d10b7",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-32-white-side-by-side.png",
+          "sha256": "038522a259b1b99da4cb7e4e0951678df89114cc851317a10547977e2825ad36"
+        },
+        "overlay": {
+          "path": "evidence/full-32-white-overlay.png",
+          "sha256": "db64aa1472dafa9d27f99232d4b07f4200ccdb54c1711625175528e0e77d10b7"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-32-white-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/full-32-white-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "dark",
+      "path": "proofs/full-16-dark.png",
+      "sha256": "a18af037c8206a3618c61079f59b39ede02664867561c8adb5e3f1ffacb69122",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-dark-side-by-side.png",
+          "sha256": "781189b15ec046264cda8d8f80ee528214a1da3027ebfb0cce9ab95afa1ad25c"
+        },
+        "overlay": {
+          "path": "evidence/full-16-dark-overlay.png",
+          "sha256": "a18af037c8206a3618c61079f59b39ede02664867561c8adb5e3f1ffacb69122"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-dark-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-dark-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "light",
+      "path": "proofs/full-16-light.png",
+      "sha256": "6a3c06205dec4cf9303dc1c318ef33a804f150d9d6f97c105ed47d8cfff83ef9",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-light-side-by-side.png",
+          "sha256": "42423ee998022c19df75d4dfadad45ba1810503a349cfd305659cf19ffcc0b8d"
+        },
+        "overlay": {
+          "path": "evidence/full-16-light-overlay.png",
+          "sha256": "6a3c06205dec4cf9303dc1c318ef33a804f150d9d6f97c105ed47d8cfff83ef9"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-light-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-light-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "black",
+      "path": "proofs/full-16-black.png",
+      "sha256": "4b4ed9d9b5b5177b531394638d0e279e1b53cdd655ba9fec8b5d137459030b72",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-black-side-by-side.png",
+          "sha256": "1a11f3a0b681a5557e663c6e62e3bf65eb5c927c277c238ba6a2146be399e57c"
+        },
+        "overlay": {
+          "path": "evidence/full-16-black-overlay.png",
+          "sha256": "4b4ed9d9b5b5177b531394638d0e279e1b53cdd655ba9fec8b5d137459030b72"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-black-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-black-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "full",
+      "size_px": 16,
+      "surface": "white",
+      "path": "proofs/full-16-white.png",
+      "sha256": "489d8a0ba49165696226197f8ee962e0551d357495b5c79026635727be3ed9f6",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/full-16-white-side-by-side.png",
+          "sha256": "85bb6fb7c677c40cca763b5f70d19bc605b747464188ddcf2b76a0a8c84071e6"
+        },
+        "overlay": {
+          "path": "evidence/full-16-white-overlay.png",
+          "sha256": "489d8a0ba49165696226197f8ee962e0551d357495b5c79026635727be3ed9f6"
+        },
+        "silhouette_xor": {
+          "path": "evidence/full-16-white-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/full-16-white-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "dark",
+      "path": "proofs/reduced-256-dark.png",
+      "sha256": "b56f4de719df8a40690aaac1b09596dc7c2481073e43014c924a2f8a3262b241",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-dark-side-by-side.png",
+          "sha256": "913d19e97c0c4c34cc2e82f905d9710a4fb82443d3a714b76b3e2be868aeee63"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-dark-overlay.png",
+          "sha256": "b56f4de719df8a40690aaac1b09596dc7c2481073e43014c924a2f8a3262b241"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-dark-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-dark-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "light",
+      "path": "proofs/reduced-256-light.png",
+      "sha256": "afc2be6d69107d1fd56883b140ef43c2ef3452ae8e6ad685d091054db39540d7",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-light-side-by-side.png",
+          "sha256": "e733772bac7818e0f285c84bc4c8eca308b8aca1721e921f467985b7f1036c82"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-light-overlay.png",
+          "sha256": "afc2be6d69107d1fd56883b140ef43c2ef3452ae8e6ad685d091054db39540d7"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-light-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-light-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "black",
+      "path": "proofs/reduced-256-black.png",
+      "sha256": "29baad9395f341a2b5a8609a3dbf3bb7380619521229522fc4818458e70a7d31",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-black-side-by-side.png",
+          "sha256": "a938b6bdd0d5cbf9f4823010d0066e77afe220da6a823ffa373e92ebbbf9bd46"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-black-overlay.png",
+          "sha256": "29baad9395f341a2b5a8609a3dbf3bb7380619521229522fc4818458e70a7d31"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-black-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-black-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 256,
+      "surface": "white",
+      "path": "proofs/reduced-256-white.png",
+      "sha256": "0fe6ba488853dc30de8c3ddd8694920fc603226fc7a222a6a7c90c7b9c047124",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-256-white-side-by-side.png",
+          "sha256": "86f61a54106f046acdf2c7de58273becebffdd2d9b55f55e3508acc7594f3c2e"
+        },
+        "overlay": {
+          "path": "evidence/reduced-256-white-overlay.png",
+          "sha256": "0fe6ba488853dc30de8c3ddd8694920fc603226fc7a222a6a7c90c7b9c047124"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-256-white-silhouette-xor.png",
+          "sha256": "aebc86755d7beb8b01bcd992ab44e1133afcb473511b7832eb82228be275473f"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-256-white-color-difference.png",
+          "sha256": "42c7d7a412f704e9468d9ba58292b23e1d659ddb4e839345ad08bb37b44ee2e5"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "dark",
+      "path": "proofs/reduced-64-dark.png",
+      "sha256": "53aa5df337fcff2e2b5e6e45bcd3f4c2d56ddd8a81552c64d6e5fa9cf904a26f",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-dark-side-by-side.png",
+          "sha256": "616e990ca195bde8d3ec4e47e1f44809ec49bfdd6f4edc6f7066b7784efe789e"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-dark-overlay.png",
+          "sha256": "53aa5df337fcff2e2b5e6e45bcd3f4c2d56ddd8a81552c64d6e5fa9cf904a26f"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-dark-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-dark-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "light",
+      "path": "proofs/reduced-64-light.png",
+      "sha256": "fe2fdfcd37db552b5a97d27cd49cf6defb0a49c6bb8784014ef86d5cce0bbab2",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-light-side-by-side.png",
+          "sha256": "421234a2a14203e3620d37d137255b0b6438dbf5fe29ec68e4bf6e7c6c11ea91"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-light-overlay.png",
+          "sha256": "fe2fdfcd37db552b5a97d27cd49cf6defb0a49c6bb8784014ef86d5cce0bbab2"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-light-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-light-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "black",
+      "path": "proofs/reduced-64-black.png",
+      "sha256": "f52a815183e5807eea359da18b9a73a2b2e2f0fa2aab432e6ad9623f92c8e481",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-black-side-by-side.png",
+          "sha256": "11cdb84864b1e7db01401708022dbac6eb1aa5b0b8a1c918e37628052c8c9643"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-black-overlay.png",
+          "sha256": "f52a815183e5807eea359da18b9a73a2b2e2f0fa2aab432e6ad9623f92c8e481"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-black-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-black-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 64,
+      "surface": "white",
+      "path": "proofs/reduced-64-white.png",
+      "sha256": "2fcfcaf66c08e758f27bd5356826be5d61b6f1ffd24e78d3867a0a6719b2fa8f",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-64-white-side-by-side.png",
+          "sha256": "c8b87f0c37f52e3c5e75db26feb2e73980af24ed1b9102e66dd4462ac27b0404"
+        },
+        "overlay": {
+          "path": "evidence/reduced-64-white-overlay.png",
+          "sha256": "2fcfcaf66c08e758f27bd5356826be5d61b6f1ffd24e78d3867a0a6719b2fa8f"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-64-white-silhouette-xor.png",
+          "sha256": "052c48aa8b5e4f2c40bcd0d1bb7a4b93276276285dfa3e8a971b435dc88fdfee"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-64-white-color-difference.png",
+          "sha256": "e0a600268e4e838cbb2d645ad9b64530a4ccac386ae25907aad6d9f68271b733"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "dark",
+      "path": "proofs/reduced-32-dark.png",
+      "sha256": "47cceb910565b7af630ce846add50ee4a79f577443bbfa0920722af85e30e8a6",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-dark-side-by-side.png",
+          "sha256": "95fbd62572444114e67bb83b75fed1c6dfa32f280ecdf9cbb63f7a656e57a581"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-dark-overlay.png",
+          "sha256": "47cceb910565b7af630ce846add50ee4a79f577443bbfa0920722af85e30e8a6"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-dark-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-dark-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "light",
+      "path": "proofs/reduced-32-light.png",
+      "sha256": "a974c9cb0a65c7f6d77c93b5e042de744ca3f70e7883ff0f7cef573a530a0c20",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-light-side-by-side.png",
+          "sha256": "8682c34ae50a597971a3a50bd36f5b3a2b5ae41c6ba98453dedba38c195a48d1"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-light-overlay.png",
+          "sha256": "a974c9cb0a65c7f6d77c93b5e042de744ca3f70e7883ff0f7cef573a530a0c20"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-light-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-light-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "black",
+      "path": "proofs/reduced-32-black.png",
+      "sha256": "3298047688d8a841a23f1d3804503174e6f9d59d3d1e7b94433c632002015327",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-black-side-by-side.png",
+          "sha256": "542f00a303cf23d27a9fe02e085681a937b7b5096bb235a1505250545680398b"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-black-overlay.png",
+          "sha256": "3298047688d8a841a23f1d3804503174e6f9d59d3d1e7b94433c632002015327"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-black-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-black-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 32,
+      "surface": "white",
+      "path": "proofs/reduced-32-white.png",
+      "sha256": "1b0faa75381d36475f671420422539c6ea2ab72f6d98522f73b9febb1786fad6",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-32-white-side-by-side.png",
+          "sha256": "de791e8cd823557e30e1bb31ae77bb2a48f4df83066793369c89f3101c775452"
+        },
+        "overlay": {
+          "path": "evidence/reduced-32-white-overlay.png",
+          "sha256": "1b0faa75381d36475f671420422539c6ea2ab72f6d98522f73b9febb1786fad6"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-32-white-silhouette-xor.png",
+          "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-32-white-color-difference.png",
+          "sha256": "30a5faf4033e50a90a2878943dfcf4cc66c8feff3fe92c17dc8c7e7a30e9e845"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "dark",
+      "path": "proofs/reduced-16-dark.png",
+      "sha256": "35c37adf86b58b6e28baa5b948a040fbea4dd636092e5530201ddd1fc01e174e",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-dark-side-by-side.png",
+          "sha256": "a3e81ebe632dff5249104309700b02591dd8711b2b722107b40e6502aa558f73"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-dark-overlay.png",
+          "sha256": "35c37adf86b58b6e28baa5b948a040fbea4dd636092e5530201ddd1fc01e174e"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-dark-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-dark-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "light",
+      "path": "proofs/reduced-16-light.png",
+      "sha256": "958d191db025346835e135a19ddc489d3278f0b424ef8fd69568f245bc5c541c",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-light-side-by-side.png",
+          "sha256": "0903955727367d71afe39474b68bfc3877cfdb19fb05dcec167d62ba6dbcd6d5"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-light-overlay.png",
+          "sha256": "958d191db025346835e135a19ddc489d3278f0b424ef8fd69568f245bc5c541c"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-light-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-light-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "black",
+      "path": "proofs/reduced-16-black.png",
+      "sha256": "8e93a2dc673eb372e84d143cf2621dce3f16c59455bc6dbc576c6845627b3fb9",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-black-side-by-side.png",
+          "sha256": "0f329522f390eab3b27d9007213845771af5f2d40edd32ca5e8ea5bad8dfdda8"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-black-overlay.png",
+          "sha256": "8e93a2dc673eb372e84d143cf2621dce3f16c59455bc6dbc576c6845627b3fb9"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-black-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-black-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    },
+    {
+      "variant": "reduced",
+      "size_px": 16,
+      "surface": "white",
+      "path": "proofs/reduced-16-white.png",
+      "sha256": "7c52e130df88b7f7c168f4f19c30ac39fea3a2ccc8da5f87216f21b6eab4fc3d",
+      "evidence": {
+        "side_by_side": {
+          "path": "evidence/reduced-16-white-side-by-side.png",
+          "sha256": "3c5acdbf47617b5bc50021e6077a57b778badf2380fdc29b9b2cf97342932115"
+        },
+        "overlay": {
+          "path": "evidence/reduced-16-white-overlay.png",
+          "sha256": "7c52e130df88b7f7c168f4f19c30ac39fea3a2ccc8da5f87216f21b6eab4fc3d"
+        },
+        "silhouette_xor": {
+          "path": "evidence/reduced-16-white-silhouette-xor.png",
+          "sha256": "232c2eac760eae604f9dd43352c0b272396b7cfaf220081b54583b6d0cbc2320"
+        },
+        "color_difference": {
+          "path": "evidence/reduced-16-white-color-difference.png",
+          "sha256": "52dfe43025076f8a3b6d08d341916b9e38c0ecf7f4e6c75f0097e9ead901da27"
+        }
+      }
+    }
+  ],
+  "approval": {
+    "bundle_id": "local-companion-calm-orbit-r2",
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-28",
+    "owner_wording": "Approve corrected Gate 1 binding",
+    "scope": [
+      "full-master",
+      "reduced-master",
+      "palette",
+      "framing",
+      "topology",
+      "renderer",
+      "proof-matrix"
+    ],
+    "proposal_sha256": "5c9c2c49398e8ae1e230579cd3aa96a712f2886a5684450920d8fd4c18f75aca",
+    "source_snapshot_sha256": "d2a58dc162dc7f6b745a6e2f17dc95e39208331769a30bf89fa737e7bd6ed967"
+  },
+  "historical_evidence": null,
+  "palette_qualification": {
+    "status": "passed",
+    "srgb_roles": {
+      "accent.accessible": "#4B5CC0",
+      "accent.bright": "#8B9CFF",
+      "accent.deep": "#7184EB",
+      "accent.dim": "#A8B5FF",
+      "logo_role_colors.black.accent": "#000000",
+      "logo_role_colors.black.ink": "#000000",
+      "logo_role_colors.black.wordmark": "#000000",
+      "logo_role_colors.color.accent": "#8B9CFF",
+      "logo_role_colors.color.ink": "#F4F6FB",
+      "logo_role_colors.color.wordmark": "#F4F6FB",
+      "logo_role_colors.light.accent": "#4B5CC0",
+      "logo_role_colors.light.ink": "#11151D",
+      "logo_role_colors.light.wordmark": "#11151D",
+      "logo_role_colors.white.accent": "#FFFFFF",
+      "logo_role_colors.white.ink": "#FFFFFF",
+      "logo_role_colors.white.wordmark": "#FFFFFF",
+      "semantic_colors.action": "#4B5CC0",
+      "semantic_colors.emphasis": "#8B9CFF",
+      "surfaces.base": "#090B10",
+      "surfaces.card": "#11151D",
+      "surfaces.hover": "#272E40",
+      "surfaces.popover": "#11151D",
+      "surfaces.secondary": "#1D2230"
+    },
+    "oklch_roles": {
+      "accent.accessible": [
+        0.515313,
+        0.156695,
+        272.466637
+      ],
+      "accent.bright": [
+        0.721679,
+        0.144939,
+        274.811381
+      ],
+      "accent.deep": [
+        0.646336,
+        0.154607,
+        273.450191
+      ],
+      "accent.dim": [
+        0.790717,
+        0.106326,
+        276.034148
+      ],
+      "logo_role_colors.black.accent": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "logo_role_colors.black.ink": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "logo_role_colors.black.wordmark": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "logo_role_colors.color.accent": [
+        0.721679,
+        0.144939,
+        274.811381
+      ],
+      "logo_role_colors.color.ink": [
+        0.973048,
+        0.006996,
+        268.548112
+      ],
+      "logo_role_colors.color.wordmark": [
+        0.973048,
+        0.006996,
+        268.548112
+      ],
+      "logo_role_colors.light.accent": [
+        0.515313,
+        0.156695,
+        272.466637
+      ],
+      "logo_role_colors.light.ink": [
+        0.195418,
+        0.017387,
+        264.048475
+      ],
+      "logo_role_colors.light.wordmark": [
+        0.195418,
+        0.017387,
+        264.048475
+      ],
+      "logo_role_colors.white.accent": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "logo_role_colors.white.ink": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "logo_role_colors.white.wordmark": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "semantic_colors.action": [
+        0.515313,
+        0.156695,
+        272.466637
+      ],
+      "semantic_colors.emphasis": [
+        0.721679,
+        0.144939,
+        274.811381
+      ],
+      "surfaces.base": [
+        0.149794,
+        0.011334,
+        267.688679
+      ],
+      "surfaces.card": [
+        0.195418,
+        0.017387,
+        264.048475
+      ],
+      "surfaces.hover": [
+        0.302795,
+        0.034175,
+        267.905191
+      ],
+      "surfaces.popover": [
+        0.195418,
+        0.017387,
+        264.048475
+      ],
+      "surfaces.secondary": [
+        0.253632,
+        0.027589,
+        269.169397
+      ]
+    },
+    "checks": {
+      "contrast": true,
+      "color_vision": true,
+      "semantic_roles": true,
+      "surfaces": true,
+      "single_ink": true,
+      "rendered_color": true,
+      "sibling_separation": true
+    },
+    "evidence_sha256": "64e3422fc95493194f6993df72c89aa60e6d3091aec48b853762f1f715d25795"
+  },
+  "record_sha256": "91964c8114278e057d4b73b9cd5871ebd223c45791f3ab3b6e3a2152a4d89e58"
+}
