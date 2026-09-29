@@ -27,7 +27,7 @@
 
 - [x] T011 [US2] Add a failing portfolio source and responsive-scale regression in `scripts/test_prepare_site.py` and the relevant `site/` tests.
 - [x] T012 [US2] Project the verified square reduced source through `scripts/prepare_site.py` and adjust `site/components/brand-portfolio.tsx` or `site/app/globals.css` only as needed for peer-card scale and accessible responsive layout.
-- [ ] T013 [US2] Compare desktop and narrow mobile renders across all published cards; record source path, perceived-size evidence, text alternative, contrast, and overflow results in `specs/063-shruggietech-identity-projection/verification.md`.
+- [x] T013 [US2] Compare desktop and narrow mobile renders across all published cards; record source path, perceived-size evidence, text alternative, contrast, and overflow results in `specs/063-shruggietech-identity-projection/verification.md`.
 
 ## Phase 5: User Story 3, exact slogan
 
@@ -39,7 +39,7 @@
 
 - [ ] T017 Run focused regressions, the full `CONTRIBUTING.md` validation, all eight kit gates, the existing i-heart-pr-tours 32-proof continuity gate, site build/tests, and publication audit; record exact results in `specs/063-shruggietech-identity-projection/verification.md`.
 - [x] T018 Update the unreleased change log and any architecture-affecting decision entry in `CHANGELOG.md`; check UTF-8/LF, mojibake, generated-output hygiene, and `git diff --check`.
-- [ ] T019 Commit S063 on `codex/063-shruggietech-identity-projection`, push the authorized branch, open the official PR, and attach it to this task.
+- [x] T019 Commit S063 on `codex/063-shruggietech-identity-projection`, push the authorized branch, open the official PR, and attach it to this task.
 - [ ] T020 Monitor all required CI and external reviews; reply to and resolve every review thread, make needed corrections, and request at most one additional Codex review round. Hand off only with definitive green required checks and satisfied reviews.
 
 ## Dependencies and independent tests

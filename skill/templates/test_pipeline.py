@@ -1039,6 +1039,10 @@ class PipelineTests(unittest.TestCase):
                                 viewbox=gen_logo.reduced_mark_viewbox(brand))
         self.assertIn('viewBox="238.5 30 440 440"', rendered)
         self.assertIn('x="209.5" y="0" width="500" height="500"', rendered)
+        precise = (238.123456789, 30.000000123, 439.999999876, 439.999999876)
+        precise_svg = gen_logo.svg(440, 440, "<path/>", viewbox=precise)
+        serialized = precise_svg.split('viewBox="', 1)[1].split('"', 1)[0]
+        self.assertEqual(precise, tuple(float(value) for value in serialized.split()))
 
     def test_standalone_mark_ratio_can_preserve_approved_concept_framing(self):
         brand = {"logo": {

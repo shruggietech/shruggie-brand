@@ -292,10 +292,12 @@ def svg(width, height, body, metadata=None, viewbox=None):
         if value is not None:
             attributes += ' data-%s="%s"' % (name.replace("_", "-"), value)
     box = viewbox or (0, 0, width, height)
+    box_text = (" ".join(str(value) for value in box) if viewbox is not None
+                else "%g %g %g %g" % box)
     return (
-        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="%g %g %g %g" '
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="%s" '
         'width="%g" height="%g" fill="none"%s>\n%s\n</svg>\n'
-        % (box[0], box[1], box[2], box[3], width, height, attributes, body)
+        % (box_text, width, height, attributes, body)
     )
 
 
