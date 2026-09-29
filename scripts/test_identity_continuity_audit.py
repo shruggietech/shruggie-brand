@@ -82,10 +82,11 @@ class IdentityContinuityAuditTests(unittest.TestCase):
                     brand["accent"]["bright"] = "#FFFFFF"
                 else:
                     brand["logo"]["paths"]["full"][0]["d"] += " m1 0"
-                brand_path.write_text(json.dumps(brand, indent=2) + "\n", encoding="utf-8", newline="\n")
+                with brand_path.open("w", encoding="utf-8", newline="\n") as handle:
+                    handle.write(json.dumps(brand, indent=2) + "\n")
                 record = build_record(source, brand, BRAND_CLASSES["cueson"], MIGRATION_BASELINE_REVISION, "2026-09-09")
-                (source / "identity-continuity.json").write_text(
-                    json.dumps(record, indent=2) + "\n", encoding="utf-8", newline="\n")
+                with (source / "identity-continuity.json").open("w", encoding="utf-8", newline="\n") as handle:
+                    handle.write(json.dumps(record, indent=2) + "\n")
                 brands = discover_brands(ROOT)
                 brands["cueson"] = source
                 with mock.patch("audit_identity_continuity.discover_brands", return_value=brands):
