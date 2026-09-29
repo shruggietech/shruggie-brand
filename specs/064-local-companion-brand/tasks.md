@@ -7,7 +7,7 @@
 
 ## Phase 2: Foundation
 
-- [x] T003 Confirm the source app palette, typography, logo, packaging placeholder, and public-content boundary from `B:/AI/local-companion/brand/local-companion.json` and related local assets.
+- [x] T003 Confirm the source app palette, typography, logo, packaging placeholder, and public-content boundary from the Local Companion app's canonical brand source and related local assets.
 - [x] T004 Run the BrandBuilder full-tier preflight and prepare ignored approval workspace under `dist/local-companion-approval/`.
 
 ## Phase 3: User Story 1, Approved Identity
