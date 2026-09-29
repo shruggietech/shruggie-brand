@@ -40,7 +40,7 @@
 
 - [x] T013 [US2] Finish the source-only `brands/local-companion/brand.json` guide, content, type, palette, and approval bindings.
 - [x] T014 [US2] Validate schema, source continuity, logo geometry, AA roles, icon suites, social image, and generated kit in `dist/local-companion/`. The build reports zero verification problems, zero glyph failures, and exact social SVG/PNG and derivative manifest hashes.
-- [ ] T015 [US2] Run the full documented production build and regression suite from `scripts/build_all.py`, `skill/templates/`, and `site/`.
+- [x] T015 [US2] Run the full documented production build and regression suite from `scripts/build_all.py`, `skill/templates/`, and `site/`. The pinned Node v24.11.0 run built nine kits with zero reported problems; focused generator tests and the 103-route browser suite passed.
 
 ## Phase 6: User Story 3, Public Site and Release
 
@@ -50,7 +50,7 @@
 
 - [x] T016 [US3] Add Local Companion to `skill/templates/interface_contract.py`, `scripts/audit_publication_artifacts.py`, `.github/workflows/build.yml`, and site/release test inventories.
 - [x] T017 [US3] Update builder version, `skill/references/release-impact.json`, migration note, and root/skill changelogs for the new public release.
-- [ ] T018 [US3] Build the static site and audit public routes, metadata, registries, downloads, and private-content exclusion from `site/` and `dist/`.
+- [x] T018 [US3] Build the static site and audit public routes, metadata, registries, downloads, and private-content exclusion from `site/` and `dist/`. The audit found nine kit, site, and package markers; the Local Companion site download matches its release archive byte for byte.
 - [ ] T019 [US3] Review and merge the source change, publish the exact tag-built release, and verify live `brand.shruggie.tech` output and archive SHA-256.
 
 ## Final Phase: Cross-Cutting Review
