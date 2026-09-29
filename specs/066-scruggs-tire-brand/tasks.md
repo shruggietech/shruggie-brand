@@ -1,23 +1,23 @@
 # Tasks: Scruggs Tire & Alignment Client Brand
 
 **Input**: [spec.md](spec.md), [plan.md](plan.md), [research.md](research.md), [data-model.md](data-model.md), [approval-and-publication.md](contracts/approval-and-publication.md)
-**Status**: Planned. No production identity approval or implementation is recorded by these checkboxes.
+**Status**: Gate 1 candidate prepared on 2026-09-29; exact owner decision and production implementation remain pending. These checkboxes do not record creative approval.
 
 ## Phase 1: Foundation and evidence
 
-- [ ] T001 Recheck current [client website](https://scruggstires.com/) claims and appearance, then update dated source observations in `specs/066-scruggs-tire-brand/research.md` before any public copy is written.
-- [ ] T002 Inspect supported format, alpha/topology, and licensing of relevant ZIP base assets; document exact hashes and authority in an ignored working brief, without opening `Brand/old/greertires.com.7z` absent a named need.
-- [ ] T003 Create the thirteen-topic private authoring brief with facts, constraints, proposals, and unresolved choices under ignored `dist/` or temporary storage; validate it with the existing `skill/templates/authoring_brief.py` contract.
-- [ ] T004 Record client ownership, public showcase authorization from this request, optional service-credit decision, source-right basis, and public-copy provenance before preparing creative approval.
+- [x] T001 Recheck current [client website](https://scruggstires.com/) claims and appearance, then update dated source observations in `specs/066-scruggs-tire-brand/research.md` before any public copy is written.
+- [x] T002 Inspect supported format, alpha/topology, and licensing of relevant ZIP base assets; document exact hashes and authority in an ignored working brief, without opening `Brand/old/greertires.com.7z` absent a named need.
+- [x] T003 Create the thirteen-topic private authoring brief with facts, constraints, proposals, and unresolved choices under ignored `dist/` or temporary storage; validate it with the existing `skill/templates/authoring_brief.py` contract.
+- [x] T004 Record client ownership, public showcase authorization from this request, optional service-credit decision, source-right basis, and public-copy provenance before preparing creative approval.
 
 ## Phase 2: User Story 1 - Exact identity direction (P1)
 
 **Goal**: Present source-bound Full and Reduced production candidates for a real Gate 1 decision.
 **Independent Test**: The candidate packet identifies exact source bytes and renders the complete 32-proof matrix without treating concept files as approval.
 
-- [ ] T005 [US1] Compare role-correct authoritative PNG binding with a constructed master against `skill/references/06-logo-protocol.md`, `skill/references/09-portability.md`, small-size behavior, and source preservation; record the chosen proposal and rejected alternative in the private brief.
-- [ ] T006 [US1] Prepare exact Full and Reduced source candidates, source hashes, color qualification, framing, allowed transformations, renderer and mask/helper settings, and identity comparison evidence in ignored private output.
-- [ ] T007 [US1] Render and inspect Full and Reduced candidates at 256, 64, 32, and 16 pixels on dark, light, black, and white; record all 32 proof hashes and measured small-size/topology results.
+- [x] T005 [US1] Compare role-correct authoritative PNG binding with a constructed master against `skill/references/06-logo-protocol.md`, `skill/references/09-portability.md`, small-size behavior, and source preservation; record the chosen proposal and rejected alternative in the private brief.
+- [x] T006 [US1] Prepare exact Full and Reduced source candidates, source hashes, color qualification, framing, allowed transformations, renderer and mask/helper settings, and identity comparison evidence in ignored private output.
+- [x] T007 [US1] Render and inspect Full and Reduced candidates at 256, 64, 32, and 16 pixels on dark, light, black, and white; record all 32 proof hashes and measured small-size/topology results.
 - [ ] T008 [US1] Present Gate 1 packet for explicit owner approval or revision. Record the exact decision, approver, date, scope, and source digest in the canonical continuity/approval record only after approval.
 - [ ] T009 [US1] Promote only the approved production sources into `brands/scruggs-tire-alignment/assets/source/`; verify byte and hash identity against Gate 1 and reject any drift.
 

@@ -1,6 +1,6 @@
 # Research: Scruggs Tire & Alignment
 
-**Observed**: 2026-09-28. This file records reference evidence and planning decisions, not creative approval.
+**Observed**: 2026-09-28, refreshed 2026-09-29. This file records reference evidence and planning decisions, not creative approval.
 
 ## Authority and source inventory
 
@@ -25,6 +25,8 @@ PNG IHDR inspection found that `Scruggs_Logo_LightBG.png` is non-interlaced RGBA
 
 The site currently calls Scruggs Tire & Alignment a family-owned tire and alignment shop serving Greer and nearby Greenville, South Carolina since 1989. It describes computerized alignments, tire sales and repair, steering and suspension, brakes, inspections, and truck lift and leveling work. These are claims from the client's own public site as of the observation date; any copied public fact must be refreshed at implementation or publication. The site's footer credits ShruggieTech with site design and management, which does not transfer ownership or create an endorsement lockup for the new brand kit.
 
+On 2026-09-29, the [live client site](https://scruggstires.com/) still presented the same family-owned Greer and Greenville positioning, since-1989 claim, service categories, and site-management credit. Its contact facts were observed but have not been copied into proposed brand copy. The owner requested public showcase on the official brand site, while exact creative sources still require the two repository approval gates. The supplied ZIP is the source-right basis for private candidate work; Gate 1 will decide whether these exact embedded image bytes become production sources.
+
 ## Measured color implications
 
 The following WCAG relative-luminance ratios are planning measurements against pure white, before final rendered-size qualification. Ordinary text requires at least 4.5:1; relevant non-text fills require at least 3:1.
@@ -41,7 +43,7 @@ The following WCAG relative-luminance ratios are planning measurements against p
 ## Decisions and alternatives
 
 1. **Reference precedence**: Use the owner's scope and constitution for requirements, the live site and ZIP base assets for current design evidence, and the old-site archive only if a later named decision truly needs it. This honors the explicit source hierarchy without discarding useful context.
-2. **Logo source mode remains undecided**: The live-identical RGBA8 lockup is a plausible authoritative Full candidate if its topology and owner-approved role qualify. The indexed-color favicon is a Reduced concept but needs a supported production source or an explicitly approved construction. A constructed vector master is another option. The choice changes production identity, so Gate 1 must review exact candidates and evidence. A raster trace is not automatically canonical.
+2. **Logo source proposal**: [Gate 1 review](gate1-review.md) proposes passive authoritative SVG wrappers containing the unchanged live-identical Full PNG and unchanged Reduced favicon PNG. This supports the indexed original without silently altering its pixels. A newly constructed vector master would reinterpret the existing artwork and is not proposed. Source mode and plate treatment become binding only through explicit Gate 1 approval.
 3. **Typography remains a proposal**: The live site uses Montserrat headings and Roboto body, but those faces are not presently in the shared font store. Existing locally licensed Poppins and Source Sans 3 are implementation candidates, not approved substitutes. Importing Montserrat or Roboto requires controlled source, hash, and license evidence if chosen.
 4. **Third-party affiliation**: Use the existing independent-brand contract with client ownership and no inherited ShruggieTech tokens. The site's service credit is a separate optional choice; omit it from the new kit until explicitly selected.
 5. **Publication authorization**: The owner has requested the official brand-site outcome. The repository's exact Gate 1 and Gate 2 creative decisions plus zero-problem verification remain prerequisites; no inferred approval is recorded.

@@ -1,4 +1,4 @@
-# Verification: S066 Planning Stage
+# Verification: S066 Planning and Gate 1 Candidate
 
 **Date**: 2026-09-28
 
@@ -15,4 +15,14 @@
 
 ## Not yet verified
 
-No production mark, approval ledger, complete kit, generated PDF/raster set, `verify.py`, `validate_glyph.py`, aggregate build, site build, or hosted website result exists for Scruggs in this planning stage. Gate 1 and Gate 2 decisions remain pending. No public publication or pull request has been performed.
+No approved production mark, approval ledger, complete kit, generated PDF/raster set, `verify.py`, `validate_glyph.py`, aggregate build, site build, or hosted website result exists for Scruggs. Gate 1 and Gate 2 decisions remain pending. No public publication or pull request has been performed.
+
+## 2026-09-29 candidate evidence
+
+- Refreshed the [current client site](https://scruggstires.com/) and confirmed the family-owned Greer and Greenville positioning, since-1989 claim, services, and site-management credit remain present.
+- Created passive authoritative Full and Reduced candidate SVG sources under ignored `dist/scruggs-gate1-candidate/`, embedding the two supplied PNG byte streams unchanged. Source SHA-256 values and native mask bounds/topology are recorded in [gate1-review.md](gate1-review.md) and the private packet.
+- Validated the thirteen-topic private authoring brief with `skill/templates/authoring_brief.py`'s `validate_brief` function. Social copy and both creative gates remain unresolved.
+- Ran `identity_continuity.generate_current_proofs` with the actual production `gen_logo.py` staging and `node-resvg` renderer. It produced all 32 expected Full/Reduced, size, and surface combinations.
+- Repeated the production staging in a separate private root and required byte-identical SHA-256 for all 32 proof PNGs. `compare_proofs` reported 32 exact matches and emitted side-by-side, alpha-overlay, silhouette-XOR, and color-difference evidence for every coordinate.
+- Recomputed sRGB role map, OKLCH triplets, and candidate contrast pairings. `validate_palette_qualification` accepted the role-bound evidence. Bright red fails ordinary text on white at 4.3904:1 and is explicitly excluded from that use; this is not a waiver.
+- Candidate packet canonical content digest: `3c5771a96bb391db46b315ddccd292bfdaf0c2b53026a73dd4df1b0e79025faf`. Identity snapshot SHA-256: `5adfd4f346f8fe6092b4755408e9c3d957f088d938253cb89103479956c32979`. Both belong to a private, unapproved candidate.

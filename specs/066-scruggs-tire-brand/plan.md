@@ -53,6 +53,10 @@ dist/                                      # Ignored provisional packets and gen
 
 **Structure Decision**: Reuse the repository's current source and generator schema. ZIP paths and old-site contents never become a parallel kit format.
 
+## 2026-09-29 source candidate decision
+
+The [Gate 1 review](gate1-review.md) proposes authoritative passive SVG sources that embed the current Full image and Reduced favicon without changing their supplied pixels. The Full source adds an explicit white plate so its black wordmark remains legible on dark surfaces. The Reduced mark is selected below 128 pixels because the Full wordmark is unreadable in the 64-pixel and smaller proofs. A newly constructed vector identity was considered and declined for this candidate because it would reinterpret the supplied geometry. These are candidate design choices awaiting the exact owner Gate 1 decision, not approved production bindings.
+
 ## Downstream verification
 
 `quickstart.md` names the existing build flow and approval stops. A planning-only commit can be checked for specification quality, formatting, and repository hygiene. It cannot claim production kit, glyph, or hosted publication results before approved source and implementation exist.
