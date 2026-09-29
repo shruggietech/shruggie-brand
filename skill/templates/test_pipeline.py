@@ -1755,6 +1755,79 @@ class PipelineTests(unittest.TestCase):
             verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
             self.assertTrue(any("metadata disagrees" in problem for problem in report.problems))
 
+    def test_supplied_reduced_colourway_and_wordmarks_keep_exact_source_bytes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "i-heart-pr-tours"
+            shutil.copytree(ROOT / "brands" / "i-heart-pr-tours", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts")
+            self.write_probe(kit)
+            brand_path = kit / "brand.json"
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            sources = kit / "assets" / "source"
+            for name, role, color in (
+                    ("reduced-light", "lockup", "#111111"),
+                    ("wordmark-color", "wordmark", "#F8F8F6"),
+                    ("wordmark-light", "lockup", "#111111"),
+                    ("wordmark-black", "lockup", "#000000"),
+                    ("wordmark-white", "lockup", "#FFFFFF")):
+                path = sources / (name + ".svg")
+                write_utf8(path, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 10" width="20" height="10"><path fill="%s" d="M0 0H20V10H0Z"/></svg>\n' % color)
+                brand["authoritative_inputs"].append({
+                    "id": name, "role": role, "path": "assets/source/%s.svg" % name,
+                    "format": "svg", "sha256": sha256_file(path), "color_profile": "none",
+                    "usage_status": "approved", "license": "Test fixture",
+                    "approved_transformations": ["embed-unchanged", "resize"],
+                })
+            brand["logo"]["reduced_colourway_input_ids"] = {"light": "reduced-light"}
+            brand["logo"]["supplied_wordmark_input_ids"] = {
+                "color": "wordmark-color", "light": "wordmark-light",
+                "black": "wordmark-black", "white": "wordmark-white",
+            }
+            brand["approval_ledger"]["gate_1"]["unavailable_derivatives"].pop("wordmark-only")
+            brand["approval_ledger"]["gate_1"]["scope"].append("wordmark-only")
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(brand_path), str(kit)]
+                with mock.patch("identity_continuity.write_continuity_report"):
+                    self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            output = kit / "logos" / "svg"
+            self.assertEqual((sources / "reduced-light.svg").read_bytes(),
+                             (output / "i-heart-pr-tours-mark-reduced-light.svg").read_bytes())
+            for colourway in ("color", "light", "black", "white"):
+                self.assertEqual((sources / ("wordmark-" + colourway + ".svg")).read_bytes(),
+                                 (output / ("i-heart-pr-tours-wordmark-" + colourway + ".svg")).read_bytes())
+            self.assertEqual((sources / "vertical_lightbg.svg").read_bytes(),
+                             (output / "i-heart-pr-tours-stacked-light.svg").read_bytes())
+            provenance = json.loads((kit / "logos" / "provenance.json").read_text(encoding="utf-8"))
+            wordmark = next(item for item in provenance["derivatives"] if item["path"].endswith("-wordmark-light.svg"))
+            self.assertEqual("authoritative", wordmark["source_mode"])
+            self.assertEqual("wordmark-light", wordmark["input_id"])
+
+            del brand["logo"]["supplied_wordmark_input_ids"]["black"]
+            del brand["logo"]["supplied_wordmark_input_ids"]["white"]
+            brand["logo"]["single_ink"]["wordmark_input_id"] = "wordmark-light"
+            next(item for item in brand["authoritative_inputs"] if item["id"] == "wordmark-light")[
+                "approved_transformations"].append("derive-single-ink")
+            write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+            old_argv = sys.argv
+            try:
+                sys.argv = ["gen_logo.py", str(brand_path), str(kit)]
+                with mock.patch("identity_continuity.write_continuity_report"):
+                    self.assertEqual(gen_logo.main(), 0)
+            finally:
+                sys.argv = old_argv
+            derived = json.loads((kit / "logos" / "provenance.json").read_text(encoding="utf-8"))
+            for colourway in ("black", "white"):
+                row = next(item for item in derived["derivatives"] if item["path"].endswith(
+                    "-wordmark-" + colourway + ".svg"))
+                self.assertEqual("wordmark-light", row["input_id"])
+                self.assertEqual(["derive-single-ink", "resize"], row["transformations"])
+                self.assertNotEqual((sources / ("wordmark-" + colourway + ".svg")).read_bytes(),
+                                    (kit / row["path"]).read_bytes())
+
     def test_portable_gate_two_requires_exact_canonical_manifest_and_identical_decoded_pixels(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

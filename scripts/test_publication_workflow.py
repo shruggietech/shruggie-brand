@@ -21,6 +21,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "build.yml"
 PRODUCTION = (
     "covarity",
     "cueson",
+    "dancewithme865",
     "eso-weave",
     "fragcap",
     "glitchpad",

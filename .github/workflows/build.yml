@@ -86,6 +86,8 @@ jobs:
           node-version: 26.5.0
       - name: Export Scruggs approved identity evidence
         run: python scripts/export_approved_identity_proofs.py brands/scruggs-tire-alignment dist/ci-approved-proofs/scruggs-tire-alignment
+      - name: Export DanceWithMe865 approved identity evidence
+        run: python scripts/export_approved_identity_proofs.py brands/dancewithme865 dist/ci-approved-proofs/dancewithme865
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
           name: approved-identity-proofs-${{ github.sha }}
@@ -168,14 +170,14 @@ jobs:
       - name: Probe capabilities
         run: python skill/templates/probe.py
       - name: Build and verify kits approved with Node 24
-        run: python scripts/build_all.py --exclude scruggs-tire-alignment
+        run: python scripts/build_all.py --exclude scruggs-tire-alignment dancewithme865
         env:
           GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 26.5.0
-      - name: Build and verify Scruggs with its approved renderer
-        run: python scripts/build_all.py scruggs-tire-alignment
+      - name: Build and verify clients with their approved renderer
+        run: python scripts/build_all.py scruggs-tire-alignment dancewithme865
         env:
           GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
       - name: Install audited WordPress fixture runner
@@ -235,11 +237,13 @@ jobs:
           path: |
             dist/covarity/
             dist/cueson/
+            dist/dancewithme865/
             dist/eso-weave/
             dist/fragcap/
             dist/glitchpad/
             dist/go-schedule/
             dist/i-heart-pr-tours/
+            dist/scruggs-tire-alignment/
             dist/shruggietech/
           if-no-files-found: error
           include-hidden-files: true

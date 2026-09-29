@@ -1,0 +1,513 @@
+{
+  "$schema": "../../skill/references/canon.schema.json",
+  "id": "dancewithme865",
+  "kind": "independent-brand",
+  "title": "DanceWithMe865",
+  "slug": "dancewithme865",
+  "version": "1.0.0",
+  "canon": "1.6.0",
+  "registry_base": "https://brand.shruggie.tech/dancewithme865/brand",
+  "showcase_surface": "light.card",
+  "guide": {
+    "surface_mode": "light"
+  },
+  "social_copy": {
+    "slogan": "DanceWithMe865",
+    "layout": "slogan-only",
+    "description_lines": [],
+    "approval": {
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-29",
+      "source": "Owner reply to exact social share image wording question: DanceWithMe865 only"
+    }
+  },
+  "affiliation": {
+    "ownership": "third-party",
+    "showcase": "public",
+    "parent": null,
+    "inheritance": "independent",
+    "endorsement": "none",
+    "service_credit": "none"
+  },
+  "vendor_boundary": {
+    "required": true,
+    "notice": "DanceWithMe865 is an independent client brand. DanceWithMe865 owns its trademarks and is responsible for its services and applicable terms.",
+    "entities": [
+      "DanceWithMe865"
+    ],
+    "trademark_owner": "DanceWithMe865",
+    "terms_responsibility": "DanceWithMe865 owns its trademarks and is responsible for its services and applicable terms."
+  },
+  "descriptor": "An independent dance brand.",
+  "brand_idea": "DanceWithMe865",
+  "category": "Dance brand",
+  "wordmark_text": "DANCEWITHME865",
+  "assumptions": [
+    "The supplied vector artwork is an exact candidate, not a transferred creative approval.",
+    "The outlined upright wordmark and red 865 block are retained from owner-supplied artwork.",
+    "Services, location, and promotional claims await client confirmation.",
+    "The owner approved DanceWithMe865 alone for the social share image."
+  ],
+  "accent": {
+    "bright": "#FF493D",
+    "deep": "#DF221E",
+    "accessible": "#BE1F1C",
+    "dim": "#F77B72"
+  },
+  "semantic_colors": {
+    "emphasis": "#FF493D",
+    "action": "#BE1F1C"
+  },
+  "legacy_palette": [
+    "#08090A",
+    "#F8F8F6",
+    "#DF221E",
+    "#FF493D",
+    "#FFFFFF",
+    "#000000"
+  ],
+  "surfaces": {
+    "base": "#08090A",
+    "card": "#17181B",
+    "popover": "#1A1B1E",
+    "secondary": "#1D1E22",
+    "hover": "#202126"
+  },
+  "light_surfaces": {
+    "base": "#FFFFFF",
+    "card": "#FFFFFF",
+    "popover": "#FFFFFF",
+    "secondary": "#F8F8F6",
+    "hover": "#F1F1EF",
+    "foreground": "#08090A",
+    "muted_foreground": "#4A4B4D"
+  },
+  "color_roles": {
+    "identity": [
+      {
+        "id": "signature-red",
+        "label": "Signature Red",
+        "source": "brand.accent.deep",
+        "use": "Red 865 block on light surfaces"
+      },
+      {
+        "id": "night-red",
+        "label": "Night Red",
+        "source": "brand.accent.bright",
+        "use": "Red 865 block on dark surfaces"
+      },
+      {
+        "id": "ink",
+        "label": "Ink",
+        "source": "brand.legacy_palette.0",
+        "use": "Light-surface DWM and wordmark"
+      },
+      {
+        "id": "paper",
+        "label": "Paper",
+        "source": "brand.legacy_palette.1",
+        "use": "Dark-surface DWM and wordmark"
+      }
+    ],
+    "combinations": [
+      {
+        "id": "light-lockup",
+        "label": "Light lockup",
+        "colors": [
+          "ink",
+          "signature-red",
+          "paper"
+        ],
+        "artwork": "logo.full",
+        "use": "Approved stacked and horizontal light treatments"
+      },
+      {
+        "id": "dark-lockup",
+        "label": "Dark lockup",
+        "colors": [
+          "paper",
+          "night-red",
+          "ink"
+        ],
+        "artwork": "logo.full",
+        "use": "Approved stacked and horizontal dark treatments"
+      }
+    ]
+  },
+  "typography": {
+    "mode": "fixed",
+    "families": {
+      "display": {
+        "name": "Kanit",
+        "weights": [
+          900
+        ]
+      },
+      "body": {
+        "name": "Rubik",
+        "weights": [
+          400,
+          700
+        ]
+      },
+      "mono": {
+        "name": "Source Code Pro",
+        "weights": [
+          400
+        ]
+      }
+    },
+    "faces": [
+      {
+        "role": "display",
+        "path": "fonts/ttf/Kanit-900-normal.ttf",
+        "weight": 900,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "5d290c2cc9926764bd782aa6abc47a8f55bd64641d0afb56e115ee522698ee7e",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied font binary; upstream Google Fonts OFL text in assets/fonts/licenses",
+        "usage_status": "approved"
+      },
+      {
+        "role": "body",
+        "path": "fonts/ttf/Rubik-Regular.ttf",
+        "weight": 400,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "bd1490f4314d27ca1ac5d8869fdda068852edd623318c9bee13e812b793b301b",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied font binary; upstream Google Fonts OFL text in assets/fonts/licenses",
+        "usage_status": "approved"
+      },
+      {
+        "role": "body",
+        "path": "fonts/ttf/Rubik-Bold.ttf",
+        "weight": 700,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "b1c36dfcbc5fe5011c552c76725c84d989a71d56440e8bfbfa0cb68b593dbad6",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied font binary; upstream Google Fonts OFL text in assets/fonts/licenses",
+        "usage_status": "approved"
+      },
+      {
+        "role": "mono",
+        "path": "fonts/ttf/SourceCodePro-Regular.ttf",
+        "weight": 400,
+        "style": "normal",
+        "format": "ttf",
+        "sha256": "f144137f557805c7327fc4b14d1d730f6e1822e0124170251ff1bcd723a693f1",
+        "license": "OFL-1.1",
+        "provenance": "Owner-supplied font binary; upstream Google Fonts OFL text in assets/fonts/licenses",
+        "usage_status": "approved"
+      }
+    ]
+  },
+  "authoritative_inputs": [
+    {
+      "id": "mark-color",
+      "role": "mark",
+      "path": "assets/source/mark-color.svg",
+      "format": "svg",
+      "sha256": "8520437bc7ff10585f08437b99bb5c2ae1d7c558c88577dfdcbb268604a44fb8",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ]
+    },
+    {
+      "id": "mark-light",
+      "role": "lockup",
+      "path": "assets/source/mark-light.svg",
+      "format": "svg",
+      "sha256": "665b20d244ff8b61666a6e391038cd9ffcc3c8063480db8d923d13c309fe9bb5",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "mark-reduced-color",
+      "role": "reduced-mark",
+      "path": "assets/source/mark-reduced-color.svg",
+      "format": "svg",
+      "sha256": "c3ccd7d758d5487daa77463fb133795bc6d637c1a8511e9e226ef694bbeeebfb",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ]
+    },
+    {
+      "id": "mark-reduced-light",
+      "role": "lockup",
+      "path": "assets/source/mark-reduced-light.svg",
+      "format": "svg",
+      "sha256": "042845984eeeae0b96912e2b9281dca34aea15621994759dabaa9ec097c192ab",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "horizontal-color",
+      "role": "lockup",
+      "path": "assets/source/horizontal-color.svg",
+      "format": "svg",
+      "sha256": "9bff92488079ce42f47d1b176897077bc92d81045524908dfe82cf1c83a3a69c",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ]
+    },
+    {
+      "id": "horizontal-light",
+      "role": "lockup",
+      "path": "assets/source/horizontal-light.svg",
+      "format": "svg",
+      "sha256": "c76476a5ed747512359e703cd64604886c8524848a282e89824e0a9422f8694a",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "stacked-color",
+      "role": "lockup",
+      "path": "assets/source/stacked-color.svg",
+      "format": "svg",
+      "sha256": "bc0fc8e112f59377524c72092650242f679bff9c397d8115f8681019e52ce7fe",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ]
+    },
+    {
+      "id": "stacked-light",
+      "role": "lockup",
+      "path": "assets/source/stacked-light.svg",
+      "format": "svg",
+      "sha256": "49512e24f3d9ed2c9b649441a51bd8697e2429278b1d526e4f2f6c1ff7e68cf4",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ]
+    },
+    {
+      "id": "wordmark-color",
+      "role": "wordmark",
+      "path": "assets/source/wordmark-color.svg",
+      "format": "svg",
+      "sha256": "930400d442e25d0ac8ae59e5330c33d0b3a26e5588cee49a78cd8b51c1c7fa2e",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis"
+      ]
+    },
+    {
+      "id": "wordmark-light",
+      "role": "lockup",
+      "path": "assets/source/wordmark-light.svg",
+      "format": "svg",
+      "sha256": "216600bef8fc87446fb53f9e798123754195383ba1868324a2acdbec3a5be895",
+      "color_profile": "embedded",
+      "usage_status": "approved",
+      "license": "Owner-supplied DanceWithMe865 client identity source for official brand website use, 2026-09-29",
+      "approved_transformations": [
+        "embed-unchanged",
+        "resize",
+        "place-in-lockup",
+        "palette-analysis",
+        "derive-single-ink"
+      ]
+    }
+  ],
+  "logo": {
+    "source_mode": "authoritative",
+    "direct_source_outputs": true,
+    "authoritative_input_ids": {
+      "full": "mark-color",
+      "reduced": "mark-reduced-color"
+    },
+    "colourways": [
+      "color",
+      "light",
+      "black",
+      "white"
+    ],
+    "full_colourway_input_ids": {
+      "light": "mark-light"
+    },
+    "reduced_colourway_input_ids": {
+      "light": "mark-reduced-light"
+    },
+    "supplied_lockup_input_ids": {
+      "horizontal": {
+        "color": "horizontal-color",
+        "light": "horizontal-light"
+      },
+      "stacked": {
+        "color": "stacked-color",
+        "light": "stacked-light"
+      }
+    },
+    "supplied_wordmark_input_ids": {
+      "color": "wordmark-color",
+      "light": "wordmark-light"
+    },
+    "single_ink": {
+      "full_input_id": "mark-light",
+      "reduced_input_id": "mark-reduced-light",
+      "horizontal_input_id": "horizontal-light",
+      "stacked_input_id": "stacked-light",
+      "wordmark_input_id": "wordmark-light",
+      "alpha_floor": 112,
+      "alpha_transition": 80,
+      "white_knockout_floor": 239,
+      "white_knockout_transition": 56
+    },
+    "geometry_provenance": "imported",
+    "geometry_provenance_reason": "Owner-supplied DWM vectors are preserved byte for byte; no path reconstruction is permitted.",
+    "grid": 1000,
+    "canvas_width": 1000,
+    "canvas_height": 1000,
+    "artwork_width": 849.4,
+    "artwork_height": 269.35,
+    "reduced_artwork_width": 849.4,
+    "reduced_artwork_height": 269.35,
+    "clear_space_units": 75,
+    "standalone_padding_units": 75,
+    "reduced_below_px": 32,
+    "application_icon": {
+      "background": "#DF221E",
+      "windows_unplated": false,
+      "source_variant": "reduced"
+    },
+    "paths": {
+      "full": [
+        {
+          "element": "image",
+          "source": "assets/source/mark-color.svg",
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 1000
+        }
+      ],
+      "reduced": [
+        {
+          "element": "image",
+          "source": "assets/source/mark-reduced-color.svg",
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 1000
+        }
+      ]
+    }
+  },
+  "identity_continuity": {
+    "record": "identity-continuity.json",
+    "status": "approved-canonical"
+  },
+  "approval_ledger": {
+    "source_hashes": {
+      "mark-color": "8520437bc7ff10585f08437b99bb5c2ae1d7c558c88577dfdcbb268604a44fb8",
+      "mark-light": "665b20d244ff8b61666a6e391038cd9ffcc3c8063480db8d923d13c309fe9bb5",
+      "mark-reduced-color": "c3ccd7d758d5487daa77463fb133795bc6d637c1a8511e9e226ef694bbeeebfb",
+      "mark-reduced-light": "042845984eeeae0b96912e2b9281dca34aea15621994759dabaa9ec097c192ab",
+      "horizontal-color": "9bff92488079ce42f47d1b176897077bc92d81045524908dfe82cf1c83a3a69c",
+      "horizontal-light": "c76476a5ed747512359e703cd64604886c8524848a282e89824e0a9422f8694a",
+      "stacked-color": "bc0fc8e112f59377524c72092650242f679bff9c397d8115f8681019e52ce7fe",
+      "stacked-light": "49512e24f3d9ed2c9b649441a51bd8697e2429278b1d526e4f2f6c1ff7e68cf4",
+      "wordmark-color": "930400d442e25d0ac8ae59e5330c33d0b3a26e5588cee49a78cd8b51c1c7fa2e",
+      "wordmark-light": "216600bef8fc87446fb53f9e798123754195383ba1868324a2acdbec3a5be895"
+    },
+    "gate_1": {
+      "status": "approved",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-29",
+      "scope": [
+        "horizontal-lockup",
+        "reduced-and-platform",
+        "single-ink",
+        "stacked-lockup",
+        "wordmark-only"
+      ],
+      "derivative_config_sha256": "4f064a05edf427127c2c86b29efe582d715d9fcd98b99c58b76a38e6a0cff79d",
+      "canonical_source_sha256": "fb59ab31d5bfa0d5edda61e3c76cc4c84a517e96c11597848d2780640cf75f3c"
+    },
+    "gate_2": {
+      "status": "approved",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-29",
+      "derivative_manifest_sha256": "9b6d6ae94885dc4a0b14edc8d4ba854d3f212cce526e06d555aa6a3b5aabe727",
+      "surfaces": [
+        "brand-landing-page",
+        "downloads",
+        "guideline-topics",
+        "public-metadata",
+        "registry-endpoints",
+        "showcase-card",
+        "social-preview",
+        "structured-data"
+      ]
+    }
+  },
+  "social_image_approval": {
+    "approved_by": "repository owner",
+    "approved_on": "2026-09-29",
+    "source": "Owner approved Gate 2 packet a8f4283ce4986b8b8ca09ed02e11d6aeed4821b2c1676e66a236001798086b64 with exact wording: APPROVED. CONTINUE",
+    "svg_sha256": "a41609cfe07320bc4d53cb9b1e1cdcb559acf5aa5fbd2ef353efbeef898e4fed",
+    "png_sha256": "3f94eb54331816c2950b25c74cc88666dec84a1ee6073047340337ca245440b8"
+  }
+}

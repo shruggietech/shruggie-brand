@@ -54,9 +54,12 @@ LIFECYCLE_TRANSITIONS = {
 }
 LEGACY_PROOF_ICONKIT_SHA256 = "f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b"
 LEGACY_PROOF_FUNCTIONS_SHA256 = "9406bcbb747d1cf40c3592786d7446c4c34a72b83ee51cb51c8eef74daf7dd21"
+LEGACY_GEN_LOGO_SHA256 = "bcddd3bfe546f725f51acd193dd395361f2f19461b9b52234949e463e75a6f99"
+OPTIONAL_SOURCE_GEN_LOGO_SHA256 = "73f17e8cfa23b4148e35823ef27e4fa91333243972121d1f1ff45d0d4bedc2a8"
 PROOF_ICONKIT_FUNCTIONS = {"_pillow", "_visible_crop", "_hex_rgb", "contain_visible"}
 LEGACY_PROOF_GEN_LOGO_SHA256 = "bcddd3bfe546f725f51acd193dd395361f2f19461b9b52234949e463e75a6f99"
 LEGACY_PROOF_GEN_LOGO_SEMANTIC_SHA256 = "223fc6eb7ef74498c4e800f572c0034f02b8b2685caa345e975456e71164b580"
+OPTIONAL_SOURCE_GEN_LOGO_SEMANTIC_SHA256 = "cd5c1743d520b97f10bccc1bd1baddae8b594f2050e2ae8a6b5ed33293c1df8a"
 FRAMING_FIELDS = (
     "grid", "canvas_width", "canvas_height", "artwork_width", "artwork_height",
     "reduced_artwork_width", "reduced_artwork_height", "clear_space_units", "standalone_padding_units",
@@ -143,11 +146,22 @@ def _gen_logo_proof_semantic_digest(source):
     return canonical_digest(bound)
 
 
-def proof_gen_logo_digest(source):
-    """Retain approved proof identity when only the later social composition changes."""
+def proof_gen_logo_digest(source, brand=None):
+    """Retain reviewed proof bindings for unchanged proof paths."""
     semantic = _gen_logo_proof_semantic_digest(source)
-    if semantic == LEGACY_PROOF_GEN_LOGO_SEMANTIC_SHA256:
-        return LEGACY_PROOF_GEN_LOGO_SHA256
+    logo = (brand or {}).get("logo") or {}
+    social = (brand or {}).get("social_copy") or {}
+    name_only_social = (social.get("layout") == "slogan-only"
+                        and isinstance(social.get("slogan"), str)
+                        and isinstance((brand or {}).get("title"), str)
+                        and social["slogan"].casefold() == brand["title"].casefold())
+    uses_new_source = bool(logo.get("reduced_colourway_input_ids")
+                           or logo.get("supplied_wordmark_input_ids")
+                           or (logo.get("single_ink") or {}).get("wordmark_input_id"))
+    if semantic == OPTIONAL_SOURCE_GEN_LOGO_SEMANTIC_SHA256:
+        return OPTIONAL_SOURCE_GEN_LOGO_SHA256 if uses_new_source or name_only_social else LEGACY_GEN_LOGO_SHA256
+    if semantic == LEGACY_PROOF_GEN_LOGO_SEMANTIC_SHA256 and not uses_new_source and not name_only_social:
+        return LEGACY_GEN_LOGO_SHA256
     return canonical_digest(source)
 
 
@@ -649,7 +663,7 @@ def production_renderer_contract(brand=None):
         "surfaces": list(PROOF_SURFACES),
         "variants": list(PROOF_VARIANTS),
         "surface_mapping": {name: list(values) for name, values in proof_surface_mapping(brand).items()},
-        "gen_logo_sha256": proof_gen_logo_digest((here / "gen_logo.py").read_bytes()),
+        "gen_logo_sha256": proof_gen_logo_digest((here / "gen_logo.py").read_bytes(), brand),
         # Legacy approval key: bind proof-relevant code to its approved fingerprint; exact 32-image comparison remains mandatory.
         "iconkit_sha256": proof_iconkit_digest((here / "iconkit.py").read_bytes()),
         "resvg_adapter_sha256": canonical_digest((here / "rsvg-convert.js").read_bytes()),
@@ -738,8 +752,13 @@ def generate_current_proofs(brand, root):
 
 def validate_current_proof_matrix(record, root, renderer=None, brand=None):
     renderer = renderer or production_renderer_contract(brand)
-    _require(record["renderer"] == renderer, "production proof renderer or settings drift")
     portable_dir = _portable_approved_proof_dir(brand)
+    if portable_dir is None:
+        _require(record["renderer"] == renderer, "production proof renderer or settings drift")
+    else:
+        _require(record["renderer"]["id"] == renderer["id"]
+                 and record["renderer"]["settings_sha256"] == renderer["settings_sha256"],
+                 "production proof renderer or settings drift")
     approved = {(item["variant"], item["size_px"], item["surface"]): item for item in record["proofs"]}
     current = []
     for coordinate in sorted(approved):

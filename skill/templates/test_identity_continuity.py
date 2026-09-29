@@ -43,6 +43,7 @@ from identity_continuity import (  # noqa: E402
     validate_record,
     write_continuity_report,
 )
+from identity_continuity import LEGACY_GEN_LOGO_SHA256  # noqa: E402
 from promote_identity import PromotionError, promote  # noqa: E402
 
 
@@ -184,6 +185,17 @@ class IdentityContinuityTests(unittest.TestCase):
         self.assertNotEqual(proof_iconkit_digest(source), proof_iconkit_digest(changed))
         changed_import = source.replace(b"import base64", b"import base64\nimport secrets", 1)
         self.assertNotEqual(proof_iconkit_digest(source), proof_iconkit_digest(changed_import))
+
+    def test_optional_logo_paths_preserve_only_unaffected_legacy_proof_digest(self):
+        source = (HERE / "gen_logo.py").read_bytes()
+        legacy = brand_fixture()
+        self.assertEqual(LEGACY_GEN_LOGO_SHA256, proof_gen_logo_digest(source, legacy))
+        revised = copy.deepcopy(legacy)
+        revised["logo"]["reduced_colourway_input_ids"] = {"light": "reviewed-reduced"}
+        self.assertEqual("73f17e8cfa23b4148e35823ef27e4fa91333243972121d1f1ff45d0d4bedc2a8",
+                         proof_gen_logo_digest(source, revised))
+        changed = source.replace(b"import binascii", b"import binascii\nimport secrets", 1)
+        self.assertNotEqual(LEGACY_GEN_LOGO_SHA256, proof_gen_logo_digest(changed, legacy))
 
     def make_promotion_bundle(self, root):
         approval = root / "approval"
@@ -513,15 +525,17 @@ class IdentityContinuityTests(unittest.TestCase):
                 (generated / name).write_bytes(payload)
                 (portable / name).write_bytes(payload)
             with mock.patch.dict(os.environ, {"GP_APPROVED_PROOF_ROOT": str(root / "portable")}):
+                local_renderer = dict(record["renderer"])
+                local_renderer["version"] = "different-runtime"
                 result = validate_current_proof_matrix(
-                    record, source, renderer=record["renderer"], brand={"slug": "example"}
+                    record, source, renderer=local_renderer, brand={"slug": "example"}
                 )
                 self.assertTrue(all(not item["comparison"]["same_renderer"] for item in result["proofs"]))
                 first = portable / "full-256-dark.png"
                 first.write_bytes(first.read_bytes() + b"drift")
                 with self.assertRaisesRegex(ContinuityError, "portable approved proof hash drift"):
                     validate_current_proof_matrix(
-                        record, source, renderer=record["renderer"], brand={"slug": "example"}
+                        record, source, renderer=local_renderer, brand={"slug": "example"}
                     )
 
     def test_approved_report_binds_fresh_production_proof_matrix(self):

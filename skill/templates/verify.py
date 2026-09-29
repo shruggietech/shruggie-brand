@@ -2311,7 +2311,7 @@ def c_logo_provenance(kit, brand, rep):
             social_image_approval(brand, kit, raster_required=bool(capabilities.get("svg_raster")))
         except Exception as error:
             problems.append(str(error))
-    if authority["source_mode"] == "authoritative" and checked_sources != {"full", "reduced"}:
+    if authority["source_mode"] == "authoritative" and not {"full", "reduced"}.issubset(checked_sources):
         problems.append("authoritative Full and Reduced sources were not both verified")
     if problems:
         rep.bad("logo-provenance", "; ".join(problems[:20]))
