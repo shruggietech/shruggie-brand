@@ -7,6 +7,7 @@ import publication from '../generated/publication.json' with { type: 'json' };
 import documentationPublication from '../generated/documentation-publication.json' with { type: 'json' };
 import canon from '../../skill/references/01-canon.json' with { type: 'json' };
 import { existsSync, readFileSync } from 'node:fs';
+import { releaseBadge } from '../lib/documentation-sidebar-publication.mjs';
 
 if (documentationPublication.version !== publication.version || documentationPublication.sourceRevision !== publication.sourceRevision || documentationPublication.status !== publication.status) throw new Error('manual identity differs from publication identity');
 if (JSON.stringify(documentationPublication) !== JSON.stringify(JSON.parse(readFileSync(new URL('../out/docs/publication.json', import.meta.url), 'utf8')))) throw new Error('exported manual publication record differs');
@@ -31,6 +32,7 @@ const guidelineLayoutSource = readFileSync(new URL('../app/(guidelines)/[slug]/l
 const guidelinePageSource = readFileSync(new URL('../app/(guidelines)/[slug]/guidelines/[[...topic]]/page.tsx', import.meta.url), 'utf8');
 const downloadsSource = readFileSync(new URL('../components/guidelines/downloads-content.tsx', import.meta.url), 'utf8');
 const documentationLayoutSource = readFileSync(new URL('../app/docs/layout.tsx', import.meta.url), 'utf8');
+const documentationSidebarThemeSource = readFileSync(new URL('../components/documentation-sidebar-theme.tsx', import.meta.url), 'utf8');
 const documentationPageSource = readFileSync(new URL('../app/docs/[[...slug]]/page.tsx', import.meta.url), 'utf8');
 const documentationOverviewsSource = readFileSync(new URL('../components/documentation-overviews.tsx', import.meta.url), 'utf8');
 const documentationTreeSource = readFileSync(new URL('../lib/documentation.ts', import.meta.url), 'utf8');
@@ -62,6 +64,10 @@ if (footerPolicyProblems(expectedFooterRecords.map((record) => record.label === 
 if (!marketingLayoutSource.includes('<Footer />')) throw new Error('marketing layout no longer renders the shared footer');
 if (documentationPageSource.includes("@/components/footer") || documentationPageSource.includes('<Footer')) throw new Error('documentation page composes the shared marketing footer');
 if (!documentationPageSource.includes("footer={{ className: 'docs-pagination'")) throw new Error('documentation page no longer provides contextual pagination');
+if (!documentationLayoutSource.includes('themeSwitch: DocumentationSidebarTheme') || !documentationSidebarThemeSource.includes('releaseBadge(publication)')) throw new Error('manual sidebar footer does not derive its version from the publication record');
+if (JSON.stringify(releaseBadge({ status: 'release', version: '1.2.3', releaseUrl: 'https://example.test/releases/v1.2.3' })) !== JSON.stringify({ label: 'BrandBuilder 1.2.3', href: 'https://example.test/releases/v1.2.3' })) throw new Error('published manual badge does not bind exact version and release destination');
+if (releaseBadge({ status: 'candidate', version: '1.2.3', releaseUrl: 'https://example.test/releases/v1.2.3' }) !== null || !documentationSidebarThemeSource.includes('docs-manual-theme-only')) throw new Error('candidate manual retains an inactive release badge');
+if (!globalStyles.includes('docs-manual-version') || !globalStyles.includes('docs-manual-theme-only')) throw new Error('manual sidebar footer lacks release and candidate layout rules');
 if (/\.docs-page \.site-footer\b/.test(globalStyles)) throw new Error('documentation styles retain obsolete shared-footer coupling');
 
 const navigationRecords = [...layoutSource.matchAll(/\{ text: '([^']+)', url: (?:'([^']+)'|publication\.skillUrl)(?:, external: (true))?(?:, on: 'menu')? \}/g)].map((match) => ({ label: match[1], href: match[2] ?? publication.skillUrl, external: match[3] === 'true' }));
@@ -133,17 +139,27 @@ for (const brand of brands) {
   const approved = Object.fromEntries(Object.entries(source.messaging).filter(([, item]) => item.status === 'approved' && item.uses.includes('site-metadata')).map(([role, item]) => [role, item.text]));
   if (JSON.stringify(brand.approvedMessaging) !== JSON.stringify(approved) || 'descriptor' in brand || 'idea' in brand) throw new Error(`${brand.slug} public record contains unapproved or mismatched message copy`);
   const expectedArchive = `/${brand.slug}/downloads/${brand.packageId}.zip`;
-  if (brand.guidelinesPath !== `/${brand.slug}/guidelines/overview/` || brand.kitArchive !== expectedArchive || brand.kitArchiveFilename !== expectedArchive.split('/').at(-1)) throw new Error(`${brand.slug} generated action destinations are incomplete or inconsistent`);
+  if (brand.guidelinesPath !== `/${brand.slug}/guidelines/brand-essentials/` || brand.kitArchive !== expectedArchive || brand.kitArchiveFilename !== expectedArchive.split('/').at(-1)) throw new Error(`${brand.slug} generated action destinations are incomplete or inconsistent`);
   if (brand.brandbuilderVersion !== publication.version || brand.packageId !== `${brand.slug}-brand-${brand.version}-bb${publication.version}`) throw new Error(`${brand.slug} package identity differs from the publication record`);
   if ('vendorBoundarySummary' in brand) throw new Error(`${brand.slug} retains obsolete card-level vendor summary copy`);
   if (brand.portfolioSurface !== JSON.parse(readFileSync(new URL(`../../brands/${brand.slug}/brand.json`, import.meta.url), 'utf8')).surfaces.card.toUpperCase()) throw new Error(`${brand.slug} homepage surface differs from its approved dark card source`);
   if (brand.icon !== `/${brand.slug}/downloads/files/logos/svg/${brand.slug}-mark-reduced-color.svg`) throw new Error(`${brand.slug} homepage icon is not its approved reduced-color mark`);
 }
 const expectedBrandNavigation = [
-  ['overview', 'Overview', 'Overview', 0], ['voice', 'Voice', 'Voice', 0], ['logos', 'Logo', 'Identity', 0], ['color', 'Color', 'Identity', 1],
+  ['overview', 'Brand essentials', 'Brand essentials', 0], ['voice', 'Voice', 'Voice', 0], ['logos', 'Logo', 'Identity', 0], ['color', 'Color', 'Identity', 1],
   ['typography', 'Typography', 'Identity', 2], ['components', 'Components', 'Components', 0], ['assets', 'Assets', 'Assets', 0], ['integration', 'Integration', 'Integration', 0],
 ];
 for (const portal of guidelinePortals) {
+  const brandSource = JSON.parse(readFileSync(new URL(`../../brands/${portal.brand.slug}/brand.json`, import.meta.url), 'utf8'));
+  const essentials = portal.essentials;
+  if (essentials.name !== brandSource.title || essentials.mark_guidance !== (brandSource.guidance?.logo ?? '') || essentials.palette_guidance !== (brandSource.guidance?.palette ?? '')) throw new Error(`${portal.brand.slug} essentials drift from canonical name or visual guidance`);
+  if (JSON.stringify(essentials.usage_limits) !== JSON.stringify(brandSource.logo?.prohibitions ?? [])) throw new Error(`${portal.brand.slug} essentials usage limits drift from source`);
+  const visualBoundary = ['i-heart-pr-tours', 'local-companion', 'scruggs-tire-alignment'].includes(portal.brand.slug) ? brandSource.guidance.sharp_edge : '';
+  if (essentials.visual_boundary !== visualBoundary) throw new Error(`${portal.brand.slug} essentials visual boundary differs from its reviewed source`);
+  const expectedWords = Object.fromEntries(['slogan', 'short_description', 'long_description', 'introductory_statement'].filter((role) => brandSource.messaging?.[role]?.status === 'approved' && brandSource.messaging[role].uses.includes('visual-guide')).map((role) => [role, brandSource.messaging[role].text]));
+  const expectedStrategy = Object.fromEntries(['positioning', 'mission', 'vision', 'values', 'brand_promise'].filter((role) => brandSource.messaging?.[role]?.status === 'approved' && brandSource.messaging[role].uses.includes('visual-guide')).map((role) => [role, brandSource.messaging[role].text]));
+  if (JSON.stringify(essentials.approved_words) !== JSON.stringify(expectedWords) || JSON.stringify(essentials.strategy) !== JSON.stringify(expectedStrategy)) throw new Error(`${portal.brand.slug} essentials project unapproved or mismatched words`);
+  if (essentials.sections.some((section) => section.id === 'approved-words') !== (Object.keys(expectedWords).length > 0) || essentials.sections.some((section) => section.id === 'brand-strategy') !== (Object.keys(expectedStrategy).length > 0)) throw new Error(`${portal.brand.slug} optional essentials sections do not match source presence`);
   const visualAssets = portal.asset_families.flatMap((family) => family.assets).filter((asset) => asset.design);
   if (new Set(visualAssets.map((asset) => asset.id)).size !== visualAssets.length) throw new Error(`${portal.brand.slug} repeats a design card`);
   for (const form of ['social-image', 'lockup']) if (!visualAssets.some((asset) => asset.design.form === form)) throw new Error(`${portal.brand.slug} lacks ${form} card`);
@@ -173,7 +189,7 @@ for (const portal of guidelinePortals) {
       if (!asset.preview.url || !asset.deliveries[0]?.url || !asset.credit?.license || !asset.accessibility?.alt || !asset.usage?.avoid) throw new Error(`Incomplete governed expression ${asset.id}`);
     }
   } else if (expressions || portal.topics.some((topic) => topic.key === 'expressions')) throw new Error(`${portal.brand.slug} exposes an empty expressions section`);
-  if (portal.brand.version !== brands.find((brand) => brand.slug === portal.brand.slug)?.version) throw new Error(`${portal.brand.slug} portal omits the brand version needed by the consolidated Overview`);
+  if (portal.brand.version !== brands.find((brand) => brand.slug === portal.brand.slug)?.version) throw new Error(`${portal.brand.slug} portal omits the brand version needed by Brand essentials`);
   if (portal.brand.surface_mode !== brands.find((brand) => brand.slug === portal.brand.slug)?.guideSurfaceMode || portal.presentation?.background !== (portal.brand.surface_mode === 'light' ? portal.palettes.light : portal.palettes.dark).find((entry) => entry.token === 'background')?.hex) throw new Error(`${portal.brand.slug} declared guide mode and selected palette disagree`);
   if (JSON.stringify(portal.presentation) !== JSON.stringify(portal.presentations?.[portal.brand.surface_mode])) throw new Error(`${portal.brand.slug} selected guide tokens differ from its full mode palette`);
   const source = JSON.parse(readFileSync(new URL(`../../brands/${portal.brand.slug}/brand.json`, import.meta.url), 'utf8'));
@@ -225,7 +241,7 @@ if (!documentationLayoutSource.includes('tree={documentationTree()}') || !noScri
 if (!documentationTreeSource.includes("type: 'folder' as const") || !documentationTreeSource.includes('paginationOrder') || !noScriptHierarchySource.includes('<ul>') || !noScriptHierarchySource.includes('aria-current=') || !globalStyles.includes(".hierarchy-noscript-nav a[aria-current='page']")) throw new Error('grouped navigation lacks semantic nested structure, stable pagination, or a visibly styled no-script current state');
 if (!guidelinePageSource.includes("topic.key === 'assets'") || !guidelinePageSource.includes('dynamicParams = false')) throw new Error('canonical guidelines Assets route is not statically generated');
 if (!downloadsSource.includes('<AssetLibrary portal={portal} />') || !downloadsSource.includes('Direct downloads')) throw new Error('Assets does not combine direct downloads and the generated asset library');
-if (!topicContentSource.includes('<GuidelineOverview portal={portal} />') || !overviewContentSource.includes('id="brand-overview"') || !overviewContentSource.includes('portal.brand.messaging') || !overviewContentSource.includes('id="get-the-kit"') || !overviewContentSource.includes('/brand/r/registry.json')) throw new Error('consolidated Overview does not preserve approved messaging and registry entry point');
+if (!topicContentSource.includes('<GuidelineOverview portal={portal} />') || !overviewContentSource.includes('id="name-and-relationship"') || !overviewContentSource.includes('essentials.approved_words') || !overviewContentSource.includes('id="get-the-kit"') || !overviewContentSource.includes('/brand/r/registry.json')) throw new Error('Brand essentials does not preserve approved messaging and registry entry point');
 if (!overviewContentSource.includes('id="implementation-authority"') || !overviewContentSource.includes('contract.versions') || !overviewContentSource.includes('contract.bindings') || !overviewContentSource.includes('contract.hosted.manual_path') || !overviewContentSource.includes('/facts/documentation.json')) throw new Error('hosted Overview omits authority, exact versions, bindings, or public facts');
 if (!documentationPageSource.includes('<DocumentationOverviews') || !documentationPageSource.includes("route.pathname === '/docs/'")) throw new Error('documentation index does not include the semantic relationship overviews');
 for (const phrase of ['Documentation ownership', 'Operating modes', 'Capability improvement loop', '<ol>', '<strong>', '<span>']) if (!documentationOverviewsSource.includes(phrase)) throw new Error(`documentation overview lacks semantic visible text: ${phrase}`);
@@ -253,7 +269,7 @@ if (!brandPortfolioSource.includes('const hasThirdPartyProjects = brands.some((b
 if (!brandPortfolioSource.includes('<p>* Third-party projects are independently owned and operated.</p>')) throw new Error('portfolio lacks the exact generic third-party notice');
 if (brandPortfolioSource.includes('new Set(brands.flatMap') || brandPortfolioSource.includes('notices.map(')) throw new Error('portfolio still aggregates detailed vendor-boundary strings into the homepage notice');
 if (!brandPortfolioSource.includes('{hasThirdPartyProjects && <aside')) throw new Error('portfolio generic notice does not define the zero-applicability state');
-for (const route of routeRecords.filter((route) => route.brandSlug === 'eso-weave')) if (route.vendorBoundary !== esoWeave.vendorBoundary || route.vendorBoundaryUrl !== 'https://brand.shruggie.tech/eso-weave/guidelines/overview/') throw new Error(`${route.pathname} omits the ESO Weave vendor-boundary metadata`);
+for (const route of routeRecords.filter((route) => route.brandSlug === 'eso-weave')) if (route.vendorBoundary !== esoWeave.vendorBoundary || route.vendorBoundaryUrl !== 'https://brand.shruggie.tech/eso-weave/guidelines/brand-essentials/') throw new Error(`${route.pathname} omits the ESO Weave vendor-boundary metadata`);
 if (routeRecords.some((route) => route.kind === 'brand' || brands.some((brand) => route.pathname === `/${brand.slug}/` || [`/${brand.slug}/guidelines/`, `/${brand.slug}/guidelines/logos/`, `/${brand.slug}/downloads/`].includes(route.pathname)))) throw new Error('route contract exposes a legacy brand page as canonical');
 for (const brand of brands) if (routeRecords.filter((route) => route.pathname === `/${brand.slug}/guidelines/assets/`).length !== 1) throw new Error(`${brand.slug} does not have exactly one canonical Assets route`);
 export const brandRoutes = routeRecords.filter((route) => ['downloads', 'guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
@@ -261,13 +277,14 @@ export const docRoutes = routeRecords.filter((route) => ['docs-index', 'docs-pag
 export const tableRoutes = ['00-variance-contract', '02-kit-anatomy', '04-toolchain', '06-logo-protocol', '07-voice', '08-glyph-construction', '09-portability'].map((slug) => `/docs/${slug}/`);
 export const htmlRoutes = routeRecords.map((route) => route.pathname);
 export const legacyRoutes = brands.flatMap((brand) => [
-  { source: `/${brand.slug}/guidelines/`, destination: `/${brand.slug}/guidelines/overview/` },
+  { source: `/${brand.slug}/guidelines/`, destination: `/${brand.slug}/guidelines/brand-essentials/` },
+  { source: `/${brand.slug}/guidelines/overview/`, destination: `/${brand.slug}/guidelines/brand-essentials/` },
   { source: `/${brand.slug}/guidelines/logos/`, destination: `/${brand.slug}/guidelines/logo/` },
   { source: `/${brand.slug}/downloads/`, destination: `/${brand.slug}/guidelines/assets/` },
 ]);
 export const conformanceRoutes = routeRecords.filter((route) => route.kind === 'conformance').map((route) => route.pathname);
 export const guidelineRoutes = routeRecords.filter((route) => ['guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
-export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/overview/`, `/${brand.slug}/guidelines/assets/`]), '/glitchpad/guidelines/color/', '/i-heart-pr-tours/guidelines/color/', '/i-heart-pr-tours/guidelines/expressions/', '/docs/', '/docs/00-variance-contract/'];
+export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/brand-essentials/`, `/${brand.slug}/guidelines/assets/`]), '/glitchpad/guidelines/color/', '/i-heart-pr-tours/guidelines/color/', '/i-heart-pr-tours/guidelines/expressions/', '/docs/', '/docs/00-variance-contract/'];
 export const visualThemes = ['light', 'dark'];
 export const visualWidths = [360, 390, 1280];
 export const requiredFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/maskable-icon-192x192.png', '/maskable-icon-512x512.png', '/shruggietech-logo-dark.svg', '/shruggietech-logo-light.svg', '/site.webmanifest', '/robots.txt', '/sitemap.xml', '/static.json', ...routeRecords.map((route) => route.social.path), ...conformanceRecords.flatMap((record) => [record.specimenPath, record.manifestPath])];

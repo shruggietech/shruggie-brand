@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 from coloraide import Color
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _guidekit import tokens, faces, asset, type_context
-from messaging import approved_messages
+from brand_essentials import ROLE_LABELS, essentials_projection
 from brand_contract import affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
 from color_roles import load_color_roles
 from asset_language import ALIAS_INDEX, describe, design_id, design_key, write_aliases, validate_aliases
@@ -240,10 +240,11 @@ def portal_payload(B, kit):
                 "source_path": resource["path"], "markdown": Path(kit, resource["path"]).read_text(encoding="utf-8"),
             })
     guide = B.get("guidance") or {}
-    messages = approved_messages(B, "visual-guide")
+    essentials = essentials_projection(B)
+    messages = {**essentials["approved_words"], **essentials["strategy"]}
     slug = B["slug"]
     topics = [
-        {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "description": str(guide.get("foundation_title") or "Brand foundations")},
+        {"key": "overview", "title": "Brand essentials", "label": "Brand essentials", "section": "Brand essentials", "order": 0, "description": "Approved name, visual signatures, assets, and usage rules."},
         {"key": "voice", "title": "Voice and messaging", "label": "Voice", "section": "Voice", "order": 0, "description": "Principles for writing in the brand voice."},
         {"key": "logos", "title": "Logo system and usage", "label": "Logo", "section": "Identity", "order": 0, "description": "Approved marks, lockups, clear space, and reduction rules."},
         {"key": "color", "title": "Color", "label": "Color", "section": "Identity", "order": 1, "description": "Canonical palette values and semantic roles."},
@@ -260,14 +261,14 @@ def portal_payload(B, kit):
     if len({topic["path"] for topic in topics}) != len(topics):
         raise ValueError("guideline topic labels generate duplicate paths")
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "implementation": implementation,
         "brand": {"slug": B["slug"], "title": B["title"], "version": B["version"], "messaging": messages, "affiliation": affiliation_text(B), "vendorBoundary": (vendor_boundary(B) or {}).get("notice", ""), "surface_mode": mode},
         "presentation": light if mode == "light" else dark,
         "presentations": {"dark": dark, "light": light},
         "topics": topics,
+        "essentials": essentials,
         "content": {
-            "overview": {"foundation_title": guide.get("foundation_title", "Foundations"), "foundation": guide.get("foundation", ""), "promises": guide.get("promises", []), "in_scope": guide.get("in_scope", []), "out_of_scope": guide.get("out_of_scope", []), "sharp_edge": guide.get("sharp_edge", "")},
             "voice": {"principle": B.get("governing_principle", ""), "qualities": (B.get("voice") or {}).get("qualities", []), "lead_with": (B.get("voice") or {}).get("lead_with", []), "avoid": (B.get("voice") or {}).get("avoid", []), "personality": guide.get("personality", [])},
             "logos": {"guidance": guide.get("logo", ""), "minimum_sizes": (B.get("logo") or {}).get("min_px", {}), "reduced_below_px": (B.get("logo") or {}).get("reduced_below_px"), "prohibitions": (B.get("logo") or {}).get("prohibitions", [])},
             "typography": B.get("typography", {}), "components": B.get("domain_components", {}),
@@ -538,19 +539,55 @@ def implementation_reference_html(facts):
              escape(facts["documentation_contract_version"]), override_text, versions, bindings))
 
 
+def portable_essentials_html(essentials):
+    parts = ['<section id="brand-essentials"><div class="eyebrow">Start here</div><h2>Brand essentials</h2>']
+    for section in essentials["sections"]:
+        section_id = section["id"]
+        parts.append('<section id="%s"><h3>%s</h3>' % (section_id, section["title"]))
+        if section_id == "name-and-relationship":
+            parts.append('<p><strong>Approved name:</strong> %s</p>' % escape(essentials["name"]))
+            if essentials["relationship"]:
+                parts.append('<p><strong>Relationship:</strong> %s</p>' % escape(essentials["relationship"]))
+            if essentials["written_form"]:
+                parts.append('<p><strong>Written form:</strong> %s</p>' % escape(essentials["written_form"]))
+            parts.extend('<p>%s</p>' % escape(value) for value in essentials["name_story"])
+        elif section_id in ("approved-words", "brand-strategy"):
+            roles = essentials["approved_words"] if section_id == "approved-words" else essentials["strategy"]
+            parts.append('<dl class="facts-grid">%s</dl>' % "".join(
+                '<div data-message-role="%s"><dt>%s</dt><dd>%s</dd></div>' %
+                (role.replace("_", "-"), ROLE_LABELS[role], escape(value))
+                for role, value in roles.items()))
+        elif section_id == "visual-signatures":
+            if essentials["mark_guidance"]:
+                parts.append('<p><strong>Mark:</strong> %s</p>' % escape(essentials["mark_guidance"]))
+            if essentials["palette_guidance"]:
+                parts.append('<p><strong>Color:</strong> %s</p>' % escape(essentials["palette_guidance"]))
+            parts.append('<p><strong>Type:</strong> Display %s; body %s; mono %s. See <a href="#colors">colors</a> and <a href="#type-components">type details</a>.</p>' %
+                         tuple(escape(essentials["type_families"][role]) for role in ("display", "body", "mono")))
+        elif section_id == "where-each-asset-belongs":
+            parts.append('<p>Use the delivered logo and mark files for their declared surfaces and sizes. The <a href="#assets">asset catalog</a> lists each verified variant and download. The <a href="#colors">color</a> and <a href="#type-components">type</a> sections give exact values.</p>')
+            if essentials["standalone_mark_variant"] == "reduced":
+                parts.append('<p>The face-only reduced master is the standalone mark at every size. Use the supplied icon files for each platform.</p>')
+            elif essentials["reduced_below_px"] is not None:
+                parts.append('<p>The reduced mark takes over at and below %s px.</p>' % essentials["reduced_below_px"])
+        elif section_id == "usage-limits":
+            parts.append('<p>Keep the delivered artwork geometry unchanged.</p>')
+            if essentials["usage_limits"]:
+                parts.append('<ul>%s</ul>' % "".join('<li>%s</li>' % escape(value) for value in essentials["usage_limits"]))
+            if essentials["visual_boundary"]:
+                parts.append('<p>%s</p>' % escape(essentials["visual_boundary"]))
+        parts.append('</section>')
+    parts.append('</section>')
+    return "".join(parts)
+
+
 def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
-    messages = approved_messages(B, "visual-guide")
-    message_markup = "".join(
-        '<p class="lead" data-message-role="%s"><strong>%s:</strong> %s</p>'
-        % (role.replace("_", "-"), label, escape(messages[role]))
-        for role, label in (("slogan", "Slogan"), ("short_description", "Short description"),
-                            ("long_description", "Long description"),
-                            ("introductory_statement", "Introduction"),
-                            ("positioning", "Positioning"), ("mission", "Mission"),
-                            ("vision", "Vision"), ("values", "Values"),
-                            ("brand_promise", "Brand promise")) if role in messages)
+    essentials = essentials_projection(B)
+    essentials_html = portable_essentials_html(essentials)
+    essentials_nav = "".join('<li><a href="#%s">%s</a></li>' % (section["id"], section["title"])
+                             for section in essentials["sections"])
     A, AL = D["primary"], L["primary"]
     light_first = guide_surface_mode(B) == "light"
     logo = asset(kit, "%s-horizontal-light-1024.png" % slug) if light_first else asset(kit, "%s-horizontal-color-1024.png" % slug)
@@ -684,16 +721,16 @@ code { font-family:var(--font-body); font-weight:var(--font-label-weight); font-
 <header id="top">%(logoimg)s
 <div class="eyebrow" style="margin-top:32px">Brand guidelines</div>
 <h1>%(title)s</h1>
-%(message_markup)s
 </header>
 
 <nav class="contents" aria-label="On this page"><strong>On this page</strong><ul>
+<li><a href="#brand-essentials">Brand essentials</a></li>%(essentials_nav)s
 <li><a href="#implementation">Implementation</a></li><li><a href="#colors">Colors</a></li><li><a href="#themes">Theme examples</a></li>
 <li><a href="#type-components">Type and components</a></li><li><a href="#assets">Asset catalog</a></li>
 %(expression_nav)s
 </ul></nav>
 
-<main>%(implementation_html)s<section id="colors"><div class="eyebrow">Color</div><h2>Formal identity colors and interface cues</h2>
+<main>%(essentials_html)s%(implementation_html)s<section id="colors"><div class="eyebrow">Color</div><h2>Formal identity colors and interface cues</h2>
 <p class="lead">%(sepline)s</p>
 %(color_role_html)s
 <p class="lead">HEX uses uppercase pairs; sRGB uses integer 0-255 channels; HSL uses degrees and percentages rounded to one decimal; OKLCH uses four decimals for lightness and chroma plus one for hue; CIELAB uses D50 with lightness as a percentage and two decimals per channel.</p>
@@ -760,9 +797,10 @@ if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;
         "surface_mode": guide_surface_mode(B),
         "expression_nav": '<li><a href="#expressions">Expressions</a></li>' if custom_assets(B, kit, public_only=True) else "",
         "expressions": expression_gallery(B, kit),
+        "essentials_nav": essentials_nav,
+        "essentials_html": essentials_html,
         "implementation_html": implementation_html,
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),
-        "message_markup": message_markup,
         "sepline": "Identity accent hue %s in OKLCH. Palette selection is independent of ownership and sibling hues." % M.get("identity_hue", "?"),
         "A": A, "AL": AL, "on_light": on_light, "acc_light": acc_light,
         "fgc": fg.get("color", "?"), "fgr": fg.get("ratio", "?"),

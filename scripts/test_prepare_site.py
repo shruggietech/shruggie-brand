@@ -41,7 +41,7 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
         "implementation": facts,
         "brand": {"slug": slug, "title": title, "descriptor": "Alpha.", "idea": "Alpha.", "affiliation": "", "surface_mode": "dark"},
         "topics": [
-            {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "path": f"/{slug}/guidelines/overview/", "description": "Start here."},
+            {"key": "overview", "title": "Brand essentials", "label": "Brand essentials", "section": "Brand essentials", "order": 0, "path": f"/{slug}/guidelines/brand-essentials/", "description": "Start here."},
             {"key": "voice", "title": "Voice and messaging", "label": "Voice", "section": "Voice", "order": 0, "path": f"/{slug}/guidelines/voice/", "description": "Voice."},
             {"key": "logos", "title": "Logo system and usage", "label": "Logo", "section": "Identity", "order": 0, "path": f"/{slug}/guidelines/logo/", "description": "Logo."},
             {"key": "color", "title": "Color", "label": "Color", "section": "Identity", "order": 1, "path": f"/{slug}/guidelines/color/", "description": "Palette."},
@@ -283,7 +283,7 @@ class PrepareSiteTests(unittest.TestCase):
                 self.assertNotIn("showcaseSurface", record)
                 self.assertNotIn("showcaseForeground", record)
                 self.assertEqual("dark", record["guideSurfaceMode"])
-                self.assertEqual("/alpha/guidelines/overview/", record["guidelinesPath"])
+                self.assertEqual("/alpha/guidelines/brand-essentials/", record["guidelinesPath"])
                 self.assertEqual((source / "enforcement" / "documentation-facts.json").read_bytes(),
                                  (public / "alpha" / "facts" / "documentation.json").read_bytes())
                 self.assertEqual("/alpha/downloads/alpha-brand-1.0.0-bb2.0.0.zip", record["kitArchive"])
@@ -427,6 +427,20 @@ class PrepareSiteTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "duplicate portal delivery"):
                 prepare_site.project_portal(source, payload)
 
+    def test_portal_rejects_source_drift_in_brand_essentials(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "alpha"
+            write_minimal_portal(source)
+            (source / "brand.json").write_text('{"title":"Alpha","custom_assets":[]}', encoding="utf-8")
+            portal = json.loads((source / "guidelines" / "portal.json").read_text(encoding="utf-8"))
+            portal["schema_version"] = "1.1"
+            portal["essentials"] = {"name": "Invented"}
+            with mock.patch.object(prepare_site, "essentials_projection", return_value={"name": "Alpha"}):
+                with self.assertRaisesRegex(ValueError, "essentials differ from canonical brand source"):
+                    prepare_site.project_portal(source, portal)
+                portal["essentials"] = {"name": "Alpha"}
+                self.assertEqual({"name": "Alpha"}, prepare_site.project_portal(source, portal)["essentials"])
+
     def test_expression_projection_matches_governed_source_and_optional_navigation(self):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / "alpha"
@@ -469,7 +483,7 @@ class PrepareSiteTests(unittest.TestCase):
             portals = [json.loads((source / "guidelines" / "portal.json").read_text(encoding="utf-8"))]
         routes = prepare_site.build_routes(brands, [], portals)
         guide_routes = [route for route in routes if route["kind"] in {"guidelines", "guidelines-topic"}]
-        self.assertEqual(["/alpha/guidelines/overview/", "/alpha/guidelines/voice/", "/alpha/guidelines/logo/", "/alpha/guidelines/color/", "/alpha/guidelines/typography/", "/alpha/guidelines/components/", "/alpha/guidelines/integration/"], [route["pathname"] for route in guide_routes])
+        self.assertEqual(["/alpha/guidelines/brand-essentials/", "/alpha/guidelines/voice/", "/alpha/guidelines/logo/", "/alpha/guidelines/color/", "/alpha/guidelines/typography/", "/alpha/guidelines/components/", "/alpha/guidelines/integration/"], [route["pathname"] for route in guide_routes])
         self.assertEqual(["overview", "voice", "logos", "color", "typography", "components", "integration"], [route["guideTopic"] for route in guide_routes])
         self.assertFalse(any(route["kind"] == "brand" or route["pathname"] in {"/alpha/", "/alpha/guidelines/", "/alpha/guidelines/logos/", "/alpha/downloads/"} for route in routes))
         self.assertEqual("assets", next(route for route in routes if route["kind"] == "downloads")["guideTopic"])
@@ -499,7 +513,7 @@ class PrepareSiteTests(unittest.TestCase):
         brands = [{"slug": "alpha", "title": "Alpha", "descriptor": "Alpha identity.", "icon": "/alpha/mark.svg", "accent": "#2BCC73", "vendorBoundary": notice}]
         route = next(item for item in prepare_site.build_routes(brands, []) if item["kind"] == "guidelines")
         self.assertEqual(notice, route["vendorBoundary"])
-        self.assertEqual("https://brand.shruggie.tech/alpha/guidelines/overview/", route["vendorBoundaryUrl"])
+        self.assertEqual("https://brand.shruggie.tech/alpha/guidelines/brand-essentials/", route["vendorBoundaryUrl"])
         entity = next(item for item in route["structuredData"]["@graph"] if item.get("@type") == "Brand")
         self.assertEqual(notice, entity["disambiguatingDescription"])
         self.assertEqual(route["vendorBoundaryUrl"], entity["usageInfo"])
@@ -526,7 +540,7 @@ class PrepareSiteTests(unittest.TestCase):
             prepare_site.add_guideline_metadata(page, route)
             content = page.read_text(encoding="utf-8")
             self.assertIn("<title>Alpha guidelines | ShruggieTech</title>", content)
-            self.assertIn('rel="canonical" href="https://brand.shruggie.tech/alpha/guidelines/overview/"', content)
+            self.assertIn('rel="canonical" href="https://brand.shruggie.tech/alpha/guidelines/brand-essentials/"', content)
             self.assertIn('property="og:title"', content)
             self.assertIn('property="og:image:width" content="1280"', content)
             self.assertIn('property="og:image:alt" content="Alpha logo with slogan: Exact alpha slogan"', content)
@@ -731,7 +745,7 @@ class PrepareSiteTests(unittest.TestCase):
             mark = root / "mark.png"
             Image.new("RGBA", (80, 80), (43, 204, 115, 255)).save(mark)
             fonts = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "ttf"
-            brand = prepare_site.make_route("guidelines-alpha", "guidelines", "/alpha/guidelines/overview/",
+            brand = prepare_site.make_route("guidelines-alpha", "guidelines", "/alpha/guidelines/brand-essentials/",
                                             "Alpha guidelines", "Approved brand.", "Brand guidelines", [], brand_slug="alpha")
             home = prepare_site.make_route("home", "home", "/", "Brands", "Other route.", "Portfolio", [])
             prepare_site.generate_social_previews([brand, home], public, mark,

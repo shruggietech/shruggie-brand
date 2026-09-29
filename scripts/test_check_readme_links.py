@@ -16,8 +16,8 @@ ROUTES = {
     "siteUrl": "https://brand.shruggie.tech",
     "routes": [
         {"kind": "home", "pathname": "/", "canonical": "https://brand.shruggie.tech/", "brandSlug": None},
-        {"kind": "guidelines", "pathname": "/alpha/guidelines/overview/", "canonical": "https://brand.shruggie.tech/alpha/guidelines/overview/", "brandSlug": "alpha"},
-        {"kind": "guidelines", "pathname": "/beta/guidelines/overview/", "canonical": "https://brand.shruggie.tech/beta/guidelines/overview/", "brandSlug": "beta"},
+        {"kind": "guidelines", "pathname": "/alpha/guidelines/brand-essentials/", "canonical": "https://brand.shruggie.tech/alpha/guidelines/brand-essentials/", "brandSlug": "alpha"},
+        {"kind": "guidelines", "pathname": "/beta/guidelines/brand-essentials/", "canonical": "https://brand.shruggie.tech/beta/guidelines/brand-essentials/", "brandSlug": "beta"},
     ],
 }
 
@@ -45,7 +45,7 @@ class ReadmeLinkAuditTests(unittest.TestCase):
 
     def test_portfolio_snapshots_are_rejected(self) -> None:
         for addition in ("Eight production brand kits exist.\n", "8 brands are published.\n",
-                         "## Brand kits\n", "[Alpha](https://brand.shruggie.tech/alpha/guidelines/overview/)\n",
+                         "## Brand kits\n", "[Alpha](https://brand.shruggie.tech/alpha/guidelines/brand-essentials/)\n",
                          "python scripts/build_all.py alpha\n", "Beta is a sample brand.\n"):
             with self.subTest(addition=addition):
                 self.assertIn("portfolio snapshot", "\n".join(self.problems(self.valid + addition)))

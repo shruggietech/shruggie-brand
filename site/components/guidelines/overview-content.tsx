@@ -19,50 +19,53 @@ const bindingLabels: Record<string, string> = {
   egui_support_matrix: 'egui support coverage',
 };
 
-function ListOrExplanation({ values, empty }: { values?: string[]; empty: string }) {
-  return values?.length ? <ul>{values.map((value) => <li key={value}>{value}</li>)}</ul> : <p>{empty}</p>;
-}
-
 export function GuidelineOverview({ portal }: { portal: GuidelinePortal }) {
-  const value = portal.content.overview;
+  const essentials = portal.essentials;
   const contract = portal.implementation;
   const slug = portal.brand.slug;
   const overrides = Object.entries(contract.rules.overrides);
   const house = contract.rules.inheritance === 'shruggietech-house';
-  const messages = portal.brand.messaging;
-  const messageRoles = [
-    ['slogan', 'Slogan'],
-    ['short_description', 'Short description'],
-    ['long_description', 'Long description'],
-    ['introductory_statement', 'Introduction'],
-    ['positioning', 'Positioning'],
-    ['mission', 'Mission'],
-    ['vision', 'Vision'],
-    ['values', 'Values'],
-    ['brand_promise', 'Brand promise'],
-  ] as const;
+  const words = Object.entries(essentials.approved_words);
+  const strategy = Object.entries(essentials.strategy);
+  const roleLabels: Record<string, string> = { slogan: 'Slogan', short_description: 'Short description', long_description: 'Long description', introductory_statement: 'Introduction', positioning: 'Positioning', mission: 'Mission', vision: 'Vision', values: 'Values', brand_promise: 'Brand promise' };
+  const sourceAssets = portal.asset_families.filter((family) => ['logos', 'marks', 'social', 'web'].includes(family.key)).map((family) => ({ family, asset: family.assets[0] })).filter((entry) => entry.asset);
 
   return <>
-    {messageRoles.some(([role]) => messages[role]) && <section className="guide-section" aria-labelledby="brand-overview">
-      <h2 id="brand-overview">Brand overview</h2>
-      <dl>{messageRoles.filter(([role]) => messages[role]).map(([role, label]) => <div key={role} data-message-role={role.replaceAll('_', '-')}><dt>{label}</dt><dd>{messages[role]}</dd></div>)}</dl>
+    <section className="guide-section" aria-labelledby="name-and-relationship">
+      <h2 id="name-and-relationship">Name and relationship</h2>
+      <p><strong>Approved name:</strong> {essentials.name}</p>
+      {essentials.relationship && <p><strong>Relationship:</strong> {essentials.relationship}</p>}
+      {essentials.written_form && <p><strong>Written form:</strong> {essentials.written_form}</p>}
+      {essentials.name_story.map((value) => <p key={value}>{value}</p>)}
+    </section>
+    {words.length > 0 && <section className="guide-section" aria-labelledby="approved-words">
+      <h2 id="approved-words">Approved words</h2>
+      <dl>{words.map(([role, value]) => <div key={role} data-message-role={role.replaceAll('_', '-')}><dt>{roleLabels[role]}</dt><dd>{value}</dd></div>)}</dl>
     </section>}
-    {value.foundation && <section className="guide-section" aria-labelledby="foundations">
-      <h2 id="foundations">{value.foundation_title || 'Foundations'}</h2>
-      <p>{value.foundation}</p>
-    </section>}
-    {value.promises?.length ? <section className="guide-section" aria-labelledby="promises">
-      <h2 id="promises">Promises</h2>
-      <ListOrExplanation values={value.promises} empty="" />
-    </section> : null}
-    {(value.in_scope?.length || value.out_of_scope?.length || value.sharp_edge || portal.brand.vendorBoundary) && <section className="guide-section" aria-labelledby="boundaries">
-      <h2 id="boundaries">Boundaries</h2>
-      <div className="guide-columns">
-        {value.in_scope?.length ? <div><h3>In scope</h3><ListOrExplanation values={value.in_scope} empty="" /></div> : null}
-        {value.out_of_scope?.length ? <div><h3>Out of scope</h3><ListOrExplanation values={value.out_of_scope} empty="" /></div> : null}
-      </div>
-      {value.sharp_edge && <aside className="guide-notice"><strong>Important boundary</strong><p>{value.sharp_edge}</p></aside>}
-      {portal.brand.vendorBoundary && <p>{portal.brand.vendorBoundary}</p>}
+    <section className="guide-section" aria-labelledby="visual-signatures">
+      <h2 id="visual-signatures">Visual signatures</h2>
+      {essentials.mark_guidance && <p><strong>Mark:</strong> {essentials.mark_guidance}</p>}
+      {essentials.palette_guidance && <p><strong>Color:</strong> {essentials.palette_guidance}</p>}
+      {portal.color_roles?.identity.length ? <ul>{portal.color_roles.identity.map((color) => <li key={color.id}>{color.label}: <code>{color.hex}</code></li>)}</ul> : null}
+      <p><strong>Type:</strong> Display {essentials.type_families.display}; body {essentials.type_families.body}; mono {essentials.type_families.mono}. See <a href={`/${slug}/guidelines/logo/`}>Logo</a>, <a href={`/${slug}/guidelines/color/`}>Color</a>, and <a href={`/${slug}/guidelines/typography/`}>Typography</a> for detailed rules.</p>
+    </section>
+    <section className="guide-section" aria-labelledby="where-each-asset-belongs">
+      <h2 id="where-each-asset-belongs">Where each asset belongs</h2>
+      <p>Choose the delivered artwork for its declared surface, role, and size. The <a href={`/${slug}/guidelines/assets/#asset-library`}>asset library</a> contains every verified variant.</p>
+      <ul>{sourceAssets.map(({ family, asset }) => <li key={family.key}><strong>{family.title}:</strong> <a href={asset.preview.url}>{asset.title}</a> ({asset.preview.destination}).</li>)}</ul>
+      {essentials.standalone_mark_variant === 'reduced'
+        ? <p>The face-only reduced master is the standalone mark at every size. Use the supplied icon files for each platform.</p>
+        : essentials.reduced_below_px != null && <p>The reduced mark takes over at and below {essentials.reduced_below_px} px.</p>}
+    </section>
+    <section className="guide-section" aria-labelledby="usage-limits">
+      <h2 id="usage-limits">Usage limits</h2>
+      <p>Keep the delivered artwork geometry unchanged. The <a href={`/${slug}/guidelines/logo/`}>Logo</a> page has the complete mark rules.</p>
+      {essentials.usage_limits.length > 0 && <ul>{essentials.usage_limits.map((value) => <li key={value}>{value}</li>)}</ul>}
+      {essentials.visual_boundary && <p>{essentials.visual_boundary}</p>}
+    </section>
+    {strategy.length > 0 && <section className="guide-section" aria-labelledby="brand-strategy">
+      <h2 id="brand-strategy">Brand strategy</h2>
+      <dl>{strategy.map(([role, value]) => <div key={role} data-message-role={role.replaceAll('_', '-')}><dt>{roleLabels[role]}</dt><dd>{value}</dd></div>)}</dl>
     </section>}
     <section className="guide-section contract-summary" aria-labelledby="implementation-authority">
       <h2 id="implementation-authority">Implementation authority</h2>

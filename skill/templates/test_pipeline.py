@@ -42,7 +42,7 @@ import probe
 import qc_images
 import qc_render
 import verify
-from brand_contract import sha256_file
+from brand_contract import HOUSE_FAMILIES, sha256_file
 from color_roles import resolve_color_roles
 from interface_contract import load_brand_canon
 from capabilities import load_capabilities
@@ -890,7 +890,7 @@ class PipelineTests(unittest.TestCase):
             facts = {"schema_version": 1, "documentation_contract_version": "1.0.0", "brand": {"slug": "alpha", "title": "Alpha", "affiliation": None, "brand_version": "1.2.3"}, "bundle": {"package": {"id": "alpha-1.2.3", "filename": "alpha-1.2.3.zip"}}, "versions": {}, "bindings": {}, "rules": {"inheritance": "independent", "overrides": {}}, "authority": {"precedence": [], "permitted_exceptions": []}, "verification": {"entry_points": [], "success": "zero failures"}, "recovery": {}, "capability_gap": {}, "hosted": {"manual_path": "/docs/", "scope": "Current generated kit only."}, "bundled": {"facts_path": "enforcement/documentation-facts.json", "authority": "Pinned bytes.", "latest_substitution_allowed": False}}
             (kit / "enforcement").mkdir()
             (kit / "enforcement" / "documentation-facts.json").write_text(json.dumps(facts), encoding="utf-8")
-            brand = {"slug": "alpha", "title": "Alpha", "version": "1.2.3", "descriptor": "Alpha tools.", "brand_idea": "Work clearly.", "guidance": {}, "messaging": {"slogan": {"status": "unresolved"}, "short_description": {"status": "unresolved"}, "long_description": {"status": "unresolved"}}, "voice": {}, "typography": {"families": {}}, "domain_components": {}, "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
+            brand = {"slug": "alpha", "title": "Alpha", "version": "1.2.3", "descriptor": "Alpha tools.", "brand_idea": "Work clearly.", "guidance": {}, "messaging": {"slogan": {"status": "unresolved"}, "short_description": {"status": "unresolved"}, "long_description": {"status": "unresolved"}}, "voice": {}, "typography": {"mode": "house", "families": HOUSE_FAMILIES}, "domain_components": {}, "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
             palettes = ({"primary": "#2BCC73", "background": "#080B0D"}, {"primary": "#167A45", "background": "#FFFFFF"})
             with mock.patch.object(gen_guidelines, "tokens", return_value=palettes):
                 payload = gen_guidelines.portal_payload(brand, kit)
@@ -899,7 +899,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(3, len(paths))
             self.assertEqual(3, len(set(paths)))
             self.assertEqual("# Web icons", payload["instructions"][0]["markdown"].splitlines()[0])
-            self.assertEqual("1.0", payload["schema_version"])
+            self.assertEqual("1.1", payload["schema_version"])
             self.assertEqual(facts, payload["implementation"])
             self.assertEqual("1.2.3", payload["brand"]["version"])
             self.assertEqual("dark", payload["brand"]["surface_mode"])
@@ -907,7 +907,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual({"dark": palettes[0], "light": palettes[1]}, payload["presentations"])
             self.assertEqual(
                 [
-                    ("overview", "Overview", "Overview", 0, "/alpha/guidelines/overview/"),
+                    ("overview", "Brand essentials", "Brand essentials", 0, "/alpha/guidelines/brand-essentials/"),
                     ("voice", "Voice", "Voice", 0, "/alpha/guidelines/voice/"),
                     ("logos", "Logo", "Identity", 0, "/alpha/guidelines/logo/"),
                     ("color", "Color", "Identity", 1, "/alpha/guidelines/color/"),

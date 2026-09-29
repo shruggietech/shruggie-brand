@@ -59,6 +59,7 @@ class DocumentationContractTests(unittest.TestCase):
         routes = [{"kind": kind} for kind in ("docs-index", "docs-page", "guidelines", "guidelines-topic", "downloads")]
         self.assertEqual(routes, validate_route_dispositions(routes))
         contract = load_documentation_contract()
+        self.assertEqual("/{brand}/guidelines/brand-essentials/", next(item["destination"] for item in contract["route_dispositions"] if item["kind"] == "guidelines"))
         contract["route_dispositions"] = contract["route_dispositions"][:-1]
         with self.assertRaisesRegex(DocumentationContractError, "incomplete"):
             validate_documentation_contract(contract, ROOT / "skill" / "references")

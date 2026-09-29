@@ -46,6 +46,8 @@ jobs:
           python scripts/test_identity_continuity_audit.py
           python skill/templates/test_brand_contract.py
           python skill/templates/test_messaging.py
+          python skill/templates/test_brand_essentials.py
+          python specs/068-brand-essentials-docs-navigation/inventory.py
           python skill/templates/test_color_roles.py
           python skill/templates/test_interface_contract.py
           python skill/templates/test_documentation_contract.py
@@ -227,6 +229,8 @@ jobs:
         run: python scripts/build_all.py scruggs-tire-alignment dancewithme865
         env:
           GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
+      - name: Check Brand essentials delivery across built guides
+        run: python scripts/test_brand_essentials_delivery.py
       - name: Install audited WordPress fixture runner
         run: |
           npm ci --prefix scripts/wordpress-runtime --ignore-scripts

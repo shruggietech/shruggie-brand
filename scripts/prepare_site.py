@@ -30,6 +30,7 @@ SOCIAL_SIZE = (1280, 640)
 sys.path.insert(0, str(TEMPLATES))
 from brand_contract import affiliation, custom_assets, guide_surface_mode, public_showcase, showcase_surface, social_copy, vendor_boundary
 from messaging import approved_messages
+from brand_essentials import essentials_projection
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from gen_guidelines import guideline_topic_path
@@ -45,7 +46,7 @@ DOCUMENTATION_CATALOG = manual_catalog(DOCUMENTATION_CONTRACT)
 DOC_DESCRIPTIONS = {page["slug"]: page["description"] for page in DOCUMENTATION_CATALOG}
 DOC_NAVIGATION = {page["slug"]: (page["section"], page["section_order"], page["label"], page["order"]) for page in DOCUMENTATION_CATALOG}
 BRAND_TOPIC_CONTRACT = [
-    ("overview", "Overview", "Overview", 0),
+    ("overview", "Brand essentials", "Brand essentials", 0),
     ("voice", "Voice", "Voice", 0),
     ("logos", "Logo", "Identity", 0),
     ("color", "Color", "Identity", 1),
@@ -197,7 +198,7 @@ def make_route(key: str, kind: str, pathname: str, title: str, description: str,
         "docsSlug": docs_slug,
         "guideTopic": guide_topic,
         "vendorBoundary": vendor_notice,
-        "vendorBoundaryUrl": f"{SITE_URL}/{brand_slug}/guidelines/overview/" if vendor_notice and brand_slug else None,
+        "vendorBoundaryUrl": f"{SITE_URL}/{brand_slug}/guidelines/brand-essentials/" if vendor_notice and brand_slug else None,
     }
 
 
@@ -279,10 +280,10 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
     portal_by_slug = {portal["brand"]["slug"]: portal for portal in (portals or [])}
     for brand in sorted(brands, key=lambda item: item["slug"]):
         slug = brand["slug"]
-        fallback_overview = guideline_topic_path(slug, "Overview")
+        fallback_overview = guideline_topic_path(slug, "Brand essentials")
         portal = portal_by_slug.get(slug)
         vendor_notice = brand.get("vendorBoundary")
-        topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "label": "Overview", "path": fallback_overview, "description": "Approved brand guidance"}, {"key": "assets", "title": "Assets", "label": "Assets", "path": guideline_topic_path(slug, "Assets"), "description": "Task-oriented access to every verified delivery."}]
+        topics = portal["topics"] if portal else [{"key": "overview", "title": "Brand essentials", "label": "Brand essentials", "path": fallback_overview, "description": "Approved brand guidance"}, {"key": "assets", "title": "Assets", "label": "Assets", "path": guideline_topic_path(slug, "Assets"), "description": "Task-oriented access to every verified delivery."}]
         if portal:
             validate_portal_navigation(portal, slug)
         overview = topics[0]
@@ -387,7 +388,7 @@ def markdown_blocks(content: str) -> list[dict[str, Any]]:
 
 
 def project_portal(source: Path, payload: dict[str, Any]) -> dict[str, Any]:
-    if payload.get("schema_version") != "1.0":
+    if payload.get("schema_version") not in ("1.0", "1.1"):
         raise ValueError(f"{source.name}: unsupported portal schema")
     if payload.get("brand", {}).get("slug") != source.name:
         raise ValueError(f"{source.name}: portal brand slug must match kit")
@@ -406,8 +407,11 @@ def project_portal(source: Path, payload: dict[str, Any]) -> dict[str, Any]:
     topic_keys = [topic.get("key") for topic in topics]
     if any(not isinstance(key, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", key) for key in topic_keys) or len(topic_keys) != len(set(topic_keys)):
         raise ValueError(f"{source.name}: portal topic keys must be unique and URL-safe")
+    source_brand = load_brand(source)
+    if payload["schema_version"] == "1.1" and payload.get("essentials") != essentials_projection(source_brand):
+        raise ValueError(f"{source.name}: essentials differ from canonical brand source")
     projected = copy.deepcopy(payload)
-    governed = custom_assets(load_brand(source), source, public_only=True)
+    governed = custom_assets(source_brand, source, public_only=True)
     expression_families = [family for family in projected.get("asset_families", []) if family.get("key") == "expressions"]
     if len(expression_families) != (1 if governed else 0):
         raise ValueError(f"{source.name}: expression family differs from eligible custom assets")
@@ -515,7 +519,7 @@ def generate_social_previews(routes: list[dict[str, Any]], public: Path, mark_pa
         canvas.alpha_composite(mark, (mark_x, mark_y))
         footer = "brand.shruggie.tech"
         if route.get("vendorBoundary"):
-            footer = f"Independent third-party project. Vendor notice: brand.shruggie.tech/{route['brandSlug']}/guidelines/overview/"
+            footer = f"Independent third-party project. Vendor notice: brand.shruggie.tech/{route['brandSlug']}/guidelines/brand-essentials/"
         draw.text((120, 530), footer, font=footer_font, fill=(154, 154, 154, 255))
         canvas.save(destination, format="PNG", optimize=False)
 

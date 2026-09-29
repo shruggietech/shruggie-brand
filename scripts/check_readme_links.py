@@ -111,7 +111,7 @@ def _site_routes(contract: dict) -> tuple[set[str], set[str]]:
         canonical.add(url)
         if route.get("kind") == "guidelines":
             slug = route.get("brandSlug")
-            if not isinstance(slug, str) or path != "/" + slug + "/guidelines/overview/":
+            if not isinstance(slug, str) or path != "/" + slug + "/guidelines/brand-essentials/":
                 raise ValueError("invalid generated brand overview route")
             brands.add(url)
     if not brands or SITE_ORIGIN + "/" not in canonical:
