@@ -33,9 +33,9 @@ Construct a new abstract Local Companion identity from the owner-selected calm-o
 | P1 Source and artifact boundary | Commit source only under `brands/` and site/skill changes; keep candidate and generated output in ignored `dist/`. | Pass |
 | P2 Identity geometry | The owner rejected the LC monogram and selected a new abstract direction. Bind the exact new geometry to Gate 1 before promotion; preserve it afterward. | Gate 1 and corrected production binding approved, 32 proof hashes unchanged |
 | P3 Accessibility | Measure dark and light roles at AA; correct failing values, including light-surface indigo. | Gate 2 cue pairs measured; Local Companion build reports zero problems |
-| P4 Verification | Require zero glyph failures and zero `verify.py` problems for every production kit before release. | Pending full build |
-| P5 Site source | Project catalog, registry, images, and downloads from verified kit output through `prepare_site.py`. | Planned |
-| P6 Specification and release | Keep this numbered slice current and publish from a versioned CI-built tag. | Planned |
+| P4 Verification | Require zero glyph failures and zero `verify.py` problems for every production kit before release. | Pass: nine clean kits and required tag CI |
+| P5 Site source | Project catalog, registry, images, and downloads from verified kit output through `prepare_site.py`. | Pass: live routes and exact hosted assets verified |
+| P6 Specification and release | Keep this numbered slice current and publish from a versioned CI-built tag. | Pass: v2.8.0 published from merged main commit |
 
 No constitutional exception is requested. Existing application files are source evidence only; this slice does not change the application repository.
 
@@ -81,3 +81,7 @@ dist/                            # ignored approval candidates and generated art
 ## Post-Design Constitution Check
 
 The design keeps public output dependent on verified generated kits, does not publish private review files, and requires owner-bound geometry and both approval gates. The approved Gate 2 packet and clean Local Companion build supply P3 and P4 evidence; full catalog, site, and release validation remain before publication.
+
+## Post-Publication Constitution Check
+
+On 2026-09-29, PR #301 merged as `8e7d688743d36c1bf692c1a7d55a7403545f3baf`. Tag `v2.8.0` completed required CI, release preflight, publication, and Pages deployment. The published Local Companion archive, social assets, registry, and guide were verified live against the approved hashes. P1 through P6 pass without an exception.
