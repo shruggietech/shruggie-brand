@@ -2,13 +2,14 @@
 
 ## Unreleased
 
-## 2.8.0 - 2026-09-28
+## 2.8.0 - 2026-09-29
 
 - Added a separately approved Local Companion 1.0.0 kit and public catalog entry with its calm-orbit identity, graphite and indigo palette, app-matched functional cues, local type, platform assets, and social image.
 - Generated Local Companion's four functional cues in dark and light Web, React, Next.js, and vanilla token output.
 - Added an opt-in centered composition for slogan-only social images without changing existing brands' approved social output.
 - Copied bundled house fonts into canonical-host proof staging and retained the prior I Heart PR Tours proof fingerprint for this reviewed generator revision.
-- Existing brand identity and social bytes remain authoritative; regenerate and repin only when adopting the 2.8.0 compiler or the new Local Companion kit.
+- Applied the separately owner-approved S063 ShruggieTech reduced square source, normalized mask, exact framing, application icon role, and social slogan to current parent-brand derivatives.
+- Historical identities retain their exact source and proof checks, including the owner-approved S063 baseline; regenerate and repin only when adopting the 2.8.0 compiler or the new Local Companion kit.
 
 ## 2.7.0 - 2026-09-27
 
