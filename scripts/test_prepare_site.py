@@ -74,6 +74,29 @@ def write_minimal_portal(source: Path, slug: str = "alpha", title: str = "Alpha"
 
 
 class PrepareSiteTests(unittest.TestCase):
+    def test_shruggietech_reduced_source_has_peer_scale_inside_portfolio_frame(self):
+        brand = json.loads((prepare_site.ROOT / "brands" / "shruggietech" / "brand.json").read_text(encoding="utf-8"))
+        logo = brand["logo"]
+        reduced = logo["paths"]["reduced"][0]
+        self.assertEqual("reduced", logo["standalone_mark_variant"])
+        x, y, width, height = logo["reduced_viewbox"]
+        self.assertEqual(width, height)
+        with Image.open(prepare_site.ROOT / "brands" / "shruggietech" / reduced["source"]) as source:
+            source_width, source_height = source.size
+            ink = source.convert("RGB").getchannel("G").point(lambda value: 255 if value >= 128 else 0).getbbox()
+        self.assertIsNotNone(ink)
+        left = reduced["x"] + reduced["width"] * ink[0] / source_width - x
+        right = x + width - (reduced["x"] + reduced["width"] * ink[2] / source_width)
+        top = reduced["y"] + reduced["height"] * ink[1] / source_height - y
+        bottom = y + height - (reduced["y"] + reduced["height"] * ink[3] / source_height)
+        self.assertGreaterEqual(left, 20)
+        self.assertGreaterEqual(right, 20)
+        self.assertGreaterEqual(top, 0)
+        self.assertGreaterEqual(bottom, 0)
+        projected_width = 47 * (width - left - right) / width
+        self.assertGreaterEqual(projected_width, 37)
+        self.assertLessEqual(projected_width, 43)
+
     def test_publication_record_is_exact_and_rejects_mixed_bundle_facts(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -262,7 +262,7 @@ class ReleaseContractTests(unittest.TestCase):
             "fragcap": ("constructed", "47877d1667ac44ab6c81ed41ab675cf8831b7644e4926c4df93eeca024805e3b"),
             "glitchpad": ("constructed", "3115a137763ff75ab64a036282f9bc5bf683a3b4d68ffda6d0d5839da030c95e"),
             "go-schedule": ("constructed", "81ebe959d63cbca08b8fcea88b008121cdc24ec25e4b16b82560b4ad3e0ecf14"),
-            "shruggietech": ("authoritative", "da15b5819b777ff3c1323d801b52333b0fd8015bbe08443bd7bc53085616cad7"),
+            "shruggietech": ("authoritative", "c2df260d94ba5ad002049d6341581723da71120b11e7b0d753c2cef49089545a"),
         }
         for slug, (mode, fingerprint) in expected.items():
             brand = json.loads((ROOT / "brands" / slug / "brand.json").read_text(encoding="utf-8"))
@@ -273,13 +273,17 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertEqual({"full": "full-mark-master", "reduced": "reduced-mark-master"},
                          shruggietech["logo"]["authoritative_input_ids"])
         inputs = {item["id"]: item for item in shruggietech["authoritative_inputs"]}
+        approvals = {
+            "full-mark-master": ("alpha", "Repository owner via S016 approval", "2026-09-07"),
+            "reduced-mark-master": ("luminance-normalized", "Repository owner via S063 Gate 1 approval", "2026-09-28"),
+        }
         for input_id in shruggietech["logo"]["authoritative_input_ids"].values():
             path = ROOT / "brands" / "shruggietech" / inputs[input_id]["path"]
             self.assertEqual(inputs[input_id]["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
             self.assertEqual(inputs[input_id]["sha256"], inputs[input_id]["mask_source_sha256"])
-            self.assertIn(inputs[input_id]["approved_mask"], {"alpha", "luminance"})
-            self.assertEqual("Repository owner via S016 approval", inputs[input_id]["mask_approved_by"])
-            self.assertEqual("2026-09-07", inputs[input_id]["mask_approved_on"])
+            self.assertEqual(approvals[input_id], (inputs[input_id]["approved_mask"],
+                                                   inputs[input_id]["mask_approved_by"],
+                                                   inputs[input_id]["mask_approved_on"]))
 
     def test_repository_metadata_and_notes_agree_for_2_8_0(self):
         metadata = release_contract.load_metadata(ROOT, "2.8.0")

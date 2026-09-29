@@ -4,7 +4,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
-## [2.8.0] - 2026-09-28
+## [2.8.0] - 2026-09-29
 
 ### Added
 
@@ -15,16 +15,23 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 - Added an opt-in centered social composition for a slogan-only brand image while retaining existing brands' approved social layouts and bytes.
 - Generated Local Companion's warning, error, success, and information cues into measured dark and light Web, React, Next.js, and vanilla tokens.
+- Made the approved vivid ShruggieTech face the source for every standalone square mark and application icon, while retaining the full arms in paired compositions. The square SVG window removes unused source canvas and brings the portfolio card face to a comparable visible scale.
+- Restored “We’ll figure it out.” as the exact ShruggieTech slogan in source-fed social artwork and published metadata, while keeping “We advance your vision.” in its introductory role.
 
 ### Fixed
 
 - Stage bundled house fonts during canonical-host identity proof export, so house-typography brands can render approved wordmarks in CI.
 - Preserve I Heart PR Tours' approved proof fingerprint for the one reviewed social-composition generator revision while requiring future generator changes to pass its continuity gate.
-- Validate current continuity records in audit check mode without replaying the one-time historical migration comparison against later approved brand changes.
+- Compare historical continuity sources against pinned migration or owner-approved identity baselines in read-only audit mode, so a matching rewritten brand and record cannot conceal drift.
+- Verified cropped SVG frames against visible approved raster ink, so a whitespace-only square viewBox passes while clipped identity pixels still fail. Updated icon manifests and guide and QC labels to describe their actual source roles.
+- Serialized explicit approved SVG viewBox coordinates with round-trip precision, so valid high-precision windows remain verifiable.
 
 ### Decisions
 
 - On 2026-09-28, bound the Local Companion source and 32 unchanged proofs to the CI-pinned Node v24.11.0 renderer after the owner's corrected Gate 1 approval. The owner approved the exact assembled Gate 2 packet, including social SVG and PNG hashes and the complete public surface set.
+- On 2026-09-28, the owner approved S063 Gate 1 after requesting more side padding: unchanged reduced source SHA-256 `dc84170f164277ee4289240405aec1b35170937da0d4afe8f096ecd6d893c324`, normalized luminance mask, square viewBox `[238.5, 30, 440, 440]`, reduced standalone and application icon roles, and 55 units of reduced standalone padding. The owner separately approved the exact changed assembled social image at Gate 2 (SVG SHA-256 `1d82e0ed8392d5e508a9262347ba3a2818ffec10d7396a39d78bbc2f03a298a5`; PNG SHA-256 `8d41af689b695443b3f6372e295287f3227c6383e53c3873a819baa1dc8ea010`).
+- On 2026-09-28, retained the existing i-heart-pr-tours approval across shared generator and Node-version drift on the canonical host only when the renderer family, all 32 approved proof PNG digests, and their exact comparison evidence match.
+- On 2026-09-29, allowed measured portable-host comparisons after shared generator changes only when a current canonical-host report attests the same renderer settings and binds all 32 exact approved proof PNGs and comparison evidence. Without that artifact, the current host must remain byte-exact.
 
 ## [2.7.0] - 2026-09-27
 

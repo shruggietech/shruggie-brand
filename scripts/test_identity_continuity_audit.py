@@ -18,7 +18,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "skill" / "templates"))
 
 from audit_identity_continuity import (BRAND_CLASSES, MIGRATION_BASELINE_REVISION, audit,
-                                       build_record, compare_brand_state, discover_brands)
+                                       build_record, compare_brand_state, compare_historical_identity,
+                                       discover_brands)
 from identity_continuity import validate_brand_continuity
 
 
@@ -90,6 +91,13 @@ class IdentityContinuityAuditTests(unittest.TestCase):
                 with mock.patch("audit_identity_continuity.discover_brands", return_value=brands):
                     report = audit(MIGRATION_BASELINE_REVISION, write=False)
                 self.assertIn("cueson: %s changed" % expected, report["problems"])
+
+    def test_approved_shruggietech_baseline_rejects_later_framing_drift(self):
+        brand = json.loads((ROOT / "brands" / "shruggietech" / "brand.json").read_text(encoding="utf-8"))
+        self.assertEqual([], compare_historical_identity("shruggietech", MIGRATION_BASELINE_REVISION, brand))
+        brand["logo"]["reduced_viewbox"][0] += 1
+        self.assertIn("derivative_settings changed", compare_historical_identity(
+            "shruggietech", MIGRATION_BASELINE_REVISION, brand))
 
 
 if __name__ == "__main__":

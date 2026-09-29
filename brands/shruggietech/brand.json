@@ -60,11 +60,11 @@
       "color_profile": "unknown",
       "usage_status": "approved",
       "license": "ShruggieTech-owned paid artwork",
-      "approved_mask": "luminance",
+      "approved_mask": "luminance-normalized",
       "mask_source_sha256": "dc84170f164277ee4289240405aec1b35170937da0d4afe8f096ecd6d893c324",
-      "mask_approved_by": "Repository owner via S016 approval",
-      "mask_approved_on": "2026-09-07",
-      "approved_transformations": ["recolor-mask", "resize", "palette-analysis"]
+      "mask_approved_by": "Repository owner via S063 Gate 1 approval",
+      "mask_approved_on": "2026-09-28",
+      "approved_transformations": ["recolor-mask", "resize", "frame-viewport", "palette-analysis"]
     },
     {
       "id": "horizontal-dark-master",
@@ -179,7 +179,10 @@
     "canvas_height": 500,
     "clear_space_units": 92,
     "reduced_below_px": 48,
-    "application_icon": {"background": "#000000"},
+    "standalone_padding_units": {"full": 92, "reduced": 55},
+    "standalone_mark_variant": "reduced",
+    "reduced_viewbox": [238.5, 30, 440, 440],
+    "application_icon": {"background": "#000000", "source_variant": "reduced"},
     "min_px": {"mark": 48, "horizontal": 180, "stacked": 128, "wordmark": 140},
     "role_colors": {
       "color": {"accent": "#2BCC73"},
@@ -204,7 +207,7 @@
           "element": "image",
           "role": "accent",
           "source": "assets/socialmedia_logo.png",
-          "mask": "luminance",
+          "mask": "luminance-normalized",
           "x": 209.5,
           "y": 0,
           "width": 500,
@@ -238,7 +241,7 @@
       "We state uncertainty and constraints plainly."
     ],
     "sharp_edge": "ShruggieTech is confidently scrappy, but the humor never replaces an answer. The flourish appears once at most, and ownership claims must be backed by concrete handoff and operating terms.",
-    "logo": "The custom stylized shruggie face is paid artwork, not a Unicode glyph. The wide master carries the complete arms, eyes, and smile. The reduced square master keeps the central face legible on social and favicon surfaces.",
+    "logo": "The custom stylized shruggie face is paid artwork, not a Unicode glyph. Paired lockups use the complete arms, eyes, and smile. Standalone marks and application icons use the approved vivid face-only square projection.",
     "palette": "Pure black and restrained near-black surfaces carry the parent identity. Bright green marks identity, links, focus, and the shruggie face on dark surfaces. Accessible green replaces it for text on light surfaces. Orange remains rare emphasis.",
     "specimen_line": "Smart, practical, confidently scrappy.",
     "specimen_body": "You have a business to run. We handle the technology that makes it grow."
@@ -249,20 +252,20 @@
     "status": "historical-baseline"
   },
   "social_copy": {
-    "slogan": "We advance your vision.",
+    "slogan": "We’ll figure it out.",
     "layout": "slogan-only",
     "description_lines": [],
     "approval": {
       "approved_by": "repository owner",
-      "approved_on": "2026-09-25",
-      "source": "S057 owner clarification"
+      "approved_on": "2026-09-28",
+      "source": "Issue #295 owner correction supersedes S057 slogan classification"
     }
   },
   "social_image_approval": {
     "approved_by": "repository owner",
-    "approved_on": "2026-09-26",
-    "source": "S057 assembled social image approval",
-    "svg_sha256": "2d6e58629477e4a1270e45fb0e634cdf9f08dcf7977f3f6fcbe5cb19580c5a46",
-    "png_sha256": "f47b14aa588c53eed0b5b5a9ad6637be45d56fbae130c1491385c4f0b047a3cf"
+    "approved_on": "2026-09-28",
+    "source": "S063 Gate 2 exact assembled social image approval",
+    "svg_sha256": "1d82e0ed8392d5e508a9262347ba3a2818ffec10d7396a39d78bbc2f03a298a5",
+    "png_sha256": "8d41af689b695443b3f6372e295287f3227c6383e53c3873a819baa1dc8ea010"
   }
 }

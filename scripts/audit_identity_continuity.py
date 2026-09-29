@@ -37,6 +37,12 @@ MIGRATION_BASELINE_REVISION = "011f35303ef1d555dbbbcf6708447cc321df40db"
 # historical record, whose status must remain truthful.
 OWNER_APPROVED_IDENTITY_REVISIONS = {
     "go-schedule": "d33cb8c658eac2f66b58e715274e0c791bad9ba3",
+    # S063 approved the reduced square source and framing while keeping the
+    # historical continuity record honest about its original migration basis.
+    "shruggietech": "d485017abdacfa4fa930595042b282ad950617dd",
+}
+OWNER_APPROVED_SNAPSHOT_SHA256 = {
+    "shruggietech": "bdaaab0f6dc78a127d82ed0cb804549d52c67558039c7612a03ac0fea649c6a5",
 }
 REFERENCE = {"record": "identity-continuity.json", "status": "historical-baseline"}
 COVARITY_REASON = "The custom arc and path serializer predates glyphkit. Its shipped path bytes remain unchanged as historical identity source."
@@ -143,7 +149,8 @@ def compare_historical_identity(slug, revision, brand):
     after = identity_snapshot(_normalized_for_preservation(slug, brand), source_class)
     if approved_revision:
         approval = baseline.get("current_mark_approval") or {}
-        if approval.get("identity_snapshot_sha256") != before["sha256"]:
+        expected = OWNER_APPROVED_SNAPSHOT_SHA256.get(slug, approval.get("identity_snapshot_sha256"))
+        if expected != before["sha256"]:
             return ["approved identity baseline lacks its exact owner-bound snapshot"]
     return ["%s changed" % key for key in before if key != "sha256" and before[key] != after[key]]
 
