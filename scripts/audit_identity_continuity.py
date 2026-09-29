@@ -22,6 +22,7 @@ from process_utils import hidden_process_kwargs
 BRAND_CLASSES = {
     "covarity": "legacy-constructed",
     "cueson": "glyphkit-constructed",
+    "dancewithme865": "authoritative",
     "eso-weave": "authoritative",
     "fragcap": "legacy-constructed",
     "glitchpad": "legacy-constructed",

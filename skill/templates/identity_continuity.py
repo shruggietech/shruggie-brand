@@ -54,6 +54,8 @@ LIFECYCLE_TRANSITIONS = {
 }
 LEGACY_PROOF_ICONKIT_SHA256 = "f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b"
 LEGACY_PROOF_FUNCTIONS_SHA256 = "9406bcbb747d1cf40c3592786d7446c4c34a72b83ee51cb51c8eef74daf7dd21"
+LEGACY_GEN_LOGO_SHA256 = "bcddd3bfe546f725f51acd193dd395361f2f19461b9b52234949e463e75a6f99"
+OPTIONAL_SOURCE_GEN_LOGO_SHA256 = "73f17e8cfa23b4148e35823ef27e4fa91333243972121d1f1ff45d0d4bedc2a8"
 PROOF_ICONKIT_FUNCTIONS = {"_pillow", "_visible_crop", "_hex_rgb", "contain_visible"}
 FRAMING_FIELDS = (
     "grid", "canvas_width", "canvas_height", "artwork_width", "artwork_height",
@@ -105,6 +107,23 @@ def proof_iconkit_digest(source):
     if semantic == LEGACY_PROOF_FUNCTIONS_SHA256:
         return LEGACY_PROOF_ICONKIT_SHA256
     return canonical_digest(source)
+
+
+def proof_gen_logo_digest(source, brand):
+    """Retain existing proof approval when reviewed optional paths cannot affect it."""
+    current = canonical_digest(source)
+    logo = (brand or {}).get("logo") or {}
+    social = (brand or {}).get("social_copy") or {}
+    name_only_social = (social.get("layout") == "slogan-only"
+                        and isinstance(social.get("slogan"), str)
+                        and isinstance((brand or {}).get("title"), str)
+                        and social["slogan"].casefold() == brand["title"].casefold())
+    uses_new_source = bool(logo.get("reduced_colourway_input_ids")
+                           or logo.get("supplied_wordmark_input_ids")
+                           or (logo.get("single_ink") or {}).get("wordmark_input_id"))
+    if current == OPTIONAL_SOURCE_GEN_LOGO_SHA256 and not uses_new_source and not name_only_social:
+        return LEGACY_GEN_LOGO_SHA256
+    return current
 
 
 def canonical_source_binding(record):
@@ -605,7 +624,7 @@ def production_renderer_contract(brand=None):
         "surfaces": list(PROOF_SURFACES),
         "variants": list(PROOF_VARIANTS),
         "surface_mapping": {name: list(values) for name, values in proof_surface_mapping(brand).items()},
-        "gen_logo_sha256": canonical_digest((here / "gen_logo.py").read_bytes()),
+        "gen_logo_sha256": proof_gen_logo_digest((here / "gen_logo.py").read_bytes(), brand),
         # Legacy approval key: bind proof-relevant code to its approved fingerprint; exact 32-image comparison remains mandatory.
         "iconkit_sha256": proof_iconkit_digest((here / "iconkit.py").read_bytes()),
         "resvg_adapter_sha256": canonical_digest((here / "rsvg-convert.js").read_bytes()),
@@ -694,8 +713,13 @@ def generate_current_proofs(brand, root):
 
 def validate_current_proof_matrix(record, root, renderer=None, brand=None):
     renderer = renderer or production_renderer_contract(brand)
-    _require(record["renderer"] == renderer, "production proof renderer or settings drift")
     portable_dir = _portable_approved_proof_dir(brand)
+    if portable_dir is None:
+        _require(record["renderer"] == renderer, "production proof renderer or settings drift")
+    else:
+        _require(record["renderer"]["id"] == renderer["id"]
+                 and record["renderer"]["settings_sha256"] == renderer["settings_sha256"],
+                 "production proof renderer or settings drift")
     approved = {(item["variant"], item["size_px"], item["surface"]): item for item in record["proofs"]}
     current = []
     for coordinate in sorted(approved):

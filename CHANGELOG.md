@@ -4,6 +4,25 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Added
+
+- Added the independently owned DanceWithMe865 identity from approved, unchanged client vectors, with standard brand sources, fixed font licenses, and public site kit generation under S065.
+
+### Changed
+
+- Extended authoritative logo inputs to retain supplied Reduced colorways and standalone wordmarks. Kept existing approved proof behavior for brands that do not use those inputs.
+- Exported DanceWithMe865's approved Windows identity proofs under its reviewed Node 26 runtime, while retaining Node 24 for the existing approved identity, before cross-platform CI validation.
+- Expanded the site and publication audit inventories to nine brands, with portfolio counts derived from the generated brand list.
+
+### Fixed
+
+- Resolved fixed-font license lookup for additional OFL families, preserved numeric precision in the generated type specimen, and corrected the verifier's Full and Reduced source check when supplied lockup variants are present.
+- Corrected guideline asset-card text colors under the client brand theme and allowed long conformance headings to wrap on narrow screens.
+
+### Decisions
+
+- On 2026-09-29, restarted S065 from the owner-provided DanceWithMe865 reference. The two new creative approvals bind exact source and derivative hashes. The social image uses the approved name alone, while all kit and site outputs retain the repository's standard structure.
+
 ## [2.7.0] - 2026-09-27
 
 ### Added

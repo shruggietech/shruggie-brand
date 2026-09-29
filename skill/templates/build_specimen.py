@@ -72,6 +72,13 @@ def clip(text, n):
     return text[:n].rsplit(" ", 1)[0].rstrip(",;:") + "."
 
 
+def placement_number(value):
+    """Retain legacy SVG text when its rounding is within the verifier tolerance."""
+    value = float(value)
+    legacy = "%g" % value
+    return legacy if abs(float(legacy) - value) <= 1e-5 else "%.12g" % value
+
+
 def mark(brand, kit, x, y, height):
     """The governed specimen lockup, scaled into the specimen header."""
     lg = brand.get("logo") or {}
@@ -88,10 +95,10 @@ def mark(brand, kit, x, y, height):
         if item.get("element", "path") == "image":
             source = embedded_image_uri(kit, item["source"])
             elements.append(
-                '<image x="%g" y="%g" width="%g" height="%g" '
+                '<image x="%s" y="%s" width="%s" height="%s" '
                 'preserveAspectRatio="xMidYMid meet" href="%s" xlink:href="%s"/>' % (
-                    float(item.get("x", 0)), float(item.get("y", 0)),
-                    float(item["width"]), float(item["height"]), source, source))
+                    placement_number(item.get("x", 0)), placement_number(item.get("y", 0)),
+                    placement_number(item["width"]), placement_number(item["height"]), source, source))
             continue
         stroked = item.get("fill") == "none" or item.get("stroke_width") is not None
         paint = (' fill="none" stroke="%s"' % colour) if stroked else (' fill="%s"' % colour)

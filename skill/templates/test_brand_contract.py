@@ -1071,6 +1071,36 @@ class AuthoritativeInputTests(unittest.TestCase):
             with self.assertRaisesRegex(ContractError, "generated wordmarks cannot replace approved masters"):
                 logo_source_contract(brand, kit)
 
+    def test_supplied_reduced_colourway_and_wordmark_bind_exact_sources(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _ = self.make_raster_brand(kit)
+            for name, role in (("reduced-light", "lockup"), ("wordmark-dark", "wordmark"),
+                               ("wordmark-light", "lockup"), ("stacked-light", "lockup")):
+                path = kit / "assets" / (name + ".svg")
+                path.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 1"><path fill="#112233" d="M0 0H2V1H0Z"/></svg>\n', encoding="utf-8")
+                brand["authoritative_inputs"].append({
+                    "id": name, "role": role, "path": "assets/%s.svg" % name,
+                    "format": "svg", "sha256": sha256_file(path), "color_profile": "none",
+                    "usage_status": "approved", "license": "Test fixture",
+                    "approved_transformations": ["embed-unchanged", "resize"],
+                })
+            brand["logo"].update({
+                "colourways": ["color", "light"],
+                "reduced_colourway_input_ids": {"light": "reduced-light"},
+                "supplied_lockup_input_ids": {"stacked": {"light": "stacked-light"}},
+                "supplied_wordmark_input_ids": {"color": "wordmark-dark", "light": "wordmark-light"},
+            })
+            resolved = logo_source_contract(brand, kit)
+            self.assertEqual("reduced-light", resolved["reduced_colourways"]["light"]["record"]["id"])
+            self.assertEqual("wordmark-light", resolved["supplied_wordmarks"]["light"]["record"]["id"])
+            self.assertEqual("stacked-light", resolved["supplied_lockups"]["stacked"]["light"]["record"]["id"])
+
+            broken = copy.deepcopy(brand)
+            broken["logo"]["supplied_wordmark_input_ids"]["light"] = "master-mark"
+            with self.assertRaisesRegex(ContractError, "wordmark light requires authoritative role"):
+                logo_source_contract(broken, kit)
+
     def test_logo_colourways_include_required_downstream_variants(self):
         with tempfile.TemporaryDirectory() as temporary:
             brand = owned_brand()

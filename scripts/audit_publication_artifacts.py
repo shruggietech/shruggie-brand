@@ -21,6 +21,7 @@ from package_release import write_brand_archive
 PRODUCTION = (
     "covarity",
     "cueson",
+    "dancewithme865",
     "eso-weave",
     "fragcap",
     "glitchpad",

@@ -81,6 +81,11 @@ jobs:
           npm install --prefix skill/templates --no-save --no-package-lock @resvg/resvg-js@2.6.2
       - name: Export exact approved identity evidence
         run: python scripts/export_approved_identity_proofs.py brands/i-heart-pr-tours dist/ci-approved-proofs/i-heart-pr-tours
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 26.5.0
+      - name: Export DanceWithMe865 approved identity evidence
+        run: python scripts/export_approved_identity_proofs.py brands/dancewithme865 dist/ci-approved-proofs/dancewithme865
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
         with:
           name: approved-identity-proofs-${{ github.sha }}
