@@ -53,7 +53,9 @@ export function GuidelineOverview({ portal }: { portal: GuidelinePortal }) {
       <h2 id="where-each-asset-belongs">Where each asset belongs</h2>
       <p>Choose the delivered artwork for its declared surface, role, and size. The <a href={`/${slug}/guidelines/assets/#asset-library`}>asset library</a> contains every verified variant.</p>
       <ul>{sourceAssets.map(({ family, asset }) => <li key={family.key}><strong>{family.title}:</strong> <a href={asset.preview.url}>{asset.title}</a> ({asset.preview.destination}).</li>)}</ul>
-      {essentials.reduced_below_px != null && <p>The reduced mark takes over at and below {essentials.reduced_below_px} px.</p>}
+      {essentials.standalone_mark_variant === 'reduced'
+        ? <p>The face-only reduced master is the standalone mark at every size. Use the supplied icon files for each platform.</p>
+        : essentials.reduced_below_px != null && <p>The reduced mark takes over at and below {essentials.reduced_below_px} px.</p>}
     </section>
     <section className="guide-section" aria-labelledby="usage-limits">
       <h2 id="usage-limits">Usage limits</h2>

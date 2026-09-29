@@ -88,6 +88,16 @@ class BrandEssentialsTests(unittest.TestCase):
                 for role in projection["approved_words"]:
                     self.assertIn('data-message-role="%s"' % role.replace("_", "-"), rendered)
 
+    def test_standalone_reduced_mark_overrides_size_cutoff(self):
+        reduced = essentials_projection(self.brand("shruggietech"))
+        self.assertEqual("reduced", reduced["standalone_mark_variant"])
+        rendered = portable_essentials_html(reduced)
+        self.assertIn("standalone mark at every size", rendered)
+        self.assertNotIn("takes over at and below", rendered)
+        full = essentials_projection(self.brand("go-schedule"))
+        self.assertEqual("full", full["standalone_mark_variant"])
+        self.assertIn("takes over at and below 32 px", portable_essentials_html(full))
+
     def test_verifier_keeps_authored_prose_lint_while_allowing_exact_source(self):
         brand = self.brand("shruggietech")
 

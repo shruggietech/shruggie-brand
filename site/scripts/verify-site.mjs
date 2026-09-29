@@ -741,6 +741,9 @@ try {
         }
         for (const limit of portal.essentials.usage_limits) check((await page.locator('section[aria-labelledby="usage-limits"]').innerText()).includes(limit), `${route} omits an exact source usage limit`);
         if (portal.essentials.visual_boundary) check((await page.locator('section[aria-labelledby="usage-limits"]').innerText()).includes(portal.essentials.visual_boundary), `${route} omits the reviewed visual boundary`);
+        const assetGuidance = await page.locator('section[aria-labelledby="where-each-asset-belongs"]').innerText();
+        if (portal.essentials.standalone_mark_variant === 'reduced') check(assetGuidance.includes('standalone mark at every size') && !assetGuidance.includes('takes over at and below'), `${route} contradicts its standalone reduced-mark rule`);
+        else if (portal.essentials.reduced_below_px != null) check(assetGuidance.includes(`takes over at and below ${portal.essentials.reduced_below_px} px`), `${route} omits the full-mark cutoff`);
         for (const oldHeading of ['Foundations', 'Promises', 'Boundaries']) check(await page.getByRole('heading', { name: oldHeading, exact: true }).count() === 0, `${route} retains ${oldHeading} in the essentials opening`);
         check(await page.getByRole('heading', { name: 'Implementation authority' }).count() === 1, `${route} omits implementation authority`);
         check(await page.getByRole('heading', { name: 'Versions and bindings' }).count() === 1, `${route} omits labeled versions`);

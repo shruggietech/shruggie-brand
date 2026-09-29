@@ -566,7 +566,9 @@ def portable_essentials_html(essentials):
                          tuple(escape(essentials["type_families"][role]) for role in ("display", "body", "mono")))
         elif section_id == "where-each-asset-belongs":
             parts.append('<p>Use the delivered logo and mark files for their declared surfaces and sizes. The <a href="#assets">asset catalog</a> lists each verified variant and download. The <a href="#colors">color</a> and <a href="#type-components">type</a> sections give exact values.</p>')
-            if essentials["reduced_below_px"] is not None:
+            if essentials["standalone_mark_variant"] == "reduced":
+                parts.append('<p>The face-only reduced master is the standalone mark at every size. Use the supplied icon files for each platform.</p>')
+            elif essentials["reduced_below_px"] is not None:
                 parts.append('<p>The reduced mark takes over at and below %s px.</p>' % essentials["reduced_below_px"])
         elif section_id == "usage-limits":
             parts.append('<p>Keep the delivered artwork geometry unchanged.</p>')
