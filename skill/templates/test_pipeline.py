@@ -16,6 +16,7 @@ import sys
 import tempfile
 import types
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest import mock
 
@@ -1013,6 +1014,37 @@ class PipelineTests(unittest.TestCase):
         brand["logo"]["artwork_width"] = 1200
         self.assertAlmostEqual(1200.0 / 1340.0, gen_logo.standalone_mark_ratio(brand))
 
+    def test_normalized_luminance_mask_keeps_green_interior_opaque(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "source.png"
+            output = Path(temporary) / "output.png"
+            image = Image.new("RGBA", (4, 1))
+            image.putdata([(0, 0, 0, 255), (0, 171, 33, 255), (0, 85, 16, 255), (0, 1, 0, 100)])
+            image.save(source)
+            gen_logo.recolour_rgba_png(source, output, "#2BCC73", "luminance-normalized")
+            with Image.open(output) as result:
+                self.assertEqual((43, 204, 115, 255), result.getpixel((1, 0)))
+                self.assertEqual((43, 204, 115, 127), result.getpixel((2, 0)))
+                self.assertEqual(0, result.getpixel((0, 0))[3])
+                self.assertEqual(1, result.getpixel((3, 0))[3])
+            self.assertEqual(verify._png_mask(source.read_bytes(), "luminance-normalized"),
+                             verify._png_mask(output.read_bytes(), "alpha"))
+
+    def test_reduced_viewbox_uses_square_window_without_moving_source_geometry(self):
+        brand = {"logo": {"canvas_width": 919, "canvas_height": 500,
+                          "reduced_viewbox": [238.5, 30, 440, 440],
+                          "paths": {"reduced": [{"element": "image", "x": 209.5, "y": 0,
+                                                 "width": 500, "height": 500}]}}}
+        self.assertEqual((238.5, 30, 440, 440), gen_logo.reduced_mark_viewbox(brand))
+        rendered = gen_logo.svg(440, 440, '<image x="209.5" y="0" width="500" height="500"/>',
+                                viewbox=gen_logo.reduced_mark_viewbox(brand))
+        self.assertIn('viewBox="238.5 30 440 440"', rendered)
+        self.assertIn('x="209.5" y="0" width="500" height="500"', rendered)
+        precise = (238.123456789, 30.000000123, 439.999999876, 439.999999876)
+        precise_svg = gen_logo.svg(440, 440, "<path/>", viewbox=precise)
+        serialized = precise_svg.split('viewBox="', 1)[1].split('"', 1)[0]
+        self.assertEqual(precise, tuple(float(value) for value in serialized.split()))
+
     def test_standalone_mark_ratio_can_preserve_approved_concept_framing(self):
         brand = {"logo": {
             "artwork_width": 330,
@@ -1220,6 +1252,16 @@ class PipelineTests(unittest.TestCase):
             brand, _, _ = self.i_heart_pr_tours_guide_fixture(kit)
             pdf_html = gen_guide_pdf.build(brand, kit)
             portable_html = gen_guidelines.build(brand, kit)
+
+            old_rule = "Below %d px the reduced master takes over." % brand["logo"].get("reduced_below_px", 32)
+            self.assertIn(old_rule, pdf_html)
+            self.assertIn(old_rule, portable_html)
+            brand["logo"]["standalone_mark_variant"] = "reduced"
+            pdf_face_html = gen_guide_pdf.build(brand, kit)
+            portable_face_html = gen_guidelines.build(brand, kit)
+            for face_html in (pdf_face_html, portable_face_html):
+                self.assertIn("The face-only reduced master is the standalone mark at every size.", face_html)
+                self.assertNotIn(old_rule, face_html)
             for required in ("brand-cta", "#C5342C", "Primary CTA button", "#FFFFFF",
                              "Default", "Hover", "Active", "Focus visible"):
                 self.assertIn(required, pdf_html)
@@ -1567,7 +1609,7 @@ class PipelineTests(unittest.TestCase):
             ):
                 Image.new("RGBA", (8, 8), (255, 255, 255, 255)).save(pngs / name)
             html = gen_guide_pdf._variants(
-                kit, "sample", lambda payload, class_name="", style="": "<img style=\"%s\">" % style)
+                {}, kit, "sample", lambda payload, class_name="", style="": "<img style=\"%s\">" % style)
             self.assertEqual(2, html.count('class="card dark-preview"'))
             self.assertEqual(2, html.count('class="card lite"'))
             self.assertIn("Horizontal, product surface", html)
@@ -1606,6 +1648,20 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue(all(row["status"] == "skipped" for row in icon_manifest["suites"]
                                 if row["id"] != "web"))
 
+    def test_framed_passive_svg_uses_visible_artwork_bounds(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "master.svg"
+            source.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+                              '<rect x="20" y="20" width="60" height="60" fill="#123456"/></svg>\n',
+                              encoding="utf-8")
+            pixel_box = verify._svg_visible_pixel_box(source, False)
+            self.assertEqual((100.0, 100.0, (20.0, 20.0, 80.0, 80.0)), pixel_box)
+            root = ET.fromstring('<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 10 80 80">'
+                                 '<image x="0" y="0" width="100" height="100"/></svg>')
+            image = next(node for node in root.iter() if node.tag.endswith("image"))
+            self.assertEqual([(20.0, 20.0), (80.0, 80.0)],
+                             verify._transformed_image_bounds(root, image, pixel_box))
+
     def test_authoritative_logo_provenance_is_complete_and_tamper_evident(self):
         with tempfile.TemporaryDirectory() as tmp:
             kit = Path(tmp) / "shruggietech"
@@ -1624,8 +1680,8 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(paths, sorted(paths))
             self.assertEqual(set(paths), {path.relative_to(kit).as_posix() for path in (kit / "logos" / "svg").glob("*.svg")})
             mark = next(item for item in provenance["derivatives"] if item["path"].endswith("-mark-color.svg"))
-            self.assertEqual("full-mark-master", mark["input_id"])
-            self.assertEqual(["recolor-mask", "resize"], mark["transformations"])
+            self.assertEqual("reduced-mark-master", mark["input_id"])
+            self.assertEqual(["recolor-mask", "resize", "frame-viewport"], mark["transformations"])
             svg_path = kit / mark["path"]
             self.assertEqual(hashlib.sha256(svg_path.read_bytes()).hexdigest(), mark["sha256"])
             approval_path = kit / "logos" / "approval.json"
@@ -1633,7 +1689,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(paths, [item["path"] for item in approval["derivatives"]])
             text = svg_path.read_text(encoding="utf-8")
             self.assertIn('data-logo-source-mode="authoritative"', text)
-            self.assertIn('data-authoritative-input-id="full-mark-master"', text)
+            self.assertIn('data-authoritative-input-id="reduced-mark-master"', text)
             report = verify.Report()
             verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
             self.assertFalse(report.problems)
@@ -1688,7 +1744,7 @@ class PipelineTests(unittest.TestCase):
             verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
             self.assertTrue(any("approval manifest" in problem for problem in report.problems))
             approval_path.write_text(json.dumps(approval, indent=2) + "\n", encoding="utf-8")
-            svg_path.write_text(text.replace('data-authoritative-input-id="full-mark-master"',
+            svg_path.write_text(text.replace('data-authoritative-input-id="reduced-mark-master"',
                                              'data-authoritative-input-id="substitute"'), encoding="utf-8")
             report = verify.Report()
             verify.c_logo_provenance(str(kit), json.loads((kit / "brand.json").read_text(encoding="utf-8")), report)
@@ -1884,7 +1940,7 @@ class PipelineTests(unittest.TestCase):
 
                     logo_svg = kit / "logos" / "svg" / "shruggietech-mark-color.svg"
                     original_svg = logo_svg.read_text(encoding="utf-8")
-                    logo_svg.write_text(original_svg.replace('<image x="0"', '<image opacity="0" x="1"'), encoding="utf-8")
+                    logo_svg.write_text(original_svg.replace('<image x="209.5"', '<image opacity="0" x="210.5"'), encoding="utf-8")
                     logo_report = verify.Report()
                     verify.c_logo_provenance(str(kit), brand, logo_report)
                     detail = "\n".join(logo_report.problems)

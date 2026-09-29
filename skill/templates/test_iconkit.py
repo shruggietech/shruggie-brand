@@ -300,6 +300,31 @@ class IconKitTests(unittest.TestCase):
             self.assertIn(base64.b64encode(reduced.read_bytes()).decode("ascii"), preferred)
             self.assertNotIn(base64.b64encode(full.read_bytes()).decode("ascii"), preferred)
 
+    def test_explicit_reduced_square_profile_never_labels_an_icon_full(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "kit"
+            kit.mkdir()
+            full = kit / "full.svg"
+            reduced = kit / "reduced.svg"
+            full.write_text('<svg xmlns="http://www.w3.org/2000/svg"><path id="arms"/></svg>\n', encoding="utf-8")
+            reduced.write_text('<svg xmlns="http://www.w3.org/2000/svg"><path id="face"/></svg>\n', encoding="utf-8")
+            brand = brand_fixture()
+            brand["logo"]["application_icon"]["source_variant"] = "reduced"
+            manifest = generate_icon_suites(
+                brand, kit, reduced, reduced, fake_render,
+                {"tier": "full", "svg_raster": True, "ico_writer": True},
+                monochrome_svg=reduced,
+            )
+            self.assertEqual("reduced", manifest["profile"]["source_variant"])
+            for item in manifest["artifacts"]:
+                if item["role"] in {"favicon", "favicon-ico", "apple-touch", "installable", "maskable",
+                                    "legacy-launcher", "adaptive-foreground", "adaptive-monochrome", "play-store",
+                                    "app-icon", "asset-catalog-icon", "iconset-icon", "icns", "classic-ico",
+                                    "msix-scale", "target-size", "store-logo"}:
+                    self.assertIn(item["source_variant"], {"reduced", "monochrome"}, item["path"])
+            wrapped = (kit / "icons" / "web" / "favicon-full.svg").read_text(encoding="utf-8")
+            self.assertNotIn(base64.b64encode(full.read_bytes()).decode("ascii"), wrapped)
+
     def test_core_vector_generation_does_not_import_pillow(self):
         module_root = str(Path(__file__).resolve().parent)
         script = "\n".join((

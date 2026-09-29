@@ -694,9 +694,40 @@ def generate_current_proofs(brand, root):
 
 def validate_current_proof_matrix(record, root, renderer=None, brand=None):
     renderer = renderer or production_renderer_contract(brand)
-    _require(record["renderer"] == renderer, "production proof renderer or settings drift")
     portable_dir = _portable_approved_proof_dir(brand)
+    _require(record["renderer"]["id"] == renderer["id"], "production proof renderer identity drift")
     approved = {(item["variant"], item["size_px"], item["surface"]): item for item in record["proofs"]}
+    settings_match = record["renderer"] == renderer
+    if not settings_match and portable_dir is not None:
+        # The canonical-host job proves this candidate's changed generator still
+        # produces all approved bytes. The consuming host may rasterize those same
+        # sources differently, so bind its measured comparison to that attestation.
+        report_path = portable_dir.parent.parent / "identity-continuity-report.json"
+        _require(report_path.is_file() and not report_path.is_symlink(),
+                 "portable current-renderer attestation is missing")
+        report = load_json(report_path)
+        report_digest = report.pop("report_sha256", None)
+        _require(report_digest == canonical_digest(report), "portable renderer attestation digest drift")
+        _require(report.get("brand") == brand["slug"]
+                 and report.get("record_sha256") == record["record_sha256"],
+                 "portable renderer attestation identity drift")
+        validation = report.get("proof_validation") or {}
+        attested_renderer = validation.get("renderer") or {}
+        _require(validation.get("status") == "passed"
+                 and attested_renderer.get("id") == renderer["id"]
+                 and attested_renderer.get("settings_sha256") == renderer["settings_sha256"],
+                 "portable renderer attestation settings drift")
+        attested = {(item["variant"], item["size_px"], item["surface"]): item
+                    for item in validation.get("proofs", [])}
+        _require(set(attested) == set(approved)
+                 and all(item.get("sha256") == approved[coordinate]["sha256"]
+                         and item.get("comparison", {}).get("passes") is True
+                         and item["comparison"].get("same_renderer") is True
+                         and all(item["comparison"].get("evidence", {}).get(kind, {}).get("sha256")
+                                 == approved[coordinate]["evidence"][kind]["sha256"]
+                                 for kind in EVIDENCE_KINDS)
+                         for coordinate, item in attested.items()),
+                 "portable renderer attestation proof drift")
     current = []
     for coordinate in sorted(approved):
         variant, size, surface = coordinate
@@ -706,9 +737,10 @@ def validate_current_proof_matrix(record, root, renderer=None, brand=None):
         same_renderer = portable_dir is None
         if same_renderer:
             _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
-            approved_path = path
+            approved_path = path if portable_dir is None else portable_dir / path.name
         else:
             approved_path = portable_dir / path.name
+        if portable_dir is not None:
             _require(approved_path.is_file() and not approved_path.is_symlink(),
                      "portable approved proof is missing: %s" % path.name)
             _require(canonical_digest(approved_path.read_bytes()) == approved[coordinate]["sha256"],
