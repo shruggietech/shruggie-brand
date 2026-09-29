@@ -246,6 +246,7 @@ class Writer:
         self.profile = profile
         self.capabilities = capabilities
         self.source_masters = source_masters
+        self.square_variant = profile.get("source_variant", "full")
         self.artifacts = []
         self.suites = []
 
@@ -268,10 +269,15 @@ class Writer:
         return self.record(path, platform, role, fmt, destination=destination)
 
     def png(self, path, image, platform, role, appearance="default", alpha="either",
-            source_variant="full", destination="See suite README"):
+            source_variant=None, destination="See suite README"):
         _save_png(image, path)
         return self.record(path, platform, role, "png", image.width, image.height,
-                           appearance, alpha, source_variant, destination)
+                           appearance, alpha, source_variant or self.square_variant, destination)
+
+    def select_mark(self, full_mark, reduced_mark, size):
+        variant = ("reduced" if self.square_variant == "reduced"
+                   or size <= self.profile["reduced_below_px"] else "full")
+        return (reduced_mark if variant == "reduced" else full_mark), variant
 
     def platform_manifest(self, root, platform, entries, status="generated", reason=None):
         path = Path(root) / "manifest.json"
@@ -300,7 +306,8 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
     background = writer.profile["background"]
     ratio, offset = _profile_frame(writer, 0.72)
     transparent_web = writer.profile.get("transparent_web_icons", False)
-    for name, source, variant in (("favicon.svg", reduced_svg, "reduced"), ("favicon-full.svg", full_svg, "full")):
+    for name, source, variant in (("favicon.svg", reduced_svg, "reduced"),
+                                  ("favicon-full.svg", full_svg, writer.square_variant)):
         path = root / name
         if raster and transparent_web:
             mark = reduced_mark if variant == "reduced" else full_mark
@@ -318,7 +325,8 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
     writer.text(readme, _suite_readme(
         "Web icons",
         ("Browser, touch, and installable-web assets. `favicon.svg` is preferred. At raster tiers, copy both ordinary `android-chrome-*` and dedicated opaque `maskable-icon-*` PNGs alongside `site.webmanifest`. The manifest declares their roles separately; do not reuse a transparent ordinary icon as maskable." if raster else "Core tier provides vector browser artwork only; raster, manifest, and maskable roles require a raster-capable tier."),
-        (("favicon.svg", "Preferred reduced-mark browser favicon"), ("favicon-full.svg", "Full-mark vector alternative"),
+        (("favicon.svg", "Preferred reduced-mark browser favicon"),
+         ("favicon-full.svg", "Compatibility vector alternative using the configured square source"),
          ("favicon.ico", "Classic multi-size fallback"),
          ("apple-touch-icon.png", "Apple touch icon"), ("maskable-icon-192x192.png and maskable-icon-512x512.png", "Opaque PWA maskable artwork"),
          ("site.webmanifest", "Installable web metadata")),
@@ -332,24 +340,23 @@ def _write_web(writer, full_svg, reduced_svg, full_mark, reduced_mark, raster):
     sizes = (16, 24, 32, 48, 64, 96, 128, 180, 192, 256, 512)
     images = {}
     for size in sizes:
-        variant = "reduced" if size <= writer.profile["reduced_below_px"] else "full"
-        mark = reduced_mark if variant == "reduced" else full_mark
+        mark, variant = writer.select_mark(full_mark, reduced_mark, size)
         image = (contain_visible(mark, size, ratio, vertical_offset_ratio=offset) if transparent_web
                  else _plated(mark, size, background, ratio, vertical_offset_ratio=offset))
         images[size] = image
         writer.png(root / ("favicon-%dx%d.png" % (size, size)), image, "web", "favicon", alpha="transparent" if transparent_web else "opaque", source_variant=variant, destination="Web root")
     writer.png(root / "apple-touch-icon.png", images[180], "web", "apple-touch", alpha="transparent" if transparent_web else "opaque",
-               source_variant="reduced" if 180 <= writer.profile["reduced_below_px"] else "full", destination="Web root")
+               source_variant=writer.select_mark(full_mark, reduced_mark, 180)[1], destination="Web root")
     for size in (192, 512):
-        variant = "reduced" if size <= writer.profile["reduced_below_px"] else "full"
+        mark, variant = writer.select_mark(full_mark, reduced_mark, size)
         writer.png(root / ("android-chrome-%dx%d.png" % (size, size)), images[size], "web", "installable", alpha="transparent" if transparent_web else "opaque",
                    source_variant=variant, destination="Web root")
-        mark = reduced_mark if variant == "reduced" else full_mark
         maskable = _plated(mark, size, writer.profile.get("masked_background", background), min(ratio, 0.56))
         writer.png(root / ("maskable-icon-%dx%d.png" % (size, size)), maskable, "web", "maskable", alpha="opaque", source_variant=variant, destination="Web root")
     ico = root / "favicon.ico"
     _write_ico([(size, images[size]) for size in ICO_SIZES], ico)
-    writer.record(ico, "web", "favicon-ico", "ico", appearance="default", alpha="opaque", source_variant="mixed", destination="Web root")
+    writer.record(ico, "web", "favicon-ico", "ico", appearance="default", alpha="opaque",
+                  source_variant="reduced" if writer.square_variant == "reduced" else "mixed", destination="Web root")
     webmanifest = root / "site.webmanifest"
     write_text(webmanifest, json.dumps({
         "name": writer.brand["title"], "short_name": writer.brand["title"],
@@ -425,7 +432,7 @@ def _write_ios(writer, full_mark, monochrome_mark):
     rows = []
     for name, image, appearance in images:
         writer.png(catalog / name, image, "apple-ios", "app-icon", appearance or "default", "opaque",
-                   "monochrome" if appearance == "tinted" else "full", "Xcode AppIcon.appiconset")
+                   "monochrome" if appearance == "tinted" else writer.square_variant, "Xcode AppIcon.appiconset")
         row = {"filename": name, "idiom": "universal", "platform": "ios", "size": "1024x1024"}
         if appearance:
             row["appearances"] = [{"appearance": "luminosity", "value": appearance}]
@@ -467,7 +474,8 @@ def _write_macos(writer, full_mark):
     writer.record(contents, "apple-macos", "asset-catalog", "json", destination="Xcode AppIcon.appiconset")
     icns = root / "AppIcon.icns"
     _write_icns(icns_images, icns)
-    writer.record(icns, "apple-macos", "icns", "icns", appearance="default", alpha="opaque", source_variant="full", destination="macOS application bundle")
+    writer.record(icns, "apple-macos", "icns", "icns", appearance="default", alpha="opaque",
+                  source_variant=writer.square_variant, destination="macOS application bundle")
     entries = writer.artifacts[start:]
     manifest = writer.platform_manifest(root, "apple-macos", entries)
     writer.suites.append({"id": "apple-macos", "root": "icons/apple/macos", "readme": writer.relative(readme),
@@ -490,12 +498,13 @@ def _write_windows(writer, full_mark, reduced_mark):
     taskbar_ratio = max(ratio, 0.84) if unplated else ratio
     ico_images = {}
     for size in ICO_SIZES:
-        mark = reduced_mark if size <= writer.profile["reduced_below_px"] else full_mark
+        mark, _variant = writer.select_mark(full_mark, reduced_mark, size)
         ico_images[size] = (contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset) if unplated
                             else _plated(mark, size, background, ratio, vertical_offset_ratio=offset))
     ico = root / "classic" / "app.ico"
     _write_ico([(size, ico_images[size]) for size in ICO_SIZES], ico)
-    writer.record(ico, "windows", "classic-ico", "ico", appearance="default", alpha="transparent" if unplated else "opaque", source_variant="mixed", destination="Win32 application")
+    writer.record(ico, "windows", "classic-ico", "ico", appearance="default", alpha="transparent" if unplated else "opaque",
+                  source_variant="reduced" if writer.square_variant == "reduced" else "mixed", destination="Win32 application")
     assets = root / "msix" / "Assets"
     for base, label in ((44, "Square44x44Logo"), (150, "Square150x150Logo")):
         for scale in (100, 200, 400):
@@ -503,15 +512,15 @@ def _write_windows(writer, full_mark, reduced_mark):
             writer.png(assets / ("%s.scale-%d.png" % (label, scale)), _plated(full_mark, pixels, background, ratio, vertical_offset_ratio=offset),
                        "windows", "msix-scale", alpha="opaque", destination="MSIX Assets")
     for size in WINDOWS_TARGETS:
-        mark = reduced_mark if size <= writer.profile["reduced_below_px"] else full_mark
+        mark, variant = writer.select_mark(full_mark, reduced_mark, size)
         taskbar = (contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset) if unplated
                    else _plated(mark, size, background, ratio, vertical_offset_ratio=offset))
         writer.png(assets / ("Square44x44Logo.targetsize-%d.png" % size), taskbar,
-                   "windows", "target-size", alpha="transparent" if unplated else "opaque", source_variant="reduced" if mark is reduced_mark else "full", destination="MSIX Assets")
+                   "windows", "target-size", alpha="transparent" if unplated else "opaque", source_variant=variant, destination="MSIX Assets")
         writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-unplated.png" % size), contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset),
-                   "windows", "target-size", "dark-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
+                   "windows", "target-size", "dark-unplated", "transparent", variant, "MSIX Assets")
         writer.png(assets / ("Square44x44Logo.targetsize-%d_altform-lightunplated.png" % size), contain_visible(mark, size, taskbar_ratio, vertical_offset_ratio=offset),
-                   "windows", "target-size", "light-unplated", "transparent", "reduced" if mark is reduced_mark else "full", "MSIX Assets")
+                   "windows", "target-size", "light-unplated", "transparent", variant, "MSIX Assets")
     for scale in (100, 200, 400):
         pixels = 50 * scale // 100
         writer.png(assets / ("StoreLogo.scale-%d.png" % scale), _plated(full_mark, pixels, background, ratio, vertical_offset_ratio=offset),

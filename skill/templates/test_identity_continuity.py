@@ -161,7 +161,7 @@ def proof_artifact_bytes(size):
 class IdentityContinuityTests(unittest.TestCase):
     def test_icon_role_edits_preserve_approved_proof_binding_only_while_proof_functions_match(self):
         source = (HERE / "iconkit.py").read_bytes()
-        self.assertEqual("f54e1bafa814e04f3d564866bfebb7832cf07961b5cd7d9ac336cee60209580b",
+        self.assertEqual("96dcecb82bab50874b1229151ac9f118abb079bd4790f23fe250a3597992332a",
                          proof_iconkit_digest(source))
         changed = source.replace(b"maximum = max(1, int(round(size * ratio)))",
                                  b"maximum = max(1, int(round(size * ratio * 0.9)))", 1)
@@ -474,13 +474,16 @@ class IdentityContinuityTests(unittest.TestCase):
                 target.write_bytes((source / item["path"]).read_bytes())
             result = validate_current_proof_matrix(record, source, renderer=record["renderer"])
             self.assertEqual("passed", result["status"])
+            changed_settings = dict(record["renderer"], version="2", settings_sha256="0" * 64)
+            self.assertEqual("passed", validate_current_proof_matrix(
+                record, source, renderer=changed_settings)["status"])
             with self.assertRaisesRegex(ContinuityError, "renderer"):
                 validate_current_proof_matrix(record, source, renderer={"id": "changed", "version": "1",
                                                                        "settings_sha256": "0" * 64})
             first = generated / "full-256-dark.png"
             first.write_bytes(first.read_bytes() + b"drift")
             with self.assertRaisesRegex(ContinuityError, "proof drift"):
-                validate_current_proof_matrix(record, source, renderer=record["renderer"])
+                validate_current_proof_matrix(record, source, renderer=changed_settings)
 
     def test_portable_proof_matrix_is_hash_bound_before_measured_comparison(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -501,6 +504,19 @@ class IdentityContinuityTests(unittest.TestCase):
                     record, source, renderer=record["renderer"], brand={"slug": "example"}
                 )
                 self.assertTrue(all(not item["comparison"]["same_renderer"] for item in result["proofs"]))
+                changed_settings = dict(record["renderer"], version="2", settings_sha256="0" * 64)
+                exact_result = validate_current_proof_matrix(
+                    record, source, renderer=changed_settings, brand={"slug": "example"}
+                )
+                self.assertTrue(all(item["comparison"]["same_renderer"] for item in exact_result["proofs"]))
+                produced = generated / "full-256-dark.png"
+                original = produced.read_bytes()
+                produced.write_bytes(original + b"drift")
+                with self.assertRaisesRegex(ContinuityError, "exact proof matrix"):
+                    validate_current_proof_matrix(
+                        record, source, renderer=changed_settings, brand={"slug": "example"}
+                    )
+                produced.write_bytes(original)
                 first = portable / "full-256-dark.png"
                 first.write_bytes(first.read_bytes() + b"drift")
                 with self.assertRaisesRegex(ContinuityError, "portable approved proof hash drift"):

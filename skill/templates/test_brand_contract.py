@@ -1115,6 +1115,34 @@ class AuthoritativeInputTests(unittest.TestCase):
             with self.assertRaisesRegex(ContractError, "mask approval is stale"):
                 validate_brand(brand, kit)
 
+    def test_normalized_mask_requires_matching_source_bound_approval(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _source = self.make_raster_brand(kit)
+            brand["logo"]["paths"]["reduced"][0]["mask"] = "luminance-normalized"
+            with self.assertRaisesRegex(ContractError, "mask method lacks matching owner approval"):
+                validate_brand(brand, kit)
+            brand["authoritative_inputs"][1]["approved_mask"] = "luminance-normalized"
+            validate_brand(brand, kit)
+
+    def test_reduced_viewbox_must_stay_square_and_inside_canvas(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _source = self.make_raster_brand(kit)
+            brand["logo"]["reduced_viewbox"] = [501, 1, 500, 500]
+            with self.assertRaisesRegex(ContractError, "square window"):
+                validate_brand(brand, kit)
+
+    def test_reduced_viewbox_requires_explicit_source_transform_approval(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary)
+            brand, _source = self.make_raster_brand(kit)
+            brand["logo"]["reduced_viewbox"] = [0, 0, 500, 500]
+            with self.assertRaisesRegex(ContractError, "frame-viewport"):
+                validate_brand(brand, kit)
+            brand["authoritative_inputs"][1]["approved_transformations"].append("frame-viewport")
+            validate_brand(brand, kit)
+
 
 class FixedFontTests(unittest.TestCase):
     def fixed_brand(self, kit):
@@ -1226,7 +1254,7 @@ class FixedFontTests(unittest.TestCase):
 class SocialCopyTests(unittest.TestCase):
     def test_exact_production_copy_decisions(self):
         expected = {
-            "shruggietech": ("We advance your vision.", []),
+            "shruggietech": ("We’ll figure it out.", []),
             "i-heart-pr-tours": ("Experience Puerto Rico", []),
             "go-schedule": ("A cross-platform scheduler in Go.", []),
             "glitchpad": ("View your files.", []),
@@ -1253,6 +1281,14 @@ class SocialCopyTests(unittest.TestCase):
                                 "approval": {"approved_by": "owner", "approved_on": "2026-09-25", "source": "decision"}}
         with self.assertRaisesRegex(ContractError, "description lines"):
             social_copy(brand)
+
+    def test_shruggietech_exact_slogan_keeps_the_introduction_distinct(self):
+        source = ROOT / "brands" / "shruggietech" / "brand.json"
+        brand = json.loads(source.read_text(encoding="utf-8"))
+        self.assertEqual("We’ll figure it out.", social_copy(brand)["slogan"])
+        self.assertEqual("We advance your vision.", brand["brand_idea"])
+        self.assertEqual("We advance your vision.", brand["guide"]["idea"])
+        self.assertIn("supersedes S057", brand["social_copy"]["approval"]["source"])
 
     def test_social_copy_rejects_lines_that_exceed_the_canvas(self):
         brand = {"social_copy": {"slogan": "Chosen", "layout": "slogan-description",

@@ -135,7 +135,7 @@ def _ships(kit):
             % (tbl(rows[:half]), tbl(rows[half:])))
 
 
-def _variants(kit, slug, img):
+def _variants(brand, kit, slug, img):
     """Show the colourways that were actually produced, at the sizes they matter."""
     from _guidekit import b64 as _b64
     pngs = os.path.join(kit, "logos", "png")
@@ -143,11 +143,15 @@ def _variants(kit, slug, img):
         p = os.path.join(pngs, n)
         return _b64(p) if os.path.exists(p) else None
     cells = []
-    for fn, label, preview_class in (
+    square_face = (brand.get("logo") or {}).get("standalone_mark_variant") == "reduced"
+    variants = [
         ("%s-horizontal-color-1024.png" % slug, "Horizontal, product surface", " dark-preview"),
-        ("%s-mark-color-1024.png" % slug, "Mark", " dark-preview"),
+        ("%s-mark-color-1024.png" % slug, "Face-only square mark" if square_face else "Mark", " dark-preview"),
         ("%s-horizontal-light-1024.png" % slug, "Light surface", " lite"),
-        ("%s-mark-reduced-color-1024.png" % slug, "Reduced master", " lite")):
+        (("%s-mark-reduced-light-1024.png" % slug if square_face else "%s-mark-reduced-color-1024.png" % slug),
+         "Face-only square mark, light" if square_face else "Reduced master", " lite"),
+    ]
+    for fn, label, preview_class in variants:
         b = has(fn)
         if not b: continue
         cells.append('<div class="card%s" style="text-align:center;padding:5mm 2mm">%s'
@@ -355,7 +359,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             float(stacked_lockup.get("gap_c", 0.45)),
             ("Never combine the %s and ShruggieTech marks into one lockup." % slug)
             if aff["parent"] else "Never combine this mark with another organization’s mark into one lockup.")
-        + _variants(kit, slug, img), 3))
+        + _variants(B, kit, slug, img), 3))
 
     i_heart_cta = slug == "i-heart-pr-tours"
     role_grid = "grid5" if i_heart_cta else "grid4"

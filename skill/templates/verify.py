@@ -989,7 +989,8 @@ def c_icon_suites(kit, brand, rep):
     expected_masters = {
         "full": "logos/svg/%s-mark-%scolor.svg" % (brand.get("slug"), "reduced-" if full_master_variant == "reduced" else ""),
         "reduced": "logos/svg/%s-mark-reduced-color.svg" % brand.get("slug"),
-        "monochrome": ("logos/svg/%s-mark-white.svg" % brand.get("slug")
+        "monochrome": ("logos/svg/%s-mark-%swhite.svg" %
+                       (brand.get("slug"), "reduced-" if full_master_variant == "reduced" else "")
                        if monochrome_available else None),
     }
     if manifest.get("source_masters") != expected_masters:
@@ -1148,7 +1149,8 @@ def c_icon_suites(kit, brand, rep):
                 from PIL import Image
                 kind = fmt
                 for size, payload in _container_png_payloads(path, kind):
-                    variant = "full" if kind == "icns" or size > expected_profile["reduced_below_px"] else "reduced"
+                    variant = ("reduced" if full_master_variant == "reduced" else
+                               "full" if kind == "icns" or size > expected_profile["reduced_below_px"] else "reduced")
                     expected_role = "asset-catalog-icon" if kind == "icns" else item.get("role")
                     expected_identity = _expected_authoritative_icon(
                         {"source_variant": variant, "width": size, "role": expected_role, "appearance": "default"},
@@ -1522,7 +1524,8 @@ def _png_mask(payload, method):
     raw = zlib.decompress(b"".join(compressed))
     if len(raw) != height * (stride + 1):
         raise ValueError("authoritative PNG has an unexpected data length")
-    previous, offset, mask = bytearray(stride), 0, bytearray()
+    previous, offset = bytearray(stride), 0
+    alphas, luminances = bytearray(), bytearray()
     for _row in range(height):
         filter_type = raw[offset]
         scanline = bytearray(raw[offset + 1:offset + stride + 1])
@@ -1543,11 +1546,34 @@ def _png_mask(payload, method):
                 raise ValueError("authoritative PNG uses an unknown filter")
         for index in range(0, stride, 4):
             red, green, blue, alpha = scanline[index:index + 4]
-            if method == "luminance":
-                alpha = round(alpha * max(red, green, blue) / 255)
-            mask.append(255 if alpha else 0)
+            alphas.append(alpha)
+            luminances.append(max(red, green, blue))
         previous = scanline
+    if method not in {"alpha", "luminance", "luminance-normalized"}:
+        raise ValueError("unsupported authoritative PNG mask method")
+    peak = (max((light for alpha, light in zip(alphas, luminances) if alpha), default=0)
+            if method == "luminance-normalized" else 255)
+    if peak == 0:
+        raise ValueError("normalized authoritative PNG has no visible source pixels")
+    mask = bytearray()
+    for alpha, light in zip(alphas, luminances):
+        value = alpha if method == "alpha" else round(alpha * light / peak)
+        mask.append(255 if value else 0)
     return width, height, bytes(mask)
+
+
+def _png_visible_pixel_box(payload, method):
+    """Return the pixel bounds of approved mask ink, excluding source whitespace."""
+    width, height, mask = _png_mask(payload, method)
+    left, top, right, bottom = width, height, 0, 0
+    for index, alpha in enumerate(mask):
+        if alpha:
+            column, row = index % width, index // width
+            left, top = min(left, column), min(top, row)
+            right, bottom = max(right, column + 1), max(bottom, row + 1)
+    if right == 0:
+        raise ValueError("authoritative PNG mask has no visible pixels")
+    return width, height, (left, top, right, bottom)
 
 
 def _png_matches_svg(kit, relative, brand):
@@ -1560,7 +1586,7 @@ def _png_matches_svg(kit, relative, brand):
         raise ValueError("corresponding SVG master is missing")
     width = int(match.group(2))
     from PIL import Image
-    from gen_logo import raster, standalone_mark_ratio
+    from gen_logo import raster, standalone_mark_ratio, standalone_mark_source_variant
     from iconkit import contain_visible
     with tempfile.TemporaryDirectory(prefix="logo-provenance-") as temporary:
         rendered = os.path.join(temporary, "rendered.png")
@@ -1569,7 +1595,7 @@ def _png_matches_svg(kit, relative, brand):
         raster((["-h", str(width)] if standalone else ["-w", str(width)])
                + [svg_path, "-o", rendered])
         with Image.open(rendered) as source:
-            source_variant = "reduced" if match.group(1).startswith(brand["slug"] + "-mark-reduced-") else "full"
+            source_variant = standalone_mark_source_variant(brand, match.group(1))
             expected = (contain_visible(source.convert("RGBA"), width, standalone_mark_ratio(brand, source_variant))
                         if standalone else source.convert("RGBA"))
             expected.save(expected_path)
@@ -1831,17 +1857,21 @@ def _monochrome_lockup_mark_complete(kit, relative):
                 and (bounds[3] - bounds[1]) >= (bottom - top) * 0.8)
 
 
-def _transformed_image_bounds(root, image):
+def _transformed_image_bounds(root, image, pixel_box=None):
     """Resolve the generator's translate and uniform-scale ancestors."""
     parent = {child: node for node in root.iter() for child in node}
     chain, node = [], image
     while node in parent:
         node = parent[node]
         chain.append(node)
-    points = [
-        (float(image.get("x", 0)), float(image.get("y", 0))),
-        (float(image.get("x", 0)) + float(image.get("width")), float(image.get("y", 0)) + float(image.get("height"))),
-    ]
+    x, y = float(image.get("x", 0)), float(image.get("y", 0))
+    width, height = float(image.get("width")), float(image.get("height"))
+    if pixel_box:
+        pixels_w, pixels_h, (left, top, right, bottom) = pixel_box
+        points = [(x + width * left / pixels_w, y + height * top / pixels_h),
+                  (x + width * right / pixels_w, y + height * bottom / pixels_h)]
+    else:
+        points = [(x, y), (x + width, y + height)]
     for ancestor in chain:
         transform = ancestor.get("transform")
         if not transform:
@@ -2111,6 +2141,8 @@ def c_logo_provenance(kit, brand, rep):
             base_transform = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
             derived = item["transformations"][:1] == ["derive-single-ink"]
             expected = ["derive-single-ink", "resize"] if derived else [base_transform, "resize"]
+            if item["kind"] == "mark" and variant == "reduced" and (brand.get("logo") or {}).get("reduced_viewbox"):
+                expected.append("frame-viewport")
             if not derived and item["kind"] == "lockup" and item["input_id"] not in supplied_lockup_ids:
                 expected.append("place-in-lockup")
             if item["source_mode"] != "authoritative" or item["input_id"] != record["id"] or item["source_sha256"] != record["sha256"]:
@@ -2213,8 +2245,16 @@ def c_logo_provenance(kit, brand, rep):
                     forbidden = {"opacity", "display", "visibility", "style", "filter", "mask", "clip-path", "transform"}
                     if forbidden & set(image.attrib):
                         problems.append("%s hides or modifies the authoritative image presentation" % relative)
-                    bounds = _transformed_image_bounds(root, image)
+                    approved_square_window = ((brand.get("logo") or {}).get("reduced_viewbox")
+                                              if item["kind"] == "mark" and variant == "reduced" else None)
+                    pixel_box = None
+                    if approved_square_window and source["record"]["format"] == "png":
+                        with open(source["path"], "rb") as handle:
+                            pixel_box = _png_visible_pixel_box(handle.read(), source["mask"])
+                    bounds = _transformed_image_bounds(root, image, pixel_box)
                     view_box = [float(value) for value in root.get("viewBox", "").split()]
+                    if approved_square_window and view_box != list(approved_square_window):
+                        problems.append("%s changes the approved reduced square window" % relative)
                     if len(view_box) != 4 or min(x for x, _y in bounds) < view_box[0] or min(y for _x, y in bounds) < view_box[1] or max(x for x, _y in bounds) > view_box[0] + view_box[2] or max(y for _x, y in bounds) > view_box[1] + view_box[3]:
                         problems.append("%s moves authoritative identity content outside its canvas" % relative)
                     if item["kind"] == "mark":

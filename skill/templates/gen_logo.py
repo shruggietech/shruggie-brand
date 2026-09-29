@@ -92,7 +92,7 @@ def paeth(left, above, upper_left):
     return above if above_distance <= upper_left_distance else upper_left
 
 
-def recolour_rgba_png(source, target, colour, luminance_mask):
+def recolour_rgba_png(source, target, colour, mask_method):
     """Recolour an RGBA8 PNG using only the Python standard library."""
     with open(source, "rb") as handle:
         payload = handle.read()
@@ -147,12 +147,23 @@ def recolour_rgba_png(source, target, colour, luminance_mask):
                 raise ValueError("image-backed logo source uses an unknown PNG filter: %s" % source)
         decoded.append(scanline)
         previous = scanline
+    if isinstance(mask_method, bool):
+        mask_method = "luminance" if mask_method else "alpha"
+    if mask_method not in {"alpha", "luminance", "luminance-normalized"}:
+        raise ValueError("unsupported raster mask method: %s" % mask_method)
+    peak = 255
+    if mask_method == "luminance-normalized":
+        peak = max((max(scanline[index:index + 3])
+                    for scanline in decoded for index in range(0, stride, 4)
+                    if scanline[index + 3]), default=0)
+        if not peak:
+            raise ValueError("normalized luminance mask has no visible source pixels: %s" % source)
     rgb = tuple(int(colour[index:index + 2], 16) for index in (1, 3, 5))
     encoded = bytearray()
     for scanline in decoded:
         for index in range(0, stride, 4):
-            if luminance_mask:
-                scanline[index + 3] = round(scanline[index + 3] * max(scanline[index:index + 3]) / 255)
+            if mask_method != "alpha":
+                scanline[index + 3] = round(scanline[index + 3] * max(scanline[index:index + 3]) / peak)
             scanline[index:index + 3] = bytes(rgb)
         encoded.append(0)
         encoded.extend(scanline)
@@ -162,23 +173,33 @@ def recolour_rgba_png(source, target, colour, luminance_mask):
         handle.write(output)
 
 
-def recolour_raster(source, target, colour, luminance_mask):
+def recolour_raster(source, target, colour, mask_method):
     """Recolour any contract-supported raster master into an RGBA PNG."""
     with open(source, "rb") as handle:
         signature = handle.read(8)
     if signature == b"\x89PNG\r\n\x1a\n":
-        recolour_rgba_png(source, target, colour, luminance_mask)
+        recolour_rgba_png(source, target, colour, mask_method)
         return
+    if isinstance(mask_method, bool):
+        mask_method = "luminance" if mask_method else "alpha"
+    if mask_method not in {"alpha", "luminance", "luminance-normalized"}:
+        raise ValueError("unsupported raster mask method: %s" % mask_method)
     from PIL import Image
     rgb = tuple(int(colour[index:index + 2], 16) for index in (1, 3, 5))
     with Image.open(source) as image:
         rgba = image.convert("RGBA")
         pixels = rgba.load()
+        peak = 255
+        if mask_method == "luminance-normalized":
+            peak = max((max(pixels[x, y][:3]) for y in range(rgba.height)
+                        for x in range(rgba.width) if pixels[x, y][3]), default=0)
+            if not peak:
+                raise ValueError("normalized luminance mask has no visible source pixels: %s" % source)
         for y in range(rgba.height):
             for x in range(rgba.width):
                 red, green, blue, alpha = pixels[x, y]
-                if luminance_mask:
-                    alpha = round(alpha * max(red, green, blue) / 255)
+                if mask_method != "alpha":
+                    alpha = round(alpha * max(red, green, blue) / peak)
                 pixels[x, y] = (rgb[0], rgb[1], rgb[2], alpha)
         rgba.save(target, format="PNG")
 
@@ -252,15 +273,29 @@ def paths_bbox(paths):
     )
 
 
-def svg(width, height, body, metadata=None):
+def reduced_mark_viewbox(brand):
+    """Use an explicit square window without changing the reduced source placement."""
+    value = (brand.get("logo") or {}).get("reduced_viewbox")
+    return tuple(value) if value is not None else None
+
+
+def standalone_mark_source_variant(brand, filename):
+    slug = brand["slug"]
+    if filename.startswith(slug + "-mark-reduced-"):
+        return "reduced"
+    return (brand.get("logo") or {}).get("standalone_mark_variant", "full")
+
+
+def svg(width, height, body, metadata=None, viewbox=None):
     attributes = ""
     for name, value in sorted((metadata or {}).items()):
         if value is not None:
             attributes += ' data-%s="%s"' % (name.replace("_", "-"), value)
+    box = viewbox or (0, 0, width, height)
     return (
-        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 %g %g" '
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="%g %g %g %g" '
         'width="%g" height="%g" fill="none"%s>\n%s\n</svg>\n'
-        % (width, height, width, height, attributes, body)
+        % (box[0], box[1], box[2], box[3], width, height, attributes, body)
     )
 
 
@@ -407,11 +442,11 @@ def main():
         if os.path.splitext(source)[1].lower() == ".svg":
             with open(source, "rb") as handle:
                 return "data:image/svg+xml;base64," + base64.b64encode(handle.read()).decode("ascii")
-        luminance_mask = item.get("mask") == "luminance"
+        mask_method = item.get("mask", "alpha")
         stem = os.path.splitext(os.path.basename(source))[0]
         filename = "_%s-mask-%s-%s.png" % (slug, colour.lstrip("#").lower(), stem)
         target = os.path.join(svg_dir, filename)
-        recolour_raster(source, target, colour, luminance_mask)
+        recolour_raster(source, target, colour, mask_method)
         try:
             with open(target, "rb") as handle:
                 return "data:image/png;base64," + base64.b64encode(handle.read()).decode("ascii")
@@ -525,6 +560,8 @@ def main():
             record = source["record"]
             base_transform = "embed-unchanged" if record["format"] == "svg" else "recolor-mask"
             transformations = [base_transform, "resize"]
+            if kind == "mark" and variant == "reduced" and reduced_mark_viewbox(brand):
+                transformations.append("frame-viewport")
             if kind in {"lockup", "social-image"} and source_override is None:
                 transformations.append("place-in-lockup")
             input_id = record["id"]
@@ -627,7 +664,8 @@ def main():
             return [element], "full", supplied
         return paths["full"], "full", authority.get("full")
 
-    variants = (("mark", False), ("mark-reduced", True))
+    standalone_reduced = logo.get("standalone_mark_variant", "full") == "reduced"
+    variants = (("mark", standalone_reduced), ("mark-reduced", True))
     for variant, force_reduced in variants:
         for colourway, roles in role_maps.items():
             path_list, source_variant, source_entry = contextual_mark(colourway, force_reduced)
@@ -652,7 +690,11 @@ def main():
             elif direct:
                 shutil.copyfile(str(source_entry["path"]), output)
             else:
-                write(output, svg(canvas_width, canvas_height, render_mark(path_list, roles, colourway), svg_metadata(record)))
+                viewbox = reduced_mark_viewbox(brand) if force_reduced else None
+                output_width, output_height = ((viewbox[2], viewbox[3]) if viewbox else
+                                               (canvas_width, canvas_height))
+                write(output, svg(output_width, output_height, render_mark(path_list, roles, colourway),
+                                  svg_metadata(record), viewbox=viewbox))
             written.append(filename)
 
     if proof_stage_only:
@@ -900,7 +942,8 @@ def main():
     if icon_profile == "reduced":
         icon_full_svg = icon_reduced_svg
     monochrome_svg = (None if "single-ink" in unavailable or not (logo.get("application_icon") or {}).get("monochrome_platforms", True)
-                      else os.path.join(svg_dir, "%s-mark-white.svg" % slug))
+                      else os.path.join(svg_dir, "%s-mark-%swhite.svg" %
+                                        (slug, "reduced-" if icon_profile == "reduced" else "")))
 
     def render_icon_source(source, output, size):
         from PIL import Image
@@ -951,7 +994,7 @@ def main():
             raster(["-h", str(width), source, "-o", output])
             with Image.open(output) as rendered:
                 mark_image = rendered.convert("RGBA")
-                source_variant = "reduced" if filename.startswith(slug + "-mark-reduced-") else "full"
+                source_variant = standalone_mark_source_variant(brand, filename)
                 square_image = contain_visible(mark_image, width, standalone_mark_ratio(brand, source_variant))
                 square_image.save(output)
             with Image.open(output) as squared:

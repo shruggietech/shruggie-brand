@@ -14,7 +14,7 @@ agent opens.
 
     python3 build/qc_images.py <kit-dir> [--dpi-scale 1]
 """
-import argparse, functools, glob, http.server, os, shutil, subprocess, sys, tempfile, threading
+import argparse, functools, glob, http.server, json, os, shutil, subprocess, sys, tempfile, threading
 from urllib.parse import quote
 from capabilities import load_capabilities
 from process_utils import hidden_process_kwargs
@@ -42,6 +42,9 @@ def rsvg(src, w):
 
 def logo_sheet(kit, out, dark, light):
     from PIL import Image, ImageDraw
+    with open(os.path.join(kit, "brand.json"), encoding="utf-8") as source:
+        brand = json.load(source)
+    face_square = (brand.get("logo") or {}).get("standalone_mark_variant") == "reduced"
     svgs = sorted(glob.glob(os.path.join(kit, "logos", "svg", "*.svg")))
     if not svgs: return None
     horiz = [s for s in svgs if "horizontal" in s and s.endswith(("color.svg", "light.svg"))]
@@ -56,10 +59,10 @@ def logo_sheet(kit, out, dark, light):
     if word:  P(rsvg(word[0], 440), 50, 215)
     for i, s in enumerate([128, 64, 32, 16]):
         if mark: P(rsvg(mark[0], s), 720 + i * 130, 50)
-    d.text((720, 215), "full mark  128 / 64 / 32 / 16, actual size", fill="#7A8494")
-    # The reduced master exists only below the threshold. Showing it at 128
-    # misrepresents what it is for.
-    d.text((720, 245), "reduced master, at the sizes it is actually used", fill="#7A8494")
+    d.text((720, 215), ("face-only square mark" if face_square else "full mark")
+           + "  128 / 64 / 32 / 16, actual size", fill="#7A8494")
+    d.text((720, 245), "small-size face detail" if face_square
+           else "reduced master, at the sizes it is actually used", fill="#7A8494")
     for i, s in enumerate([32, 16]):
         if red: P(rsvg(red[0], s), 720 + i * 130, 270)
     lt = [s for s in svgs if "horizontal-light" in s] or horiz
@@ -70,8 +73,8 @@ def logo_sheet(kit, out, dark, light):
     lr = [x for x in svgs if "mark-reduced-light" in x] or red
     for i, s in enumerate([128, 64, 32, 16]):
         if lm: P(rsvg(lm[0], s), 720 + i * 130, H // 2 + 50)
-    d.text((720, H // 2 + 215), "full mark", fill="#6B6B6B")
-    d.text((720, H // 2 + 245), "reduced master", fill="#6B6B6B")
+    d.text((720, H // 2 + 215), "face-only square mark" if face_square else "full mark", fill="#6B6B6B")
+    d.text((720, H // 2 + 245), "small-size face detail" if face_square else "reduced master", fill="#6B6B6B")
     for i, s in enumerate([32, 16]):
         if lr: P(rsvg(lr[0], s), 720 + i * 130, H // 2 + 270)
     d.text((50, 20), "PRODUCT SURFACE", fill="#7A8494")

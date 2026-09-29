@@ -694,21 +694,33 @@ def generate_current_proofs(brand, root):
 
 def validate_current_proof_matrix(record, root, renderer=None, brand=None):
     renderer = renderer or production_renderer_contract(brand)
-    _require(record["renderer"] == renderer, "production proof renderer or settings drift")
     portable_dir = _portable_approved_proof_dir(brand)
+    _require(record["renderer"]["id"] == renderer["id"], "production proof renderer identity drift")
     approved = {(item["variant"], item["size_px"], item["surface"]): item for item in record["proofs"]}
+    settings_match = record["renderer"] == renderer
+    if not settings_match and portable_dir is not None:
+        # A portable comparison may admit small raster differences. With changed
+        # generator settings, require every produced PNG to match approved bytes.
+        exact_matrix = all(
+            (path := _current_proof_path(root, *coordinate)).is_file()
+            and not path.is_symlink()
+            and canonical_digest(path.read_bytes()) == approved[coordinate]["sha256"]
+            for coordinate in approved
+        )
+        _require(exact_matrix, "production proof renderer or settings drift without an exact proof matrix")
     current = []
     for coordinate in sorted(approved):
         variant, size, surface = coordinate
         path = _current_proof_path(root, variant, size, surface)
         _require(path.is_file() and not path.is_symlink(), "current production proof is missing: %s" % path.name)
         digest = canonical_digest(path.read_bytes())
-        same_renderer = portable_dir is None
+        same_renderer = portable_dir is None or not settings_match
         if same_renderer:
             _require(digest == approved[coordinate]["sha256"], "current production proof drift: %s" % path.name)
-            approved_path = path
+            approved_path = path if portable_dir is None else portable_dir / path.name
         else:
             approved_path = portable_dir / path.name
+        if portable_dir is not None:
             _require(approved_path.is_file() and not approved_path.is_symlink(),
                      "portable approved proof is missing: %s" % path.name)
             _require(canonical_digest(approved_path.read_bytes()) == approved[coordinate]["sha256"],
