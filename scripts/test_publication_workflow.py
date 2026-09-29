@@ -401,6 +401,16 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         self.assertLess(block.index("python -m playwright install chromium --with-deps"),
                         block.index("pnpm --dir site exec playwright install chromium --with-deps"))
 
+    def test_proof_bound_contracts_run_alongside_kit_builds(self):
+        text = workflow_text()
+        contracts = job_block(text, "contract-tests")
+        verified = job_block(text, "verified-build")
+        self.assertIn("needs: approved-identity-proofs", contracts)
+        self.assertIn("approved-identity-proofs-${{ github.sha }}", contracts)
+        self.assertIn("GP_APPROVED_PROOF_ROOT=\"$GITHUB_WORKSPACE/approved-identity-proofs\" python skill/templates/test_pipeline.py", contracts)
+        self.assertIn("python scripts/test_publication_workflow.py", contracts)
+        self.assertNotIn("Test geometry and publication contracts", verified)
+
     def test_artifacts_are_sha_qualified_and_hidden_files_follow_audit(self):
         text = workflow_text()
         for name in (
@@ -429,6 +439,7 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         for dependency in (
             "python-38-compatibility",
             "approved-identity-proofs",
+            "contract-tests",
             "verified-build",
         ):
             self.assertIn(dependency, block)

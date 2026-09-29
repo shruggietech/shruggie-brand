@@ -51,6 +51,7 @@
 - [x] T023 [US3] Bring PR #304 onto current main with S065's approved source commit, preserve both clients' source bytes, repair shared generator and inventory conflicts, and resolve the first-round Codex findings on both PRs.
 - [ ] T024 [US3] Complete combined eleven-kit validation and the second Codex review, require definitive green CI, and hand off PR #304 for the owner's final merge ritual.
 - [ ] T025 [US3] Keep every route, viewport, theme, screenshot, and accessibility assertion while running independent cases on three pages or isolated contexts, measure the CI runtime against the 49m46s baseline, and require green final CI before the handoff.
+- [ ] T026 [US3] Run the full proof-backed geometry and publication contract suite in its own required job alongside verified kit and site construction, and require both jobs to pass in the terminal build gate.
 
 ## Dependencies and checkpoints
 
