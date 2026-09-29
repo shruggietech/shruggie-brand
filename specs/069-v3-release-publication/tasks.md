@@ -20,7 +20,7 @@
 
 ## Phase 3: Reviewed publication
 
-- [ ] T010 [US1] Commit S069 source and Spec Kit evidence, push branch, and open the official PR with release scope, evidence, identity, accessibility, and documentation impact.
+- [x] T010 [US1] Commit S069 source and Spec Kit evidence, push branch, and open the official PR with release scope, evidence, identity, accessibility, and documentation impact.
 - [ ] T011 [US1] Resolve all first-round Codex and security findings and pass exact-head CI.
 - [ ] T012 [US1] Trigger exactly one additional Codex round, resolve every resulting comment, require green checks for the final head, and do not trigger a third round.
 - [ ] T013 [US1] Merge the reviewed PR and confirm the exact release commit is on `main`.
