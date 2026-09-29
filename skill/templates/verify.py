@@ -1576,6 +1576,28 @@ def _png_visible_pixel_box(payload, method):
     return width, height, (left, top, right, bottom)
 
 
+def _svg_visible_pixel_box(path, raster_available):
+    """Measure visible source ink in its rendered viewport, not its outer SVG box."""
+    if raster_available:
+        from PIL import Image
+        from gen_logo import raster
+        with tempfile.TemporaryDirectory(prefix="logo-source-bounds-") as temporary:
+            rendered = os.path.join(temporary, "source.png")
+            raster(["-w", "2048", str(path), "-o", rendered])
+            with Image.open(rendered) as image:
+                alpha = image.convert("RGBA").getchannel("A")
+                box = alpha.getbbox()
+                width, height = image.size
+    else:
+        from svgelements import SVG
+        document = SVG.parse(str(path))
+        width, height = float(document.width), float(document.height)
+        box = document.bbox()
+    if not box or width <= 0 or height <= 0:
+        raise ValueError("authoritative SVG has no measurable visible artwork")
+    return width, height, box
+
+
 def _png_matches_svg(kit, relative, brand):
     """Independently rerender a logo PNG from its verified SVG master."""
     match = re.fullmatch(r"logos/png/(.+)-(1024|1280)\.png", relative)
@@ -2248,14 +2270,28 @@ def c_logo_provenance(kit, brand, rep):
                     approved_square_window = ((brand.get("logo") or {}).get("reduced_viewbox")
                                               if item["kind"] == "mark" and variant == "reduced" else None)
                     pixel_box = None
-                    if approved_square_window and source["record"]["format"] == "png":
-                        with open(source["path"], "rb") as handle:
-                            pixel_box = _png_visible_pixel_box(handle.read(), source["mask"])
+                    if approved_square_window:
+                        if source["record"]["format"] == "png":
+                            with open(source["path"], "rb") as handle:
+                                pixel_box = _png_visible_pixel_box(handle.read(), source["mask"])
+                        elif source["record"]["format"] == "svg":
+                            pixel_box = _svg_visible_pixel_box(source["path"], bool(capabilities.get("svg_raster")))
                     bounds = _transformed_image_bounds(root, image, pixel_box)
                     view_box = [float(value) for value in root.get("viewBox", "").split()]
                     if approved_square_window and view_box != list(approved_square_window):
                         problems.append("%s changes the approved reduced square window" % relative)
-                    if len(view_box) != 4 or min(x for x, _y in bounds) < view_box[0] or min(y for _x, y in bounds) < view_box[1] or max(x for x, _y in bounds) > view_box[0] + view_box[2] or max(y for _x, y in bounds) > view_box[1] + view_box[3]:
+                    edge_slack = 0.0
+                    if (approved_square_window and source["record"]["format"] == "svg"
+                            and capabilities.get("svg_raster")):
+                        pixel_width, pixel_height, _ink = pixel_box
+                        pixel_edges = _transformed_image_bounds(
+                            root, image, (pixel_width, pixel_height, (0, 0, 1, 1)))
+                        edge_slack = max(pixel_edges[1][0] - pixel_edges[0][0],
+                                         pixel_edges[1][1] - pixel_edges[0][1])
+                    if (len(view_box) != 4 or min(x for x, _y in bounds) < view_box[0] - edge_slack
+                            or min(y for _x, y in bounds) < view_box[1] - edge_slack
+                            or max(x for x, _y in bounds) > view_box[0] + view_box[2] + edge_slack
+                            or max(y for _x, y in bounds) > view_box[1] + view_box[3] + edge_slack):
                         problems.append("%s moves authoritative identity content outside its canvas" % relative)
                     if item["kind"] == "mark":
                         visible_shapes = [node for node in root.iter() if node.tag.rsplit("}", 1)[-1] in {"path", "rect", "circle", "ellipse", "polygon", "polyline", "line"}]

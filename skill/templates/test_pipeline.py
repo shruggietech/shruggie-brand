@@ -16,6 +16,7 @@ import sys
 import tempfile
 import types
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest import mock
 
@@ -1251,6 +1252,16 @@ class PipelineTests(unittest.TestCase):
             brand, _, _ = self.i_heart_pr_tours_guide_fixture(kit)
             pdf_html = gen_guide_pdf.build(brand, kit)
             portable_html = gen_guidelines.build(brand, kit)
+
+            old_rule = "Below %d px the reduced master takes over." % brand["logo"].get("reduced_below_px", 32)
+            self.assertIn(old_rule, pdf_html)
+            self.assertIn(old_rule, portable_html)
+            brand["logo"]["standalone_mark_variant"] = "reduced"
+            pdf_face_html = gen_guide_pdf.build(brand, kit)
+            portable_face_html = gen_guidelines.build(brand, kit)
+            for face_html in (pdf_face_html, portable_face_html):
+                self.assertIn("The face-only reduced master is the standalone mark at every size.", face_html)
+                self.assertNotIn(old_rule, face_html)
             for required in ("brand-cta", "#C5342C", "Primary CTA button", "#FFFFFF",
                              "Default", "Hover", "Active", "Focus visible"):
                 self.assertIn(required, pdf_html)
@@ -1636,6 +1647,20 @@ class PipelineTests(unittest.TestCase):
             }, icon_manifest["source_masters"])
             self.assertTrue(all(row["status"] == "skipped" for row in icon_manifest["suites"]
                                 if row["id"] != "web"))
+
+    def test_framed_passive_svg_uses_visible_artwork_bounds(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "master.svg"
+            source.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+                              '<rect x="20" y="20" width="60" height="60" fill="#123456"/></svg>\n',
+                              encoding="utf-8")
+            pixel_box = verify._svg_visible_pixel_box(source, False)
+            self.assertEqual((100.0, 100.0, (20.0, 20.0, 80.0, 80.0)), pixel_box)
+            root = ET.fromstring('<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 10 80 80">'
+                                 '<image x="0" y="0" width="100" height="100"/></svg>')
+            image = next(node for node in root.iter() if node.tag.endswith("image"))
+            self.assertEqual([(20.0, 20.0), (80.0, 80.0)],
+                             verify._transformed_image_bounds(root, image, pixel_box))
 
     def test_authoritative_logo_provenance_is_complete_and_tamper_evident(self):
         with tempfile.TemporaryDirectory() as tmp:
