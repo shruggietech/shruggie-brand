@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "Cueson",
   "slug": "cueson",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "showcase_surface": "card",
   "affiliation": {
     "ownership": "shruggietech-owned",
@@ -277,9 +277,7 @@
       "reduced": 97
     }
   },
-  "guide": {
-    "idea": "Universal captions and subtitles",
-    "descriptor": "A lossless, structured interchange layer for subtitle and caption content.",
+  "guidance": {
     "foundation_title": "One predictable Cue JSON surface",
     "foundation": "Cueson performs format-specific work at the file boundary. It exposes words, timing, speakers, provenance, layout, and other useful context while retaining the original file or subtitle graphics as authoritative evidence.",
     "personality": [
@@ -322,9 +320,7 @@
     ],
     "sharp_edge": "OCR and transcription are derived interpretations. Preserve the original visual or audio evidence and label confidence and provenance instead of presenting inferred text as ground truth.",
     "logo": "Cueframe places three unequal cue rails inside two open brackets. The brackets are the retained source envelope; the rails are directly readable structured caption content. The reduced master keeps the envelope and one rail for small sizes.",
-    "palette": "Cue Teal carries product identity, focus, and selection. Archive Night and its raised surfaces keep structured content primary. ShruggieTech orange remains scarce for emphasis and warning, while success and failure retain explicit labels and shapes.",
-    "specimen_line": "A lossless, structured interchange layer",
-    "specimen_body": "for subtitle and caption content."
+    "palette": "Cue Teal carries product identity, focus, and selection. Archive Night and its raised surfaces keep structured content primary. ShruggieTech orange remains scarce for emphasis and warning, while success and failure retain explicit labels and shapes."
   },
   "approval_ledger": {
     "source_hashes": {},
@@ -349,10 +345,26 @@
       "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]
     }
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "approved",
+      "text": "A lossless, structured interchange layer for subtitle and caption content.",
+      "uses": ["site-metadata"],
+      "source": "brand.json approval_ledger.gate_2, showcase-card and public-metadata surfaces",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-26"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
   },
   "social_copy": {
     "slogan": "Universal captions and subtitles",

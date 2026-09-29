@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "fragcap",
   "slug": "fragcap",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",
@@ -140,14 +140,28 @@
     "geometry_provenance": "imported",
     "geometry_provenance_reason": "The shipped Fragcap mark and reduced master predate glyphkit. Their exact filled path data is preserved unchanged."
   },
-  "guide": {
-    "idea": "Captured signal. Preserved evidence.",
-    "descriptor": "Passive process-attributed network capture for games.",
+  "guidance": {
     "personality": [
-      ["Precise", "Uses exact nouns, units, formats, and commands", "Vague claims"],
-      ["Observational", "Names observation, capture, decode, and traces", "Combat metaphors"],
-      ["Dry", "Uses calm statements and sparse wit", "Hype or performed excitement"],
-      ["Transparent", "Names limitations, prerequisites, and sharp edges", "Implied magic"]
+      [
+        "Precise",
+        "Uses exact nouns, units, formats, and commands",
+        "Vague claims"
+      ],
+      [
+        "Observational",
+        "Names observation, capture, decode, and traces",
+        "Combat metaphors"
+      ],
+      [
+        "Dry",
+        "Uses calm statements and sparse wit",
+        "Hype or performed excitement"
+      ],
+      [
+        "Transparent",
+        "Names limitations, prerequisites, and sharp edges",
+        "Implied magic"
+      ]
     ],
     "promises": [
       "Capture is passive and inspectable.",
@@ -158,14 +172,23 @@
     ],
     "sharp_edge": "Protocol knowledge can be used to write cheats. fragcap answers that risk with a strict product scope: capture and decode only, with no injection, modification, automation, or concealment.",
     "logo": "The triple-bladed F represents parallel packet lanes. Four separated corners form a capture frame without a weapon-like crosshair. Orange terminals identify the isolated bytes, and the shorter lower lane keeps the silhouette legible as an F.",
-    "palette": "Signal Cyan marks observed data, links, focus, and active capture. Capture Orange identifies isolated terminals and warnings, and remains scarce. Fault is reserved for failed capture or hard errors. Near-black surfaces keep packet data primary.",
-    "specimen_line": "See what your game is actually saying.",
-    "specimen_body": "Every captured row is a packet that crossed the wire, timestamped and attributed to a process."
+    "palette": "Signal Cyan marks observed data, links, focus, and active capture. Capture Orange identifies isolated terminals and warnings, and remains scarce. Fault is reserved for failed capture or hard errors. Near-black surfaces keep packet data primary."
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "unresolved"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
   },
   "social_copy": {
     "slogan": "See what your game is actually saying.",

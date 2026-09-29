@@ -4,14 +4,22 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-09-29
+
 ### Added
 
+- Added S067 source-bound messaging decisions for eleven brands, with independent slogan, description, introduction, and optional strategy roles, plus exact-text guide projection checks.
+- Advanced Brand Canon to 2.0.0, BrandBuilder to 3.0.0, and each changed brand source by a patch version so the new source contract and generated package bytes receive distinct immutable identities.
+- Recorded the eleven-brand legacy message inventory and guide field map under the S067 specification.
 - Added the approved, source-bound Scruggs Tire & Alignment client brand and its exact two-line social tagline to the standard brand contract and public site.
 - Allowed an optional exact social slogan wrap that fits within the visible logo width.
 - Added the independently owned DanceWithMe865 identity from approved, unchanged client vectors, with standard brand sources, fixed font licenses, and public site kit generation under S065.
 
 ### Changed
 
+- Rendered approved message roles literally across PDF, portable, and hosted guides. Unresolved roles now leave their guide sections empty, while existing social compositions retain their separate approvals.
+- Preserved six exact Gate 2 approved showcase descriptions for site metadata only; unresolved legacy descriptions are omitted from public portfolio records and cards.
+- Moved brand-specific guide guidance into canonical source fields and removed duplicate guide message overrides.
 - Routed Scruggs identity proof export and kit generation through its approved Node 26.5.0 renderer while existing brands retain Node 24.11.0 in CI.
 - Let portfolio cards grow beyond their 20rem minimum when a longer brand title or enlarged text needs room.
 - Extended authoritative logo inputs to retain supplied Reduced colorways and standalone wordmarks. Kept existing approved proof behavior for brands that do not use those inputs.
@@ -29,6 +37,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Decisions
 
+- On 2026-09-29, classified legacy descriptor, idea, and social wording independently from general guide messaging. Only ShruggieTech's exact slogan from owner correction #295 is approved for a general visual-guide message role; other roles remain unresolved until an owner decision. Approved logo geometry and social composition bindings remain intact.
 - On 2026-09-29, retained the exact approved Scruggs Node 26.5.0 renderer binding for identity proof export and kit generation while leaving the other brands on Node 24.11.0. The approved social tagline is a source-bound optional field in the existing brand schema; the supplied client archive does not define generator structure.
 - On 2026-09-29, restarted S065 from the owner-provided DanceWithMe865 reference. The two new creative approvals bind exact source and derivative hashes. The social image uses the approved name alone, while all kit and site outputs retain the repository's standard structure.
 

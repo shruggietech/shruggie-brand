@@ -4,8 +4,8 @@ description: Build or audit a complete brand kit for a ShruggieTech-owned or thi
 license: Apache-2.0. The code, templates and reference documentation are licensed under the Apache License 2.0. Apache-2.0 section 6 grants no trademark rights, and the ShruggieTech and sub-brand names, wordmarks and logo geometry are additionally reserved: see LICENSE-BRAND.md. Bundled fonts keep their own SIL Open Font License 1.1.
 compatibility: Python 3.8 or newer. `coloraide` is required for color work, fontTools is required for generated and fixed typography, Pillow is required when raster supplied inputs request palette evidence, Brotli lets fontTools inspect WOFF2 metadata, and jsonschema validates shadcn registry payloads. Render-only capabilities still degrade to named skips. Run `templates/probe.py` first and route off its report.
 metadata:
-  version: 2.8.0
-  canon: 1.6.0
+  version: 3.0.0
+  canon: 2.0.0
   interface-canon: 1.0.1
   component-recipes: 1.1.0
   web-react-adapter: 1.1.0
@@ -116,7 +116,7 @@ read as "not applicable".
 
 **The brand guide uses its declared reading surface on every sheet, and it describes the brand.**
 Dark is the house default established by fragcap 1.1.0. A brand may instead
-declare `guide.surface_mode: light` when the approved identity is light-first;
+declare `guidance.surface_mode: light` when the approved identity is light-first;
 that exception requires an explicit light-surface palette, measured AA contrast,
 and owner approval. `qc_render.py --expect-ground` must receive the declared mode
 so a build cannot silently accept the opposite page ground. The guide carries

@@ -18,7 +18,8 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from coloraide import Color
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _guidekit import tokens, faces, asset, copy_for, type_context
+from _guidekit import tokens, faces, asset, type_context
+from messaging import approved_messages
 from brand_contract import affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
 from color_roles import load_color_roles
 from asset_language import ALIAS_INDEX, describe, design_id, design_key, write_aliases, validate_aliases
@@ -238,10 +239,11 @@ def portal_payload(B, kit):
                 "title": resource["title"], "platform": resource.get("platform") or "integration",
                 "source_path": resource["path"], "markdown": Path(kit, resource["path"]).read_text(encoding="utf-8"),
             })
-    guide = B.get("guide") or {}
+    guide = B.get("guidance") or {}
+    messages = approved_messages(B, "visual-guide")
     slug = B["slug"]
     topics = [
-        {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "description": str(guide.get("foundation_title") or B.get("descriptor") or "Brand foundations")},
+        {"key": "overview", "title": "Overview and foundations", "label": "Overview", "section": "Overview", "order": 0, "description": str(guide.get("foundation_title") or "Brand foundations")},
         {"key": "voice", "title": "Voice and messaging", "label": "Voice", "section": "Voice", "order": 0, "description": "Principles for writing in the brand voice."},
         {"key": "logos", "title": "Logo system and usage", "label": "Logo", "section": "Identity", "order": 0, "description": "Approved marks, lockups, clear space, and reduction rules."},
         {"key": "color", "title": "Color", "label": "Color", "section": "Identity", "order": 1, "description": "Canonical palette values and semantic roles."},
@@ -260,7 +262,7 @@ def portal_payload(B, kit):
     return {
         "schema_version": "1.0",
         "implementation": implementation,
-        "brand": {"slug": B["slug"], "title": B["title"], "version": B["version"], "descriptor": B.get("descriptor", ""), "idea": B.get("brand_idea", ""), "affiliation": affiliation_text(B), "vendorBoundary": (vendor_boundary(B) or {}).get("notice", ""), "surface_mode": mode},
+        "brand": {"slug": B["slug"], "title": B["title"], "version": B["version"], "messaging": messages, "affiliation": affiliation_text(B), "vendorBoundary": (vendor_boundary(B) or {}).get("notice", ""), "surface_mode": mode},
         "presentation": light if mode == "light" else dark,
         "presentations": {"dark": dark, "light": light},
         "topics": topics,
@@ -539,6 +541,16 @@ def implementation_reference_html(facts):
 def build(B, kit):
     D, L = tokens(kit)
     slug, title = B["slug"], B["title"]
+    messages = approved_messages(B, "visual-guide")
+    message_markup = "".join(
+        '<p class="lead" data-message-role="%s"><strong>%s:</strong> %s</p>'
+        % (role.replace("_", "-"), label, escape(messages[role]))
+        for role, label in (("slogan", "Slogan"), ("short_description", "Short description"),
+                            ("long_description", "Long description"),
+                            ("introductory_statement", "Introduction"),
+                            ("positioning", "Positioning"), ("mission", "Mission"),
+                            ("vision", "Vision"), ("values", "Values"),
+                            ("brand_promise", "Brand promise")) if role in messages)
     A, AL = D["primary"], L["primary"]
     light_first = guide_surface_mode(B) == "light"
     logo = asset(kit, "%s-horizontal-light-1024.png" % slug) if light_first else asset(kit, "%s-horizontal-color-1024.png" % slug)
@@ -671,8 +683,8 @@ code { font-family:var(--font-body); font-weight:var(--font-label-weight); font-
 </style></head><body class="%(body_class)s" data-guide-mode="%(surface_mode)s"><div class="wrap">
 <header id="top">%(logoimg)s
 <div class="eyebrow" style="margin-top:32px">Brand guidelines</div>
-<h1>%(idea)s</h1>
-<p class="lead">%(descriptor)s</p>
+<h1>%(title)s</h1>
+%(message_markup)s
 </header>
 
 <nav class="contents" aria-label="On this page"><strong>On this page</strong><ul>
@@ -750,8 +762,7 @@ if('IntersectionObserver' in window){topButton.hidden=false;let topVisible=true;
         "expressions": expression_gallery(B, kit),
         "implementation_html": implementation_html,
         "logoimg": im(logo, "logo", "%s horizontal logo" % title),
-        "idea": copy_for(B, "idea", B.get("brand_idea", title)),
-        "descriptor": copy_for(B, "descriptor", B.get("descriptor", "")),
+        "message_markup": message_markup,
         "sepline": "Identity accent hue %s in OKLCH. Palette selection is independent of ownership and sibling hues." % M.get("identity_hue", "?"),
         "A": A, "AL": AL, "on_light": on_light, "acc_light": acc_light,
         "fgc": fg.get("color", "?"), "fgr": fg.get("ratio", "?"),

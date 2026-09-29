@@ -29,30 +29,41 @@ export function GuidelineOverview({ portal }: { portal: GuidelinePortal }) {
   const slug = portal.brand.slug;
   const overrides = Object.entries(contract.rules.overrides);
   const house = contract.rules.inheritance === 'shruggietech-house';
+  const messages = portal.brand.messaging;
+  const messageRoles = [
+    ['slogan', 'Slogan'],
+    ['short_description', 'Short description'],
+    ['long_description', 'Long description'],
+    ['introductory_statement', 'Introduction'],
+    ['positioning', 'Positioning'],
+    ['mission', 'Mission'],
+    ['vision', 'Vision'],
+    ['values', 'Values'],
+    ['brand_promise', 'Brand promise'],
+  ] as const;
 
   return <>
-    <section className="guide-section" aria-labelledby="brand-overview">
+    {messageRoles.some(([role]) => messages[role]) && <section className="guide-section" aria-labelledby="brand-overview">
       <h2 id="brand-overview">Brand overview</h2>
-      <p>{portal.brand.descriptor}</p>
-      <p>{portal.brand.idea}</p>
-    </section>
-    <section className="guide-section" aria-labelledby="foundations">
+      <dl>{messageRoles.filter(([role]) => messages[role]).map(([role, label]) => <div key={role} data-message-role={role.replaceAll('_', '-')}><dt>{label}</dt><dd>{messages[role]}</dd></div>)}</dl>
+    </section>}
+    {value.foundation && <section className="guide-section" aria-labelledby="foundations">
       <h2 id="foundations">{value.foundation_title || 'Foundations'}</h2>
-      <p>{value.foundation || portal.brand.descriptor}</p>
-    </section>
-    <section className="guide-section" aria-labelledby="promises">
+      <p>{value.foundation}</p>
+    </section>}
+    {value.promises?.length ? <section className="guide-section" aria-labelledby="promises">
       <h2 id="promises">Promises</h2>
-      <ListOrExplanation values={value.promises} empty="Use the brand idea and foundation above as the current positioning guidance." />
-    </section>
-    <section className="guide-section" aria-labelledby="boundaries">
+      <ListOrExplanation values={value.promises} empty="" />
+    </section> : null}
+    {(value.in_scope?.length || value.out_of_scope?.length || value.sharp_edge || portal.brand.vendorBoundary) && <section className="guide-section" aria-labelledby="boundaries">
       <h2 id="boundaries">Boundaries</h2>
       <div className="guide-columns">
-        <div><h3>In scope</h3><ListOrExplanation values={value.in_scope} empty="The approved kit defines the available work and assets." /></div>
-        <div><h3>Out of scope</h3><ListOrExplanation values={value.out_of_scope} empty="No brand-specific exclusions are declared here; check the delivered source instructions for platform limits." /></div>
+        {value.in_scope?.length ? <div><h3>In scope</h3><ListOrExplanation values={value.in_scope} empty="" /></div> : null}
+        {value.out_of_scope?.length ? <div><h3>Out of scope</h3><ListOrExplanation values={value.out_of_scope} empty="" /></div> : null}
       </div>
       {value.sharp_edge && <aside className="guide-notice"><strong>Important boundary</strong><p>{value.sharp_edge}</p></aside>}
       {portal.brand.vendorBoundary && <p>{portal.brand.vendorBoundary}</p>}
-    </section>
+    </section>}
     <section className="guide-section contract-summary" aria-labelledby="implementation-authority">
       <h2 id="implementation-authority">Implementation authority</h2>
       <p>An interface is the controls, layout, and feedback a person uses. {house ? 'This brand starts with shared ShruggieTech interface rules while keeping its own approved identity and any declared overrides.' : 'This brand uses its own delivered interface rules and approved identity. Its palette is independent of ShruggieTech house styling.'}</p>

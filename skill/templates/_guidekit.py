@@ -57,8 +57,6 @@ def asset(kit, *cands):
         if os.path.exists(p): return b64(p)
     return None
 
-def copy_for(B, key, default):
-    """Prose comes from brand.json `guide` when the operator wrote it, and from a
-    generated default otherwise. A kit is complete from two inputs; overriding
-    any single section stays a one-line edit."""
-    return ((B.get("guide") or {}).get(key)) or default
+def copy_for(B, key):
+    """Return exact canonical guidance only; never synthesize brand prose."""
+    return (B.get("guidance") or {}).get(key, "")

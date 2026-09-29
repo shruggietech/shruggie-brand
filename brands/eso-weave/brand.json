@@ -4,7 +4,7 @@
   "kind": "independent-brand",
   "title": "ESO Weave",
   "slug": "eso-weave",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "showcase_surface": "card",
   "affiliation": {
     "ownership": "third-party",
@@ -164,25 +164,68 @@
     "geometry_provenance": "imported",
     "geometry_provenance_reason": "The full and reduced masters embed the two owner-approved authoritative SVG sources unchanged. The single-ink derivative preserves their approved centerlines, stroke widths, caps, joins, and silhouette."
   },
-  "guide": {
-    "idea": "Unofficial automation for ESO",
-    "descriptor": "Cross-platform desktop companion for The Elder Scrolls Online",
+  "guidance": {
     "foundation_title": "Observable, operator-controlled assistance",
     "foundation": "ESO Weave is an offline-first desktop companion. Combat weaving works without an addon. Fishing, Auto Potion, weapon-bar timing, and latency adaptation consume visible PixelBeacon telemetry, while uncertain or unsafe state closes action gates.",
-    "personality": [["Direct", "Names the observed game or application state", "Vague automation claims"], ["Procedural", "Explains controls, prerequisites, and recovery", "Hidden transitions"], ["Candid", "States technical, vendor, and account boundaries", "Safety guarantees"]],
-    "promises": ["Configured weaving remains scoped to ESO focus.", "PixelBeacon-assisted features act only on current observable state.", "Missing or unsafe evidence blocks synthesized input instead of inventing certainty."],
-    "in_scope": ["Combat weaving", "Fishing assistance", "Auto Potion", "Live game and application status", "PixelBeacon lifecycle"],
-    "out_of_scope": ["Official ESO support", "Authorization by game terms", "Account-safety guarantees", "Concealed automation"],
+    "personality": [
+      [
+        "Direct",
+        "Names the observed game or application state",
+        "Vague automation claims"
+      ],
+      [
+        "Procedural",
+        "Explains controls, prerequisites, and recovery",
+        "Hidden transitions"
+      ],
+      [
+        "Candid",
+        "States technical, vendor, and account boundaries",
+        "Safety guarantees"
+      ]
+    ],
+    "promises": [
+      "Configured weaving remains scoped to ESO focus.",
+      "PixelBeacon-assisted features act only on current observable state.",
+      "Missing or unsafe evidence blocks synthesized input instead of inventing certainty."
+    ],
+    "in_scope": [
+      "Combat weaving",
+      "Fishing assistance",
+      "Auto Potion",
+      "Live game and application status",
+      "PixelBeacon lifecycle"
+    ],
+    "out_of_scope": [
+      "Official ESO support",
+      "Authorization by game terms",
+      "Account-safety guarantees",
+      "Concealed automation"
+    ],
     "sharp_edge": "Automation may conflict with applicable game terms or lead to account consequences. ESO Weave provides controls and information, while users retain responsibility for use.",
     "logo": "The badge-less woven carets identify dark lockups. The existing self-contained badge protects reduced and light-surface uses. Single-ink reproduction uses uninterrupted source centerlines without an artificial crossing segment.",
-    "palette": "Teal identifies active state and emphasis. Accessible gold identifies actions on light surfaces. Dark ink surfaces keep game and application status primary.",
-    "specimen_line": "Unofficial automation for ESO",
-    "specimen_body": "Combat weaving, fishing assistance, Auto Potion, and live status stay visible and operator-controlled without reading game memory or network traffic."
+    "palette": "Teal identifies active state and emphasis. Accessible gold identifies actions on light surfaces. Dark ink surfaces keep game and application status primary."
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "approved",
+      "text": "Cross-platform desktop companion for The Elder Scrolls Online",
+      "uses": ["site-metadata"],
+      "source": "brand.json approval_ledger.gate_2, showcase-card and public-metadata surfaces",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-26"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
   },
   "social_copy": {
     "slogan": "Unofficial automation for ESO",

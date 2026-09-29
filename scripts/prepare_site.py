@@ -29,6 +29,7 @@ SITE_DESCRIPTION = "Explore ShruggieTech brand identities, standards, assets, an
 SOCIAL_SIZE = (1280, 640)
 sys.path.insert(0, str(TEMPLATES))
 from brand_contract import affiliation, custom_assets, guide_surface_mode, public_showcase, showcase_surface, social_copy, vendor_boundary
+from messaging import approved_messages
 from documentation_contract import load_documentation_contract, manual_catalog, validate_route_dispositions
 from gen_conformance import verify_conformance
 from gen_guidelines import guideline_topic_path
@@ -254,7 +255,10 @@ def structured_data(route: dict[str, Any], routes: list[dict[str, Any]], brands:
         brand = next(item for item in brands if item["slug"] == route["brandSlug"])
         brand_id = f"{route['canonical']}#brand"
         page["mainEntity"] = {"@id": brand_id}
-        entity = {"@type": "Brand", "@id": brand_id, "name": brand["title"], "description": brand["descriptor"], "url": route["canonical"], "logo": f"{SITE_URL}{brand['icon']}"}
+        entity = {"@type": "Brand", "@id": brand_id, "name": brand["title"], "url": route["canonical"], "logo": f"{SITE_URL}{brand['icon']}"}
+        description = brand.get("approvedMessaging", {}).get("short_description")
+        if description:
+            entity["description"] = description
         if route.get("vendorBoundary"):
             entity["disambiguatingDescription"] = route["vendorBoundary"]
             entity["usageInfo"] = route["vendorBoundaryUrl"]
@@ -278,16 +282,17 @@ def build_routes(brands: list[dict], docs: list[dict[str, str]], portals: Option
         fallback_overview = guideline_topic_path(slug, "Overview")
         portal = portal_by_slug.get(slug)
         vendor_notice = brand.get("vendorBoundary")
-        topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "label": "Overview", "path": fallback_overview, "description": brand["descriptor"]}, {"key": "assets", "title": "Assets", "label": "Assets", "path": guideline_topic_path(slug, "Assets"), "description": "Task-oriented access to every verified delivery."}]
+        topics = portal["topics"] if portal else [{"key": "overview", "title": "Guidelines", "label": "Overview", "path": fallback_overview, "description": "Approved brand guidance"}, {"key": "assets", "title": "Assets", "label": "Assets", "path": guideline_topic_path(slug, "Assets"), "description": "Task-oriented access to every verified delivery."}]
         if portal:
             validate_portal_navigation(portal, slug)
         overview = topics[0]
         guidelines_path = overview["path"]
+        overview_metadata = brand.get("approvedMessaging", {}).get("short_description") or "Brand identity guidelines and approved assets."
         assets_path = next(topic["path"] for topic in topics if topic["key"] == "assets")
         brand_crumb = {"name": brand["title"], "url": f"{SITE_URL}{guidelines_path}"}
         routes.extend([
             make_route(f"downloads-{slug}", "downloads", assets_path, f"{brand['title']} assets", f"Browse and download the complete {brand['title']} brand asset collection.", "Brand assets", [home, brand_crumb, {"name": "Assets", "url": f"{SITE_URL}{assets_path}"}], brand_slug=slug, guide_topic="assets", vendor_notice=vendor_notice),
-            make_route(f"guidelines-{slug}", "guidelines", guidelines_path, f"{brand['title']} guidelines", overview["description"], "Brand guidelines", [home, brand_crumb], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice, social_alt=(f"{brand['title']} logo with slogan: {brand['socialSlogan']}" if brand.get("socialSlogan") else None)),
+            make_route(f"guidelines-{slug}", "guidelines", guidelines_path, f"{brand['title']} guidelines", overview_metadata, "Brand guidelines", [home, brand_crumb], brand_slug=slug, guide_topic=overview["key"], vendor_notice=vendor_notice, social_alt=(f"{brand['title']} logo with slogan: {brand['socialSlogan']}" if brand.get("socialSlogan") else None)),
             make_route(f"conformance-{slug}", "conformance", f"/conformance/{slug}/", f"{brand['title']} interface conformance", f"Inspect the generated browser reference and cross-host evidence boundary for {brand['title']}.", "Interface conformance", [home, conformance_root, {"name": brand["title"], "url": f"{SITE_URL}/conformance/{slug}/"}], brand_slug=slug, vendor_notice=vendor_notice),
         ])
         for topic in topics[1:]:
@@ -711,8 +716,9 @@ def copy_kit(source: Path, brand: dict) -> dict:
         "slug": slug,
         "title": brand["title"],
         "kind": brand.get("kind", "sub-brand"),
-        "descriptor": brand["descriptor"],
-        "idea": brand["brand_idea"],
+        "approvedMessaging": approved_messages(brand, "site-metadata"),
+        "consumerMessaging": approved_messages(brand, "consumer-data"),
+        "messagingStates": {role: item["status"] for role, item in brand["messaging"].items()},
         "socialSlogan": social_copy(brand)["slogan"],
         "version": brand["version"],
         "accent": brand["accent"]["bright"],

@@ -665,10 +665,10 @@ class PipelineTests(unittest.TestCase):
         brand = json.loads((ROOT / "brands" / "i-heart-pr-tours" / "brand.json").read_text(encoding="utf-8"))
         self.assertEqual("Experience Puerto Rico", brand["brand_idea"])
         self.assertEqual("Thoughtfully guided tours on the island we love.", brand["descriptor"])
-        self.assertEqual("light", brand["guide"]["surface_mode"])
+        self.assertEqual("light", brand["guidance"]["surface_mode"])
         self.assertEqual(["vertical_sand.svg", "horizontal_sand.svg"],
                          [Path(item["source"]["path"]).name for item in brand["custom_assets"]])
-        self.assertNotIn("expressions", brand["guide"])
+        self.assertNotIn("expressions", brand["guidance"])
         self.assertTrue(all(item["approval"] == {"status": "approved", "publication_eligible": True}
                             for item in brand["custom_assets"]))
         for item in brand["custom_assets"]:
@@ -680,7 +680,7 @@ class PipelineTests(unittest.TestCase):
             "Use I Heart PR Tours for the formal company name and identity applications. "
             "IHPRT is approved for casual shorthand and general prose after the full name is established. "
             "Never use IHPRT as a substitute logo or alter the supplied identity artwork.",
-            brand["guide"]["written_form"],
+            brand["guidance"]["written_form"],
         )
 
     def test_light_surface_measurements_use_the_configured_base(self):
@@ -890,7 +890,7 @@ class PipelineTests(unittest.TestCase):
             facts = {"schema_version": 1, "documentation_contract_version": "1.0.0", "brand": {"slug": "alpha", "title": "Alpha", "affiliation": None, "brand_version": "1.2.3"}, "bundle": {"package": {"id": "alpha-1.2.3", "filename": "alpha-1.2.3.zip"}}, "versions": {}, "bindings": {}, "rules": {"inheritance": "independent", "overrides": {}}, "authority": {"precedence": [], "permitted_exceptions": []}, "verification": {"entry_points": [], "success": "zero failures"}, "recovery": {}, "capability_gap": {}, "hosted": {"manual_path": "/docs/", "scope": "Current generated kit only."}, "bundled": {"facts_path": "enforcement/documentation-facts.json", "authority": "Pinned bytes.", "latest_substitution_allowed": False}}
             (kit / "enforcement").mkdir()
             (kit / "enforcement" / "documentation-facts.json").write_text(json.dumps(facts), encoding="utf-8")
-            brand = {"slug": "alpha", "title": "Alpha", "version": "1.2.3", "descriptor": "Alpha tools.", "brand_idea": "Work clearly.", "guide": {}, "voice": {}, "typography": {"families": {}}, "domain_components": {}, "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
+            brand = {"slug": "alpha", "title": "Alpha", "version": "1.2.3", "descriptor": "Alpha tools.", "brand_idea": "Work clearly.", "guidance": {}, "messaging": {"slogan": {"status": "unresolved"}, "short_description": {"status": "unresolved"}, "long_description": {"status": "unresolved"}}, "voice": {}, "typography": {"families": {}}, "domain_components": {}, "affiliation": {"ownership": "third-party", "showcase": "public", "parent": None, "inheritance": "independent", "endorsement": "none", "service_credit": "none"}}
             palettes = ({"primary": "#2BCC73", "background": "#080B0D"}, {"primary": "#167A45", "background": "#FFFFFF"})
             with mock.patch.object(gen_guidelines, "tokens", return_value=palettes):
                 payload = gen_guidelines.portal_payload(brand, kit)
@@ -1180,7 +1180,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_dark_guide_light_showcase_has_accessible_light_borders(self):
         brand = json.loads((ROOT / "brands" / "i-heart-pr-tours" / "brand.json").read_text(encoding="utf-8"))
-        brand["guide"]["surface_mode"] = "dark"
+        brand["guidance"]["surface_mode"] = "dark"
         self.assertEqual("light.card", brand["showcase_surface"])
         canon = json.loads((ROOT / "skill" / "references" / "01-canon.json").read_text(encoding="utf-8"))
         _, light = gen_nextjs.build_slots(canon, brand)
@@ -1482,8 +1482,8 @@ class PipelineTests(unittest.TestCase):
             brand.pop("social_copy", None)
             brand.pop("social_image_approval", None)
             brand["semantic_colors"] = {"emphasis": "#C659FF", "action": "#A000EC"}
-            brand["guide"].pop("logo", None)
-            brand["guide"].pop("palette", None)
+            brand["guidance"].pop("logo", None)
+            brand["guidance"].pop("palette", None)
             supplied_wordmark = kit / "assets" / "client-wordmark.svg"
             supplied_wordmark.parent.mkdir(parents=True, exist_ok=True)
             write_utf8(supplied_wordmark, '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 100"><path fill="#F2F5FA" d="M0 0H600V100H0Z"/></svg>\n')

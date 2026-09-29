@@ -27,6 +27,7 @@ function BrandActions({ brand }: { brand: Brand }) {
 function DesktopBrandCard({ brand }: { brand: Brand }) {
   const card = useRef<HTMLElement>(null);
   const [dismissed, setDismissed] = useState(false);
+  const description = brand.approvedMessaging.short_description;
   return <article
     className="brand-card"
     aria-label={`${brand.title} portfolio card. Focus to reveal actions.`}
@@ -44,7 +45,7 @@ function DesktopBrandCard({ brand }: { brand: Brand }) {
     <span className="brand-icon"><img src={brand.icon} alt="" /></span>
     <h3><BrandName brand={brand} /></h3>
     <div className="brand-card-stage">
-      <p className="brand-card-description">{brand.descriptor}</p>
+      {description && <p className="brand-card-description">{description}</p>}
       <BrandActions brand={brand} />
     </div>
   </article>;
@@ -59,7 +60,7 @@ export function BrandPortfolio({ brands }: { brands: Brand[] }) {
     <div className="brand-accordion-list">
       {brands.map((brand) => <details className="brand-accordion" data-portfolio-surface="governed-dark" key={brand.slug} style={brandStyle(brand)}>
         <summary><span className="brand-icon"><img src={brand.icon} alt="" /></span><span className="mobile-brand-title"><BrandName brand={brand} /></span></summary>
-        <div className="brand-accordion-panel"><p>{brand.descriptor}</p><BrandActions brand={brand} /></div>
+        <div className="brand-accordion-panel">{brand.approvedMessaging.short_description && <p>{brand.approvedMessaging.short_description}</p>}<BrandActions brand={brand} /></div>
       </details>)}
     </div>
     {hasThirdPartyProjects && <aside className="portfolio-vendor-notice" id={noticeId} aria-label="Third-party brand notice">

@@ -155,9 +155,10 @@ def main():
     dim = B["accent"].get("dim", "#9A9A9A")
     rule = "#262626"
     title = B["title"]
-    guide = B.get("guide") or {}
-    idea = guide.get("idea") or B.get("brand_idea", title)
-    descriptor = guide.get("descriptor") or B.get("descriptor", "")
+    from messaging import approved_messages
+    messages = approved_messages(B, "visual-guide")
+    display_sample = messages.get("slogan", title)
+    body_sample = messages.get("short_description", "Aa Bb Cc Dd Ee Ff Gg")
     fams = families
 
     parts = [
@@ -166,12 +167,12 @@ def main():
         mark(B, kit, 66, 66, 170),
         outlined_text("%s TYPE SYSTEM" % title.upper(), mono, 20, 260, 110, dim),
         outlined_text(title, display, 154, 252, 365, "#FFFFFF"),
-        outlined_text(clip(guide.get("specimen_line") or descriptor, 86), body, 34, 258, 462, dim),
+        outlined_text(clip(body_sample, 86), body, 34, 258, 462, dim),
         '<path fill="%s" d="M80 540H1520V542H80Z"/>' % rule,
         outlined_text("DISPLAY / %s BOLD" % fams["display"]["name"].upper(), mono, 18, 82, 600, acc),
-        outlined_text(idea, display, 60, 82, 682, "#FFFFFF"),
+        outlined_text(display_sample, display, 60, 82, 682, "#FFFFFF"),
         outlined_text("BODY / %s REGULAR" % fams["body"]["name"].upper(), mono, 18, 82, 750, acc),
-        outlined_text(clip(guide.get("specimen_body") or B.get("role") or descriptor, 76), body, 30, 82, 810, "#FFFFFF"),
+        outlined_text(clip(body_sample, 76), body, 30, 82, 810, "#FFFFFF"),
         outlined_text("MONO / %s REGULAR" % fams["mono"]["name"].upper(), mono, 18, 82, 875, acc),
         outlined_text("0O 1lI 8B 5S 2Z   sha256:9f3c   span 412-488   verdict.provisional",
                       mono, 28, 82, 930, dim),

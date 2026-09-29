@@ -4,12 +4,28 @@
   "kind": "independent-brand",
   "title": "DanceWithMe865",
   "slug": "dancewithme865",
-  "version": "1.0.0",
-  "canon": "1.6.0",
+  "version": "1.0.1",
+  "canon": "2.0.0",
   "registry_base": "https://brand.shruggie.tech/dancewithme865/brand",
   "showcase_surface": "light.card",
-  "guide": {
+  "guidance": {
     "surface_mode": "light"
+  },
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "approved",
+      "text": "An independent dance brand.",
+      "uses": ["site-metadata"],
+      "source": "brand.json approval_ledger.gate_2, showcase-card and public-metadata surfaces",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-29"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
   },
   "social_copy": {
     "slogan": "DanceWithMe865",

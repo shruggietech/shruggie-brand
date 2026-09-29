@@ -4,7 +4,7 @@
   "kind": "parent-brand",
   "title": "ShruggieTech",
   "slug": "shruggietech",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",
@@ -225,14 +225,28 @@
     "geometry_provenance": "imported",
     "geometry_provenance_reason": "The supplied kit, design-system bundle, and CDN index contain only paid raster logo masters. Their exact pixel masks are embedded without tracing or redrawing."
   },
-  "guide": {
-    "idea": "We advance your vision.",
-    "descriptor": "A modern technical studio building digital systems, software, and AI-driven experiences.",
+  "guidance": {
     "personality": [
-      ["Direct", "States the useful outcome and next step", "Corporate ceremony"],
-      ["Helpful", "Explains technology at the reader's altitude", "Generic jargon"],
-      ["Scrappy", "Ships, learns, and iterates in the open", "Performed disruption"],
-      ["Owner-minded", "Builds systems clients can operate and keep", "Platform lock-in"]
+      [
+        "Direct",
+        "States the useful outcome and next step",
+        "Corporate ceremony"
+      ],
+      [
+        "Helpful",
+        "Explains technology at the reader's altitude",
+        "Generic jargon"
+      ],
+      [
+        "Scrappy",
+        "Ships, learns, and iterates in the open",
+        "Performed disruption"
+      ],
+      [
+        "Owner-minded",
+        "Builds systems clients can operate and keep",
+        "Platform lock-in"
+      ]
     ],
     "promises": [
       "We make the technical work legible.",
@@ -242,14 +256,33 @@
     ],
     "sharp_edge": "ShruggieTech is confidently scrappy, but the humor never replaces an answer. The flourish appears once at most, and ownership claims must be backed by concrete handoff and operating terms.",
     "logo": "The custom stylized shruggie face is paid artwork, not a Unicode glyph. Paired lockups use the complete arms, eyes, and smile. Standalone marks and application icons use the approved vivid face-only square projection.",
-    "palette": "Pure black and restrained near-black surfaces carry the parent identity. Bright green marks identity, links, focus, and the shruggie face on dark surfaces. Accessible green replaces it for text on light surfaces. Orange remains rare emphasis.",
-    "specimen_line": "Smart, practical, confidently scrappy.",
-    "specimen_body": "You have a business to run. We handle the technology that makes it grow."
+    "palette": "Pure black and restrained near-black surfaces carry the parent identity. Bright green marks identity, links, focus, and the shruggie face on dark surfaces. Accessible green replaces it for text on light surfaces. Orange remains rare emphasis."
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "messaging": {
+    "slogan": {
+      "status": "approved",
+      "text": "We’ll figure it out.",
+      "uses": [
+        "visual-guide",
+        "social-image",
+        "site-metadata",
+        "consumer-data"
+      ],
+      "source": "Issue #295 owner correction supersedes prior slogan classification",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-28"
+    },
+    "short_description": {
+      "status": "unresolved"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
   },
   "social_copy": {
     "slogan": "We’ll figure it out.",

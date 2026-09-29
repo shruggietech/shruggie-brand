@@ -358,7 +358,7 @@
   "id": "scruggs-tire-alignment",
   "kind": "independent-brand",
   "title": "Scruggs Tire & Alignment",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "showcase_surface": "light.card",
   "homepage": "https://scruggstires.com/",
   "registry_base": "https://brand.shruggie.tech/scruggs-tire-alignment/brand",
@@ -377,6 +377,22 @@
   "role": "Present dependable, straightforward tire and alignment service to drivers around Greer.",
   "audience": "Drivers in Greer and nearby Greenville, South Carolina, looking for tire and alignment service.",
   "brand_idea": "Ready for the road",
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "approved",
+      "text": "Tires, alignment, and automotive service in Greer, South Carolina.",
+      "uses": ["site-metadata"],
+      "source": "brand.json approval_ledger.gate_2, showcase-card and public-metadata surfaces",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-29"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
+  },
   "social_copy": {
     "slogan": "Expert alignments, tire repair, and honest automotive service.",
     "slogan_lines": [
@@ -494,10 +510,8 @@
       "contact_action"
     ]
   },
-  "guide": {
+  "guidance": {
     "surface_mode": "light",
-    "idea": "Ready for the road",
-    "descriptor": "Tires, alignment, and automotive service in Greer, South Carolina.",
     "written_form": "Use Scruggs Tire & Alignment as the formal brand name. Do not redraw the lettering, change the tire motif, or treat a text rendering as a replacement logo.",
     "foundation_title": "Practical service for the road ahead",
     "foundation": "Scruggs Tire & Alignment presents tire, alignment, and vehicle service in clear terms that help local drivers choose their next step.",
@@ -536,12 +550,10 @@
     ],
     "sharp_edge": "Use deep red #7D0B13 for ordinary text and actions on white. Bright tire red #ED1B24 is also readable on a true black base and serves dark-surface emphasis. Never use bright red as ordinary text on white. Maintain WCAG 2.1 AA contrast for all actual combinations.",
     "logo": "Use the exact white-square Full lockup for light surfaces, the black-square Full lockup for dark surfaces, and the unchanged tire-only motif for small icons. Preserve the lettering and tire shape in every output.",
-    "palette": "The tire motif uses bright red. True white and black are the primary logo grounds; bright red provides dark-surface emphasis and deep red provides readable light-surface actions. Neutral surfaces support clear service information.",
-    "specimen_line": "Scruggs Tire & Alignment",
-    "specimen_body": "Tires, alignment, and automotive service in Greer, South Carolina."
+    "palette": "The tire motif uses bright red. True white and black are the primary logo grounds; bright red provides dark-surface emphasis and deep red provides readable light-surface actions. Neutral surfaces support clear service information."
   },
   "custom_assets": [],
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "approved-canonical"

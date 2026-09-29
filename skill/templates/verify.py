@@ -11,13 +11,15 @@ as SKIP with the reason, never silently passed.
 
 Exit code is the number of problems found, capped at 125.
 """
-import argparse, base64, copy, hashlib, json, os, re, struct, sys, tempfile, unicodedata, zlib
+import argparse, base64, copy, hashlib, importlib.util, json, os, re, struct, sys, tempfile, unicodedata, zlib
+from html.parser import HTMLParser
 from io import BytesIO
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from coloraide import Color
 from capabilities import load_capabilities
 from brand_contract import _image_dimensions, affiliation, application_icon_profile, current_mark_approval, logo_source_contract, sha256_file, social_copy, social_image_approval, specimen_mark_paths
+from messaging import approved_messages
 from color_roles import ColorRoleError, resolve_color_roles
 from identity_continuity import ContinuityError, validate_continuity_report
 from iconkit import ANDROID_DENSITIES, GENERATION_MARKER, ICO_SIZES, MAC_ROLES, WINDOWS_TARGETS, inspect_png
@@ -1308,6 +1310,104 @@ def c_icon_suites(kit, brand, rep):
         generated = sum(1 for suite in suites if suite.get("status") == "generated")
         rep.ok("icon-suites", "%d platform suites, %d declared artifacts, %d compatibility aliases" %
                (generated, len(artifacts), len(aliases)))
+
+class _MessageParser(HTMLParser):
+    """Read labeled rendered message values, including nested print-cover tags."""
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.depth = 0
+        self.active = None
+        self.values = {}
+
+    def handle_starttag(self, tag, attrs):
+        self.depth += 1
+        role = dict(attrs).get("data-message-role")
+        if role is not None:
+            if self.active is not None or role in self.values:
+                raise ValueError("duplicate or nested message role: %s" % role)
+            self.active = (role, self.depth, [])
+
+    def handle_data(self, data):
+        if self.active is not None:
+            self.active[2].append(data)
+
+    def handle_endtag(self, tag):
+        if self.active is not None and self.active[1] == self.depth:
+            role, _, pieces = self.active
+            self.values[role] = "".join(pieces).strip()
+            self.active = None
+        self.depth -= 1
+
+
+def message_projection_problems(kit, brand, check_pdf=True):
+    """Check exact approved roles in portable, print, portal, and extracted PDF."""
+    expected = approved_messages(brand, "visual-guide")
+    labels = {"slogan": "Slogan", "short_description": "Short description",
+              "long_description": "Long description", "introductory_statement": "Introduction",
+              "positioning": "Positioning", "mission": "Mission", "vision": "Vision",
+              "values": "Values", "brand_promise": "Brand promise"}
+    problems = []
+    for relative in ("guidelines/index.html", "build/brand-guide.print.html"):
+        path = Path(kit, relative)
+        if not path.is_file():
+            problems.append(relative + " is missing")
+            continue
+        parser = _MessageParser()
+        try:
+            parser.feed(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, ValueError) as error:
+            problems.append(relative + " cannot be read: " + str(error))
+            continue
+        found = {role.replace("-", "_"): value for role, value in parser.values.items()}
+        if set(found) != set(expected):
+            problems.append(relative + " message roles disagree with approved source")
+        for role, text in expected.items():
+            actual = found.get(role, "")
+            label = labels[role]
+            if not actual.startswith(label) or actual[len(label):].lstrip(": ") != text:
+                problems.append(relative + " " + role + " differs from exact approved text")
+    portal_path = Path(kit, "guidelines/portal.json")
+    try:
+        portal = json.loads(portal_path.read_text(encoding="utf-8"))
+        if portal["brand"]["messaging"] != expected:
+            problems.append("guidelines/portal.json message roles differ from approved source")
+    except (OSError, UnicodeError, ValueError, KeyError, TypeError) as error:
+        problems.append("guidelines/portal.json cannot be checked: " + str(error))
+    pdf_path = Path(kit, "brand-guide.pdf")
+    if check_pdf and pdf_path.is_file():
+        try:
+            import fitz
+            with fitz.open(pdf_path) as document:
+                cover = " ".join(document[0].get_text().split())
+                for role, value in expected.items():
+                    if " ".join(value.split()) not in cover or labels[role] not in cover:
+                        problems.append("brand-guide.pdf cover lacks exact " + role)
+        except (ImportError, OSError, ValueError, IndexError, RuntimeError) as error:
+            problems.append("brand-guide.pdf text cannot be checked: " + str(error))
+    return problems
+
+
+def c_messaging(kit, rep):
+    pdf_path = Path(kit, "brand-guide.pdf")
+    pdf_extractor_available = importlib.util.find_spec("fitz") is not None
+    try:
+        brand = json.loads(Path(kit, "brand.json").read_text(encoding="utf-8"))
+        problems = message_projection_problems(kit, brand, check_pdf=pdf_extractor_available)
+    except (OSError, UnicodeError, ValueError) as error:
+        problems = [str(error)]
+    if problems:
+        rep.bad("approved-messaging", "; ".join(problems[:8]))
+    else:
+        rep.ok("approved-messaging", "approved roles match portable and portal projections")
+    if not pdf_path.is_file():
+        rep.skip("approved-messaging-pdf", "brand-guide.pdf is absent")
+    elif not pdf_extractor_available:
+        rep.skip("approved-messaging-pdf", "PyMuPDF is unavailable; PDF text extraction was not checked")
+    elif any("brand-guide.pdf" in problem for problem in problems):
+        rep.bad("approved-messaging-pdf", "PDF text differs from approved messages")
+    else:
+        rep.ok("approved-messaging-pdf", "approved roles match extracted PDF cover text")
+
 
 def c_pdf(kit, rep):
     pdfs = [p for p in walk(kit) if p.lower().endswith(".pdf")]
@@ -2618,6 +2718,7 @@ def main():
     c_svg(kit, rep)
     c_ico(kit, rep)
     c_pdf(kit, rep)
+    c_messaging(kit, rep)
     c_component_adapter(kit, rep)
     c_egui_adapter(kit, rep)
     try:

@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "Glitchpad",
   "slug": "glitchpad",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "showcase_surface": "card",
   "affiliation": {
     "ownership": "shruggietech-owned",
@@ -197,9 +197,7 @@
     "geometry_provenance": "imported",
     "geometry_provenance_reason": "The shipped Glitchpad paper-and-G paths predate glyphkit and have no authoritative mk_paths.py source."
   },
-  "guide": {
-    "idea": "View your files.",
-    "descriptor": "Text, source code, images, PDFs, and office documents.",
+  "guidance": {
     "foundation_title": "Supported file categories",
     "foundation": "Glitchpad opens common local file formats on desktop and Android. View text, source code, Markdown, raster and vector images, PDFs, DOCX, and ODT files. Edit Markdown, text, and source files where supported.",
     "personality": [
@@ -238,10 +236,21 @@
     "logo": "The rectangular paper and G share one protected construction inside a permanent square. On dark surfaces the square is sulfur with a charcoal page; on light surfaces the square is charcoal with a sulfur page. The slate fold stays consistent across both contexts.",
     "palette": "Near-black surfaces keep controls visually secondary to file content. Pure sulfur provides identity, focus, and selection; cool slate supplies the fold and subdued states. Muddy and darkened yellows are prohibited."
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "unresolved"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
   },
   "social_copy": {
     "slogan": "View your files.",

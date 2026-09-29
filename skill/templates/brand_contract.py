@@ -635,12 +635,12 @@ def validate_light_presentation(brand, consumer):
 
 def guide_surface_mode(brand):
     """Resolve the governed reading surface before any generated output exists."""
-    guide = brand.get("guide", {})
-    _require(isinstance(guide, dict), "guide must be an object")
+    guide = brand.get("guidance", {})
+    _require(isinstance(guide, dict), "guidance must be an object")
     mode = guide.get("surface_mode", "dark")
-    _require(mode in ("dark", "light"), "guide.surface_mode must be dark or light")
+    _require(mode in ("dark", "light"), "guidance.surface_mode must be dark or light")
     if mode == "light":
-        validate_light_presentation(brand, "guide.surface_mode light")
+        validate_light_presentation(brand, "guidance.surface_mode light")
     return mode
 
 
@@ -979,8 +979,9 @@ def custom_assets(brand, kit, public_only=False):
     """Validate optional non-core sources and return the eligible public subset."""
     records = brand.get("custom_assets", [])
     _require(isinstance(records, list), "custom_assets must be an array")
-    _require(not (brand.get("guide") or {}).get("expressions"),
-             "guide.expressions is obsolete; declare governed custom_assets instead")
+    _require("guide" not in brand, "guide overrides are obsolete; use canonical guidance and messaging")
+    _require(not (brand.get("guidance") or {}).get("expressions"),
+             "guidance.expressions is obsolete; declare governed custom_assets instead")
     identifiers, paths, eligible = set(), set(), []
     required = {"id", "title", "description", "role", "source", "provenance", "approval",
                 "transformations", "usage", "accessibility", "credit", "preview"}
@@ -1509,6 +1510,16 @@ def validate_palette_approvals(brand, evidence):
 
 def validate_brand(brand, kit):
     _require(isinstance(brand.get("slug"), str) and ID.fullmatch(brand["slug"]), "brand slug is missing or invalid")
+    _require("guide" not in brand, "guide overrides are obsolete; use canonical guidance and messaging")
+    canon_version = brand.get("canon", "")
+    if isinstance(canon_version, str) and canon_version.split(".", 1)[0].isdigit() and int(canon_version.split(".", 1)[0]) >= 2:
+        _require("messaging" in brand, "Brand Canon 2.0 and later requires messaging")
+    if "messaging" in brand:
+        from messaging import MessageError, validate_messaging
+        try:
+            validate_messaging(brand)
+        except MessageError as error:
+            raise ContractError(str(error)) from error
     if "social_copy" in brand:
         social_copy(brand)
     if "social_image_approval" in brand:

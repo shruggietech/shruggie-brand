@@ -162,14 +162,10 @@ def copy_block(brand):
     q = v.get("qualities") or ["direct", "calm", "matter-of-fact"]
     lead = v.get("lead_with") or ["the user task", "the current state"]
     avoid = v.get("avoid") or []
-    idea = (brand.get("guide") or {}).get("idea") or brand.get("brand_idea") or ""
-    palette = (brand.get("guide") or {}).get("palette") or ""
+    palette = (brand.get("guidance") or {}).get("palette") or ""
     out = ["%s copy is %s. Put %s first. Use familiar nouns and verbs. Keep\n"
            "sentences short." % (title, ", ".join(q[:-1]) + " and " + q[-1] if len(q) > 1 else q[0],
                                  " and ".join(lead[:2]))]
-    if idea:
-        out.append('Headlines name something a reader can act on. Prefer literal product\n'
-                   'language such as "%s" to slogans, mood, or abstract benefit claims.' % idea)
     if avoid:
         out.append("Do not reach for: %s." % "; ".join(avoid))
     if palette:

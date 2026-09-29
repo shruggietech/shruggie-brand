@@ -4,7 +4,7 @@
   "kind": "sub-brand",
   "title": "Covarity",
   "slug": "covarity",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "affiliation": {
     "ownership": "shruggietech-owned",
     "showcase": "public",
@@ -188,9 +188,7 @@
     "geometry_provenance": "legacy-constructed",
     "geometry_provenance_reason": "The custom arc and path serializer predates glyphkit. Its shipped path bytes remain unchanged as historical identity source."
   },
-  "guide": {
-    "idea": "See what is known.",
-    "descriptor": "An evidence-backed knowledge graph and a policy-enforcing context compiler.",
+  "guidance": {
     "personality": [
       [
         "Exact",
@@ -216,8 +214,6 @@
     "sharp_edge": "Provenance shows where a claim came from and stops there. Covarity does not judge whether a source is honest, and a well-cited answer built on a bad source is still a bad answer.",
     "logo": "The aperture C is one ring broken once. The long arc is durable knowledge, the short orange terminal is agent context, and the radial slot between them is the adjudication boundary where a reference waits for a verdict. The opening at the right keeps the ring readable as a C at favicon size, and the reduced mark closes the split so the silhouette survives 16 px.",
     "palette": "Covariance Purple carries identity, links, focus, and selected state. The inherited orange marks emphasis, required fields, and warnings, and it never stands in for the accent. Surfaces run a purple-tinted near-black so the accent sits on a related ground instead of a neutral one.",
-    "specimen_line": "An evidence-backed knowledge graph and a policy-enforcing context compiler.",
-    "specimen_body": "Every claim keeps the source and the span it came from.",
     "name_story": [
       "The name was fixed on 18 March 2026, before there was a specification to attach it to.",
       "<b>co</b> carries two systems and two parties. A knowledge system and a context system that run apart and meet at a single contract, and a person and a machine working the same material. Cooperation and collaboration start in the same place.",
@@ -226,10 +222,21 @@
     "written_form": "<span class=\"m\">Covarity</span> in title case in prose. <span class=\"m\">covarity</span> in lowercase for technical identifiers, repositories and package names. <span class=\"m\">covarity.ai</span> in a URL, and anywhere an unrelated company of the same name could be confused with this one. Never set <span class=\"m\">Covarity.ai</span> in a wordmark or a headline: a top-level domain is an address, and it dates a mark.",
     "named": "18 March 2026"
   },
-  "canon": "1.6.0",
+  "canon": "2.0.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"
+  },
+  "messaging": {
+    "slogan": {
+      "status": "unresolved"
+    },
+    "short_description": {
+      "status": "unresolved"
+    },
+    "long_description": {
+      "status": "unresolved"
+    }
   },
   "social_copy": {
     "slogan": "See what is known.",
