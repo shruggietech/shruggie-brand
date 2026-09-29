@@ -384,8 +384,11 @@ class PublicationWorkflowContractTests(unittest.TestCase):
 
     def test_renderer_and_runtime_contract_are_exact(self):
         text = workflow_text()
-        self.assertGreaterEqual(text.count("node-version: 24.11.0"), 2)
-        self.assertGreaterEqual(text.count("@resvg/resvg-js@2.6.2"), 2)
+        self.assertGreaterEqual(text.count("node-version: 24.11.0"), 3)
+        self.assertGreaterEqual(text.count("@resvg/resvg-js@2.6.2"), 3)
+        minimum_python = job_block(text, "python-38-compatibility")
+        self.assertIn("node-version: 24.11.0", minimum_python)
+        self.assertIn("@resvg/resvg-js@2.6.2", minimum_python)
         self.assertNotIn("rsvg-convert", text)
         self.assertNotIn("librsvg", text)
 
