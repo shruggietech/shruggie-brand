@@ -88,3 +88,7 @@ The owner selected "Approve revised image" for packet `4ff5f087267495989ca5984a0
 The first complete site run exposed fixed eight-brand test counts and a fixed-height card that clipped the longer client title. The page now lets cards grow from a 20rem minimum and tests count the generated brand inventory. A second verifier run also changed the checksum-bound `VERIFY.md` report; the verifier now writes only when `--out` is explicit, as the builder already does. The full site browser rerun remains underway.
 
 The rebuilt static site and full browser rerun passed, checking 103 HTML routes at desktop and mobile widths with zero WCAG 2.1 AA violations. The local registry consumer test passed for all nine brands. The source-only release packaging produced nine verified current-release assets; this step did not publish them. The final native WordPress fixtures and release-inclusive audit remain in progress.
+
+## 2026-09-29 PR consolidation against current main
+
+PR #304 now includes the S065 DanceWithMe865 source commit and current main, including the published S064 Local Companion brand. The resulting production inventory is eleven kits. CI exports I Heart PR Tours and Local Companion proofs under Node 24.11.0, exports Scruggs and DanceWithMe865 under Node 26.5.0, builds the nine existing kits under Node 24.11.0, then builds the two clients under Node 26.5.0. The verified-kit artifact enumerates all eleven. First-round Codex findings are resolved on both original PRs; the second review and final CI gate remain before the owner's merge ritual.

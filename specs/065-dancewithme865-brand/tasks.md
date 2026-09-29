@@ -38,3 +38,8 @@
 ## Dependencies
 
 T004-T006 precede Gate 1 proofs because the production renderer digest binds generator code. T007-T010 precede T011. T012-T014 require T011 approval. T015-T018 require both owner approvals. A changed master returns to T007-T011; a changed derivative returns to T013-T014.
+
+## 2026-09-29 PR integration
+
+- [x] T019 [US2] Merge the S065 source commit into PR #304 against current main, preserve approved source bytes, repair shared generator and publication conflicts, and close superseded PR #305 after resolving its first-round review threads.
+- [ ] T020 [US2] Complete the combined eleven-kit validation, resolve the second Codex review round, and hand off PR #304 with definitive green required CI for the owner's final merge ritual.

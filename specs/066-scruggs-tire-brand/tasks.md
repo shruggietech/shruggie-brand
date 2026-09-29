@@ -44,7 +44,12 @@
 - [x] T019 [US3] Run generated `verify.py` and `validate_glyph.py` to zero problems/failures, inspect optional-capability skips, and record exact commands and results in `specs/066-scruggs-tire-brand/verification.md`.
 - [x] T020 [US3] Build the official static site from verified `dist/`; inspect showcase card, brand page, guideline topics, downloads, registry, metadata, structured data, and social preview for source-derived values and independent-client language.
 - [x] T021 [US3] Run the complete validation in `CONTRIBUTING.md` and `.github/workflows/build.yml`, plus UTF-8/LF, mojibake, artifact hygiene, and `git diff --check`; record failures and repairs honestly. Local source, kit, site, WordPress fixture, and publication gates passed; remote CI awaits push.
-- [ ] T022 [US3] Commit only source and Spec Kit evidence on `codex/066-scruggs-tire-brand`, update the unreleased changelog and any architecture decision log if warranted, and prepare the isolated pull request after explicit push authorization.
+- [x] T022 [US3] Commit only source and Spec Kit evidence on `codex/066-scruggs-tire-brand`, update the unreleased changelog and any architecture decision log if warranted, and prepare the pull request after explicit push authorization.
+
+## 2026-09-29 PR integration
+
+- [x] T023 [US3] Bring PR #304 onto current main with S065's approved source commit, preserve both clients' source bytes, repair shared generator and inventory conflicts, and resolve the first-round Codex findings on both PRs.
+- [ ] T024 [US3] Complete combined eleven-kit validation and the second Codex review, require definitive green CI, and hand off PR #304 for the owner's final merge ritual.
 
 ## Dependencies and checkpoints
 

@@ -74,3 +74,7 @@ dist/  (ignored review and generated output)
 ## Post-Design Constitution Check
 
 The proposed layout uses only governed source directories and the existing kit contract. No exception to P1-P6 is required. Approval and verification dependencies remain explicit rather than assumed complete.
+
+## 2026-09-29 PR consolidation
+
+The owner asked to reconcile both open client-brand PRs against current main. S065's source commit is merged into S066 PR #304, and PR #305 is closed with its source branch retained. The combined plan preserves both creative approval records and the newly merged S064 Local Companion source. CI exports the two older approved brands on Node 24.11.0 and both new clients on Node 26.5.0, builds the nine existing brands and two clients in those respective runtime groups, and uploads all eleven verified kits. The original first-round Codex findings on both PRs are addressed before the second review round.
