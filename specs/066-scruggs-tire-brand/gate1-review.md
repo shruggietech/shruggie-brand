@@ -8,6 +8,8 @@ Revision r2 responds to the owner's direction to retain the tire-only mark and c
 
 The single design review image is `dist/scruggs-gate1-r2/full-white-square.png`: the red tire with the existing black wording on a true white square. The transparent square contains the same logo pixels without a background. The dark square contains the same red tire and wording shapes, with the wording turned white so it reads on black. These are exports of one identity, not competing logos. The tire-only mark is unchanged. The 32 small-size and monochrome proofs are technical verification evidence; they are not separate design options for the owner to select.
 
+The owner's exact reply to this single white-square preview on 2026-09-29 was "yes that looks good". That confirms the Full visual direction shown in the preview. An explicit decision on the exact r2 source and proof packet is being requested separately under the repository's Gate 1 continuity rule; the reply has not been expanded into approval of technical fields the owner was not asked to judge.
+
 ## Exact source proposal
 
 | Role | Candidate source under private `candidate/assets/source/` | SHA-256 | Treatment |
