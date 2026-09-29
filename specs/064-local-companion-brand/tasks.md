@@ -51,7 +51,7 @@
 - [x] T016 [US3] Add Local Companion to `skill/templates/interface_contract.py`, `scripts/audit_publication_artifacts.py`, `.github/workflows/build.yml`, and site/release test inventories.
 - [x] T017 [US3] Update builder version, `skill/references/release-impact.json`, migration note, and root/skill changelogs for the new public release.
 - [x] T018 [US3] Build the static site and audit public routes, metadata, registries, downloads, and private-content exclusion from `site/` and `dist/`. The audit found nine kit, site, and package markers; the Local Companion site download matches its release archive byte for byte.
-- [ ] T019 [US3] Review and merge the source change, publish the exact tag-built release, and verify live `brand.shruggie.tech` output and archive SHA-256.
+- [x] T019 [US3] Review and merge the source change as PR #301, publish exact tag `v2.8.0` from `8e7d688743d36c1bf692c1a7d55a7403545f3baf`, and verify the live site and Local Companion archive SHA-256 `75fd301abe042835f9def14e275228a615aae710186b1396928e20a00b6c4f89`.
 
 ## Final Phase: Cross-Cutting Review
 
@@ -62,4 +62,4 @@
 
 US1 precedes US4 because derivatives must use approved canonical geometry. US4 precedes US2 because final kit compilation requires Gate 2 approval. US2 precedes US3 because public site and release assets consume verified kit output. T010 followed the owner's app-cue decision. T012 followed the complete review packet and the owner's exact approval. T019 depends on all required CI and publication audits.
 
-Both owner creative gates are approved. Publication eligibility and release work cannot be marked complete until the full production gates and live output checks pass.
+Both owner creative gates, the full production gates, tag release, and live output checks passed on 2026-09-29.
