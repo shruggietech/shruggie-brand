@@ -36,7 +36,7 @@ Use the reduced face as the only ShruggieTech standalone square source, make its
 - **P4**: All eight kits rebuild with zero `verify.py` problems and zero `validate_glyph.py` failures. Exact social-image approval matches final bytes.
 - **P5**: The homepage consumes verified kit output, not a site-authored substitute.
 - **P6**: S063 follows Spec Kit; no tag or release is part of this slice.
-- **P7**: Approved i-heart-pr-tours identity proofs remain byte-exact when the shared generator changes. Renderer-family drift is rejected; settings drift is accepted only with the complete exact approved matrix and comparison evidence.
+- **P7**: Approved i-heart-pr-tours identity proofs and comparison evidence remain byte-exact on the canonical host when the shared generator changes. Renderer-family drift is rejected. A portable host can use measured comparison only with the canonical host's current, settings-bound exact 32-proof attestation; without it, the current host must be byte-exact.
 
 **Post-design check**: Both contracts below retain every principle. Gate 1 and Gate 2 may require owner decisions after concrete candidate proofs; neither is inferred from kickoff.
 

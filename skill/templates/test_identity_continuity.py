@@ -14,6 +14,7 @@ from pathlib import Path
 from unittest import mock
 
 from PIL import Image, ImageDraw
+from PIL.PngImagePlugin import PngInfo
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
@@ -505,18 +506,39 @@ class IdentityContinuityTests(unittest.TestCase):
                 )
                 self.assertTrue(all(not item["comparison"]["same_renderer"] for item in result["proofs"]))
                 changed_settings = dict(record["renderer"], version="2", settings_sha256="0" * 64)
-                exact_result = validate_current_proof_matrix(
+                attestation = {
+                    "brand": "example", "record_sha256": record["record_sha256"],
+                    "proof_validation": {"status": "passed", "renderer": dict(changed_settings),
+                                         "proofs": [dict(
+                                             {key: item[key] for key in ("variant", "size_px", "surface", "sha256")},
+                                             comparison={"passes": True, "same_renderer": True,
+                                                         "evidence": {kind: {"sha256": evidence["sha256"]}
+                                                                      for kind, evidence in item["evidence"].items()}},
+                                         )
+                                                    for item in record["proofs"]]},
+                }
+                attestation["report_sha256"] = canonical_digest(attestation)
+                report = portable.parent.parent / "identity-continuity-report.json"
+                report.write_text(json.dumps(attestation), encoding="utf-8")
+                portable_result = validate_current_proof_matrix(
                     record, source, renderer=changed_settings, brand={"slug": "example"}
                 )
-                self.assertTrue(all(item["comparison"]["same_renderer"] for item in exact_result["proofs"]))
+                self.assertTrue(all(not item["comparison"]["same_renderer"] for item in portable_result["proofs"]))
                 produced = generated / "full-256-dark.png"
-                original = produced.read_bytes()
-                produced.write_bytes(original + b"drift")
-                with self.assertRaisesRegex(ContinuityError, "exact proof matrix"):
+                with Image.open(produced) as image:
+                    pixels = image.copy()
+                metadata = PngInfo()
+                metadata.add_text("host", "portable-test")
+                pixels.save(produced, pnginfo=metadata)
+                self.assertEqual("passed", validate_current_proof_matrix(
+                    record, source, renderer=changed_settings, brand={"slug": "example"})["status"])
+                attestation["proof_validation"]["renderer"]["settings_sha256"] = "1" * 64
+                attestation["report_sha256"] = canonical_digest(
+                    {key: value for key, value in attestation.items() if key != "report_sha256"})
+                report.write_text(json.dumps(attestation), encoding="utf-8")
+                with self.assertRaisesRegex(ContinuityError, "attestation settings drift"):
                     validate_current_proof_matrix(
-                        record, source, renderer=changed_settings, brand={"slug": "example"}
-                    )
-                produced.write_bytes(original)
+                        record, source, renderer=changed_settings, brand={"slug": "example"})
                 first = portable / "full-256-dark.png"
                 first.write_bytes(first.read_bytes() + b"drift")
                 with self.assertRaisesRegex(ContinuityError, "portable approved proof hash drift"):

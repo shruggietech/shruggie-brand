@@ -52,7 +52,7 @@ A viewer of ShruggieTech social artwork, kit guidance, and published projections
 - The paid raster masters may have transparent or low-luminance pixels. Any changed mask or derivation needs the approval and provenance required by the existing source contract before final publication.
 - An unchanged introductory phrase may also appear in a guide field. Its distinct role must be documented rather than misreported as the slogan.
 - Missing rendering capabilities must be reported as skips; a rendered candidate cannot be called approved until the applicable creative gate is recorded.
-- Shared generator edits must retain every existing approved i-heart-pr-tours proof exactly or continue to fail its continuity gate; renderer-family changes cannot inherit the earlier approval.
+- Shared generator edits must retain every existing approved i-heart-pr-tours proof and comparison evidence exactly on the canonical host or continue to fail its continuity gate. A portable host may use the existing measured comparison only when a current canonical-host attestation binds the same renderer settings and all 32 exact approvals. Renderer-family changes cannot inherit the earlier approval.
 
 ## Requirements
 
