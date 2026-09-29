@@ -4,6 +4,10 @@
 
 Revision r2 responds to the owner's direction to retain the tire-only mark and change the Full lockup's backgrounds and wording color surgically. It supersedes r1's white-plate Full source. The complete private review packet is `dist/scruggs-gate1-r2/gate1-packet.json` (ignored by Git), with canonical content digest `cff80cc50c777cbe2335358f3c4d95e877c525a4414e05b7eb2710ff30c04ad0`. Its identity snapshot is `7681816322f1f38a5b9f15fb3542a3b78481a3f6992d3e7dbf2b78c8b08d95c3`. This is a candidate packet, not approval or a publishable kit.
 
+## One image to judge
+
+The single design review image is `dist/scruggs-gate1-r2/full-white-square.png`: the red tire with the existing black wording on a true white square. The transparent square contains the same logo pixels without a background. The dark square contains the same red tire and wording shapes, with the wording turned white so it reads on black. These are exports of one identity, not competing logos. The tire-only mark is unchanged. The 32 small-size and monochrome proofs are technical verification evidence; they are not separate design options for the owner to select.
+
 ## Exact source proposal
 
 | Role | Candidate source under private `candidate/assets/source/` | SHA-256 | Treatment |
@@ -25,4 +29,4 @@ The production renderer is `node-resvg` version `v26.5.0`, settings digest `23e6
 
 ## Decision requested
 
-Review the three Full variants and both proof sheets. Approve `scruggs-g1-r2` exactly or identify revisions. Gate 1 approval must bind all four source files, the Full and Reduced master roles, palette, framing, topology, renderer, and complete proof matrix, with exact owner wording, approver, date, scope, candidate ID, and packet digest recorded after the decision. Gate 2 will separately review assembled fundamentals and a social share image before production kit compilation. No approval is inferred from the archive, prior r1 packet, or silence.
+Judge only whether the single Full logo in `full-white-square.png` has the desired existing tire, lettering, spacing, and true white background. The clear and dark exports follow that choice mechanically. If the primary logo is right, an exact Gate 1 approval can then bind all four source files, the Full and Reduced master roles, palette, framing, topology, renderer, and proof matrix, with exact wording, approver, date, scope, candidate ID, and packet digest recorded after the decision. Gate 2 will separately review assembled fundamentals and a social share image before production kit compilation. No approval is inferred from the archive, prior r1 packet, or silence.
