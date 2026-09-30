@@ -4,17 +4,6 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
-### Changed
-
-- S068 replaces the first guideline page with source-bound Brand essentials across hosted, portable, and PDF guides for eleven brands. The sentence disposition and projection map document how prior copy is handled; the old Overview URL redirects to the new page.
-- PDF guides now carry every declared mark prohibition on a source-bound Usage limits sheet. The three reviewed visual boundaries for I Heart PR Tours, Local Companion, and Scruggs Tire & Alignment remain visible across all guide formats.
-- The documentation sidebar now shows an exact release version linked to the official release when published. Unreleased candidates keep a compact theme control without a release badge.
-- Source-bound visual guidance is exempted from the portable guide's generic rhetoric lint while generator-authored prose remains checked. CI now verifies the S068 projection and sentence inventory.
-
-### Decisions
-
-- On 2026-09-29, retained one unversioned documentation tree. A published manual shows its exact BrandBuilder version with an official release link; an unpublished candidate shows a compact theme switch only. The CI contract and delivered-guide checks are pinned process gates for this source-driven navigation change.
-
 ## [3.0.0] - 2026-09-29
 
 ### Added
@@ -36,6 +25,10 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - Extended authoritative logo inputs to retain supplied Reduced colorways and standalone wordmarks. Kept existing approved proof behavior for brands that do not use those inputs.
 - Exported DanceWithMe865's approved Windows identity proofs under its reviewed Node 26 runtime, while retaining Node 24 for the existing approved identity, before cross-platform CI validation.
 - Expanded the site and publication audit inventories to eleven brands, with portfolio counts derived from the generated brand list.
+- S068 replaces the first guideline page with source-bound Brand essentials across hosted, portable, and PDF guides for eleven brands. The sentence disposition and projection map document how prior copy is handled; the old Overview URL redirects to the new page.
+- PDF guides now carry every declared mark prohibition on a source-bound Usage limits sheet. The three reviewed visual boundaries for I Heart PR Tours, Local Companion, and Scruggs Tire & Alignment remain visible across all guide formats.
+- The documentation sidebar shows an exact release version linked to the official release when published. Unreleased candidates keep a compact theme control without a release badge.
+- Source-bound visual guidance is exempted from the portable guide's generic rhetoric lint while generator-authored prose remains checked. CI verifies the S068 projection and sentence inventory.
 
 ### Fixed
 
@@ -48,9 +41,11 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Decisions
 
-- On 2026-09-29, classified legacy descriptor, idea, and social wording independently from general guide messaging. Only ShruggieTech's exact slogan from owner correction #295 is approved for a general visual-guide message role; other roles remain unresolved until an owner decision. Approved logo geometry and social composition bindings remain intact.
-- On 2026-09-29, retained the exact approved Scruggs Node 26.5.0 renderer binding for identity proof export and kit generation while leaving the other brands on Node 24.11.0. The approved social tagline is a source-bound optional field in the existing brand schema; the supplied client archive does not define generator structure.
 - On 2026-09-29, restarted S065 from the owner-provided DanceWithMe865 reference. The two new creative approvals bind exact source and derivative hashes. The social image uses the approved name alone, while all kit and site outputs retain the repository's standard structure.
+- On 2026-09-29, retained the exact approved Scruggs Node 26.5.0 renderer binding for identity proof export and kit generation while leaving the other brands on Node 24.11.0. The approved social tagline is a source-bound optional field in the existing brand schema; the supplied client archive does not define generator structure.
+- On 2026-09-29, classified legacy descriptor, idea, and social wording independently from general guide messaging. Only ShruggieTech's exact slogan from owner correction #295 is approved for a general visual-guide message role; other roles remain unresolved until an owner decision. Approved logo geometry and social composition bindings remain intact.
+- On 2026-09-29, retained one unversioned documentation tree. A published manual shows its exact BrandBuilder version with an official release link; an unpublished candidate shows a compact theme switch only. The CI contract and delivered-guide checks are pinned process gates for this source-driven navigation change.
+- On 2026-09-29, finalized the previously untagged BrandBuilder 3.0.0 candidate with S067 and S068. The formal release continues to package eight release-authorized brand archives while the verified site serves all eleven production brands; the three other client brands are hosted candidates, not GitHub release assets.
 
 ## [2.8.0] - 2026-09-29
 

@@ -15,6 +15,8 @@
 - `python scripts/audit_publication_artifacts.py --kits dist --site site/out --semantic --release release` passed with eleven brands, eleven kit markers, eleven site markers, eleven packages, and 2,616 public files. Three unrelated S067 scratch directories were temporarily moved out of `dist/` for this exact-tree audit and restored afterward.
 - All 38 changed text files were checked for strict UTF-8, LF line endings, no BOM, and common mojibake markers. Generated kits, site exports, release archives, PDFs, and raster outputs remain untracked and uncommitted.
 
-## Pending external gates
+## 2026-09-29: External review and merge
 
-- Official PR checks and first- and second-round external reviews are pending. No production release or merge has occurred in S068.
+- PR #307 completed two Codex review rounds. The first round's actionable findings were resolved on the branch; the second round completed on head `3518a53` without new actionable findings.
+- The five authoritative PR checks passed: Python 3.8 compatibility, approved identity proofs, contract tests, verified build, and aggregate build. Tag-only preflight, release publishing, and Pages deployment were correctly skipped for the PR.
+- The owner squash-merged PR #307 as `14aa915fd1da88aaada5e138026622248f7b3261`. The remote branch was deleted, issues #298 and #299 closed and moved to Done, and the post-merge `main` Build run completed successfully. Production release remains part of S069.

@@ -18,7 +18,7 @@
     },
     "platform_assets": {
       "classification": "required",
-      "summary": "Regenerate PDF and portable guide assets from exact approved message roles. Approved logos, icons, and social compositions remain source-bound."
+      "summary": "Regenerate PDF and portable guides from exact approved message roles, Brand essentials, and declared Usage limits. Approved logos, icons, and social compositions remain source-bound."
     },
     "web_react": {
       "classification": "unaffected",
@@ -34,11 +34,11 @@
     },
     "documentation": {
       "classification": "required",
-      "summary": "Hosted and portable guides publish exact approved roles. Gate 2 approved site descriptions remain site-only; unresolved legacy descriptions are omitted from portfolio cards and public brand records."
+      "summary": "Hosted, portable, and PDF guides publish exact approved roles and source-bound Brand essentials. The first hosted guide page uses its canonical route; published manuals link the exact release. Gate 2 approved site descriptions remain site-only; unresolved legacy descriptions are omitted from portfolio cards and public brand records."
     },
     "recovery": {
       "classification": "required",
-      "summary": "Regenerate every kit under Brand Canon 2.0.0 and BrandBuilder 3.0.0, then pin each new package ID and checksum. Old 2.8.0 packages remain immutable recovery artifacts."
+      "summary": "Regenerate all eleven site kits under Brand Canon 2.0.0 and BrandBuilder 3.0.0, then pin each new package ID and checksum. Eight release-authorized brand archives join the skill and portable distribution in the official release; three client kits remain hosted candidates. Old 2.8.0 packages remain immutable recovery artifacts."
     }
   }
 }

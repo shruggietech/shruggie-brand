@@ -7,6 +7,8 @@
 - Advanced Brand Canon to 2.0.0 for explicit messaging roles and the `guide` to `guidance` source migration, and BrandBuilder to 3.0.0 for literal PDF and portable guide projections. All eleven affected brand records receive patch versions with unchanged identity geometry and approved social compositions.
 - Kept six exact Gate 2 showcase descriptions approved for site metadata only. Public portfolio records omit unresolved legacy descriptors and ideas.
 - Verifiers compare approved guide roles across PDF, portable, and portal outputs. Python 3.8 and 3.9 report a named PDF extraction skip when PyMuPDF is unavailable while preserving the other message checks.
+- Replaced the first hosted and portable guideline page with source-bound Brand essentials for eleven brands, with the former Overview URL redirecting to the new page. PDF guides include Brand essentials and a Usage limits sheet that carries every declared mark prohibition and the reviewed visual boundaries for I Heart PR Tours, Local Companion, and Scruggs Tire & Alignment.
+- Linked published manual navigation to the exact official release version, while unreleased candidates retain a compact theme control without a release badge. Source-bound visual guidance passes through portable guides without generator-prose lint rewriting it.
 - Regenerate each kit and pin its new package ID and checksum before adoption; previously published 2.8.0 artifacts remain immutable recovery inputs.
 
 ## 2.8.0 - 2026-09-29
