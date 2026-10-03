@@ -20,6 +20,8 @@ from pathlib import Path
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
+from fontTools.pens.boundsPen import BoundsPen
+from fontTools.svgLib.path import parse_path
 from brand_contract import _image_dimensions, font_face_path, specimen_mark_paths, typography_families
 
 
@@ -63,21 +65,47 @@ def embedded_image_uri(kit, relative):
     encoded = base64.b64encode(payload).decode("ascii")
     return "data:%s;base64,%s" % (media_type, encoded), source_hash
 
-def outlined_text(text, font_path, size, x, baseline, fill):
+def outlined_text(text, font_path, size, x, baseline, fill, center_y=None):
     font = TTFont(font_path)
     glyphs, cmap = font.getGlyphSet(), font.getBestCmap()
     scale = size / font["head"].unitsPerEm
     cursor, paths = x, []
+    bounds = BoundsPen(glyphs) if center_y is not None else None
     for char in text:
         name = cmap.get(ord(char), ".notdef")
         pen = SVGPathPen(glyphs)
         glyphs[name].draw(TransformPen(pen, (scale, 0, 0, -scale, cursor, baseline)))
+        if bounds is not None:
+            glyphs[name].draw(bounds)
         d = pen.getCommands()
         if d:
             paths.append(d)
         cursor += font["hmtx"].metrics[name][0] * scale
     font.close()
-    return '<path fill="%s" d="%s"/>' % (fill, " ".join(paths))
+    placement = ""
+    if bounds is not None and bounds.bounds is not None:
+        ink_center = baseline - (bounds.bounds[1] + bounds.bounds[3]) * scale / 2.0
+        placement = ' transform="translate(0,%s)"' % placement_number(center_y - ink_center)
+    return '<path fill="%s" d="%s"%s/>' % (fill, " ".join(paths), placement)
+
+
+def mark_center_y(brand, kit, y, height):
+    """Measure the governed mark's vertical ink center without rewriting its paths."""
+    boxes = []
+    for item in specimen_mark_paths(brand, kit):
+        if item.get("element", "path") == "path":
+            pen = BoundsPen(None)
+            parse_path(item["d"], pen)
+            box = pen.bounds
+        else:
+            top = float(item.get("y", 0))
+            box = (0, top, 0, top + float(item["height"]))
+        if box is not None:
+            stroke = float(item.get("stroke_width", 0)) / 2.0
+            boxes.append((box[1] - stroke, box[3] + stroke))
+    grid = float((brand.get("logo") or {}).get("grid", 1000))
+    center = (min(box[0] for box in boxes) + max(box[1] for box in boxes)) / 2.0 if boxes else grid / 2.0
+    return y + center * height / grid
 
 
 def clip(text, n):
@@ -160,14 +188,15 @@ def main():
     display_sample = messages.get("slogan", title)
     body_sample = messages.get("short_description", "Aa Bb Cc Dd Ee Ff Gg")
     fams = families
+    header_center = mark_center_y(B, kit, 66, 170)
 
     parts = [
         '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1600 1000">',
         '<rect width="1600" height="1000" fill="%s"/>' % base,
         mark(B, kit, 66, 66, 170),
-        outlined_text("%s TYPE SYSTEM" % title.upper(), mono, 20, 260, 110, dim),
-        outlined_text(title, display, 154, 252, 365, "#FFFFFF"),
-        outlined_text(clip(body_sample, 86), body, 34, 258, 462, dim),
+        outlined_text("%s TYPE SYSTEM" % title.upper(), mono, 20, 82, 55, dim),
+        '<g id="specimen-title">%s</g>' % outlined_text(title, display, 154, 252, 0, "#FFFFFF", center_y=header_center),
+        outlined_text(clip(body_sample, 86), body, 34, 258, 340, dim),
         '<path fill="%s" d="M80 540H1520V542H80Z"/>' % rule,
         outlined_text("DISPLAY / %s BOLD" % fams["display"]["name"].upper(), mono, 18, 82, 600, acc),
         outlined_text(display_sample, display, 60, 82, 682, "#FFFFFF"),
@@ -179,7 +208,8 @@ def main():
         '</svg>',
     ]
     dest = out / ("%s-type-specimen.svg" % B["slug"])
-    dest.write_text("\n".join(parts) + "\n", encoding="utf-8")
+    with dest.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write("\n".join(parts) + "\n")
     print("wrote %s" % dest)
 
 

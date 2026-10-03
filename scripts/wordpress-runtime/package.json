@@ -3,10 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "description": "Pinned native WordPress integration fixture for BrandBuilder",
+  "scripts": {
+    "test": "node --test fetch-client/test.cjs"
+  },
   "devDependencies": {
-    "@wordpress/env": "11.16.0"
+    "@wordpress/env": "11.16.0",
+    "got": "file:./fetch-client"
   },
   "overrides": {
-    "qs": "6.16.0"
+    "qs": "6.16.0",
+    "got": "$got"
   }
 }

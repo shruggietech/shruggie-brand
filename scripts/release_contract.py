@@ -137,6 +137,13 @@ MIGRATIONS = {
         "published 2.8.0 packages remain immutable recovery inputs; approved logo geometry and social "
         "compositions are unchanged."
     ),
+    "3.0.1": (
+        "Existing kits need migration: **no required identity migration**. Regenerate and repin a kit only "
+        "to adopt the corrected outlined typography specimen and its Windows LF serialization. "
+        "insonic 1.0.0 is a new, separately approved brand kit. Existing approved logo geometry, "
+        "palette values, local font faces, social compositions and adapter APIs remain unchanged. "
+        "Nine owned brand archives are release-authorized; three client kits remain hosted candidates."
+    ),
 }
 
 

@@ -1,0 +1,10 @@
+{
+  "name": "@shruggietech/wp-env-fetch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Uncached built-in fetch transport for the two HTTP APIs used by pinned wp-env",
+  "main": "index.cjs",
+  "engines": {
+    "node": ">=20.3.0"
+  }
+}

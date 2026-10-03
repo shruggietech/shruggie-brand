@@ -7,6 +7,7 @@ import builtins
 import copy
 import hashlib
 from contextlib import redirect_stdout
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO, StringIO
 import os
 import re
@@ -60,6 +61,25 @@ class PipelineTests(unittest.TestCase):
     def require_svg_renderer(self):
         if not any(shutil.which(name) for name in ("rsvg-convert", "resvg", "inkscape")) and not probe.node_resvg_ok():
             self.skipTest("SVG rasterizer unavailable at core tier")
+
+    def test_concurrent_page_qc_preserves_each_kit_screenshots(self):
+        chromium, reason = probe.chromium_ok()
+        if not chromium:
+            self.skipTest(reason)
+        with tempfile.TemporaryDirectory() as temporary:
+            kits = []
+            for slug, color in (("red", "#A00000"), ("blue", "#0000A0")):
+                kit = Path(temporary) / slug
+                (kit / "qc").mkdir(parents=True)
+                write_utf8(kit / "index.html", '<html><body style="margin:0;min-height:100vh;background:%s"></body></html>' % color)
+                kits.append(kit)
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                sheets = list(executor.map(lambda kit: qc_images.page_shots(str(kit), str(kit / "qc")), kits))
+            for files, expected in zip(sheets, ((160, 0, 0), (0, 0, 160))):
+                self.assertEqual(len(files), 1)
+                with Image.open(files[0]) as image:
+                    self.assertEqual(image.getpixel((50, 100)), expected)
+                    self.assertEqual(image.getpixel((780, 100)), expected)
 
     def test_portable_override_guidance_shows_theme_defaults_and_effective_reference(self):
         facts = {"schema_version": 1, "documentation_contract_version": "1.1.0", "brand": {"slug": "sample"},
@@ -226,6 +246,39 @@ class PipelineTests(unittest.TestCase):
             sys.argv = old_argv
         brand = json.loads(brand_path.read_text(encoding="utf-8"))
         return brand_path.parent / "specimens" / (brand["slug"] + "-type-specimen.svg")
+
+    def test_type_specimen_header_aligns_rendered_mark_and_name_ink(self):
+        self.require_svg_renderer()
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "specimen-image-fixture"
+            brand_path, source = self.image_specimen_fixture(kit)
+            brand = json.loads(brand_path.read_text(encoding="utf-8"))
+            brand["surfaces"]["base"] = "#000000"
+            brand["accent"]["bright"] = "#C5342C"
+            for title, paths in (
+                ("insonic", brand["logo"]["paths"]["full"]),
+                ("gyp", [{"role": "accent", "d": "M10 20H90V90H10Z"}]),
+            ):
+                with self.subTest(title=title):
+                    brand["title"] = title
+                    brand["logo"]["paths"]["full"] = paths
+                    write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+                    specimen = self.build_image_specimen(brand_path)
+                    self.assertNotIn(b"\r", specimen.read_bytes())
+                    rendered = kit / "header-check.png"
+                    gen_logo.raster(["-w", "1600", str(specimen), "-o", str(rendered)])
+                    with Image.open(rendered) as image:
+                        pixels = image.convert("RGB")
+                        mark_rows = [y for y in range(66, 236) for x in range(66, 236)
+                                     if pixels.getpixel((x, y))[0] > 150
+                                     and max(pixels.getpixel((x, y))[1:]) < 80]
+                        title_rows = [y for y in range(66, 236) for x in range(252, 1200)
+                                      if min(pixels.getpixel((x, y))) > 240]
+                    self.assertTrue(mark_rows, "header mark must be visible")
+                    self.assertTrue(title_rows, "header name must share the mark row")
+                    mark_center = (min(mark_rows) + max(mark_rows)) / 2.0
+                    title_center = (min(title_rows) + max(title_rows)) / 2.0
+                    self.assertLessEqual(abs(mark_center - title_center), 1.0)
 
     def test_image_specimen_is_self_contained_source_exact_and_fail_closed(self):
         with tempfile.TemporaryDirectory() as temporary:

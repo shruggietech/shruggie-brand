@@ -4,6 +4,20 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-10-03
+
+### Added
+
+- Added S070 insonic 1.0.0, a ShruggieTech-owned voice and knowledge project, with approved three-form A1 masters, an independent Glacial blue palette, exact developer-facing messages and source-bound social composition.
+- Included insonic in the official guideline, registry, download and release inventories. Twelve brands are hosted; nine owned brands receive release archives, while the existing three client kits remain hosted candidates.
+
+### Fixed
+
+- Aligned the type specimen's mark and name using measured ink centers, with regression coverage for asymmetric marks, descenders and supplied source preservation.
+- Wrote outlined type specimens with UTF-8 without BOM and explicit LF on Windows. Existing approved logo geometry, font faces, social images and adapter APIs remain unchanged.
+- Isolated page-QC temporary screenshots per run so concurrent kit builds cannot overwrite or truncate one another's images.
+- Replaced the pinned WordPress test runner's unused HTTP-cache dependency chain with an uncached built-in-fetch transport after the owner authorized remediation of GHSA-ch52-4w7c-c8xp. The required npm audit remains enforced; transport regressions cover repeated requests, cookies, downloads, errors and cancellation. This fixture change does not enter consumer kits.
+
 ## [3.0.0] - 2026-09-29
 
 ### Added

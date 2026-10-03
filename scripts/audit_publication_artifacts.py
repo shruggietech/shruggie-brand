@@ -27,6 +27,7 @@ PRODUCTION = (
     "glitchpad",
     "go-schedule",
     "i-heart-pr-tours",
+    "insonic",
     "local-companion",
     "scruggs-tire-alignment",
     "shruggietech",

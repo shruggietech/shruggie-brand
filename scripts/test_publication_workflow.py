@@ -27,6 +27,7 @@ PRODUCTION = (
     "glitchpad",
     "go-schedule",
     "i-heart-pr-tours",
+    "insonic",
     "local-companion",
     "scruggs-tire-alignment",
     "shruggietech",
@@ -392,6 +393,16 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("@resvg/resvg-js", minimum_python)
         self.assertNotIn("rsvg-convert", text)
         self.assertNotIn("librsvg", text)
+
+    def test_wordpress_transport_and_audit_gates_precede_runtime_checks(self):
+        block = job_block(workflow_text(), "verified-build")
+        install = block.index("npm ci --prefix scripts/wordpress-runtime --ignore-scripts")
+        transport = block.index("npm test --prefix scripts/wordpress-runtime")
+        audit = block.index("npm audit --prefix scripts/wordpress-runtime --audit-level=moderate")
+        runtime = block.index("python scripts/test_wordpress_runtime.py --pair 6.9.9")
+        self.assertLess(install, transport)
+        self.assertLess(transport, audit)
+        self.assertLess(audit, runtime)
 
     def test_verified_build_installs_both_playwright_browser_revisions(self):
         block = job_block(workflow_text(), "verified-build")
