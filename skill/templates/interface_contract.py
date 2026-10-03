@@ -45,6 +45,7 @@ RELEASE_AUTHORIZED_BRANDS = (
     "eso-weave",
     "cueson",
     "local-companion",
+    "insonic",
 )
 BACKWARD_BRAND_DEFAULTS = {
     "surfaces.base": "#000000",

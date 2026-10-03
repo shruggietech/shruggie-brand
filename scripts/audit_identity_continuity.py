@@ -28,12 +28,13 @@ BRAND_CLASSES = {
     "glitchpad": "legacy-constructed",
     "go-schedule": "legacy-constructed",
     "i-heart-pr-tours": "authoritative",
+    "insonic": "glyphkit-constructed",
     "local-companion": "glyphkit-constructed",
     "scruggs-tire-alignment": "authoritative",
     "shruggietech": "authoritative",
 }
 MIGRATION_BASELINE_BRANDS = set(BRAND_CLASSES) - {
-    "i-heart-pr-tours", "local-companion", "dancewithme865", "scruggs-tire-alignment",
+    "i-heart-pr-tours", "local-companion", "dancewithme865", "scruggs-tire-alignment", "insonic",
 }
 MIGRATION_BASELINE_REVISION = "011f35303ef1d555dbbbcf6708447cc321df40db"
 # S057 approved the current go-schedule mark after the historical migration.

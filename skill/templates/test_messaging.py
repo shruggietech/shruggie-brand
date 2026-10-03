@@ -71,7 +71,7 @@ class MessagingContractTests(unittest.TestCase):
 
     def test_current_brands_classify_core_roles(self):
         sources = sorted(ROOT.glob("brands/*/brand.json"))
-        self.assertEqual(11, len(sources))
+        self.assertEqual(12, len(sources))
         schema = json.loads((ROOT / "skill/references/canon.schema.json").read_text(encoding="utf-8"))
         for source in sources:
             with self.subTest(source=source.parent.name):

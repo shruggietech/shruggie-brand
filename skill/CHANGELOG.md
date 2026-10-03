@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 3.0.1 - 2026-10-03
+
+- Added the separately approved insonic 1.0.0 owned-project brand, independent Glacial blue identity, strengthened three-form Reduced master and exact messages under S070.
+- Aligned generated type specimen headers with measured mark and font ink bounds and enforced LF serialization on Windows. Existing approved logo geometry, fonts, social bytes and adapter contracts remain unchanged.
+- Isolated temporary page screenshots per QC run to preserve each brand's captures during concurrent builds.
+- Added an insonic construction launcher that supplies the installed glyphkit library without modifying the immutable approved helper.
+- Regenerate and repin packages only to adopt the corrected specimen or new insonic kit. Nine owned brand archives join the skill and portable distribution; the site hosts twelve brands and retains existing client release eligibility.
+
 ## 3.0.0 - 2026-09-29
 
 - Advanced Brand Canon to 2.0.0 for explicit messaging roles and the `guide` to `guidance` source migration, and BrandBuilder to 3.0.0 for literal PDF and portable guide projections. All eleven affected brand records receive patch versions with unchanged identity geometry and approved social compositions.

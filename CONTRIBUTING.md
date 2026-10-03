@@ -25,6 +25,7 @@ Run the geometry unit tests, probe the toolchain, build every kit, and build the
 
 ```powershell
 .\.venv\Scripts\python skill/templates/test_glyphkit.py
+.\.venv\Scripts\python scripts/test_insonic_construction.py
 .\.venv\Scripts\python skill/templates/test_brand_essentials.py
 .\.venv\Scripts\python specs/068-brand-essentials-docs-navigation/inventory.py
 .\.venv\Scripts\python skill/templates/test_interface_contract.py
@@ -38,6 +39,11 @@ Run the geometry unit tests, probe the toolchain, build every kit, and build the
 .\.venv\Scripts\python scripts/build_all.py
 .\.venv\Scripts\python scripts/test_brand_essentials_delivery.py
 .\.venv\Scripts\python scripts/test_registry_delivery.py
+npm ci --prefix scripts/wordpress-runtime --ignore-scripts
+npm test --prefix scripts/wordpress-runtime
+npm audit --prefix scripts/wordpress-runtime --audit-level=moderate
+.\.venv\Scripts\python scripts/test_wordpress_runtime.py --pair 6.9.9
+.\.venv\Scripts\python scripts/test_wordpress_runtime.py --pair 7.1.2
 pnpm --dir site build
 ```
 

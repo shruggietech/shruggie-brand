@@ -14,7 +14,7 @@ from brand_essentials import essentials_projection  # noqa: E402
 
 def main():
     sources = sorted((ROOT / "brands").glob("*/brand.json"))
-    assert len(sources) == 11, "production brand inventory changed"
+    assert len(sources) == 12, "production brand inventory changed"
     for source in sources:
         brand = json.loads(source.read_text(encoding="utf-8"))
         slug = brand["slug"]

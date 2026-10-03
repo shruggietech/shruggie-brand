@@ -1,6 +1,6 @@
-# S068 eleven-brand sentence disposition
+# Brand essentials sentence disposition
 
-Every current first-page legacy field, array item, and sentence is listed below with its exact source text and a reviewed disposition. The source remains intact for product-documentation or messaging decisions; this slice changes which fields visual guides project. The current production inventory has eleven brands, superseding the eight-brand issue intake count. Approval for one surface is not approval for another.
+Introduced by S068 for eleven brands and extended by S070 on 2026-10-03 with the owner's approved insonic guidance and messages. Every current first-page legacy field, array item, and sentence is listed below with its exact source text and a reviewed disposition. The source remains intact for product-documentation or messaging decisions; this slice changes which fields visual guides project. The current production inventory has 12 brands. Approval for one surface is not approval for another.
 
 | Brand | Source path | Exact sentence or item | Classification | Disposition |
 | --- | --- | --- | --- | --- |
@@ -315,6 +315,32 @@ Every current first-page legacy field, array item, and sentence is listed below 
 | i-heart-pr-tours | `guidance.personality[2][1]` | `"Plans well while leaving room to enjoy the place"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | i-heart-pr-tours | `guidance.personality[2][2]` | `"Artificial urgency"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | i-heart-pr-tours | `messaging.short_description` | `"Thoughtfully guided tours on the island we love."` | approved for another surface | Project only on the declared surfaces: site-metadata |
+| insonic | `title` | `"insonic"` | approved identity name | Project as the approved name |
+| insonic | `affiliation.ownership` | `"shruggietech-owned"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
+| insonic | `affiliation.parent` | `"ShruggieTech"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
+| insonic | `affiliation.endorsement` | `"shruggietech-project"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
+| insonic | `descriptor` | `"Voice archives, speaker models, and connected knowledge."` | legacy product or strategy summary | Retain in source for product or messaging review; omit from visual guides |
+| insonic | `functional_descriptor` | `"Voice archives, speaker models, and connected knowledge."` | legacy product or strategy summary | Retain in source for product or messaging review; omit from visual guides |
+| insonic | `guidance.sharp_edge` | `"A connected assertion retains its source and speaker context."` | product or operational boundary | Retain in source for product documentation review; omit from visual guides |
+| insonic | `guidance.sharp_edge` | `"Brand examples distinguish supplied audio, speaker references and generated audio without asserting recognition accuracy."` | product or operational boundary | Retain in source for product documentation review; omit from visual guides |
+| insonic | `guidance.written_form` | `"Write insonic in lowercase."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| insonic | `guidance.written_form` | `"Keep the product name distinct from file, speaker and assertion identifiers."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| insonic | `guidance.logo` | `"Three separated rounded voice forms establish a clear rhythm."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| insonic | `guidance.logo` | `"Their staggered lengths and endpoints retain individuality; a strengthened Reduced master carries all three forms into tiny applications."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| insonic | `guidance.palette` | `"Glacial blue carries the identity on midnight surfaces; deep glacial blue carries it on light surfaces."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| insonic | `guidance.palette` | `"State colors remain functional, with labels and symbols accompanying them."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| insonic | `guidance.personality[0][0]` | `"Calm"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| insonic | `guidance.personality[0][1]` | `"Uses quiet surfaces and concise explanations"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| insonic | `guidance.personality[0][2]` | `"Manufactured urgency"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| insonic | `guidance.personality[1][0]` | `"Precise"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| insonic | `guidance.personality[1][1]` | `"Names sources, speakers and processing states clearly"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| insonic | `guidance.personality[1][2]` | `"Unsupported accuracy claims"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| insonic | `guidance.personality[2][0]` | `"Connected"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| insonic | `guidance.personality[2][1]` | `"Shows relationships between voices and their source material"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| insonic | `guidance.personality[2][2]` | `"Anonymous decorative graph imagery"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| insonic | `messaging.slogan` | `"Voice, with memory."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, social-image |
+| insonic | `messaging.short_description` | `"Voice archives, speaker models, and connected knowledge."` | approved identity words | Project only on the declared surfaces: site-metadata, visual-guide, consumer-data |
+| insonic | `messaging.long_description` | `"insonic brings speaker-tagged audio into a growing archive of recordings, transcripts, and connected assertions. Its intended scope includes ingestion, storage, normalization, transcription, knowledge graph construction, speaker recognition, and voice replication, with speaker models improving as the collection grows."` | approved for another surface | Project only on the declared surfaces: site-metadata, strategy-reference, consumer-data |
 | local-companion | `title` | `"Local Companion"` | approved identity name | Project as the approved name |
 | local-companion | `affiliation.ownership` | `"shruggietech-owned"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | local-companion | `affiliation.parent` | `"ShruggieTech"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
@@ -439,4 +465,4 @@ Every current first-page legacy field, array item, and sentence is listed below 
 | shruggietech | `guidance.personality[3][2]` | `"Platform lock-in"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | shruggietech | `messaging.slogan` | `"We’ll figure it out."` | approved identity words | Project only on the declared surfaces: visual-guide, social-image, site-metadata, consumer-data |
 
-Total classified items: 434 across 11 production brands.
+Total classified items: 460 across 12 production brands.

@@ -44,6 +44,7 @@ jobs:
           python scripts/test_check_readme_links.py
           python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
+          python scripts/test_insonic_construction.py
           python skill/templates/test_brand_contract.py
           python skill/templates/test_messaging.py
           python skill/templates/test_brand_essentials.py
@@ -87,6 +88,7 @@ jobs:
         run: |
           python scripts/export_approved_identity_proofs.py brands/i-heart-pr-tours dist/ci-approved-proofs/i-heart-pr-tours
           python scripts/export_approved_identity_proofs.py brands/local-companion dist/ci-approved-proofs/local-companion
+          python scripts/export_approved_identity_proofs.py brands/insonic dist/ci-approved-proofs/insonic
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 26.5.0
@@ -160,6 +162,7 @@ jobs:
           python scripts/test_check_readme_links.py
           python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
+          python scripts/test_insonic_construction.py
           python skill/templates/test_brand_contract.py
           python skill/templates/test_messaging.py
           python skill/templates/test_color_roles.py
@@ -234,6 +237,7 @@ jobs:
       - name: Install audited WordPress fixture runner
         run: |
           npm ci --prefix scripts/wordpress-runtime --ignore-scripts
+          npm test --prefix scripts/wordpress-runtime
           npm audit --prefix scripts/wordpress-runtime --audit-level=moderate
       - name: Exercise pinned WordPress and PHP pairs
         run: |
@@ -294,6 +298,7 @@ jobs:
             dist/glitchpad/
             dist/go-schedule/
             dist/i-heart-pr-tours/
+            dist/insonic/
             dist/local-companion/
             dist/scruggs-tire-alignment/
             dist/shruggietech/

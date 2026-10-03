@@ -56,7 +56,7 @@ class BrandEssentialsTests(unittest.TestCase):
 
     def test_all_production_brands_have_source_bound_essentials(self):
         sources = sorted((ROOT / "brands").glob("*/brand.json"))
-        self.assertEqual(11, len(sources))
+        self.assertEqual(12, len(sources))
         for source in sources:
             with self.subTest(source=source):
                 brand = json.loads(source.read_text(encoding="utf-8"))

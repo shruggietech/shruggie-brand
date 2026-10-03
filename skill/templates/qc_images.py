@@ -96,7 +96,7 @@ def page_shots(kit, outdir):
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
-        with sync_playwright() as pw:
+        with tempfile.TemporaryDirectory(prefix="brandkit-qc-") as temporary, sync_playwright() as pw:
             b = pw.chromium.launch()
             for p in pages:
                 name = os.path.splitext(os.path.basename(p))[0]
@@ -104,8 +104,8 @@ def page_shots(kit, outdir):
                 rel = os.path.relpath(p, kit).replace(os.sep, "/")
                 u = "http://127.0.0.1:%d/%s" % (server.server_port, quote(rel))
                 dk = b.new_page(viewport={"width": 1280, "height": 900}); dk.goto(u); dk.wait_for_timeout(1400)
-                desktop_path = os.path.join(tempfile.gettempdir(), "_brandkit_qc_desktop.png")
-                mobile_path = os.path.join(tempfile.gettempdir(), "_brandkit_qc_mobile.png")
+                desktop_path = os.path.join(temporary, "desktop.png")
+                mobile_path = os.path.join(temporary, "mobile.png")
                 dk.screenshot(path=desktop_path, full_page=True)
                 mb = b.new_page(viewport={"width": 390, "height": 844}); mb.goto(u); mb.wait_for_timeout(1100)
                 mb.screenshot(path=mobile_path, full_page=False)

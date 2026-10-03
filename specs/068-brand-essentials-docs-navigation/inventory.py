@@ -1,4 +1,4 @@
-"""Rebuild or check the reviewed eleven-brand S068 sentence disposition."""
+"""Check the source-bound sentence disposition introduced by S068 and extended by S070."""
 import argparse
 import json
 import re
@@ -83,10 +83,11 @@ def render():
             literal = json.dumps(text, ensure_ascii=False).replace("|", "&#124;").replace("`", "&#96;")
             rows.append(f"| {slug} | `messaging.{role}` | `{literal}` | {category} | {destination} |")
     lead = (
-        "# S068 eleven-brand sentence disposition\n\n"
+        "# Brand essentials sentence disposition\n\n"
+        "Introduced by S068 for eleven brands and extended by S070 on 2026-10-03 with the owner's approved insonic guidance and messages. "
         "Every current first-page legacy field, array item, and sentence is listed below with its exact source text and a reviewed disposition. "
         "The source remains intact for product-documentation or messaging decisions; this slice changes which fields visual guides project. "
-        "The current production inventory has eleven brands, superseding the eight-brand issue intake count. "
+        f"The current production inventory has {len(sources)} brands. "
         "Approval for one surface is not approval for another.\n\n"
         "| Brand | Source path | Exact sentence or item | Classification | Disposition |\n"
         "| --- | --- | --- | --- | --- |\n"
