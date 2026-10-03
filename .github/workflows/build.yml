@@ -44,6 +44,7 @@ jobs:
           python scripts/test_check_readme_links.py
           python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
+          python scripts/test_insonic_construction.py
           python skill/templates/test_brand_contract.py
           python skill/templates/test_messaging.py
           python skill/templates/test_brand_essentials.py
@@ -161,6 +162,7 @@ jobs:
           python scripts/test_check_readme_links.py
           python scripts/audit_public_documentation.py --sources
           python scripts/test_identity_continuity_audit.py
+          python scripts/test_insonic_construction.py
           python skill/templates/test_brand_contract.py
           python skill/templates/test_messaging.py
           python skill/templates/test_color_roles.py

@@ -103,6 +103,8 @@ Release metadata changes occur after creative work is complete and must synchron
 
 ## Complexity Tracking
 
+Automated PR review identifies an unresolved library import when the canonical construction helper is executed directly. The canonical source binds that helper's exact bytes; the logo protocol requires a fresh approval if those bytes change. Supply the dependency through a separate `build/run_paths.py` launcher instead, with automatic repository discovery or explicit installed templates for standalone kits. Verify direct execution from an unrelated directory, a staged standalone kit, actionable missing-library errors, unchanged helper hash and exact path reproduction. This operational fix preserves both creative approvals and all canonical geometry.
+
 Artifact checks identified platform-default CRLF serialization in the outlined typography generator. Correct that upstream in `skill/templates/build_specimen.py`, document it in the kit build notes, and verify LF output on Windows without changing rendered geometry.
 
 No constitution violations or architectural expansion identified.
