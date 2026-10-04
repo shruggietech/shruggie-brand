@@ -1,6 +1,6 @@
 # S070 Verification
 
-Date: 2026-10-03. Status: both creative gates approved; final verification and official publication are in progress.
+Date: 2026-10-03. Status: complete. Both creative gates are approved; final verification, tagged v3.0.1 publication and live delivery checks pass.
 
 ## Historical Review-Stage Evidence
 
