@@ -1,6 +1,6 @@
 # S070 Verification
 
-Date: 2026-10-03. Status: both creative gates approved; final verification and official publication are in progress.
+Date: 2026-10-03. Status: complete. Both creative gates are approved; final verification, tagged v3.0.1 publication and live delivery checks pass.
 
 ## Historical Review-Stage Evidence
 
@@ -68,3 +68,13 @@ Code review checks source-only boundaries, unchanged sibling geometry, exact app
 PR #320 automated review identifies that directly executing the canonical helper cannot find its glyphkit dependency. Preserve the immutable approved `mk_paths.py` (SHA-256 `c92e3bb3f8f55c80a4dd6662397f31e8819a7f7aeeaf6ca2ec7fba1171524daf`) and supply the library through a separate construction launcher. Four regression checks pass: repository execution from an unrelated directory, staged standalone-kit execution with an explicit installed library, actionable missing-library failure, and unchanged helper bytes plus module glyph validation. Both successful executions reproduce the exact approved grid, Full and Reduced path arrays. The first PR CI attempt is deliberately canceled before source revision, with proof and Python compatibility jobs already passing; the final reviewed revision requires a fresh complete run.
 
 The corrected insonic kit rebuild passes all mandatory stages, including zero verify, affiliation, image-QC, PDF-QC and pagination problems, and fifteen glyph checks with zero warnings/failures. The canonical approval record remains unchanged. Publication workflow contracts (28 tests), source public-documentation audit and Markdown checks also pass after adding the launcher to both Python compatibility and contract CI jobs.
+
+## Official Publication Completed
+
+PR [#320](https://github.com/shruggietech/shruggie-brand/pull/320) merges only after the corrected revision passes the complete [authoritative PR workflow](https://github.com/shruggietech/shruggie-brand/actions/runs/37158568244). The construction dependency review thread is resolved through the byte-preserving launcher fix. All required proof, Python compatibility, contract and production jobs are green.
+
+Tagged [v3.0.1](https://github.com/shruggietech/shruggie-brand/releases/tag/v3.0.1) builds from exact main revision `3eadea75689e9bf9b6c647958cacb64b328b8ac5`. The [tagged workflow](https://github.com/shruggietech/shruggie-brand/actions/runs/37160959270) passes every mandatory build and release-preflight check, publishes the verified CI release candidate and deploys that run's exact Pages artifact. No locally assembled archive is uploaded.
+
+Live verification at `2026-10-03T23:55:37.668050+00:00` passes 21 HTTP delivery checks, including the catalog, insonic guideline topics, downloads, registry, conformance, release documentation metadata and source-bound brand facts. The official site's release records identify v3.0.1 and the exact tagged source revision. Both registry JSON endpoints parse successfully. All eleven downloaded release archives match SHA256SUMS and pass the exact-release contract. The live insonic archive matches the release archive checksum `e56517e99cf2a3abbf62d82b19ea565191982a6a2da3b7b8e859ce628618f0c8`, retains every approved source field and includes the construction launcher. Live Full and Reduced SVGs, canonical social SVG/PNG and guide PDF match their released artifact bytes; both social digests equal the owner-approved Gate 2 binding.
+
+The final public brand is insonic 1.0.0, compiled with BrandBuilder/site 3.0.1. Canon 2.0.0 and existing adapter versions are unchanged. All twenty-five tasks are complete. This slice publishes brand materials only; the intended processing engine and insonic.io product deployment remain outside its scope. Generated delivery evidence and downloaded archives remain ignored. The source task/evidence completion is reconciled through a reviewed documentation change after publication.

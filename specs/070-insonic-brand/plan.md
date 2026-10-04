@@ -4,11 +4,11 @@
 
 ## Summary
 
-Start from the verified latest BrandBuilder 3.0.0 and ship the approved insonic identity through compiler/site 3.0.1. The adaptive brief, exploratory directions, source-bound Gate 1 and assembled Gate 2 are approved. Complete final verification and official-site release with the independent Glacial blue palette and shared local typography/layout.
+Started from the verified latest BrandBuilder 3.0.0 and shipped the approved insonic identity through compiler/site 3.0.1. The adaptive brief, exploratory directions, source-bound Gate 1 and assembled Gate 2 are approved. Final verification, tagged release and live official-site checks pass with the independent Glacial blue palette and shared local typography/layout.
 
 ## Technical Context
 
-**Language/Version**: Python 3.8 minimum, local Python 3.12.9; Node.js 20 minimum. Current exploratory host has Node 26.5.0. Select and record the canonical renderer before Gate 1, preferably the existing Node 24.11.0 Windows proof group.
+**Language/Version**: Python 3.8 minimum, local Python 3.12.9; Node.js 20 minimum. insonic's selected and approved canonical renderer uses Node 24.11.0 on Windows. Existing client proof groups and the WordPress fixture use Node 26.5.0.
 
 **Primary Dependencies**: Existing glyphkit, identity_continuity, gen_logo, authoring_brief, promote_identity, build_all, prepare_site, Coloraide, fontTools, Pillow, pikepdf, Playwright, Node resvg, Next.js.
 
@@ -30,14 +30,14 @@ Start from the verified latest BrandBuilder 3.0.0 and ship the approved insonic 
 
 | Principle | Response | Status |
 | --- | --- | --- |
-| P1 Source/artifact boundary | Commit specs and approved source; keep previews, proofs, binaries, kits, and exports in ignored output. | Design passes |
+| P1 Source/artifact boundary | Commit specs and approved source; keep previews, proofs, binaries, kits, and exports in ignored output. | Source-only boundary verified |
 | P2 Geometry preservation | Construct with glyphkit, bind exact source at Gate 1, promote approved bytes and preserve siblings. | Approved source and proofs pass |
-| P3 Accessibility | Measure dark/light text, controls, state and palette roles; correct failures. | insonic palette and kit pass; aggregate site checks in progress |
-| P4 Verification | Final compilation follows approvals and requires zero kit/glyph problems plus aggregate validation. | insonic passes; aggregate verification in progress |
-| P5 Site projection | Reuse automatic brand discovery and verified generated projection. | Design passes |
-| P6 Spec/release | Maintain this slice through reviewed change, tagged CI release, and live checks. | In progress |
+| P3 Accessibility | Measure dark/light text, controls, state and palette roles; correct failures. | Palette, kits and aggregate browser site checks pass with zero WCAG 2.1 AA violations |
+| P4 Verification | Final compilation follows approvals and requires zero kit/glyph problems plus aggregate validation. | All twelve kits and aggregate verification pass |
+| P5 Site projection | Reuse automatic brand discovery and verified generated projection. | Official site and matching downloads verified live |
+| P6 Spec/release | Maintain this slice through reviewed change, tagged CI release, and live checks. | PR #320 merged, v3.0.1 published, twenty-one live delivery checks pass |
 
-No exception or parallel brand compiler is proposed. Post-design review finds no conflict; pending entries are execution gates rather than waived requirements.
+No exception or parallel brand compiler is proposed. All constitution gates pass, with exact source preservation and verified tagged-CI publication.
 
 ## Phase 0: Research
 
