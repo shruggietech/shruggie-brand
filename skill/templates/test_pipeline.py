@@ -832,6 +832,35 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual("logos/svg/alpha-social-image.svg", groups[0]["representative"]["path"])
         self.assertEqual("social", gen_guidelines._asset_family(groups[0]["representative"]))
 
+    def test_multiline_defaults_generate_valid_dark_and_light_lockups(self):
+        from svgelements import SVG
+        with tempfile.TemporaryDirectory() as temporary:
+            kit = Path(temporary) / "cueson"
+            shutil.copytree(ROOT / "brands" / "cueson", kit)
+            shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts", dirs_exist_ok=True)
+            self.write_probe(kit)
+            source = kit / "brand.json"
+            brand = json.loads(source.read_text(encoding="utf-8"))
+            brand["logo"].setdefault("lockups", {})["horizontal"] = {"wordmark_lines": [
+                {"text": brand["wordmark_text"], "role": "wordmark", "font_size_units": 48}]}
+            for mapping in brand["logo"].get("role_colors", {}).values():
+                mapping.pop("wordmark", None)
+            write_utf8(source, json.dumps(brand, indent=2) + "\n")
+            with mock.patch("identity_continuity.write_continuity_report"), \
+                    mock.patch.object(sys, "argv", ["gen_logo.py", str(source), str(kit)]):
+                self.assertEqual(0, gen_logo.main())
+            for mode, ink in (("color", "#F2F5FA"), ("light", "#0A0A0A")):
+                target = kit / "logos" / "svg" / ("cueson-horizontal-%s.svg" % mode)
+                svg = ET.parse(str(target)).getroot()
+                row = next(n for n in svg.iter() if n.attrib.get("data-wordmark-line") == "1")
+                self.assertTrue(all(n.attrib["fill"] == ink for n in row if n.tag.endswith("path")))
+                left, top, right, bottom = SVG.parse(str(target)).bbox()
+                width, height = map(float, (svg.attrib["width"], svg.attrib["height"]))
+                self.assertGreaterEqual(left, 24)
+                self.assertGreaterEqual(top, 24)
+                self.assertLessEqual(right, width - 24 + 0.001)
+                self.assertLessEqual(bottom, height - 24 + 0.001)
+
     def test_social_group_centers_visible_ink_without_description(self):
         from svgelements import SVG
         for slug in ("cueson", "localmedia-gallery"):

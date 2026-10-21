@@ -905,6 +905,8 @@ def main():
             )
             if horizontal_spec.get("wordmark_lines") is not None:
                 from lockup_typography import horizontal_lockup
+                if "canvas_height_units" not in horizontal_spec or any("wordmark" not in ((logo.get("role_colors") or {}).get(mode) or {}) for mode in ("color", "light")):
+                    from horizontal_layout_defaults import horizontal_lockup
                 body, lockup_width, horizontal_height = horizontal_lockup(
                     brand, ttf, colourway, roles, mark_group, lockup_box,
                     wordmark_outline, path_bbox,

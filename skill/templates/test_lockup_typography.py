@@ -45,11 +45,14 @@ class HorizontalTypographyTests(unittest.TestCase):
 
     def render(self, brand=None, colourway="color"):
         from lockup_typography import horizontal_lockup
+        from horizontal_layout_defaults import required
         brand = brand or self.brand
+        if required(brand):
+            from horizontal_layout_defaults import horizontal_lockup
         mark = '<path d="%s" fill="#69D4BB"/>' % G.rect(0, 0, 100, 100)
         return horizontal_lockup(
             brand, str(ROOT / "assets/fonts/ttf/SpaceGrotesk-Bold.ttf"),
-            colourway, brand["logo"]["role_colors"]["color"], mark, (0, 0, 100, 100),
+            colourway, brand["logo"]["role_colors"].get(colourway, brand["logo"]["role_colors"]["color"]), mark, (0, 0, 100, 100),
             gen_logo.wordmark_outline, gen_logo.path_bbox,
         )
 
@@ -120,6 +123,32 @@ class HorizontalTypographyTests(unittest.TestCase):
             rows = [n for n in root.iter() if "data-wordmark-line" in n.attrib]
             self.assertTrue(all(path.attrib["fill"] == ink for row in rows for path in row.iter("path")))
 
+    def test_omitted_dimensions_fit_the_default_mark_without_source_mutation(self):
+        brand = copy.deepcopy(self.brand)
+        rows = brand["logo"]["lockups"]["horizontal"]["wordmark_lines"]
+        brand["logo"]["lockups"]["horizontal"] = {"wordmark_lines": rows}
+        before = copy.deepcopy(brand)
+        body, width, height = self.render(brand)
+        left, top, right, bottom = self.bounds(body, width, height)
+        self.assertGreaterEqual(top, 24)
+        self.assertLessEqual(bottom, height - 24)
+        self.assertAlmostEqual(160, bottom - top, places=4)
+        self.assertAlmostEqual(24, left, places=4)
+        self.assertAlmostEqual(width - 24, right, places=4)
+        self.assertEqual(before, brand)
+
+    def test_omitted_wordmark_ink_uses_the_existing_colourway_fallback(self):
+        brand = copy.deepcopy(self.brand)
+        for mapping in brand["logo"]["role_colors"].values():
+            del mapping["wordmark"]
+        before = copy.deepcopy(brand)
+        for mode, ink in (("color", "#F2F5FA"), ("light", "#0A0A0A")):
+            body, _, _ = self.render(brand, mode)
+            root = ET.fromstring('<svg>%s</svg>' % body)
+            row = next(n for n in root.iter() if n.attrib.get("data-wordmark-line") == "1")
+            self.assertTrue(all(p.attrib["fill"] == ink for p in row.iter("path")))
+        self.assertEqual(before, brand)
+
     def test_only_opt_in_renderer_binding_includes_line_helper(self):
         source = (HERE / "gen_logo.py").read_bytes()
         self.assertEqual(IC.LEGACY_GEN_LOGO_SHA256, IC.proof_gen_logo_digest(source, {}))
@@ -137,6 +166,19 @@ class HorizontalTypographyTests(unittest.TestCase):
         with mock.patch.object(Path, "read_bytes", changed_contract):
             self.assertNotEqual(before, IC.proof_gen_logo_digest(source, self.brand))
             self.assertEqual(IC.LEGACY_GEN_LOGO_SHA256, IC.proof_gen_logo_digest(source, {}))
+
+        default_brand = copy.deepcopy(self.brand)
+        del default_brand["logo"]["lockups"]["horizontal"]["canvas_height_units"]
+        default_before = IC.proof_gen_logo_digest(source, default_brand)
+        def changed_defaults(path):
+            payload = read_bytes(path)
+            return payload + b"\n# default drift" if path.name == "horizontal_layout_defaults.py" else payload
+        with mock.patch.object(Path, "read_bytes", changed_defaults):
+            self.assertEqual(before, IC.proof_gen_logo_digest(source, self.brand))
+            self.assertNotEqual(default_before, IC.proof_gen_logo_digest(source, default_brand))
+        changed_guard = source.replace(b'"canvas_height_units" not in horizontal_spec or any(',
+                                       b'"padding_units" not in horizontal_spec or any(', 1)
+        self.assertNotEqual(before, IC.proof_gen_logo_digest(changed_guard, self.brand))
 
 
 if __name__ == "__main__":

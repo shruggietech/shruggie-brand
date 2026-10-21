@@ -60,7 +60,7 @@ Within US1, palette comparison can run independently of geometry validation once
 
 ## Implementation Strategy
 
-Deliver the actual qualified Gate 1 source/proof packet first. After exact owner approval, promote without reconstruction and deliver Gate 2. After that approval, compile, aggregate-verify and publish through existing workflows. A completed discovery packet is not final package or publication completion. All 31 tasks use checklist IDs and paths; five US1 tasks, fourteen US2 tasks and five US3 tasks include their story label.
+Deliver the actual qualified Gate 1 source/proof packet first. After exact owner approval, promote without reconstruction and deliver Gate 2. After that approval, compile, aggregate-verify and publish through existing workflows. A completed discovery packet is not final package or publication completion. All 32 tasks use checklist IDs and paths; five US1 tasks, fifteen US2 tasks and five US3 tasks include their story label.
 
 ## Current review state
 
@@ -101,3 +101,7 @@ Implementation order for this amendment: T024 tests -> shared implementation -> 
 ## Hosted runner compatibility correction
 
 - [x] T031 [US3] Pin the Python 3.8 compatibility job to the supported Ubuntu 24.04 image in .github/workflows/build.yml, retain the minimum-version test requirement, assert the runner contract in scripts/test_publication_workflow.py, use Python 3.8-compatible UTF-8 fixture writes in test_lockup_typography.py, isolate the vector social-composition test from raster proof generation in test_pipeline.py, and rerun hosted validation (FR-010, FR-011).
+
+## Reviewed default-configuration correction
+
+- [x] T032 [US2] Resolve omitted horizontal canvas/ink settings through a source-bound fallback adapter in skill/templates/horizontal_layout_defaults.py; keep the explicit approved helper byte-identical, validate the inactive-branch projection in identity_continuity.py, add measured/default/color/routing/dependency regressions, and verify all 13 existing fingerprints remain unchanged (FR-011, FR-015).

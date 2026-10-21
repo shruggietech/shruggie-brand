@@ -4,6 +4,7 @@
 
 ## 3.1.0 - 2026-10-21
 
+- Resolve omitted multiline canvas/wordmark ink defaults without changing explicit approved renderer bindings.
 - Apply bundled typefaces in the standalone Web specimen and preserve readable inherited link color in portable guidelines. Consumer component APIs and styles stay unchanged.
 - Space logo contact-sheet rows by visible artwork bounds so taller pairings and standalone wordmarks do not overlap.
 - Pin patched Git parser and YAML dependency chains in the WordPress validation fixture, retaining the required audit threshold and adding regression coverage. Consumer adapter APIs remain unchanged.
