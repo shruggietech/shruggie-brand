@@ -60,7 +60,7 @@ Within US1, palette comparison can run independently of geometry validation once
 
 ## Implementation Strategy
 
-Deliver the actual qualified Gate 1 source/proof packet first. After exact owner approval, promote without reconstruction and deliver Gate 2. After that approval, compile, aggregate-verify and publish through existing workflows. A completed discovery packet is not final package or publication completion. All 30 tasks use checklist IDs and paths; five US1 tasks, fourteen US2 tasks and four US3 tasks include their story label.
+Deliver the actual qualified Gate 1 source/proof packet first. After exact owner approval, promote without reconstruction and deliver Gate 2. After that approval, compile, aggregate-verify and publish through existing workflows. A completed discovery packet is not final package or publication completion. All 31 tasks use checklist IDs and paths; five US1 tasks, fourteen US2 tasks and five US3 tasks include their story label.
 
 ## Current review state
 
@@ -97,3 +97,7 @@ Implementation order for this amendment: T024 tests -> shared implementation -> 
 ## Portable presentation correction
 
 - [x] T030 [US2] Bind bundled local fonts in the standalone Web specimen and inherit readable link color in the portable guide through shared generator source; measure actual font loading and dark/light link contrast and inspect regenerated screenshots (FR-008, FR-009, FR-012).
+
+## Hosted runner compatibility correction
+
+- [x] T031 [US3] Pin the Python 3.8 compatibility job to the supported Ubuntu 24.04 image in .github/workflows/build.yml, retain the minimum-version test requirement, assert the runner contract in scripts/test_publication_workflow.py, and rerun hosted validation (FR-010, FR-011).
