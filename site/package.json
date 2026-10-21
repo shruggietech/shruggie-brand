@@ -13,10 +13,10 @@
   "dependencies": {
     "fumadocs-core": "16.15.11",
     "fumadocs-ui": "16.15.11",
-    "next": "16.3.5",
+    "next": "16.4.2",
     "radix-ui": "1.6.7",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "zbsearch": "4.0.0"
   },
   "devDependencies": {
