@@ -14,7 +14,7 @@
     "fumadocs-core": "16.15.11",
     "fumadocs-ui": "16.15.11",
     "next": "16.3.5",
-    "radix-ui": "1.6.7",
+    "radix-ui": "1.8.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zbsearch": "4.0.0"
