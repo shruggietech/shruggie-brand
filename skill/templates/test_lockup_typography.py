@@ -41,7 +41,7 @@ class HorizontalTypographyTests(unittest.TestCase):
             },
         }
         self.source = self.folder / "brand.json"
-        self.source.write_text(json.dumps(self.brand), encoding="utf-8", newline="\n")
+        self.source.write_bytes(json.dumps(self.brand).encode("utf-8"))
 
     def render(self, brand=None, colourway="color"):
         from lockup_typography import horizontal_lockup
@@ -55,8 +55,8 @@ class HorizontalTypographyTests(unittest.TestCase):
 
     def bounds(self, body, width=1000, height=1000):
         target = self.folder / "layout.svg"
-        target.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %g %g">%s</svg>'
-                          % (width, height, body), encoding="utf-8", newline="\n")
+        target.write_bytes(('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %g %g">%s</svg>'
+                            % (width, height, body)).encode("utf-8"))
         return SVG.parse(str(target)).bbox()
 
     def test_absent_lines_keep_default_contract(self):
