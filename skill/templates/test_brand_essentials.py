@@ -56,7 +56,7 @@ class BrandEssentialsTests(unittest.TestCase):
 
     def test_all_production_brands_have_source_bound_essentials(self):
         sources = sorted((ROOT / "brands").glob("*/brand.json"))
-        self.assertEqual(12, len(sources))
+        self.assertEqual(13, len(sources))
         for source in sources:
             with self.subTest(source=source):
                 brand = json.loads(source.read_text(encoding="utf-8"))
@@ -125,6 +125,41 @@ class BrandEssentialsTests(unittest.TestCase):
             guide.write_text(escape(source_rule) + " Seamless branding.", encoding="utf-8")
             c_rhetoric(root, reporter)
             self.assertTrue(any("corporate filler" in problem for problem in reporter.problems))
+
+
+class SpecimenLayoutTests(unittest.TestCase):
+    def test_long_segmented_header_fits_and_preserves_ink_center_and_colors(self):
+        from build_specimen import fitted_header_title
+        from fontTools.pens.boundsPen import BoundsPen
+        from fontTools.svgLib.path import parse_path
+        import xml.etree.ElementTree as ET
+        title = "a-very-long-localmedia-collection.gallery"
+        brand = {"title": title, "wordmark_text": title, "logo": {
+            "wordmark_segments": [{"text": title[:-8], "role": "wordmark"}, {"text": ".gallery", "role": "accent"}],
+            "role_colors": {"color": {"wordmark": "#F3F5FA", "accent": "#69D4BB"}}}}
+        markup = fitted_header_title(brand, ROOT / "assets/fonts/ttf/SpaceGrotesk-Bold.ttf", 252, 151, 1268)
+        node = ET.fromstring("<g>" + markup + "</g>")
+        pen = BoundsPen(None)
+        for path in node.iter("path"):
+            parse_path(path.attrib["d"], pen)
+        left, top, right, bottom = pen.bounds
+        self.assertGreaterEqual(left, 252 - 1e-5)
+        self.assertLessEqual(right, 1520 + 1e-5)
+        self.assertAlmostEqual(151, (top + bottom) / 2, places=5)
+        self.assertEqual({"#F3F5FA", "#69D4BB"}, {p.attrib["fill"] for p in node.iter("path")})
+
+    def test_specimen_mark_keeps_compound_path_and_evenodd_fill_rule(self):
+        from build_specimen import mark
+        import glyphkit as G
+        import xml.etree.ElementTree as ET
+        data = G.compound(G.rounded_rect(100, 100, 800, 800, 80), G.polygon([(300, 700), (500, 300), (700, 700)]))
+        brand = {"accent": {"bright": "#69D4BB"}, "logo": {"grid": 1000, "paths": {
+            "full": [{"role": "accent", "d": data, "fill_rule": "evenodd"}]}}}
+        with tempfile.TemporaryDirectory() as temporary:
+            node = ET.fromstring(mark(brand, temporary, 66, 66, 170))
+        path = next(node.iter("path"))
+        self.assertEqual(data, path.attrib["d"])
+        self.assertEqual("evenodd", path.attrib.get("fill-rule"))
 
 
 if __name__ == "__main__":

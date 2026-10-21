@@ -22,9 +22,12 @@ PAIRS = (("6.9.9", "8.2", 18889), ("7.1.2", "8.3", 18890))
 
 def run(args, cwd=FIXTURE, timeout=900):
     flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+    environment = dict(os.environ, GIT_TERMINAL_PROMPT="0")
+    for name in ("EDITOR", "VISUAL", "GIT_EDITOR", "GIT_SEQUENCE_EDITOR"):
+        environment.pop(name, None)
     result = subprocess.run(args, cwd=str(cwd), stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                             text=True, encoding="utf-8", errors="replace", timeout=timeout,
-                            creationflags=flags, check=False)
+                            creationflags=flags, stdin=subprocess.DEVNULL, env=environment, check=False)
     if result.returncode:
         raise RuntimeError("%s exited %d:\n%s" % (args, result.returncode, result.stdout[-8000:]))
     return result.stdout

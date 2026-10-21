@@ -4,6 +4,30 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-21
+
+### Added
+
+- Added Local Media Gallery 1.0.0 to official guidelines, catalog, registry, downloads, source-proof export and release inventories. Thirteen brands are hosted; ten owned brands receive release archives.
+- Advanced Brand Canon to 2.1.0 and BrandBuilder to 3.1.0 for compatible optional lockup and social composition fields. Existing identities retain their approved geometry, palettes and default layouts.
+- Added explicit visible-ink centering for slogan-only social images. The Local Media Gallery image retains only its approved logo and exact slogan.
+- Added optional source-owned horizontal wordmark rows with measured ink alignment, per-line type sizes and roles, spacing/clipping validation and renderer dependency binding. Local Media Gallery uses the owner-selected Local Media / Gallery pairing with a larger square icon.
+- Added S071 glyphkit compound contours for transparent constructed-logo cutouts, with byte-preserving composition, closed-path validation and canonical-helper provenance coverage. Local Media Gallery 1.0.0 is approved for official ShruggieTech publication with the Jade identity, exact proper-name wordmark, platform icons and slogan-only social image.
+
+### Fixed
+
+- Resolve omitted multiline canvas height and wordmark ink through a source-bound defaults adapter, preserving the exact renderer for fully explicit approved layouts.
+
+- Apply bundled typefaces in the standalone Web specimen and preserve readable inherited link color in portable guidelines. Consumer component APIs and styles stay unchanged.
+- Space logo contact-sheet rows by visible artwork bounds so taller pairings and standalone wordmarks do not overlap.
+- Pin patched Git parser and YAML dependency chains in the WordPress validation fixture, retaining the required audit threshold and adding regression coverage. Preserve the callable CommonJS factory for fresh wp-env downloads and run the fixture noninteractively. Consumer adapter APIs remain unchanged.
+- Fit long brand names inside type-specimen headers, honor configured wordmark segment colors and retain compound path fill rules so generated specimens preserve the approved mark. Regression coverage includes long segmented names and transparent counters.
+
+### Decisions
+
+- 2026-10-21 (S071): Adopt the owner-selected two-line horizontal name in the shared generator. Keep the existing default layout code and renderer bindings for unconfigured brands; bind the new helper for opt-in sources.
+- 2026-10-21 (S071): Preserve the owner-selected four-tile contact-sheet geometry and genuine transparent image/video cutouts. Extend the shared primitive vocabulary rather than introducing per-brand serialization or opaque surface-colored patches.
+
 ## [3.0.1] - 2026-10-03
 
 ### Added

@@ -345,7 +345,7 @@
       "surfaces": ["showcase-card", "brand-landing-page", "guideline-topics", "downloads", "registry-endpoints", "public-metadata", "structured-data", "social-preview"]
     }
   },
-  "canon": "2.0.0",
+  "canon": "2.1.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "historical-baseline"

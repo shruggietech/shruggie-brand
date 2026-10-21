@@ -19,9 +19,12 @@ import validate_glyph as V
 
 GRID = 1000
 fails = []
+checks = 0
 
 
 def check(name, cond, detail=""):
+    global checks
+    checks += 1
     print("%-4s %s%s" % ("ok" if cond else "FAIL", name, ("  " + detail) if detail else ""))
     if not cond:
         fails.append(name)
@@ -130,6 +133,30 @@ thin_report = V.Report()
 V.measure_strokes([{"d": "M100 100 L900 900", "fill": "none", "stroke_width": 20}], GRID, "single-ink", thin_report)
 check("undersized stroke derivative fails", thin_report.fails == 1, "%d failures" % thin_report.fails)
 
+# Compound contours preserve primitive bytes and genuine evenodd cutouts.
+outer = G.rounded_rect(112, 112, 352, 352, 48)
+mountain = G.polygon([(164, 398), (286, 218), (412, 398)])
+sun = G.disc(365, 210, 32)
+joined = G.compound(outer, mountain, sun)
+check("compound preserves primitive bytes", joined == " ".join((outer, mountain, sun)))
+for size in (256, 32, 16):
+    rows = V.rasterise([{"d": joined, "fill_rule": "evenodd"}], GRID, size)
+    check("compound image cutouts at %d" % size, len(V.components(rows, size)) == 1 and V.counters(rows, size)[0] == 2)
+check("compound accepts nested closed contours", G.compound(joined, G.rect(700, 700, 100, 100)) == joined + " " + G.rect(700, 700, 100, 100))
+for label, values in [
+    ("no contours", ()), ("empty", ("",)), ("non-string", (None,)),
+    ("open contour", ("M0 0 L10 0 L10 10",)),
+    ("open interior contour", ("M0 0 L10 0 M20 20 L30 20 L30 30Z",)),
+    ("unsupported command", ("M0 0 H10 V10Z",)),
+    ("incomplete coordinates", ("M0 0 L10Z",)),
+    ("non-finite coordinate", ("M0 0 L1e999 0 L10 10Z",)),
+]:
+    try:
+        G.compound(*values)
+        check("compound rejects " + label, False)
+    except (TypeError, ValueError):
+        check("compound rejects " + label, True)
+
 print("")
-print("%d checks, %d failures" % (16 + 7 + 5 + 6, len(fails)))
+print("%d checks, %d failures" % (checks, len(fails)))
 sys.exit(1 if fails else 0)

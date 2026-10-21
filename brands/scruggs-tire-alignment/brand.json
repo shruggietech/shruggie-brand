@@ -553,7 +553,7 @@
     "palette": "The tire motif uses bright red. True white and black are the primary logo grounds; bright red provides dark-surface emphasis and deep red provides readable light-surface actions. Neutral surfaces support clear service information."
   },
   "custom_assets": [],
-  "canon": "2.0.0",
+  "canon": "2.1.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "approved-canonical"

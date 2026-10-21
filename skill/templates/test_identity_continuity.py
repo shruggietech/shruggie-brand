@@ -169,10 +169,19 @@ class IdentityContinuityTests(unittest.TestCase):
         social_edit = source.replace(b"logo_width * 0.82", b"logo_width * 0.81", 1)
         self.assertNotEqual(source, social_edit)
         self.assertEqual(proof_gen_logo_digest(source), proof_gen_logo_digest(social_edit))
+        multiline = {"logo": {"lockups": {"horizontal": {"wordmark_lines": []}}}}
+        self.assertEqual(proof_gen_logo_digest(source, multiline),
+                         proof_gen_logo_digest(social_edit, multiline))
+        composition_edit = source.replace(b"offset = 320.0", b"offset = 319.0", 1)
+        self.assertNotEqual(source, composition_edit)
+        self.assertEqual(proof_gen_logo_digest(source, multiline),
+                         proof_gen_logo_digest(composition_edit, multiline))
         proof_edit = source.replace(b'proof_stage_only = "--proof-stage-only" in options',
                                     b'proof_stage_only = "--wrong-stage" in options', 1)
         self.assertNotEqual(source, proof_edit)
         self.assertNotEqual(proof_gen_logo_digest(source), proof_gen_logo_digest(proof_edit))
+        self.assertNotEqual(proof_gen_logo_digest(source, multiline),
+                            proof_gen_logo_digest(proof_edit, multiline))
         missing_guard = source.replace(b"if proof_stage_only:\n", b"if wrong_proof_stage_only:\n", 1)
         with self.assertRaisesRegex(ContinuityError, "social composition must follow"):
             proof_gen_logo_digest(missing_guard)
@@ -370,6 +379,22 @@ class IdentityContinuityTests(unittest.TestCase):
                 encoding="utf-8",
             )
             with self.assertRaisesRegex(ContinuityError, "constructed d mutation"):
+                validate_glyphkit_helper(helper)
+
+    def test_compound_primitive_provenance_keeps_literal_and_serializer_guards(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            helper = Path(tmp) / "mk_paths.py"
+            helper.write_text(
+                'import glyphkit as G\nfull=[{"role":"accent","fill_rule":"evenodd","d":G.compound(G.rounded_rect(100,100,800,800,80),G.polygon([(300,700),(500,300),(700,700)]))}]\n',
+                encoding="utf-8",
+            )
+            provenance = validate_glyphkit_helper(helper)
+            self.assertIn("compound", provenance["primitives"])
+            helper.write_text('import glyphkit as G\nfull=[{"d":G.compound("M0 0 L10 0 L10 10 Z")}]\n', encoding="utf-8")
+            with self.assertRaisesRegex(ContinuityError, "literal SVG path"):
+                validate_glyphkit_helper(helper)
+            helper.write_text('import glyphkit as G\ndef custom(): return G.rect(0,0,10,10)\nfull=[{"d":custom()}]\n', encoding="utf-8")
+            with self.assertRaisesRegex(ContinuityError, "directly from a glyphkit"):
                 validate_glyphkit_helper(helper)
 
     def test_palette_qualification_requires_every_check_and_bound_values(self):

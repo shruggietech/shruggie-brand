@@ -645,6 +645,7 @@ section { padding:56px 0; border-top:1px solid var(--border); }
 section { scroll-margin-top:24px; }
 .contents { border-block:1px solid var(--border); padding:16px 0; }
 .contents ul { display:flex; flex-wrap:wrap; gap:8px 20px; margin:8px 0 0; padding:0; list-style:none; }
+a { color:inherit; text-underline-offset:4px; }
 .contents a,.utility a,.deliveries a { color:var(--foreground); text-underline-offset:4px; }
 .lead { color:var(--muted-foreground); max-width:720px; }
 .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); margin-top:24px; }

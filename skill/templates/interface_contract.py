@@ -46,6 +46,7 @@ RELEASE_AUTHORIZED_BRANDS = (
     "cueson",
     "local-companion",
     "insonic",
+    "localmedia-gallery",
 )
 BACKWARD_BRAND_DEFAULTS = {
     "surfaces.base": "#000000",

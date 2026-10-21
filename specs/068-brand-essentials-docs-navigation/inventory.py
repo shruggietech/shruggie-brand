@@ -84,7 +84,7 @@ def render():
             rows.append(f"| {slug} | `messaging.{role}` | `{literal}` | {category} | {destination} |")
     lead = (
         "# Brand essentials sentence disposition\n\n"
-        "Introduced by S068 for eleven brands and extended by S070 on 2026-10-03 with the owner's approved insonic guidance and messages. "
+        "Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 on 2026-10-21 with the owner's approved Local Media Gallery identity and messages. "
         "Every current first-page legacy field, array item, and sentence is listed below with its exact source text and a reviewed disposition. "
         "The source remains intact for product-documentation or messaging decisions; this slice changes which fields visual guides project. "
         f"The current production inventory has {len(sources)} brands. "

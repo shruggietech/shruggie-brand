@@ -29,6 +29,7 @@ PRODUCTION = (
     "i-heart-pr-tours",
     "insonic",
     "local-companion",
+    "localmedia-gallery",
     "scruggs-tire-alignment",
     "shruggietech",
 )
@@ -388,6 +389,7 @@ class PublicationWorkflowContractTests(unittest.TestCase):
         self.assertGreaterEqual(text.count("node-version: 24.11.0"), 2)
         self.assertGreaterEqual(text.count("@resvg/resvg-js@2.6.2"), 2)
         minimum_python = job_block(text, "python-38-compatibility")
+        self.assertIn("runs-on: ubuntu-24.04", minimum_python)
         self.assertIn("python skill/templates/test_pipeline.py", minimum_python)
         self.assertNotIn("setup-node", minimum_python)
         self.assertNotIn("@resvg/resvg-js", minimum_python)

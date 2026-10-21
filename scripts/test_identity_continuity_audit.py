@@ -34,7 +34,8 @@ class IdentityContinuityAuditTests(unittest.TestCase):
         self.assertEqual("authoritative", BRAND_CLASSES["dancewithme865"])
         self.assertEqual("glyphkit-constructed", BRAND_CLASSES["local-companion"])
         self.assertEqual("glyphkit-constructed", BRAND_CLASSES["insonic"])
-        self.assertTrue({"dancewithme865", "scruggs-tire-alignment", "local-companion", "insonic"}.isdisjoint(
+        self.assertEqual("glyphkit-constructed", BRAND_CLASSES["localmedia-gallery"])
+        self.assertTrue({"dancewithme865", "scruggs-tire-alignment", "local-companion", "insonic", "localmedia-gallery"}.isdisjoint(
             MIGRATION_BASELINE_BRANDS))
 
     def test_historical_record_is_revision_bound_without_fake_approval(self):

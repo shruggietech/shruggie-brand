@@ -1,6 +1,6 @@
 # Brand essentials sentence disposition
 
-Introduced by S068 for eleven brands and extended by S070 on 2026-10-03 with the owner's approved insonic guidance and messages. Every current first-page legacy field, array item, and sentence is listed below with its exact source text and a reviewed disposition. The source remains intact for product-documentation or messaging decisions; this slice changes which fields visual guides project. The current production inventory has 12 brands. Approval for one surface is not approval for another.
+Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 on 2026-10-21 with the owner's approved Local Media Gallery identity and messages. Every current first-page legacy field, array item, and sentence is listed below with its exact source text and a reviewed disposition. The source remains intact for product-documentation or messaging decisions; this slice changes which fields visual guides project. The current production inventory has 13 brands. Approval for one surface is not approval for another.
 
 | Brand | Source path | Exact sentence or item | Classification | Disposition |
 | --- | --- | --- | --- | --- |
@@ -385,6 +385,19 @@ Introduced by S068 for eleven brands and extended by S070 on 2026-10-03 with the
 | local-companion | `guidance.personality[3][1]` | `"Uses synthetic examples and protects unpublished personal content"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | local-companion | `guidance.personality[3][2]` | `"Real chats or portraits in generic brand examples"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | local-companion | `messaging.short_description` | `"A private Windows workspace for personalized AI companions"` | approved for another surface | Project only on the declared surfaces: site-metadata |
+| localmedia-gallery | `title` | `"Local Media Gallery"` | approved identity name | Project as the approved name |
+| localmedia-gallery | `affiliation.ownership` | `"shruggietech-owned"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
+| localmedia-gallery | `affiliation.parent` | `"ShruggieTech"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
+| localmedia-gallery | `affiliation.endorsement` | `"shruggietech-project"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
+| localmedia-gallery | `descriptor` | `"A lightweight, interactive gallery for browsing local images and videos."` | legacy product or strategy summary | Retain in source for product or messaging review; omit from visual guides |
+| localmedia-gallery | `functional_descriptor` | `"A lightweight, interactive gallery for browsing local images and videos."` | legacy product or strategy summary | Retain in source for product or messaging review; omit from visual guides |
+| localmedia-gallery | `guidance.written_form` | `"Write Local Media Gallery as the name; use localmedia.gallery only as an address."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| localmedia-gallery | `guidance.logo` | `"Use the larger icon beside Local Media above Gallery."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| localmedia-gallery | `guidance.logo` | `"Preserve the supplied hierarchy and proportions."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| localmedia-gallery | `guidance.logo` | `"Keep the domain for address use."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| localmedia-gallery | `guidance.palette` | `"The formal identity uses Jade on dark surfaces and Deep Jade on light surfaces."` | approved identity guidance | Project in Brand essentials or the detailed identity pages |
+| localmedia-gallery | `messaging.slogan` | `"Your media presented beautifully."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, consumer-data |
+| localmedia-gallery | `messaging.short_description` | `"A lightweight, interactive gallery for browsing local images and videos."` | approved identity words | Project only on the declared surfaces: visual-guide, site-metadata, consumer-data |
 | scruggs-tire-alignment | `title` | `"Scruggs Tire & Alignment"` | approved identity name | Project as the approved name |
 | scruggs-tire-alignment | `affiliation.ownership` | `"third-party"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | scruggs-tire-alignment | `affiliation.endorsement` | `"none"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
@@ -465,4 +478,4 @@ Introduced by S068 for eleven brands and extended by S070 on 2026-10-03 with the
 | shruggietech | `guidance.personality[3][2]` | `"Platform lock-in"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | shruggietech | `messaging.slogan` | `"We’ll figure it out."` | approved identity words | Project only on the declared surfaces: visual-guide, social-image, site-metadata, consumer-data |
 
-Total classified items: 460 across 12 production brands.
+Total classified items: 473 across 13 production brands.
