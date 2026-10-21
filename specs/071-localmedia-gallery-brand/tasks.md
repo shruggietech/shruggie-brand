@@ -39,7 +39,7 @@
 - [x] T015 [US3] Add approved identity to current release, proof-export, audit and CI inventories in scripts/ and .github/workflows/build.yml without altering sibling geometry (FR-010, FR-011).
 - [x] T016 [US3] Integrate generated catalog and release metadata using site/, CHANGELOG.md and skill/references/version-policy.json (FR-010).
 - [x] T017 [US3] Run CONTRIBUTING.md/current CI aggregate validation and site/publication audits, recording exact evidence in specs/071-localmedia-gallery-brand/verification.md (FR-009, FR-010, FR-011).
-- [ ] T018 [US3] Complete reviewed publication workflow and verify live official routes/download checksums in specs/071-localmedia-gallery-brand/verification.md (FR-010, SC-005).
+- [x] T018 [US3] Complete reviewed publication workflow and verify live official routes/download checksums in specs/071-localmedia-gallery-brand/verification.md (FR-010, SC-005).
 
 ## Phase 6: Cross-cutting validation
 
@@ -64,7 +64,7 @@ Deliver the actual qualified Gate 1 source/proof packet first. After exact owner
 
 ## Current review state
 
-Gate 1 square approval, the selected-B source amendment, and the owner's exact final Gate 2 approval are recorded. T011 and T013 are complete with independent message roles, the explicit slogan-only composition, canonical social SVG/PNG hashes and the approved derivative manifest. Final compilation, aggregate validation, encoding checks and publication staging have passed. The source-only publication candidate is prepared for PR review. T018 remains open for a reviewed tagged release and live route/download verification.
+Gate 1 square approval, the selected-B source amendment, and the owner's exact final Gate 2 approval are recorded. T011 and T013 are complete with independent message roles, the explicit slogan-only composition, canonical social SVG/PNG hashes and the approved derivative manifest. Final compilation, aggregate validation, encoding checks and publication staging have passed. The reviewed source is merged and published at v3.1.0. T018 is complete with successful tag CI, official release and Pages deployment, and verified live routes/download checksums.
 
 ## Owner-directed typed-name revision
 
@@ -72,7 +72,7 @@ Gate 1 square approval, the selected-B source amendment, and the owner's exact f
 
 - [x] T023 [US2] Prepare smaller-type/larger-icon horizontal studies, including Local Media above larger Gallery, under dist/private/localmedia-gallery/horizontal-pairing-study/; preserve exact square paths and verify outlined bounds, contrast and raster outputs (FR-005, FR-006, FR-008).
 
-T022 is complete: the owner selected B, its production output matches the chosen artwork, and the proper-name source amendment is promoted. T024-T026 provide the shared line renderer, source continuity and refreshed fundamentals. Gate 2 approval and final kit compilation are complete. T018 remains open for live publication.
+T022 is complete: the owner selected B, its production output matches the chosen artwork, and the proper-name source amendment is promoted. T024-T026 provide the shared line renderer, source continuity and refreshed fundamentals. Gate 2 approval and final kit compilation are complete. T018 is complete with verified official publication at v3.1.0.
 
 ## Selected B implementation and review refresh
 
