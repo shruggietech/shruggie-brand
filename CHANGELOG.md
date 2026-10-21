@@ -20,7 +20,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 - Apply bundled typefaces in the standalone Web specimen and preserve readable inherited link color in portable guidelines. Consumer component APIs and styles stay unchanged.
 - Space logo contact-sheet rows by visible artwork bounds so taller pairings and standalone wordmarks do not overlap.
-- Pin patched Git parser and YAML dependency chains in the WordPress validation fixture, retaining the required audit threshold and adding regression coverage. Consumer adapter APIs remain unchanged.
+- Pin patched Git parser and YAML dependency chains in the WordPress validation fixture, retaining the required audit threshold and adding regression coverage. Preserve the callable CommonJS factory for fresh wp-env downloads and run the fixture noninteractively. Consumer adapter APIs remain unchanged.
 - Fit long brand names inside type-specimen headers, honor configured wordmark segment colors and retain compound path fill rules so generated specimens preserve the approved mark. Regression coverage includes long segmented names and transparent counters.
 
 ### Decisions

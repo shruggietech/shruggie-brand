@@ -1,0 +1,9 @@
+{
+  "name": "simple-git",
+  "version": "4.0.2-compat.0",
+  "private": true,
+  "main": "index.cjs",
+  "dependencies": {
+    "simple-git-upstream": "npm:simple-git@4.0.2"
+  }
+}

@@ -8,12 +8,13 @@
   },
   "devDependencies": {
     "@wordpress/env": "11.16.0",
-    "got": "file:./fetch-client"
+    "got": "file:./fetch-client",
+    "simple-git": "file:./simple-git-compat"
   },
   "overrides": {
     "qs": "6.16.0",
     "got": "$got",
-    "simple-git": "4.0.2",
+    "simple-git": "$simple-git",
     "js-yaml": "4.3.2"
   }
 }
