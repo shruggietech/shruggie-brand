@@ -17,7 +17,7 @@
     "radix-ui": "1.6.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "zbsearch": "4.0.0"
+    "zbsearch": "4.0.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
