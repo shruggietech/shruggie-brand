@@ -398,6 +398,36 @@ def path_commands_ok(d):
         return False
 
 
+def compound(*paths):
+    """Join closed absolute contours without rewriting their geometry.
+
+    Use an explicit evenodd fill rule on the resulting entry for cutouts.
+    Winding and fill-rule semantics remain the caller's declared choice.
+    """
+    if not paths:
+        raise ValueError("compound needs at least one closed path")
+    for data in paths:
+        if not isinstance(data, str) or not data.strip().startswith("M"):
+            raise ValueError("compound needs non-empty absolute path strings")
+        opened = False
+        for command, args in _tokenize(data):
+            if not all(math.isfinite(value) for value in args):
+                raise ValueError("compound coordinates must be finite")
+            if command == "M":
+                if opened or len(args) != 2:
+                    raise ValueError("compound contours must start after a closed contour")
+                opened = True
+            elif command == "Z":
+                if not opened or args:
+                    raise ValueError("compound close command needs an open contour and no coordinates")
+                opened = False
+            elif not opened or not args or len(args) % (6 if command == "C" else 2):
+                raise ValueError("compound segment needs complete coordinates in an open contour")
+        if opened or not flatten(data):
+            raise ValueError("compound requires closed, non-degenerate contours")
+    return " ".join(paths)
+
+
 def _cubic(p0, p1, p2, p3, steps):
     for i in range(1, steps + 1):
         t = i / float(steps)

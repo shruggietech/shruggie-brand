@@ -67,9 +67,7 @@ Four, minimum:
 Plus single-ink black and white variants for reproduction that supports one
 ink, and a **reduced mark** for small sizes.
 
-**Optical alignment.** In every lockup the wordmark's ascender and baseline
-should bracket the mark's principal form, so the two share an optical top and
-bottom. fragcap had to re-align its lockups in 1.1.0 because they did not.
+**Optical alignment.** The default single-line pairing aligns visible mark and name bounds. A source-owned layout may deliberately emphasize a larger icon, as approved for Local Media Gallery. In that case, center the complete measured name block beside the mark and preserve the declared relative sizes and spacing.
 
 ## The reduced mark
 
@@ -171,3 +169,11 @@ Use the current source-mode rules and generated measurements rather than an olde
 ## Review recognition before revision
 
 When an operator supplies an established mark, record which features people already recognize, which source files are authoritative, and what concrete defect motivates a change. [Distinctive-asset research](references.md#ref-brand-distinctive) supports asking that question; it does not require a new hue for every sibling brand. The Gate 1 proof and byte-bound source rules above decide whether the exact mark can ship. A designer may propose a new direction, but it is a new owner decision, not an automated cleanup of supplied path data.
+
+## Optional horizontal wordmark rows
+
+A constructed font wordmark may declare exact horizontal rows in source under logo.lockups.horizontal.wordmark_lines. Each row contains text, role and font_size_units. The rows preserve wordmark_text in order and align by measured visible left ink, with the complete text block vertically centered beside the existing mark. padding_units, gap_units, line_gap_units, mark_height_units and canvas_height_units define spacing and canvas geometry. Invalid or overflowing rows fail generation; conflicting supplied wordmark or horizontal-lockup bindings fail validation.
+
+This configuration applies only to the horizontal pairing. Standalone wordmarks, symbol-above-name lockups and brands without this field retain their current layout. The opt-in renderer binding includes lockup_typography.py and the measured-layout contract function, so changes to that helper invalidate the affected source. An absent field cannot execute the guarded row branch; existing proof fingerprints retain their reviewed default path only while the remaining generator semantics match. A selected typography study must reproduce through the production helper before its accepted source amendment is promoted. Assembled fundamentals still require Gate 2 review.
+
+The optional `social_copy.composition: "centered-group"` uses the classic logo and slogan sizing/spacing and centers their combined visible ink vertically on the 1280 by 640 canvas. It requires `layout: "slogan-only"` and empty description lines. Other social compositions retain their existing geometry.

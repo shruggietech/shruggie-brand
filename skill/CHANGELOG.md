@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 3.1.0 - 2026-10-21
+
+- Apply bundled typefaces in the standalone Web specimen and preserve readable inherited link color in portable guidelines. Consumer component APIs and styles stay unchanged.
+- Space logo contact-sheet rows by visible artwork bounds so taller pairings and standalone wordmarks do not overlap.
+- Pin patched Git parser and YAML dependency chains in the WordPress validation fixture, retaining the required audit threshold and adding regression coverage. Consumer adapter APIs remain unchanged.
+- Added the approved Local Media Gallery 1.0.0 owned-project brand with Jade photo/video tiles, proper-name wordmark, selected two-line horizontal pairing, exact messages and centered slogan-only social image.
+- Advanced Brand Canon to 2.1.0 and BrandBuilder to 3.1.0 for optional source-owned horizontal wordmark rows, visible-ink centering and transparent compound construction. Existing conforming inputs remain supported.
+- Corrected long-name type specimen fitting, configured wordmark colors and transparent path fill rules. Existing approved geometry, palettes, default lockups, social compositions and adapter APIs remain unchanged.
+- Publish thirteen hosted brands and ten owned brand archives through generated source-bound site and release inventories. Regenerate and repin packages only to adopt the new capabilities or corrected specimen.
+
 ## 3.0.1 - 2026-10-03
 
 - Added the separately approved insonic 1.0.0 owned-project brand, independent Glacial blue identity, strengthened three-form Reduced master and exact messages under S070.

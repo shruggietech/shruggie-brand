@@ -33,7 +33,7 @@ IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 PATH_LITERAL = re.compile(r"^\s*[Mm]\s*-?(?:\d|\.)")
 ALLOWED_GLYPHKIT_PRIMITIVES = {
-    "arc", "ring_band", "ring", "wedge", "disc", "rect", "rounded_rect", "capsule", "polygon",
+    "arc", "ring_band", "ring", "wedge", "disc", "rect", "rounded_rect", "capsule", "polygon", "compound",
     "translate", "scale", "center_ink",
 }
 PALETTE_CHECKS = {
@@ -153,10 +153,41 @@ def _gen_logo_proof_semantic_digest(source):
     return canonical_digest(bound)
 
 
+def _without_horizontal_line_branch(source):
+    """Ignore only an opt-in branch that cannot execute for an unconfigured brand."""
+    text = source.decode("utf-8")
+    tree = ast.parse(text)
+    branches = [node for node in ast.walk(tree) if isinstance(node, ast.If)
+                and ast.get_source_segment(text, node.test) == 'horizontal_spec.get("wordmark_lines") is not None']
+    if not branches:
+        return source
+    guards = [node for node in ast.walk(tree) if isinstance(node, ast.If)
+              and ast.get_source_segment(text, node.test) == "proof_stage_only"
+              and any(isinstance(child, ast.Return) for child in node.body)]
+    _require(len(guards) == 1, "social composition must follow the proof-stage return")
+    _require(len(branches) == 1 and not branches[0].orelse and branches[0].lineno > guards[0].end_lineno,
+             "optional horizontal layout must follow proof staging without an alternate branch")
+    lines = text.splitlines(keepends=True)
+    del lines[branches[0].lineno - 1:branches[0].end_lineno]
+    return "".join(lines).encode("utf-8")
+
+
 def proof_gen_logo_digest(source, brand=None):
     """Retain reviewed proof bindings for unchanged proof paths."""
-    semantic = _gen_logo_proof_semantic_digest(source)
     logo = (brand or {}).get("logo") or {}
+    horizontal = (logo.get("lockups") or {}).get("horizontal") or {}
+    if horizontal.get("wordmark_lines") is not None:
+        here = Path(__file__).resolve().parent
+        contract = (here / "brand_contract.py").read_bytes().decode("utf-8")
+        profiles = [node for node in ast.parse(contract).body
+                    if isinstance(node, ast.FunctionDef) and node.name == "horizontal_wordmark_lines"]
+        _require(len(profiles) == 1, "horizontal layout contract is missing or redefined")
+        return canonical_digest({
+            "gen_logo": _gen_logo_proof_semantic_digest(source),
+            "lockup_typography": canonical_digest((here / "lockup_typography.py").read_bytes()),
+            "horizontal_contract": canonical_digest(ast.get_source_segment(contract, profiles[0])),
+        })
+    semantic = _gen_logo_proof_semantic_digest(_without_horizontal_line_branch(source))
     social = (brand or {}).get("social_copy") or {}
     name_only_social = (social.get("layout") == "slogan-only"
                         and isinstance(social.get("slogan"), str)

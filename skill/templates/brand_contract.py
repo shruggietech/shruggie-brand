@@ -9,6 +9,7 @@ import binascii
 import hashlib
 import html
 import json
+import math
 import os
 import re
 import struct
@@ -93,10 +94,10 @@ def social_copy(brand):
     _require((not lines) if layout == "slogan-only" else bool(lines),
              "social_copy description lines disagree with selected layout")
     composition = value.get("composition", "classic")
-    _require(composition in {"classic", "centered-single-line"},
+    _require(composition in {"classic", "centered-single-line", "centered-group"},
              "social_copy.composition is invalid")
-    _require(composition != "centered-single-line" or layout == "slogan-only",
-             "social_copy centered-single-line composition requires slogan-only layout")
+    _require(composition not in {"centered-single-line", "centered-group"} or layout == "slogan-only",
+             "social_copy centered composition requires slogan-only layout")
     _require(len(lines) <= 3, "social_copy.description_lines cannot fit more than three lines")
     approval = value["approval"]
     _require(isinstance(approval, dict) and set(approval) == {"approved_by", "approved_on", "source"},
@@ -587,6 +588,56 @@ def wordmark_role_colors(brand):
                  % colourway)
         values[colourway] = value.upper()
     return values
+
+
+def horizontal_wordmark_lines(brand):
+    """Validate an opt-in horizontal row layout without changing default lockups."""
+    logo = brand.get("logo") or {}
+    lockups = logo.get("lockups") or {}
+    horizontal = lockups.get("horizontal") or {}
+    if "wordmark_lines" not in horizontal:
+        return None
+    _require(not (logo.get("paths") or {}).get("wordmark")
+             and not logo.get("supplied_wordmark_input_ids")
+             and not (logo.get("supplied_lockup_input_ids") or {}).get("horizontal"),
+             "horizontal wordmark lines conflict with supplied wordmark or lockup source")
+    rows = horizontal["wordmark_lines"]
+    _require(isinstance(rows, list) and rows, "horizontal wordmark_lines must be a non-empty array")
+    def number(value, name, minimum=0, strict=False):
+        _require(isinstance(value, (int, float)) and not isinstance(value, bool)
+                 and math.isfinite(value) and (value > minimum if strict else value >= minimum),
+                 "horizontal %s must be a finite %snumber" % (name, "positive " if strict else "non-negative "))
+        return float(value)
+    normalized = []
+    roles = {"accent", "wordmark"}
+    configured_colors = logo.get("role_colors") or {}
+    for mapping in configured_colors.values():
+        if isinstance(mapping, dict):
+            roles.update(mapping)
+    for row in rows:
+        _require(isinstance(row, dict) and set(row) == {"text", "role", "font_size_units"},
+                 "horizontal wordmark rows require exactly text, role and font_size_units")
+        _require(isinstance(row["text"], str) and row["text"].strip()
+                 and not any(char in row["text"] for char in "\r\n\t"),
+                 "horizontal wordmark row text must be one non-empty line")
+        _require(isinstance(row["role"], str) and row["role"] in roles,
+                 "horizontal wordmark row role is not declared")
+        if row["role"] not in {"accent", "wordmark"}:
+            _require(all(row["role"] in (configured_colors.get(mode) or {}) for mode in ("color", "light")),
+                     "horizontal wordmark row role must be declared on dark and light")
+        normalized.append(dict(row, font_size_units=number(row["font_size_units"], "font_size_units", strict=True)))
+    expected = brand.get("wordmark_text")
+    _require(isinstance(expected, str) and expected.strip()
+             and re.sub(r"\s+", " ", " ".join(row["text"].strip() for row in normalized)) == re.sub(r"\s+", " ", expected.strip()),
+             "horizontal wordmark rows must preserve wordmark_text")
+    return {
+        "lines": normalized,
+        "mark_height_units": number(horizontal.get("mark_height_units", 160), "mark_height_units", strict=True),
+        "canvas_height_units": number(horizontal.get("canvas_height_units", 200), "canvas_height_units", strict=True),
+        "padding_units": number(horizontal.get("padding_units", 24), "padding_units"),
+        "gap_units": number(horizontal.get("gap_units", 34), "gap_units"),
+        "line_gap_units": number(horizontal.get("line_gap_units", 14), "line_gap_units"),
+    }
 
 
 def showcase_surface(brand):
@@ -1544,6 +1595,7 @@ def validate_brand(brand, kit):
     validate_supplied_icon_dimensions(brand, kit)
     square_enclosure_profile(brand)
     wordmark_role_colors(brand)
+    horizontal_wordmark_lines(brand)
     showcase_surface(brand)
     if (brand.get("showcase_surface") or "").startswith("light."):
         validate_light_presentation(brand, "light showcase_surface")

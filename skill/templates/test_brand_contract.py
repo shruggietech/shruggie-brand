@@ -1364,6 +1364,8 @@ class SocialCopyTests(unittest.TestCase):
                                  "approval": {"approved_by": "owner", "approved_on": "2026-09-28",
                                               "source": "decision"}}}
         self.assertEqual("centered-single-line", social_copy(brand)["composition"])
+        brand["social_copy"]["composition"] = "centered-group"
+        self.assertEqual("centered-group", social_copy(brand)["composition"])
         brand["social_copy"]["layout"] = "slogan-description"
         brand["social_copy"]["description_lines"] = ["Another line"]
         with self.assertRaisesRegex(ContractError, "requires slogan-only"):

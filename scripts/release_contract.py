@@ -137,6 +137,14 @@ MIGRATIONS = {
         "published 2.8.0 packages remain immutable recovery inputs; approved logo geometry and social "
         "compositions are unchanged."
     ),
+    "3.1.0": (
+        "Existing kits need migration: **no required identity migration**. Regenerate and repin only "
+        "to adopt the optional horizontal wordmark rows, centered-group social composition, and corrected "
+        "long-name and compound-path type specimens. Brand Canon 2.1.0 adds compatible optional fields; "
+        "Local Media Gallery 1.0.0 is the new approved owned brand. Existing geometry, palettes, default "
+        "logo layouts, approved social compositions and adapter APIs remain unchanged. Ten owned brand "
+        "archives are release-authorized; three client kits remain hosted candidates."
+    ),
     "3.0.1": (
         "Existing kits need migration: **no required identity migration**. Regenerate and repin a kit only "
         "to adopt the corrected outlined typography specimen and its Windows LF serialization. "

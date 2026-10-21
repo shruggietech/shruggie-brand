@@ -89,6 +89,35 @@ def outlined_text(text, font_path, size, x, baseline, fill, center_y=None):
     return '<path fill="%s" d="%s"%s/>' % (fill, " ".join(paths), placement)
 
 
+def fitted_header_title(brand, font_path, x, center_y, max_width, size=154):
+    """Fit the full outlined name and preserve configured wordmark segment colors."""
+    logo = brand.get("logo") or {}
+    segments = logo.get("wordmark_segments") or [{"text": brand["title"], "role": "wordmark"}]
+    with TTFont(font_path) as face:
+        glyphs, cmap = face.getGlyphSet(), face.getBestCmap()
+        units = face["head"].unitsPerEm
+        pen = BoundsPen(glyphs)
+        cursor, offsets = 0.0, []
+        for index, segment in enumerate(segments):
+            if index:
+                cursor += float(segment.get("gap_units", 0)) * units / 200.0
+            offsets.append(cursor)
+            for char in segment["text"]:
+                name = cmap.get(ord(char), ".notdef")
+                glyphs[name].draw(TransformPen(pen, (1, 0, 0, 1, cursor, 0)))
+                cursor += face["hmtx"].metrics[name][0]
+        if pen.bounds is None:
+            return ""
+        left, bottom, right, top = pen.bounds
+        scale = min(float(size) / units, float(max_width) / max(1.0, right - left))
+        baseline = center_y + (bottom + top) * scale / 2.0
+        colors = (logo.get("role_colors") or {}).get("color") or {}
+        return "".join(outlined_text(segment["text"], font_path, units * scale,
+                                     x + (offset - left) * scale, baseline,
+                                     colors.get(segment.get("role", "wordmark"), "#FFFFFF"))
+                       for segment, offset in zip(segments, offsets))
+
+
 def mark_center_y(brand, kit, y, height):
     """Measure the governed mark's vertical ink center without rewriting its paths."""
     boxes = []
@@ -145,6 +174,8 @@ def mark(brand, kit, x, y, height):
             continue
         stroked = item.get("fill") == "none" or item.get("stroke_width") is not None
         paint = (' fill="none" stroke="%s"' % colour) if stroked else (' fill="%s"' % colour)
+        if item.get("fill_rule") is not None:
+            paint += ' fill-rule="%s"' % item["fill_rule"]
         if item.get("stroke_width") is not None:
             paint += ' stroke-width="%g"' % float(item["stroke_width"])
         if item.get("stroke_linecap"):
@@ -195,7 +226,7 @@ def main():
         '<rect width="1600" height="1000" fill="%s"/>' % base,
         mark(B, kit, 66, 66, 170),
         outlined_text("%s TYPE SYSTEM" % title.upper(), mono, 20, 82, 55, dim),
-        '<g id="specimen-title">%s</g>' % outlined_text(title, display, 154, 252, 0, "#FFFFFF", center_y=header_center),
+        '<g id="specimen-title">%s</g>' % fitted_header_title(B, display, 252, header_center, 1268),
         outlined_text(clip(body_sample, 86), body, 34, 258, 340, dim),
         '<path fill="%s" d="M80 540H1520V542H80Z"/>' % rule,
         outlined_text("DISPLAY / %s BOLD" % fams["display"]["name"].upper(), mono, 18, 82, 600, acc),

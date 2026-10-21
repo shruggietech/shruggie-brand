@@ -903,6 +903,12 @@ def main():
                     word_group(colourway, roles, word_x, word_y, word_scale),
                 )
             )
+            if horizontal_spec.get("wordmark_lines") is not None:
+                from lockup_typography import horizontal_lockup
+                body, lockup_width, horizontal_height = horizontal_lockup(
+                    brand, ttf, colourway, roles, mark_group, lockup_box,
+                    wordmark_outline, path_bbox,
+                )
             filename = "%s-horizontal-%s.svg" % (slug, colourway)
             record = derivative_record(filename, "lockup", lockup_variant, colourway)
             write(os.path.join(svg_dir, filename), svg(lockup_width, horizontal_height, body, svg_metadata(record)))
@@ -957,7 +963,8 @@ def main():
             raise ValueError("approved horizontal color lockup is required for a social image")
         lockup_width, lockup_height = _image_dimensions(pathlib.Path(horizontal))
         centered_single_line = copy.get("composition") == "centered-single-line"
-        name_only = (not centered_single_line and copy["layout"] == "slogan-only"
+        centered_group = copy.get("composition") == "centered-group"
+        name_only = (not (centered_single_line or centered_group) and copy["layout"] == "slogan-only"
                      and copy["slogan"].casefold() == brand["title"].casefold())
         lockup_scale = min((1020.0 if centered_single_line else 1080.0) / lockup_width,
                            (280.0 if centered_single_line else 430.0 if name_only else 320.0) / lockup_height)
@@ -968,6 +975,7 @@ def main():
         with open(horizontal, encoding="utf-8") as handle:
             lockup_markup = handle.read()
         text_shapes = []
+        text_y_bounds = []
         if "slogan_lines" in copy:
             face, _ = font_face_path(brand, kit, "body", max(families["body"]["weights"]), outline=True)
             wrapped = wrapped_social_slogan_lines(copy["slogan_lines"], face, shown_width)
@@ -975,6 +983,7 @@ def main():
                 bounds, scale, top = item["bounds"], item["scale"], item["top"]
                 center_x = 640.0 - (bounds[0] + bounds[2]) * scale / 2.0
                 baseline_y = top - bounds[1] * scale
+                text_y_bounds.extend((top, top + (bounds[3] - bounds[1]) * scale))
                 text_shapes.append('  <path d="%s" fill="#F5F5F5" transform="translate(%g,%g) scale(%g)"/>'
                                    % (item["outline"], center_x, baseline_y, scale))
             description_top = max(515.0, wrapped[-1]["top"] + wrapped[-1]["height"] * wrapped[-1]["scale"] + 28.0)
@@ -995,14 +1004,25 @@ def main():
                 raise ValueError("approved social copy exceeds the 640-pixel canvas")
             center_x = 640.0 - (bounds[0] + bounds[2]) * text_scale / 2.0
             baseline_y = top - bounds[1] * text_scale
+            text_y_bounds.extend((top, top + (bounds[3] - bounds[1]) * text_scale))
             text_shapes.append('  <path d="%s" fill="#F5F5F5" transform="translate(%g,%g) scale(%g)"/>'
                                % (outline, center_x, baseline_y, text_scale))
+        content = ('  <g transform="translate(%g,%g) scale(%g)">\n%s\n  </g>\n%s'
+                   % (lockup_x, lockup_y, lockup_scale, lockup_markup, "\n".join(text_shapes)))
+        if centered_group:
+            from svgelements import SVG
+            ink = SVG.parse(horizontal).bbox()
+            visible_y = [lockup_y + ink[1] * lockup_scale,
+                         lockup_y + ink[3] * lockup_scale] + text_y_bounds
+            top, bottom = min(visible_y), max(visible_y)
+            if bottom - top > 640.0:
+                raise ValueError("social content cannot fit the 640-pixel canvas")
+            offset = 320.0 - (top + bottom) / 2.0
+            content = '  <g id="social-content" transform="translate(0,%g)">\n%s\n  </g>' % (offset, content)
         social_body = ('  <title>%s</title>\n  <desc>%s</desc>\n'
                        '  <rect width="1280" height="640" fill="%s"/>\n'
-                       '  <g transform="translate(%g,%g) scale(%g)">\n%s\n  </g>\n%s'
-                       % (escape(copy["slogan"]), escape(" ".join(copy["description_lines"])),
-                          base, lockup_x, lockup_y, lockup_scale,
-                          lockup_markup, "\n".join(text_shapes)))
+                       '%s'
+                       % (escape(copy["slogan"]), escape(" ".join(copy["description_lines"])), base, content))
         canonical_name = "%s-social-image.svg" % slug
         record = derivative_record(canonical_name, "social-image", None, "color")
         record["composed_from"] = "logos/svg/%s-horizontal-color.svg" % slug

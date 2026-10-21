@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Pinned native WordPress integration fixture for BrandBuilder",
   "scripts": {
-    "test": "node --test fetch-client/test.cjs"
+    "test": "node --test fetch-client/test.cjs dependency-test.cjs"
   },
   "devDependencies": {
     "@wordpress/env": "11.16.0",
@@ -12,6 +12,8 @@
   },
   "overrides": {
     "qs": "6.16.0",
-    "got": "$got"
+    "got": "$got",
+    "simple-git": "4.0.2",
+    "js-yaml": "4.3.2"
   }
 }

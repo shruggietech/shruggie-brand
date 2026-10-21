@@ -274,7 +274,7 @@
     "logo": "The calm orbit places a centered disc inside two open bands. The open shape suggests an owner-controlled space with room for different companions. A thicker Reduced master keeps the same center and opening clear at small icon sizes.",
     "palette": "Graphite provides a quiet desktop canvas and indigo carries the product identity. Use the accessible darker indigo on light surfaces. Functional interface cues are measured separately and include text, shape, or control-state cues."
   },
-  "canon": "2.0.0",
+  "canon": "2.1.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "approved-canonical"

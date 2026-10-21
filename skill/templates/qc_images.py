@@ -51,32 +51,52 @@ def logo_sheet(kit, out, dark, light):
     mark = [s for s in svgs if "mark-color" in s and "reduced" not in s]
     red = [s for s in svgs if "mark-reduced-color" in s]
     word = [s for s in svgs if "wordmark-color" in s]
-    W, H = 1500, 720
+    lt = [s for s in svgs if "horizontal-light" in s] or horiz
+    wb = [s for s in svgs if "wordmark-black" in s] or word
+    rows = []
+    for horizontal_sources, word_sources in ((horiz, word), (lt, wb)):
+        horizontal = rsvg(horizontal_sources[0], 540) if horizontal_sources else None
+        wordmark = rsvg(word_sources[0], 440) if word_sources else None
+        word_y = 215
+        if horizontal is not None and wordmark is not None:
+            horizontal_ink = horizontal.getchannel("A").getbbox()
+            word_ink = wordmark.getchannel("A").getbbox()
+            if horizontal_ink and word_ink:
+                word_y = max(word_y, 60 + horizontal_ink[3] + 24 - word_ink[1])
+        rows.append((horizontal, wordmark, word_y))
+    panel_height = max([360]
+                       + [60 + image.height + 48 for image, _wordmark, _y in rows if image is not None]
+                       + [y + image.height + 48 for _horizontal, image, y in rows if image is not None])
+    W, H = 1500, panel_height * 2
     sh = Image.new("RGB", (W, H), dark); d = ImageDraw.Draw(sh)
     d.rectangle([0, H // 2, W, H], fill=light)
     def P(im, x, y): sh.paste(im, (int(x), int(y)), im)
-    if horiz: P(rsvg(horiz[0], 540), 50, 60)
-    if word:  P(rsvg(word[0], 440), 50, 215)
+    def sample(source, size):
+        image = rsvg(source, size)
+        image.thumbnail((size, size), Image.Resampling.LANCZOS)
+        return image
+    horizontal, wordmark, word_y = rows[0]
+    if horizontal is not None: P(horizontal, 50, 60)
+    if wordmark is not None: P(wordmark, 50, word_y)
     for i, s in enumerate([128, 64, 32, 16]):
-        if mark: P(rsvg(mark[0], s), 720 + i * 130, 50)
+        if mark: P(sample(mark[0], s), 720 + i * 130, 50)
     d.text((720, 215), ("face-only square mark" if face_square else "full mark")
            + "  128 / 64 / 32 / 16, actual size", fill="#7A8494")
     d.text((720, 245), "small-size face detail" if face_square
            else "reduced master, at the sizes it is actually used", fill="#7A8494")
     for i, s in enumerate([32, 16]):
-        if red: P(rsvg(red[0], s), 720 + i * 130, 270)
-    lt = [s for s in svgs if "horizontal-light" in s] or horiz
-    if lt: P(rsvg(lt[0], 540), 50, H // 2 + 60)
-    wb = [s for s in svgs if "wordmark-black" in s] or word
-    if wb: P(rsvg(wb[0], 440), 50, H // 2 + 215)
+        if red: P(sample(red[0], s), 720 + i * 130, 270)
+    horizontal, wordmark, word_y = rows[1]
+    if horizontal is not None: P(horizontal, 50, H // 2 + 60)
+    if wordmark is not None: P(wordmark, 50, H // 2 + word_y)
     lm = [x for x in svgs if "mark-light" in x] or mark
     lr = [x for x in svgs if "mark-reduced-light" in x] or red
     for i, s in enumerate([128, 64, 32, 16]):
-        if lm: P(rsvg(lm[0], s), 720 + i * 130, H // 2 + 50)
+        if lm: P(sample(lm[0], s), 720 + i * 130, H // 2 + 50)
     d.text((720, H // 2 + 215), "face-only square mark" if face_square else "full mark", fill="#6B6B6B")
     d.text((720, H // 2 + 245), "small-size face detail" if face_square else "reduced master", fill="#6B6B6B")
     for i, s in enumerate([32, 16]):
-        if lr: P(rsvg(lr[0], s), 720 + i * 130, H // 2 + 270)
+        if lr: P(sample(lr[0], s), 720 + i * 130, H // 2 + 270)
     d.text((50, 20), "PRODUCT SURFACE", fill="#7A8494")
     d.text((50, H // 2 + 20), "LIGHT READING SURFACE", fill="#6B6B6B")
     sh.save(out); return out

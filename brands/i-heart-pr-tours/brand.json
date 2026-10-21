@@ -530,7 +530,7 @@
       "preview": {"well": "light", "fit": "contain"}
     }
   ],
-  "canon": "2.0.0",
+  "canon": "2.1.0",
   "identity_continuity": {
     "record": "identity-continuity.json",
     "status": "approved-canonical"

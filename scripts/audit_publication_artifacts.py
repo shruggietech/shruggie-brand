@@ -29,6 +29,7 @@ PRODUCTION = (
     "i-heart-pr-tours",
     "insonic",
     "local-companion",
+    "localmedia-gallery",
     "scruggs-tire-alignment",
     "shruggietech",
 )

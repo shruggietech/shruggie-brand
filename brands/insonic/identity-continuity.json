@@ -9,7 +9,7 @@
       "path": "brand.json",
       "purpose": "Candidate identity contract",
       "bytes": 13122,
-      "sha256": "b679033bbf57a081e012e4a0de39adc2a369e18248827f5095a9ef84a721494f"
+      "sha256": "d1726729147b09ee8307769af76c861ec6bb1637244a04a401350a51622adfe3"
     },
     {
       "path": "build/mk_paths.py",
@@ -1252,5 +1252,5 @@
     "proposal_sha256": "a0a00d7abac8f5b5bc31fe7183bbdd6b48d4ec37e744271581a0771e963a6da5",
     "source_snapshot_sha256": "a9d5e28b5da1374feddb8a44e350432de65f50b2e076541e2cdeebb29c49fe24"
   },
-  "record_sha256": "876ff6e7ef11ad5d78cd1145cfeaad1d7738b4581303354d9ff3b48a0f6886e8"
+  "record_sha256": "53164963af8e5f57c594071cca655ec579c08f4aaad52b3b8913792d8b7a9a0c"
 }

@@ -832,6 +832,33 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual("logos/svg/alpha-social-image.svg", groups[0]["representative"]["path"])
         self.assertEqual("social", gen_guidelines._asset_family(groups[0]["representative"]))
 
+    def test_social_group_centers_visible_ink_without_description(self):
+        from svgelements import SVG
+        for slug in ("cueson", "localmedia-gallery"):
+            with self.subTest(slug=slug), tempfile.TemporaryDirectory() as temporary:
+                kit = Path(temporary) / slug
+                shutil.copytree(ROOT / "brands" / slug, kit)
+                shutil.copytree(ROOT / "assets" / "fonts", kit / "fonts", dirs_exist_ok=True)
+                self.write_probe(kit)
+                brand_path = kit / "brand.json"
+                brand = json.loads(brand_path.read_text(encoding="utf-8"))
+                brand["social_copy"].update(layout="slogan-only", description_lines=[], composition="centered-group")
+                write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
+                with mock.patch.object(sys, "argv", ["gen_logo.py", str(brand_path), str(kit)]):
+                    self.assertEqual(0, gen_logo.main())
+                social = kit / "logos" / "svg" / (slug + "-social-image.svg")
+                parsed = SVG.parse(str(social))
+                group = next(item for item in parsed.elements() if getattr(item, "id", None) == "social-content")
+                left, top, right, bottom = group.bbox()
+                self.assertAlmostEqual(320.0, (top + bottom) / 2.0, places=2)
+                self.assertGreater(top, 0)
+                self.assertLess(bottom, 640)
+                self.assertGreaterEqual(left, 0)
+                self.assertLessEqual(right, 1280)
+                self.assertIn("<desc></desc>", social.read_text(encoding="utf-8"))
+                lockup = kit / "logos" / "svg" / (slug + "-horizontal-color.svg")
+                self.assertIn(lockup.read_bytes(), social.read_bytes())
+
     def test_all_brand_social_vectors_embed_their_exact_generated_lockups(self):
         slugs = ("shruggietech", "i-heart-pr-tours", "go-schedule", "glitchpad",
                  "fragcap", "eso-weave", "cueson", "covarity")

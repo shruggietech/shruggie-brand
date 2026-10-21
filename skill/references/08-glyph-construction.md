@@ -72,7 +72,7 @@ complicated to be a logo. That is a useful early signal, not an obstacle.
              "d": G.ring_band(500, 500, R_OUT, R_IN, APERT[1], APERT[0])}]
 
 The vocabulary is deliberately small: `ring_band`, `ring`, `wedge`, `disc`,
-`rect`, `rounded_rect`, `capsule`, `polygon`, and a `Path` builder for anything
+`rect`, `rounded_rect`, `capsule`, `polygon`, `compound`, and a `Path` builder for anything
 else. Angles are degrees, counter-clockwise, zero pointing right, and the module
 handles the SVG y-flip. Reach for `Path` only when no primitive fits, and when
 you do, use `.arc()` rather than working out control points yourself.
@@ -84,6 +84,8 @@ as coordinates. `A` carries three non-coordinate numbers mid-list and `H` and
 the bbox comes back wrong, the assertion passes when it should fail, and the
 mark clips at render time. `glyphkit` emits only absolute M, L, C and Z, and
 `validate_glyph.py` fails any path that does not.
+
+For multiple closed contours, use `G.compound(G.rounded_rect(...), G.polygon(...))` directly as the entry's `d` value. It preserves the primitive bytes and rejects open, unsupported or non-finite path input. Declare `"fill_rule": "evenodd"` when the interior contours are cutouts. Do not imitate holes by painting them in a surface color.
 
 ### 3. Centre the ink, do not centre the construction
 
