@@ -100,4 +100,4 @@ Implementation order for this amendment: T024 tests -> shared implementation -> 
 
 ## Hosted runner compatibility correction
 
-- [x] T031 [US3] Pin the Python 3.8 compatibility job to the supported Ubuntu 24.04 image in .github/workflows/build.yml, retain the minimum-version test requirement, assert the runner contract in scripts/test_publication_workflow.py, use Python 3.8-compatible UTF-8 fixture writes in test_lockup_typography.py, and rerun hosted validation (FR-010, FR-011).
+- [x] T031 [US3] Pin the Python 3.8 compatibility job to the supported Ubuntu 24.04 image in .github/workflows/build.yml, retain the minimum-version test requirement, assert the runner contract in scripts/test_publication_workflow.py, use Python 3.8-compatible UTF-8 fixture writes in test_lockup_typography.py, isolate the vector social-composition test from raster proof generation in test_pipeline.py, and rerun hosted validation (FR-010, FR-011).

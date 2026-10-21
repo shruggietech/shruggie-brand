@@ -844,7 +844,10 @@ class PipelineTests(unittest.TestCase):
                 brand = json.loads(brand_path.read_text(encoding="utf-8"))
                 brand["social_copy"].update(layout="slogan-only", description_lines=[], composition="centered-group")
                 write_utf8(brand_path, json.dumps(brand, indent=2) + "\n")
-                with mock.patch.object(sys, "argv", ["gen_logo.py", str(brand_path), str(kit)]):
+                # This core-tier case measures vector composition. Canonical-host
+                # and aggregate builds separately validate the full proof matrices.
+                with mock.patch("identity_continuity.write_continuity_report"), \
+                        mock.patch.object(sys, "argv", ["gen_logo.py", str(brand_path), str(kit)]):
                     self.assertEqual(0, gen_logo.main())
                 social = kit / "logos" / "svg" / (slug + "-social-image.svg")
                 parsed = SVG.parse(str(social))
