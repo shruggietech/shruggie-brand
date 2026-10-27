@@ -567,6 +567,22 @@ try {
   check(syntheticTitle.text === 'DanceWithMe865SyntheticExtraLongCompanyName65' && syntheticTitle.wrapped && !syntheticTitle.clipped && syntheticTitle.clearance >= 23.5 && syntheticTitle.tailWithMarker, `synthetic long title did not wrap with its marker inside the card (${JSON.stringify(syntheticTitle)})`);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(base + '/');
+  for (const rootFont of ['125%', '200%']) {
+    await page.evaluate((fontSize) => { document.documentElement.style.fontSize = fontSize; }, rootFont);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const enlargedTitle = await page.locator('.brand-card', { hasText: 'DanceWithMe865' }).evaluate((card) => {
+      const heading = card.querySelector('h3');
+      const marker = heading.querySelector('.vendor-marker');
+      const iconBox = card.querySelector('.brand-icon').getBoundingClientRect();
+      const rootSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const usableRight = card.getBoundingClientRect().right - Number.parseFloat(getComputedStyle(card).paddingRight);
+      const description = card.querySelector('.brand-card-description');
+      return { rootSize, titleSize: Number.parseFloat(getComputedStyle(heading).fontSize), wrapped: getComputedStyle(heading).whiteSpace === 'normal', clearance: usableRight - marker.getBoundingClientRect().right, iconContained: iconBox.right <= usableRight + 1 && Math.abs(iconBox.width - iconBox.height) <= 1, clipped: card.scrollWidth > card.clientWidth + 1 || card.scrollHeight > card.clientHeight + 1 || description.scrollHeight > description.clientHeight + 1, pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+    });
+    check(enlargedTitle.titleSize >= enlargedTitle.rootSize * 1.5 - .1 && enlargedTitle.wrapped && enlargedTitle.clearance >= 23.5 && enlargedTitle.iconContained && !enlargedTitle.clipped && enlargedTitle.pageOverflow <= 2, `DanceWithMe865 loses enlarged default-font size or card containment at ${rootFont} (${JSON.stringify(enlargedTitle)})`);
+  }
+  await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const sharedNotice = page.locator('.portfolio-vendor-notice');
   const sharedNoticeText = (await sharedNotice.innerText()).trim();
   check(await sharedNotice.locator(':scope > p').count() === 1, 'portfolio third-party notice must contain exactly one paragraph');

@@ -45,6 +45,14 @@ function DesktopBrandCard({ brand }: { brand: Brand }) {
       const available = Math.max(0, titleElement.clientWidth - 24);
       const naturalWidth = contentElement.getBoundingClientRect().width;
       if (naturalWidth <= available) return;
+      // An enlarged browser default font must retain the rem-based title size.
+      // Wrap it within the card instead of reducing it toward a fixed pixel size.
+      if (parseFloat(getComputedStyle(document.documentElement).fontSize) > 16) {
+        titleElement.style.maxWidth = 'calc(100% - 24px)';
+        titleElement.style.whiteSpace = 'normal';
+        titleElement.style.overflowWrap = 'anywhere';
+        return;
+      }
       const baseSize = parseFloat(getComputedStyle(titleElement).fontSize);
       const minimumSize = 18;
       let fittedSize = Math.max(minimumSize, Math.floor(baseSize * available / naturalWidth * 10) / 10);

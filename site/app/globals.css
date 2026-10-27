@@ -82,14 +82,14 @@ h1, h2, h3 { font-family: var(--sh-font-display); letter-spacing: -.035em; text-
 .brand-card:hover, .brand-card:focus-within { border-color: var(--brand-accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-accent) 55%, transparent); }
 .brand-card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 4px var(--brand-accent); }
 .brand-icon { box-sizing: border-box; display: grid; width: 4.25rem; height: 4.25rem; flex: 0 0 4.25rem; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: stretch; padding: .65rem; border-radius: 1rem; background: #050708; box-shadow: 0 1rem 3rem color-mix(in srgb, var(--brand-accent) 18%, transparent); }
-.brand-card .brand-icon { box-shadow: none; }
+.brand-card .brand-icon { width: min(4.25rem, 100%); height: auto; aspect-ratio: 1; flex: 0 0 auto; box-shadow: none; }
 .brand-icon img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; }
 .brand-card h3 { margin-top: 2.5rem; color: #fff; font-size: 1.5rem; overflow-wrap: anywhere; }
 .vendor-title-end { white-space: nowrap; }
 .vendor-marker { margin-left: .15em; color: var(--brand-accent); font-size: .65em; vertical-align: super; }
-.brand-card-stage { position: relative; box-sizing: border-box; min-height: 7rem; flex: 1; margin-top: .5rem; padding-bottom: 1rem; }
-.brand-card-description, .brand-card .brand-actions { position: absolute; inset: 0 0 1rem; transition: opacity .16s ease, transform .16s ease; }
-.brand-card-description { color: #fff; opacity: 1; }
+.brand-card-stage { position: relative; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr); min-height: 7rem; flex: 1; margin-top: .5rem; padding-bottom: 1rem; }
+.brand-card-description, .brand-card .brand-actions { grid-area: 1 / 1; min-width: 0; margin: 0; transition: opacity .16s ease, transform .16s ease; }
+.brand-card-description { color: #fff; opacity: 1; overflow-wrap: anywhere; }
 .brand-card .brand-actions { align-content: start; opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(.5rem); }
 .brand-card:hover .brand-card-description, .brand-card:focus-within .brand-card-description { opacity: 0; pointer-events: none; transform: translateY(-.5rem); }
 .brand-card:hover .brand-actions, .brand-card:focus-within .brand-actions { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }

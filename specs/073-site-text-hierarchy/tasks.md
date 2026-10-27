@@ -45,7 +45,7 @@
 - [x] T016 Inspect rendered home and References pages at narrow desktop, 390px, 320px, and enlarged text, including dark/light themes, keyboard focus, overflow, and measured contrast; record evidence in verification.md.
 - [x] T017 Run the full documented source, site, production-kit, glyph, PDF, WordPress, accessibility, and publication validation; record exact pass/fail/skip results in verification.md.
 - [x] T018 Update CHANGELOG.md proportionally, check UTF-8 without BOM, LF, mojibake, generated-artifact exclusion, and git diff --check; reconcile spec, plan, tasks, and verification.md.
-- [ ] T019 Commit the verified S073 source and artifacts, push the branch, open an official PR closing #310, #311, and #335, and attach it to this task.
+- [x] T019 Commit the verified S073 source and artifacts, push the branch, open an official PR closing #310, #311, and #335, and attach it to this task.
 - [ ] T020 Monitor CI and external reviews, address every finding, run at most one explicit @Codex second review round, and hand off only after all checks and applicable reviews are satisfied.
 
 ## Dependencies

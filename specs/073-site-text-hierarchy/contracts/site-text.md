@@ -12,6 +12,7 @@
 - Every current name and marker is fully rendered inside its content box. DanceWithMe865 has at least 24 CSS pixels between the title/marker right edge and the content box right edge at the narrowest desktop grid width.
 - Normal titles retain their standard display size. Only a measured insufficient fit invokes bounded reduction.
 - A synthetic longer title remains complete within the card through reduced size or wrapping. The vendor marker remains associated with its title and its `aria-describedby` target remains valid.
+- Enlarging the browser default font size to 125% or 200% preserves the title's `1.5rem` scale. Long titles wrap within the card rather than shrinking back to fixed pixel sizes.
 - Layout checks cover breakpoint widths, 390px, 320px, and 200% text enlargement. Cards do not overlap or create page-level horizontal overflow.
 
 ## References (#311)

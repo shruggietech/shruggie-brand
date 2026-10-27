@@ -16,7 +16,7 @@ Fetched `origin/main` is `92525759541a51b7a5b07328c6bc711807945c2c`. The S073 wo
 | Decision | Chosen | Rejected or deferred |
 | --- | --- | --- |
 | Portfolio description | Move the paragraph into the existing eyebrow/heading wrapper; style only the portfolio section. | CSS-only visual reordering would leave the DOM relationship split and could alter unrelated section headings. |
-| Long card titles | Measure rendered text against available width; reduce font size when clearance falls below 24px, down to a readable lower bound, then wrap if necessary. | The first 8px threshold left DanceWithMe865 at 24px with 19px clearance; global reduction wastes hierarchy on short names, and character-count heuristics ignore real font metrics and zoom. |
+| Long card titles | Measure rendered text against available width; at standard default font size, reduce when clearance falls below 24px, down to a readable lower bound, then wrap if necessary. At enlarged browser default font sizes, keep the rem-based title scale and wrap. | The first 8px threshold left DanceWithMe865 at 24px with 19px clearance; global reduction wastes hierarchy on short names, and character-count heuristics ignore real font metrics and zoom. Fixed pixel reduction also cancels user font enlargement. |
 | Reference fields | Four normal Markdown list items per reference, followed by route-scoped compact CSS. | HTML-only definition lists would reduce portability of the shipped Markdown; tables risk horizontal overflow. |
 | Verification | Add rendered geometry/structure checks and preserve existing exact-copy/link checks; use temporary synthetic long-title input. | Source substring checks alone cannot prove clipping, reflow, or layout. |
 
