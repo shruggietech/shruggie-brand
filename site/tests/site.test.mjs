@@ -39,6 +39,7 @@ const documentationTreeSource = readFileSync(new URL('../lib/documentation.ts', 
 const noScriptHierarchySource = readFileSync(new URL('../components/hierarchy-no-script.tsx', import.meta.url), 'utf8');
 const conformanceReferenceSource = readFileSync(new URL('../components/conformance-reference.tsx', import.meta.url), 'utf8');
 const conformanceIndexSource = readFileSync(new URL('../app/(site)/conformance/page.tsx', import.meta.url), 'utf8');
+const referenceSource = readFileSync(new URL('../../skill/references/references.md', import.meta.url), 'utf8');
 if (!assetLibrarySource.includes('className="asset-preview-media"') || !topicContentSource.includes('className="asset-preview-media"')) throw new Error('both guideline preview surfaces must use the shared media wrapper');
 if (!/\.asset-preview-media img \{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: contain;[^}]*\}/s.test(globalStyles)) throw new Error('shared preview containment styles must bind full media sizing to contain fitting');
 
@@ -82,6 +83,12 @@ if (!homepageSource.includes('<Link className="button primary" href="/docs">Docu
 if (!homepageSource.includes('className="button" href={publication.skillUrl} target="_blank" rel="noopener noreferrer">Download Skill</a>')) throw new Error('homepage lacks the exact safely isolated Download Skill secondary action');
 if (!homepageSource.includes('<a className="text-action hero-portfolio-link" href="#portfolio">Explore Our Portfolio<span aria-hidden="true">↓</span></a>')) throw new Error('homepage lacks the approved portfolio supporting action and decorative cue');
 if (!homepageSource.includes('<h2 id="portfolio-heading">Our Portfolio</h2>') || !homepageSource.includes('Explore our identity spectrum: a portfolio of distinct brands, each built with its own system, voice, and purpose.')) throw new Error('homepage portfolio wording differs from the approved contract');
+const referenceEntries = [...referenceSource.matchAll(/^### (REF-[A-Z0-9-]+)\n\n((?:- \*\*(?:Source|Class|Use|Limit):\*\*[^\n]*\n){4})/gm)];
+if (referenceEntries.length !== 68 || new Set(referenceEntries.map((match) => match[1])).size !== 68) throw new Error('References source lacks 68 distinct structured entries');
+for (const [, id, fields] of referenceEntries) {
+  const labels = [...fields.matchAll(/^- \*\*([^*]+)\*\*/gm)].map((match) => match[1]);
+  if (JSON.stringify(labels) !== JSON.stringify(['Source:', 'Class:', 'Use:', 'Limit:']) || !fields.includes('](')) throw new Error(`${id} lacks ordered, linked reference fields`);
+}
 for (const retired of ['The system underneath', 'Strategy, standards, assets, and implementation.', 'system-callout']) if (homepageSource.includes(retired)) throw new Error(`homepage retains removed callout source: ${retired}`);
 if (/\.system-callout\b/.test(globalStyles)) throw new Error('global styles retain obsolete system callout selectors');
 if (!/html \{[^}]*scrollbar-gutter: stable;/s.test(globalStyles)) throw new Error('shared document root does not reserve a stable scrollbar gutter');
@@ -284,7 +291,7 @@ export const legacyRoutes = brands.flatMap((brand) => [
 ]);
 export const conformanceRoutes = routeRecords.filter((route) => route.kind === 'conformance').map((route) => route.pathname);
 export const guidelineRoutes = routeRecords.filter((route) => ['guidelines', 'guidelines-topic'].includes(route.kind)).map((route) => route.pathname);
-export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/brand-essentials/`, `/${brand.slug}/guidelines/assets/`]), '/glitchpad/guidelines/color/', '/i-heart-pr-tours/guidelines/color/', '/i-heart-pr-tours/guidelines/expressions/', '/docs/', '/docs/00-variance-contract/'];
+export const visualRoutes = ['/', ...brands.flatMap((brand) => [`/${brand.slug}/guidelines/brand-essentials/`, `/${brand.slug}/guidelines/assets/`]), '/glitchpad/guidelines/color/', '/i-heart-pr-tours/guidelines/color/', '/i-heart-pr-tours/guidelines/expressions/', '/docs/', '/docs/00-variance-contract/', '/docs/references/'];
 export const visualThemes = ['light', 'dark'];
 export const visualWidths = [360, 390, 1280];
 export const requiredFiles = ['/favicon.svg', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/android-chrome-192x192.png', '/android-chrome-512x512.png', '/maskable-icon-192x192.png', '/maskable-icon-512x512.png', '/shruggietech-logo-dark.svg', '/shruggietech-logo-light.svg', '/site.webmanifest', '/robots.txt', '/sitemap.xml', '/static.json', ...routeRecords.map((route) => route.social.path), ...conformanceRecords.flatMap((record) => [record.specimenPath, record.manifestPath])];

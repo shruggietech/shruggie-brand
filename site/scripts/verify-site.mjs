@@ -479,7 +479,26 @@ try {
     { label: 'Explore Our Portfolio↓', href: '#portfolio', target: null, rel: null },
   ]), `homepage hero action order or policy differs from the approved contract (${JSON.stringify(heroActions)})`);
   check(await page.locator('#portfolio-heading').textContent() === 'Our Portfolio', 'homepage portfolio heading is not exact');
-  check((await page.locator('#portfolio .section-heading > p').textContent() ?? '').includes('identity spectrum'), 'homepage portfolio description omits identity spectrum');
+  check((await page.locator('#portfolio .portfolio-section-heading > p:last-child').textContent() ?? '').includes('identity spectrum'), 'homepage portfolio description omits identity spectrum');
+  const portfolioIntroduction = await page.locator('#portfolio').evaluate((section) => {
+    const heading = section.querySelector('#portfolio-heading');
+    const description = heading?.parentElement?.querySelector(':scope > p:last-child');
+    const cards = section.querySelector('.brand-grid');
+    const headingBox = heading?.getBoundingClientRect();
+    const descriptionBox = description?.getBoundingClientRect();
+    return { grouped: Boolean(description && description !== heading?.previousElementSibling), text: description?.textContent?.trim(), belowHeading: Boolean(headingBox && descriptionBox && descriptionBox.top >= headingBox.bottom - 1), leftAligned: Boolean(headingBox && descriptionBox && Math.abs(descriptionBox.left - headingBox.left) <= 1), beforeCards: Boolean(descriptionBox && cards && descriptionBox.bottom < cards.getBoundingClientRect().top) };
+  });
+  check(portfolioIntroduction.grouped && portfolioIntroduction.text === 'Explore our identity spectrum: a portfolio of distinct brands, each built with its own system, voice, and purpose.' && portfolioIntroduction.belowHeading && portfolioIntroduction.leftAligned && portfolioIntroduction.beforeCards, `portfolio description is not grouped beneath its heading (${JSON.stringify(portfolioIntroduction)})`);
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const compactIntroduction = await page.locator('#portfolio').evaluate((section) => {
+      const heading = section.querySelector('h2').getBoundingClientRect();
+      const description = section.querySelector('.portfolio-section-heading > p:last-child').getBoundingClientRect();
+      return { below: description.top >= heading.bottom - 1, aligned: Math.abs(description.left - heading.left) <= 1, withinViewport: description.right <= window.innerWidth + 1, overflow: section.scrollWidth - section.clientWidth };
+    });
+    check(compactIntroduction.below && compactIntroduction.aligned && compactIntroduction.withinViewport && compactIntroduction.overflow <= 1, `portfolio introduction fails reflow at ${width}px (${JSON.stringify(compactIntroduction)})`);
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
   check(await page.locator('.system-callout').count() === 0 && !(await page.locator('body').innerText()).includes('The system underneath'), 'homepage still emits the removed system callout');
   const portfolioAction = page.locator('.hero-portfolio-link');
   const portfolioSpacing = await portfolioAction.evaluate((element) => { const previous = element.previousElementSibling; const link = element.getBoundingClientRect(); const prior = previous?.getBoundingClientRect(); const cue = element.querySelector('[aria-hidden="true"]'); const cueBox = cue?.getBoundingClientRect(); return { gap: prior ? link.top - prior.bottom : 0, linkCenter: link.top + link.height / 2, cueCenter: cueBox ? cueBox.top + cueBox.height / 2 : 0, cue: cue?.textContent, hidden: cue?.getAttribute('aria-hidden') }; });
@@ -510,6 +529,60 @@ try {
   const applicableBrands = new Set(markerDetails.map((marker) => marker.brand).filter(Boolean));
   check(JSON.stringify([...applicableBrands].sort()) === JSON.stringify(brands.filter((brand) => brand.vendorBoundary).map((brand) => brand.title).sort()), `portfolio vendor markers differ from generated applicability (${JSON.stringify([...applicableBrands])})`);
   check(markerDetails.every((marker) => marker.describedBy === 'portfolio-third-party-notice' && marker.equivalent === 'Independent third-party project'), `portfolio markers lack the shared association or accessible equivalent (${JSON.stringify(markerDetails)})`);
+  await page.setViewportSize({ width: 1170, height: 900 });
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const titleClearance = await page.locator('.brand-card').evaluateAll((cards) => cards.map((card) => {
+    const heading = card.querySelector('h3');
+    const marker = heading?.querySelector('.vendor-marker');
+    const content = heading?.querySelector('.brand-title-text');
+    if (!heading || !content) return null;
+    const visible = [...content.getClientRects()].filter((rect) => rect.width > 0);
+    const usableRight = card.getBoundingClientRect().right - Number.parseFloat(getComputedStyle(card).paddingRight);
+    return { brand: heading.textContent?.replace(' Independent third-party project', '').replace('*', '').trim(), clearance: usableRight - Math.max(...visible.map((rect) => rect.right)), size: Number.parseFloat(getComputedStyle(heading).fontSize), markerVisible: !marker || marker.getBoundingClientRect().width > 0 };
+  }));
+  const danceTitle = titleClearance.find((sample) => sample?.brand === 'DanceWithMe865');
+  const shortTitle = titleClearance.find((sample) => sample?.brand === 'Covarity');
+  check(Boolean(danceTitle && danceTitle.markerVisible && danceTitle.clearance >= 23.5 && danceTitle.size < shortTitle?.size && shortTitle.size >= 23.5), `DanceWithMe865 title did not reduce before the card edge (${JSON.stringify({ danceTitle, shortTitle })})`);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const typicalDanceTitle = await page.locator('.brand-card', { hasText: 'DanceWithMe865' }).locator('h3').evaluate((heading) => {
+    const card = heading.closest('.brand-card');
+    const content = heading.querySelector('.brand-title-text');
+    const right = card.getBoundingClientRect().right - Number.parseFloat(getComputedStyle(card).paddingRight);
+    return { size: Number.parseFloat(getComputedStyle(heading).fontSize), clearance: right - Math.max(...[...content.getClientRects()].map((rect) => rect.right)), wrap: getComputedStyle(heading).whiteSpace };
+  });
+  check(typicalDanceTitle.size < shortTitle?.size && typicalDanceTitle.clearance >= 23.5 && typicalDanceTitle.wrap === 'nowrap', `DanceWithMe865 did not retain a fitted single-line title at the typical five-column width (${JSON.stringify(typicalDanceTitle)})`);
+  const syntheticCard = page.locator('.brand-card', { hasText: 'DanceWithMe865' });
+  await syntheticCard.locator('.brand-title-text').evaluate((element) => { element.firstChild.textContent = 'DanceWithMe865SyntheticExtraLongCompanyName'; });
+  await page.setViewportSize({ width: 1000, height: 900 });
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const syntheticTitle = await syntheticCard.evaluate((card) => {
+    const heading = card.querySelector('h3');
+    const marker = heading.querySelector('.vendor-marker');
+    const tail = heading.querySelector('.vendor-title-end');
+    const usableRight = card.getBoundingClientRect().right - Number.parseFloat(getComputedStyle(card).paddingRight);
+    return { text: heading.textContent.replace(' Independent third-party project', '').replace('*', '').trim(), clipped: heading.scrollWidth > heading.clientWidth + 1, clearance: usableRight - marker.getBoundingClientRect().right, wrapped: getComputedStyle(heading).whiteSpace === 'normal', tailWithMarker: Math.abs(tail.getBoundingClientRect().bottom - marker.getBoundingClientRect().bottom) < 20 };
+  });
+  check(syntheticTitle.text === 'DanceWithMe865SyntheticExtraLongCompanyName65' && syntheticTitle.wrapped && !syntheticTitle.clipped && syntheticTitle.clearance >= 23.5 && syntheticTitle.tailWithMarker, `synthetic long title did not wrap with its marker inside the card (${JSON.stringify(syntheticTitle)})`);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(base + '/');
+  for (const rootFont of ['125%', '200%']) {
+    await page.evaluate((fontSize) => { document.documentElement.style.fontSize = fontSize; }, rootFont);
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const enlargedTitle = await page.locator('.brand-card', { hasText: 'DanceWithMe865' }).evaluate((card) => {
+      const heading = card.querySelector('h3');
+      const marker = heading.querySelector('.vendor-marker');
+      const iconBox = card.querySelector('.brand-icon').getBoundingClientRect();
+      const rootSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const usableRight = card.getBoundingClientRect().right - Number.parseFloat(getComputedStyle(card).paddingRight);
+      const description = card.querySelector('.brand-card-description');
+      return { rootSize, titleSize: Number.parseFloat(getComputedStyle(heading).fontSize), wrapped: getComputedStyle(heading).whiteSpace === 'normal', clearance: usableRight - marker.getBoundingClientRect().right, iconContained: iconBox.right <= usableRight + 1 && Math.abs(iconBox.width - iconBox.height) <= 1, clipped: card.scrollWidth > card.clientWidth + 1 || card.scrollHeight > card.clientHeight + 1 || description.scrollHeight > description.clientHeight + 1, pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+    });
+    check(enlargedTitle.titleSize >= enlargedTitle.rootSize * 1.5 - .1 && enlargedTitle.wrapped && enlargedTitle.clearance >= 23.5 && enlargedTitle.iconContained && !enlargedTitle.clipped && enlargedTitle.pageOverflow <= 2, `DanceWithMe865 loses enlarged default-font size or card containment at ${rootFont} (${JSON.stringify(enlargedTitle)})`);
+  }
+  await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const sharedNotice = page.locator('.portfolio-vendor-notice');
   const sharedNoticeText = (await sharedNotice.innerText()).trim();
   check(await sharedNotice.locator(':scope > p').count() === 1, 'portfolio third-party notice must contain exactly one paragraph');
@@ -817,6 +890,10 @@ try {
     await Promise.all(routePages.map((routePage) => routePage.close()));
   }
   console.log(`completed ${routeCases.length} route and viewport checks in ${Math.round((performance.now() - routeStart) / 1000)}s with ${routePages.length} browser pages`);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(base + '/conformance/');
+  const conformanceHeading = await page.locator('.conformance-page .section-heading').evaluate((element) => ({ display: getComputedStyle(element).display, direction: getComputedStyle(element).flexDirection, description: element.querySelector(':scope > p')?.textContent?.trim() }));
+  check(conformanceHeading.display === 'flex' && conformanceHeading.direction === 'row' && conformanceHeading.description === 'Native host fixtures remain distinct from browser evidence and product outcome claims.', `portfolio heading layout leaked into Conformance (${JSON.stringify(conformanceHeading)})`);
   check(conformanceRoutes.length === conformanceRecords.length, 'public conformance route count differs from the generated brand inventory');
   for (const record of conformanceRecords) {
     const route = `/conformance/${record.slug}/`;
@@ -1088,6 +1165,22 @@ try {
   check(await page.locator('a[href="/docs/references/#ref-ui-carbon"]').count() === 1, 'the color contract lacks a source-resolving Carbon citation');
   await page.goto(base + '/docs/references/#ref-ui-carbon');
   check(await page.locator('h3#ref-ui-carbon').count() === 1 && await page.locator('h3#ref-a11y-wcag21').count() === 1, 'References lacks stable readable source anchors');
+  const referenceGroups = await page.locator('.docs-page h3[id^="ref-"]').evaluateAll((headings) => headings.map((heading) => {
+    const fields = heading.nextElementSibling;
+    const items = fields?.tagName === 'UL' ? [...fields.children] : [];
+    return { id: heading.id, list: fields?.tagName === 'UL', labels: items.map((item) => item.querySelector('strong')?.textContent?.trim()), linked: items.some((item) => Boolean(item.querySelector('a'))), grouped: Boolean(fields && heading.getBoundingClientRect().bottom <= fields.getBoundingClientRect().top + 12) };
+  }));
+  check(referenceGroups.length === 68 && referenceGroups.every((group) => group.list && JSON.stringify(group.labels) === JSON.stringify(['Source:', 'Class:', 'Use:', 'Limit:']) && group.grouped), `References entries are not distinct compact four-field groups (${JSON.stringify(referenceGroups.filter((group) => !group.list || group.labels.length !== 4).slice(0, 5))})`);
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const containment = await page.locator('.references-page h3[id^="ref-"] + ul').evaluateAll((groups) => groups.map((group) => ({ id: group.previousElementSibling?.id, overflow: group.scrollWidth - group.clientWidth, beyondViewport: group.getBoundingClientRect().right - window.innerWidth })));
+    check(containment.length === 68 && containment.every((group) => group.overflow <= 1 && group.beyondViewport <= 1), `References fields overflow at ${width}px (${JSON.stringify(containment.filter((group) => group.overflow > 1 || group.beyondViewport > 1).slice(0, 5))})`);
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+  const enlargedReferences = await page.locator('.references-page h3[id^="ref-"] + ul').evaluateAll((groups) => groups.map((group) => ({ id: group.previousElementSibling?.id, overflow: group.scrollWidth - group.clientWidth })));
+  check(enlargedReferences.length === 68 && enlargedReferences.every((group) => group.overflow <= 1), `References fields overflow at 200 percent text enlargement (${JSON.stringify(enlargedReferences.filter((group) => group.overflow > 1).slice(0, 5))})`);
+  await page.evaluate(() => { document.documentElement.style.zoom = ''; });
   check(await page.locator('#nd-sidebar a[href="/docs/references/"]').count() >= 1, 'References is missing from manual navigation');
   const searchResponse = await page.request.get(base + '/static.json');
   check(searchResponse.ok() && (await searchResponse.text()).includes('References'), 'References is missing from static documentation search');
