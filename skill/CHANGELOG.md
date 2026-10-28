@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 3.1.1 - 2026-10-28
+
+- Assign patch versions to seven brands with exact owner-approved message decisions and to BrandBuilder for corrected generated output. Brand Canon remains 2.1.0; approved geometry, palettes, fonts, social compositions and adapter APIs remain unchanged.
+- Use exact approved short descriptions on portfolio cards and formal brand outputs. WordPress omits an unapproved hero description and Next.js uses title-only alternative text when canonical site metadata is absent or unresolved.
+- Group the home page portfolio introduction beneath its heading, fit complete card titles and affiliation markers within each card, and show all 68 References entries as compact labeled fields.
+- Update the WordPress validation fixture and Python/site dependencies, including patched Brotli and source-map-js packages.
+- Regenerate and repin changed brand packages to adopt the new copy and generator behavior; older release packages remain immutable recovery inputs.
+
 ## 3.1.0 - 2026-10-21
 
 - Resolve omitted multiline canvas/wordmark ink defaults without changing explicit approved renderer bindings.

@@ -4,12 +4,15 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-10-28
+
 ### Changed
 
 - Record seven brands' exact owner-approved messaging decisions, including four short descriptions for portfolio cards and formal brand outputs. Preserve unresolved optional roles and independent social-image wording.
 - Group the home page portfolio introduction beneath its heading, fit complete card titles and affiliation markers within the card, and present all 68 References entries as compact labeled fields (S073).
 - Pin patched WordPress validation fixture dependencies so its documented audit gate remains green.
 - Consolidate pending Python and site dependency updates, align Fumadocs Core and UI with MDX, and pin the patched source-map-js transitive package.
+- Assign patch versions to seven edited brand packages and BrandBuilder so the approved copy and corrected generated output receive immutable package identities.
 
 ### Fixed
 
@@ -18,6 +21,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 ### Decisions
 
 - 2026-10-27: Apply only the owner's recorded short-description decisions and defer all other optional copy under the no-questions cleanup direction. The next release slice must assign patch versions to the changed brand packages and compiler together with dated release history and impact metadata. S072 does not tag or publish a release.
+- 2026-10-28 (S074): Publish the merged S072 and S073 changes as BrandBuilder 3.1.1 with seven brand patch versions. Retain Brand Canon 2.1.0 and adapter versions because their contracts are compatible; deploy the site through the existing CI-built version-tag release workflow.
 
 ## [3.1.0] - 2026-10-21
 
