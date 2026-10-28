@@ -295,7 +295,17 @@
       "status": "unresolved"
     },
     "short_description": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "Cross-platform task scheduler in Go.",
+      "uses": [
+        "visual-guide",
+        "strategy-reference",
+        "site-metadata",
+        "consumer-data"
+      ],
+      "source": "https://github.com/shruggietech/shruggie-brand/issues/309#issuecomment-6452484165",
+      "approved_by": "repository owner",
+      "approved_on": "2026-10-27"
     },
     "long_description": {
       "status": "unresolved"

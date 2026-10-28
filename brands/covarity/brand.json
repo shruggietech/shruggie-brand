@@ -229,13 +229,32 @@
   },
   "messaging": {
     "slogan": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "See what is known",
+      "uses": [
+        "visual-guide",
+        "strategy-reference",
+        "consumer-data"
+      ],
+      "source": "https://github.com/shruggietech/shruggie-brand/issues/309#issuecomment-5918345330",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-30"
     },
     "short_description": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "An evidence-backed knowledge graph and a policy-enforcing context compiler.",
+      "uses": [
+        "visual-guide",
+        "strategy-reference",
+        "site-metadata",
+        "consumer-data"
+      ],
+      "source": "https://github.com/shruggietech/shruggie-brand/issues/309#issuecomment-5918345330 (sentence period retained; trailing reply comma was list punctuation)",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-30"
     },
     "long_description": {
-      "status": "unresolved"
+      "status": "absent"
     }
   },
   "social_copy": {

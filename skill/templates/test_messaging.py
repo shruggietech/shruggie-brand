@@ -13,6 +13,8 @@ from brand_contract import ContractError, validate_brand
 from authoring_brief import TOPICS, BriefError, validate_brief
 from verify import Report, c_messaging, message_projection_problems
 from schema_validation import validate_json_schema
+import gen_nextjs
+from gen_wordpress import patterns
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -34,6 +36,56 @@ def sparse():
 
 
 class MessagingContractTests(unittest.TestCase):
+    def test_wordpress_hero_respects_canonical_description_and_uses(self):
+        brand = sparse()
+        brand.update(slug="alpha", title="Alpha", descriptor="Rejected legacy sentence.",
+                     functional_descriptor="Unapproved fallback.")
+        for state in ("absent", "unresolved", "wrong-use", "approved"):
+            with self.subTest(state=state), tempfile.TemporaryDirectory() as temporary:
+                theme = Path(temporary)
+                (theme / "patterns").mkdir()
+                record = ({"status": state} if state in ("absent", "unresolved") else
+                          message('Exact "owner" words & meaning.',
+                                  "site-metadata" if state == "approved" else "visual-guide"))
+                brand["messaging"]["short_description"] = record
+                patterns(theme, brand, "alpha-mark.png")
+                hero = (theme / "patterns" / "hero.php").read_text(encoding="utf-8")
+                self.assertNotIn("Rejected legacy sentence.", hero)
+                self.assertNotIn("Unapproved fallback.", hero)
+                self.assertNotIn("Explore our work.", hero)
+                if state == "approved":
+                    self.assertIn("Exact &quot;owner&quot; words &amp; meaning.", hero)
+                else:
+                    self.assertNotIn("<!-- wp:paragraph", hero)
+
+    def test_nextjs_og_alt_uses_exact_canonical_copy_or_title_only(self):
+        import re
+        source = ROOT / "brands" / "covarity" / "brand.json"
+        brand = json.loads(source.read_text(encoding="utf-8"))
+        brand["title"] = 'Alpha "quoted" & clear'
+        brand["descriptor"] = "Rejected legacy sentence."
+        brand["functional_descriptor"] = "Unapproved fallback."
+        for state in ("absent", "unresolved", "wrong-use", "approved"):
+            with self.subTest(state=state), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                record = ({"status": state} if state in ("absent", "unresolved") else
+                          message('Exact "owner" words & meaning.',
+                                  "site-metadata" if state == "approved" else "visual-guide"))
+                brand["messaging"]["short_description"] = record
+                spec = root / "brand.json"
+                spec.write_text(json.dumps(brand), encoding="utf-8")
+                with patch("sys.argv", ["gen_nextjs.py", str(spec), str(root)]), patch("builtins.print"):
+                    gen_nextjs.main()
+                output = (root / "nextjs" / "opengraph-image.tsx").read_text(encoding="utf-8")
+                self.assertNotIn("Rejected legacy sentence.", output)
+                self.assertNotIn("Unapproved fallback.", output)
+                match = re.search(r'alt=\{("(?:[^"\\]|\\.)*")\}', output)
+                self.assertIsNotNone(match, "alt must be a safely serialized TSX string expression")
+                expected = brand["title"]
+                if state == "approved":
+                    expected += ', Exact "owner" words & meaning.'
+                self.assertEqual(expected, json.loads(match.group(1)))
+
     def test_sparse_and_absent_never_cross_fill(self):
         brand = sparse()
         brand["descriptor"] = "Legacy description."
@@ -90,6 +142,9 @@ class MessagingContractTests(unittest.TestCase):
         for slug in ("fragcap", "go-schedule", "glitchpad", "shruggietech"):
             source = ROOT / "brands" / slug / "brand.json"
             brand = json.loads(source.read_text(encoding="utf-8"))
+            if slug != "shruggietech":
+                # Later owner approvals must not remove unresolved-state coverage.
+                brand["messaging"]["slogan"] = {"status": "unresolved"}
             visual = approved_messages(brand, "visual-guide")
             if slug == "shruggietech":
                 self.assertEqual("We’ll figure it out.", visual["slogan"])

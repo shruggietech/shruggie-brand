@@ -53,12 +53,14 @@ This inventory records exact legacy source values before source migration. An ex
 
 ## dancewithme865
 
+S072 correction, 2026-10-21: the prior Gate 2 approval assertion for this descriptor was false. Issue #309 records its rejection, explicit short/long absence, and the later 2026-10-01 reusable slogan approval `Join the Krucial Crew.`. Social-image-only wording remains `DanceWithMe865`.
+
 | Source path | Exact legacy value | Disposition |
 | --- | --- | --- |
-| `brand.json.descriptor` | `"An independent dance brand."` | Gate 2 approved showcase-card and public-metadata copy; approved as site-metadata short description only; visual-guide use unresolved |
-| `brand.json.brand_idea` | `"DanceWithMe865"` | Retained as legacy source; reusable message role unresolved |
+| `brand.json.descriptor` | `"An independent dance brand."` | Never owner-approved: owner correction on 2026-09-30 supersedes the S067 approval claim. S072 removes the active descriptor and marks short/long descriptions absent; retained here only as rejected historical context |
+| `brand.json.brand_idea` | `"DanceWithMe865"` | Retained as legacy source; not the independently approved reusable slogan |
 | `brand.json.category` | `"Dance brand"` | Retained as legacy source; reusable message role unresolved |
-| `brand.json.social_copy.slogan` | `"DanceWithMe865"` | Owner-approved social image composition; general slogan role unresolved |
+| `brand.json.social_copy.slogan` | `"DanceWithMe865"` | Owner-approved social image composition; the distinct reusable slogan is `Join the Krucial Crew.` |
 | `brand.json.guide.surface_mode` | `"light"` | Presentation setting, migrated to canonical guidance |
 
 ## eso-weave

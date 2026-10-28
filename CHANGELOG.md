@@ -6,8 +6,18 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Changed
 
+- Record seven brands' exact owner-approved messaging decisions, including four short descriptions for portfolio cards and formal brand outputs. Preserve unresolved optional roles and independent social-image wording.
 - Group the home page portfolio introduction beneath its heading, fit complete card titles and affiliation markers within the card, and present all 68 References entries as compact labeled fields (S073).
 - Pin patched WordPress validation fixture dependencies so its documented audit gate remains green.
+- Consolidate pending Python and site dependency updates, align Fumadocs Core and UI with MDX, and pin the patched source-map-js transitive package.
+
+### Fixed
+
+- Stop generated Next.js and WordPress starters from publishing legacy descriptors when a canonical short description is absent or unresolved. Retain meaningful title-only alternative text.
+
+### Decisions
+
+- 2026-10-27: Apply only the owner's recorded short-description decisions and defer all other optional copy under the no-questions cleanup direction. The next release slice must assign patch versions to the changed brand packages and compiler together with dated release history and impact metadata. S072 does not tag or publish a release.
 
 ## [3.1.0] - 2026-10-21
 

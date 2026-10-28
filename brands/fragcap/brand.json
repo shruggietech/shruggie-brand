@@ -181,10 +181,29 @@
   },
   "messaging": {
     "slogan": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "Game traffic, with context.",
+      "uses": [
+        "visual-guide",
+        "strategy-reference",
+        "consumer-data"
+      ],
+      "source": "Owner S072 interactive choice, 2026-10-21: B - Game traffic, with context.",
+      "approved_by": "repository owner",
+      "approved_on": "2026-10-21"
     },
     "short_description": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "Process-attributed packet capture for games on Windows.",
+      "uses": [
+        "visual-guide",
+        "strategy-reference",
+        "site-metadata",
+        "consumer-data"
+      ],
+      "source": "https://github.com/shruggietech/shruggie-brand/issues/309#issuecomment-6452484165",
+      "approved_by": "repository owner",
+      "approved_on": "2026-10-27"
     },
     "long_description": {
       "status": "unresolved"

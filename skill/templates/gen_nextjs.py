@@ -24,6 +24,7 @@ import json, re, os, sys
 from coloraide import Color
 from brand_contract import font_faces, semantic_colors, typography_families, vendor_boundary
 from color_roles import functional_cue_colors
+from messaging import approved_messages
 
 def governed_description(brand, description):
     boundary = vendor_boundary(brand)
@@ -366,7 +367,7 @@ export function OpenGraphImage({ className }: { className?: string }) {
     <img
       className={className}
       src="/%(slug)s-social-preview-1280.png"
-      alt="%(alt)s"
+      alt={%(alt)s}
     />
   )
 }
@@ -423,10 +424,11 @@ def main():
     w(os.path.join(nd, "fonts.ts"), emit_fonts_ts(brand))
     w(os.path.join(nd, "providers.tsx"), PROVIDERS_TSX)
     w(os.path.join(nd, "app-icon.tsx"), APP_ICON_TSX)
+    description = approved_messages(brand, "site-metadata").get("short_description")
+    image_alt = brand["title"] + (", " + description if description else "")
     w(os.path.join(nd, "opengraph-image.tsx"), OPENGRAPH_TSX % {
         "slug": brand["slug"],
-        "alt": "%s, %s" % (brand["title"], brand.get("functional_descriptor",
-                                                     brand.get("descriptor", "")).rstrip("."))})
+        "alt": json.dumps(image_alt)})
     items = [emit_theme_item(canon, brand, dark, light)]
     domain_items = domain_row_items(brand)
     items.extend(item for _, item in domain_items)
