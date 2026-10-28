@@ -47,6 +47,8 @@ Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 
 | covarity | `guidance.personality[2][0]` | `"Structural"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | covarity | `guidance.personality[2][1]` | `"Shows the graph, the timeline, and the queue"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | covarity | `guidance.personality[2][2]` | `"Black boxes and unexplained results"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| covarity | `messaging.slogan` | `"See what is known"` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, consumer-data |
+| covarity | `messaging.short_description` | `"An evidence-backed knowledge graph and a policy-enforcing context compiler."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, site-metadata, consumer-data |
 | cueson | `title` | `"Cueson"` | approved identity name | Project as the approved name |
 | cueson | `affiliation.ownership` | `"shruggietech-owned"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | cueson | `affiliation.parent` | `"ShruggieTech"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
@@ -94,13 +96,14 @@ Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 
 | cueson | `guidance.personality[3][0]` | `"Measured"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | cueson | `guidance.personality[3][1]` | `"Labels OCR and transcription as derived output"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | cueson | `guidance.personality[3][2]` | `"Claims of perfect recovery"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| cueson | `messaging.slogan` | `"Universal captions and subtitles"` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, consumer-data |
 | cueson | `messaging.short_description` | `"A lossless, structured interchange layer for subtitle and caption content."` | approved for another surface | Project only on the declared surfaces: site-metadata |
+| cueson | `messaging.long_description` | `"A lossless, structured interchange layer for subtitle and caption content."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, site-metadata, consumer-data |
 | dancewithme865 | `title` | `"DanceWithMe865"` | approved identity name | Project as the approved name |
 | dancewithme865 | `affiliation.ownership` | `"third-party"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | dancewithme865 | `affiliation.endorsement` | `"none"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
-| dancewithme865 | `descriptor` | `"An independent dance brand."` | legacy product or strategy summary | Retain in source for product or messaging review; omit from visual guides |
 | dancewithme865 | `brand_idea` | `"DanceWithMe865"` | legacy product or strategy summary | Retain in source for product or messaging review; omit from visual guides |
-| dancewithme865 | `messaging.short_description` | `"An independent dance brand."` | approved for another surface | Project only on the declared surfaces: site-metadata |
+| dancewithme865 | `messaging.slogan` | `"Join the Krucial Crew."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, consumer-data |
 | eso-weave | `title` | `"ESO Weave"` | approved identity name | Project as the approved name |
 | eso-weave | `affiliation.ownership` | `"third-party"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | eso-weave | `affiliation.endorsement` | `"none"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
@@ -187,6 +190,8 @@ Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 
 | fragcap | `guidance.personality[3][0]` | `"Transparent"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | fragcap | `guidance.personality[3][1]` | `"Names limitations, prerequisites, and sharp edges"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | fragcap | `guidance.personality[3][2]` | `"Implied magic"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| fragcap | `messaging.slogan` | `"Game traffic, with context."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, consumer-data |
+| fragcap | `messaging.short_description` | `"Process-attributed packet capture for games on Windows."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, site-metadata, consumer-data |
 | glitchpad | `title` | `"Glitchpad"` | approved identity name | Project as the approved name |
 | glitchpad | `affiliation.ownership` | `"shruggietech-owned"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | glitchpad | `affiliation.parent` | `"ShruggieTech"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
@@ -230,6 +235,7 @@ Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 
 | glitchpad | `guidance.personality[2][0]` | `"Familiar"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | glitchpad | `guidance.personality[2][1]` | `"Uses predictable controls and layouts"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | glitchpad | `guidance.personality[2][2]` | `"Novel interaction for its own sake"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| glitchpad | `messaging.short_description` | `"A fast, cross-platform viewer and editor for local files."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, site-metadata, consumer-data |
 | go-schedule | `title` | `"go-schedule"` | approved identity name | Project as the approved name |
 | go-schedule | `affiliation.ownership` | `"shruggietech-owned"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | go-schedule | `affiliation.parent` | `"ShruggieTech"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
@@ -267,6 +273,7 @@ Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 
 | go-schedule | `guidance.personality[3][0]` | `"Fair to cron"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | go-schedule | `guidance.personality[3][1]` | `"Uses cron as a reference frame"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | go-schedule | `guidance.personality[3][2]` | `"Copy that dismisses cron"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
+| go-schedule | `messaging.short_description` | `"Cross-platform task scheduler in Go."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, site-metadata, consumer-data |
 | i-heart-pr-tours | `title` | `"I Heart PR Tours"` | approved identity name | Project as the approved name |
 | i-heart-pr-tours | `affiliation.ownership` | `"third-party"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | i-heart-pr-tours | `affiliation.endorsement` | `"none"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
@@ -477,5 +484,6 @@ Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 
 | shruggietech | `guidance.personality[3][1]` | `"Builds systems clients can operate and keep"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | shruggietech | `guidance.personality[3][2]` | `"Platform lock-in"` | voice guidance | Retain in canonical source and dedicated Voice guidance; omit from the PDF identity opening |
 | shruggietech | `messaging.slogan` | `"We’ll figure it out."` | approved identity words | Project only on the declared surfaces: visual-guide, social-image, site-metadata, consumer-data |
+| shruggietech | `messaging.short_description` | `"Modern digital systems, software, and AI-driven experiences."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, site-metadata, consumer-data |
 
-Total classified items: 473 across 13 production brands.
+Total classified items: 481 across 13 production brands.

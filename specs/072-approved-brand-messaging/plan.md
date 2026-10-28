@@ -52,8 +52,9 @@ Preserve messaging.py's strict six-field approved record and status-only absent/
 - brands/*/identity-continuity.json for required source digest refresh only.
 - skill/templates/gen_nextjs.py, gen_wordpress.py, test_messaging.py.
 - specs/067-approved-messaging-guide-parity/migration-inventory.md for explicit historical correction.
+- specs/068-brand-essentials-docs-navigation/disposition-inventory.md for the source-bound approved-message inventory.
 - specs/072-approved-brand-messaging/{spec,plan,research,data-model,quickstart,tasks,decisions,inventory,verification}.md and contracts/public-messaging.md.
-- CHANGELOG.md and skill/SKILL.md at final versioning.
+- CHANGELOG.md for unreleased source changes; skill/SKILL.md remains at the current release version until the coordinated release slice.
 
 **Structure Decision**: Reuse the existing canonical messaging contract; no new runtime state or approval machinery.
 

@@ -50,9 +50,9 @@ class BrandEssentialsTests(unittest.TestCase):
         self.assertNotIn("<span", projection["written_form"])
         self.assertNotIn(rich["guidance"]["sharp_edge"], str(projection))
         sparse = essentials_projection(self.brand("dancewithme865"))
-        self.assertEqual({}, sparse["approved_words"])
+        self.assertEqual({"slogan": "Join the Krucial Crew."}, sparse["approved_words"])
         self.assertEqual([], sparse["usage_limits"])
-        self.assertNotIn("Approved words", [name for name, _ in essentials_sections(sparse)])
+        self.assertIn("Approved words", [name for name, _ in essentials_sections(sparse)])
 
     def test_all_production_brands_have_source_bound_essentials(self):
         sources = sorted((ROOT / "brands").glob("*/brand.json"))

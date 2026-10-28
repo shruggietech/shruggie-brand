@@ -40,8 +40,8 @@
 ## Phase 6: Final validation and handoff
 
 - [x] T015 Record patch-version impact for the next coordinated release in CHANGELOG.md and refresh final continuity digests, retaining current numeric versions in this source-only slice (FR-009).
-- [ ] T016 Run all documented production kit, glyph, PDF, contract, WordPress runtime, site, accessibility, and publication checks; inspect changed copy surfaces and record evidence in specs/072-approved-brand-messaging/verification.md (FR-010).
-- [ ] T017 Check source-only diff, UTF-8/BOM/LF/mojibake, Markdown, and git diff --check; synchronize specs/072-approved-brand-messaging/ artifacts and commit locally (FR-010).
+- [x] T016 Run all documented production kit, glyph, PDF, contract, WordPress runtime, site, accessibility, and publication checks; inspect changed copy surfaces and record evidence in specs/072-approved-brand-messaging/verification.md (FR-010).
+- [x] T017 Check source-only diff, UTF-8/BOM/LF/mojibake, Markdown, and git diff --check; synchronize specs/072-approved-brand-messaging/ artifacts and commit locally (FR-010).
 
 ## Dependencies and execution order
 
