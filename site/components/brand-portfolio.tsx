@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Brand } from '@/lib/brands';
 
 const noticeId = 'portfolio-third-party-notice';
@@ -14,7 +14,8 @@ function brandStyle(brand: Brand) {
 }
 
 function BrandName({ brand }: { brand: Brand }) {
-  return <>{brand.title}{brand.vendorBoundary && <sup className="vendor-marker" aria-describedby={noticeId}>*<span className="sr-only"> Independent third-party project</span></sup>}</>;
+  if (!brand.vendorBoundary) return <>{brand.title}</>;
+  return <>{brand.title.slice(0, -2)}<span className="vendor-title-end">{brand.title.slice(-2)}<sup className="vendor-marker" aria-describedby={noticeId}>*<span className="sr-only"> Independent third-party project</span></sup></span></>;
 }
 
 function BrandActions({ brand }: { brand: Brand }) {
@@ -26,8 +27,56 @@ function BrandActions({ brand }: { brand: Brand }) {
 
 function DesktopBrandCard({ brand }: { brand: Brand }) {
   const card = useRef<HTMLElement>(null);
+  const title = useRef<HTMLHeadingElement>(null);
   const [dismissed, setDismissed] = useState(false);
   const description = brand.approvedMessaging.short_description;
+  useEffect(() => {
+    const cardElement = card.current;
+    const titleElement = title.current;
+    const contentElement = titleElement?.querySelector<HTMLElement>('.brand-title-text');
+    if (!cardElement || !titleElement || !contentElement) return;
+    let frame = 0;
+    let disposed = false;
+    const fitTitle = () => {
+      titleElement.style.fontSize = '';
+      titleElement.style.maxWidth = '';
+      titleElement.style.whiteSpace = 'nowrap';
+      titleElement.style.overflowWrap = 'normal';
+      const available = Math.max(0, titleElement.clientWidth - 24);
+      const naturalWidth = contentElement.getBoundingClientRect().width;
+      if (naturalWidth <= available) return;
+      // An enlarged browser default font must retain the rem-based title size.
+      // Wrap it within the card instead of reducing it toward a fixed pixel size.
+      if (parseFloat(getComputedStyle(document.documentElement).fontSize) > 16) {
+        titleElement.style.maxWidth = 'calc(100% - 24px)';
+        titleElement.style.whiteSpace = 'normal';
+        titleElement.style.overflowWrap = 'anywhere';
+        return;
+      }
+      const baseSize = parseFloat(getComputedStyle(titleElement).fontSize);
+      const minimumSize = 18;
+      let fittedSize = Math.max(minimumSize, Math.floor(baseSize * available / naturalWidth * 10) / 10);
+      titleElement.style.fontSize = `${fittedSize}px`;
+      while (contentElement.getBoundingClientRect().width > available && fittedSize > minimumSize) {
+        fittedSize = Math.max(minimumSize, fittedSize - .5);
+        titleElement.style.fontSize = `${fittedSize}px`;
+      }
+      if (contentElement.getBoundingClientRect().width > available) {
+        titleElement.style.maxWidth = 'calc(100% - 24px)';
+        titleElement.style.whiteSpace = 'normal';
+        titleElement.style.overflowWrap = 'anywhere';
+      }
+    };
+    const scheduleFit = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(fitTitle);
+    };
+    const observer = new ResizeObserver(scheduleFit);
+    observer.observe(cardElement);
+    void document.fonts.ready.then(() => { if (!disposed) scheduleFit(); });
+    scheduleFit();
+    return () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); };
+  }, [brand.title, brand.vendorBoundary]);
   return <article
     className="brand-card"
     aria-label={`${brand.title} portfolio card. Focus to reveal actions.`}
@@ -43,7 +92,7 @@ function DesktopBrandCard({ brand }: { brand: Brand }) {
     tabIndex={0}
   >
     <span className="brand-icon"><img src={brand.icon} alt="" /></span>
-    <h3><BrandName brand={brand} /></h3>
+    <h3 ref={title}><span className="brand-title-text"><BrandName brand={brand} /></span></h3>
     <div className="brand-card-stage">
       {description && <p className="brand-card-description">{description}</p>}
       <BrandActions brand={brand} />

@@ -12,7 +12,9 @@
     "simple-git": "file:./simple-git-compat"
   },
   "overrides": {
-    "qs": "6.16.0",
+    "qs": "6.16.1",
+    "body-parser": "1.20.9",
+    "fast-uri": "3.1.9",
     "got": "$got",
     "simple-git": "$simple-git",
     "js-yaml": "4.3.2"

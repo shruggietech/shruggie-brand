@@ -4,6 +4,11 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Changed
+
+- Group the home page portfolio introduction beneath its heading, fit complete card titles and affiliation markers within the card, and present all 68 References entries as compact labeled fields (S073).
+- Pin patched WordPress validation fixture dependencies so its documented audit gate remains green.
+
 ## [3.1.0] - 2026-10-21
 
 ### Added
