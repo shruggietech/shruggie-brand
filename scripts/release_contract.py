@@ -145,6 +145,14 @@ MIGRATIONS = {
         "logo layouts, approved social compositions and adapter APIs remain unchanged. Ten owned brand "
         "archives are release-authorized; three client kits remain hosted candidates."
     ),
+    "3.1.1": (
+        "Existing kits need migration: **no required identity migration**. Regenerate and repin "
+        "the seven changed brand packages to adopt their approved message roles and corrected "
+        "Next.js and WordPress description behavior. Existing packages remain immutable recovery "
+        "inputs. The hosted site adopts the S073 portfolio and References layout. Brand Canon 2.1.0, "
+        "approved geometry, palettes, fonts, social compositions and adapter APIs remain unchanged. "
+        "Ten owned brand archives are release-authorized; three client kits remain hosted candidates."
+    ),
     "3.0.1": (
         "Existing kits need migration: **no required identity migration**. Regenerate and repin a kit only "
         "to adopt the corrected outlined typography specimen and its Windows LF serialization. "
