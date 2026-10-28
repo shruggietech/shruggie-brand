@@ -12,12 +12,12 @@
 
 ## Phase 2: Publication
 
-- [ ] T006 [US2] Commit source and evidence, push and open the release PR.
-- [ ] T007 [US2] Resolve review findings and require green final-head CI.
-- [ ] T008 [US2] Merge the reviewed PR and verify main revision and candidate.
-- [ ] T009 [US2] Annotate and push v3.1.1 at verified main.
-- [ ] T010 [US2] Require tag preflight, official release and Pages jobs to succeed, then compare assets and SHA256SUMS.
-- [ ] T011 [US1] Verify the live site and record exact final evidence.
+- [x] T006 [US2] Commit source and evidence, push and open the release PR.
+- [x] T007 [US2] Resolve review findings and require green final-head CI.
+- [x] T008 [US2] Merge the reviewed PR and verify main revision and candidate.
+- [x] T009 [US2] Annotate and push v3.1.1 at verified main.
+- [x] T010 [US2] Require tag preflight, official release and Pages jobs to succeed, then compare assets and SHA256SUMS.
+- [x] T011 [US1] Verify the live site and record exact final evidence.
 
 ## Done When
 
