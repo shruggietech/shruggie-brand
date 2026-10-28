@@ -15,6 +15,7 @@ from xml.etree import ElementTree
 from brand_contract import font_faces
 from component_contract import load_component_catalog
 from interface_contract import resolve_interface_contract, skill_metadata
+from messaging import approved_messages
 
 
 ADAPTER_VERSION = "1.0.0"
@@ -228,7 +229,8 @@ def templates(theme):
 
 def patterns(theme, brand, sample_image):
     title = html.escape(brand["title"])
-    description = html.escape(brand.get("descriptor") or brand.get("functional_descriptor") or "Explore our work.")
+    description = approved_messages(brand, "site-metadata").get("short_description")
+    description_markup = block(description) if description else ""
     image_class = "stbb-%s-%s" % (brand["slug"], "sample-media" if "social-preview" in sample_image else "sample-mark")
     image_alt = "%s brand preview" if "social-preview" in sample_image else "%s mark"
     approved_image = ('<!-- wp:image {"sizeSlug":"full","linkDestination":"none","className":"%s"} -->'
@@ -236,7 +238,7 @@ def patterns(theme, brand, sample_image):
                       % (image_class, image_class, sample_image, image_alt % title))
     records = {
         "hero": ("Hero with action", "Lead with a clear introduction and action.",
-                 '<!-- wp:group {"layout":{"type":"constrained"}} --><div class="wp-block-group"><!-- wp:heading --><h2>%s</h2><!-- /wp:heading --><!-- wp:paragraph --><p>%s</p><!-- /wp:paragraph --><!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="mailto:hello@example.com">Get in touch</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group -->' % (title, description)),
+                  '<!-- wp:group {"layout":{"type":"constrained"}} --><div class="wp-block-group"><!-- wp:heading --><h2>%s</h2><!-- /wp:heading -->%s<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="mailto:hello@example.com">Get in touch</a></div><!-- /wp:button --></div><!-- /wp:buttons --></div><!-- /wp:group -->' % (title, description_markup)),
         "text-media": ("Text and media", "Pair editable text with an image.",
                        '<!-- wp:columns --><div class="wp-block-columns"><!-- wp:column --><div class="wp-block-column"><!-- wp:heading --><h2>Tell your story</h2><!-- /wp:heading -->' + block("Replace this text with your own message.") + '</div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column">' + approved_image + '</div><!-- /wp:column --></div><!-- /wp:columns -->'),
         "features": ("Feature or service grid", "Describe three useful offerings.",

@@ -13,18 +13,22 @@
   },
   "messaging": {
     "slogan": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "Join the Krucial Crew.",
+      "uses": [
+        "visual-guide",
+        "strategy-reference",
+        "consumer-data"
+      ],
+      "source": "https://github.com/shruggietech/shruggie-brand/issues/309#issuecomment-5924527871 (supersedes slogan absence only)",
+      "approved_by": "repository owner",
+      "approved_on": "2026-10-01"
     },
     "short_description": {
-      "status": "approved",
-      "text": "An independent dance brand.",
-      "uses": ["site-metadata"],
-      "source": "brand.json approval_ledger.gate_2, showcase-card and public-metadata surfaces",
-      "approved_by": "repository owner",
-      "approved_on": "2026-09-29"
+      "status": "absent"
     },
     "long_description": {
-      "status": "unresolved"
+      "status": "absent"
     }
   },
   "social_copy": {
@@ -54,7 +58,6 @@
     "trademark_owner": "DanceWithMe865",
     "terms_responsibility": "DanceWithMe865 owns its trademarks and is responsible for its services and applicable terms."
   },
-  "descriptor": "An independent dance brand.",
   "brand_idea": "DanceWithMe865",
   "category": "Dance brand",
   "wordmark_text": "DANCEWITHME865",

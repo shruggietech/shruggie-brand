@@ -352,18 +352,39 @@
   },
   "messaging": {
     "slogan": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "Universal captions and subtitles",
+      "uses": [
+        "visual-guide",
+        "strategy-reference",
+        "consumer-data"
+      ],
+      "source": "https://github.com/shruggietech/shruggie-brand/issues/309#issuecomment-5918370374",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-30"
     },
     "short_description": {
       "status": "approved",
       "text": "A lossless, structured interchange layer for subtitle and caption content.",
-      "uses": ["site-metadata"],
+      "uses": [
+        "site-metadata"
+      ],
       "source": "brand.json approval_ledger.gate_2, showcase-card and public-metadata surfaces",
       "approved_by": "repository owner",
       "approved_on": "2026-09-26"
     },
     "long_description": {
-      "status": "unresolved"
+      "status": "approved",
+      "text": "A lossless, structured interchange layer for subtitle and caption content.",
+      "uses": [
+        "visual-guide",
+        "strategy-reference",
+        "site-metadata",
+        "consumer-data"
+      ],
+      "source": "https://github.com/shruggietech/shruggie-brand/issues/309#issuecomment-5918370374",
+      "approved_by": "repository owner",
+      "approved_on": "2026-09-30"
     }
   },
   "social_copy": {
