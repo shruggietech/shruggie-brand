@@ -100,12 +100,12 @@ jobs:
         run: python scripts/export_approved_identity_proofs.py brands/scruggs-tire-alignment dist/ci-approved-proofs/scruggs-tire-alignment
       - name: Export DanceWithMe865 approved identity evidence
         run: python scripts/export_approved_identity_proofs.py brands/dancewithme865 dist/ci-approved-proofs/dancewithme865
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.0
         with:
           name: approved-identity-proofs-${{ github.sha }}
           path: dist/ci-approved-proofs/
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.0
         if: failure()
         with:
           name: failed-approved-identity-proofs-${{ github.sha }}
@@ -267,7 +267,7 @@ jobs:
           GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
       - name: Upload human-reviewable conformance candidates
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.0
         with:
           name: conformance-candidates-${{ github.sha }}
           path: site/test-results/visual/conformance/
@@ -292,7 +292,7 @@ jobs:
           (cd "$CANDIDATE/files" && sha256sum --check ../SHA256SUMS)
           python scripts/release_contract.py documentation --version "$VERSION" --record "$CANDIDATE/DOCUMENTATION.json" --publication "$CANDIDATE/PUBLICATION.json" --docs "$CANDIDATE/docs" --exported "$CANDIDATE/SITE-DOCUMENTATION.json" --release-dir "$CANDIDATE/files" --revision "$GITHUB_SHA"
           python scripts/audit_publication_artifacts.py --kits dist --site site/out --semantic --release release --candidate "$CANDIDATE" --revision "$GITHUB_SHA"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.0
         with:
           name: verified-brand-kits-${{ github.sha }}
           path: |
@@ -316,7 +316,7 @@ jobs:
           name: github-pages-${{ github.sha }}
           path: site/out
           include-hidden-files: true
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.0
         with:
           name: verified-release-assets-${{ github.sha }}
           path: ${{ runner.temp }}/release-candidate/
