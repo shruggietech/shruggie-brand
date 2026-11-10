@@ -53,11 +53,11 @@
 - [x] T018 Run full documented contributor/CI-parity validation, rebuild all thirteen kits and verify packages/site, recording results in `specs/075-brand-delivery-polish/verification.md`.
 - [x] T019 Audit source-only Git state, UTF-8 without BOM/LF and mojibake; synchronize tasks/evidence in `specs/075-brand-delivery-polish/`.
 - [x] T020 Commit verified source locally and present exact pre-push command and remaining deviations, including #352 and pending publication, in `specs/075-brand-delivery-polish/verification.md`.
-- [ ] T021 After explicit remote/publication authorization, complete PR/review/CI, tagged release/Pages and direct live issue verification in `specs/075-brand-delivery-polish/verification.md`.
+- [ ] T021 Complete Pages deployment and direct live issue verification per `specs/075-brand-delivery-polish/deployment.md`. Authorization, PR #354 review/CI/merge and the official v3.1.2 release are complete; three Pages attempts timed out, so live acceptance and #328/#353 closure remain blocked.
 
 ## Dependencies and Execution Order
 
-Setup precedes foundation; analysis blocks implementation. T005/T006 precede T007/T008. US2 is independently implementable after foundation; its build joins US1 validation. US3 access failure blocks only T014. Candidate validation follows repository changes and precedes local commit. T021 remains behind the explicit autopilot pre-push checkpoint.
+Setup precedes foundation; analysis blocks implementation. T005/T006 precede T007/T008. US2 is independently implementable after foundation; its build joins US1 validation. US3 access failure blocks only T014. Candidate validation follows repository changes and precedes local commit. The pre-push checkpoint was explicitly approved on 2026-11-10. T021 now remains blocked by Pages deployment, independently of the Cloudflare blocker.
 
 ## Parallel Opportunities
 
