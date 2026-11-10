@@ -43,7 +43,7 @@
 **Independent Test**: HTTP/HTTPS root/nested/query redirects, valid TLS, repeat-run no-op and preserved canonical routes.
 
 - [x] T013 [US3] Record denied DNS/rule inspection, public baseline and required permissions in `specs/075-brand-delivery-polish/cloudflare.md`.
-- [ ] T014 [US3] Reconcile alias DNS/Single Redirect, verify TLS/HTTP/idempotence and exercise rollback evidence in `specs/075-brand-delivery-polish/cloudflare.md` (blocked: DNS Edit and Single Redirect Edit access).
+- [x] T014 [US3] Reconcile alias DNS/Single Redirect, verify TLS/HTTP/idempotence and exercise rollback evidence in `specs/075-brand-delivery-polish/cloudflare.md`.
 
 ## Phase 6: Candidate and Validation
 
@@ -57,7 +57,7 @@
 
 ## Dependencies and Execution Order
 
-Setup precedes foundation; analysis blocks implementation. T005/T006 precede T007/T008. US2 is independently implementable after foundation; its build joins US1 validation. US3 access failure blocks only T014. Candidate validation follows repository changes and precedes local commit. The pre-push checkpoint was explicitly approved on 2026-11-10. T021 is complete after successful USTAR activation and live acceptance; only T014 remains externally blocked.
+Setup precedes foundation; analysis blocks implementation. T005/T006 precede T007/T008. US2 is independently implementable after foundation; its build joins US1 validation. US3 access failure blocks only T014. Candidate validation follows repository changes and precedes local commit. The pre-push checkpoint was explicitly approved on 2026-11-10. T021 is complete after successful USTAR activation and live acceptance; T014 was subsequently completed in Phase 11.
 
 ## Parallel Opportunities
 
@@ -103,4 +103,14 @@ T033 precedes T034. T035 requires completed T031 failure evidence and passing qu
 - [x] T038 Add read-only verify-archive and standard Pages USTAR packaging/validation, preserving action pins and all gates; record the decision in CHANGELOG.md.
 - [x] T039 Synchronize final live/certificate evidence and issue outcomes, qualify source hygiene and record the final PR qualification criteria.
 
-T037 precedes T038. T039 records completed source/evidence work. The final PR must additionally pass required hosted CI (including actual normal-producer archive validation), clean exact-head review and protected merge before the session is complete. Those PR-owned receipts are recorded in its GitHub conversation/checks, avoiding a recursive source-closeout PR. It does not republish or redeploy unqualified main content over the immutable v3.1.2 site. T014 remains the owner-authorized Cloudflare alias/redirect blocker.
+T037 precedes T038. T039 records completed source/evidence work. The final PR must additionally pass required hosted CI (including actual normal-producer archive validation), clean exact-head review and protected merge before the session is complete. Those PR-owned receipts are recorded in its GitHub conversation/checks, avoiding a recursive source-closeout PR. It does not republish or redeploy unqualified main content over the immutable v3.1.2 site. At Phase 10 closeout T014 was the owner-authorized Cloudflare blocker; Phase 11 resumes it under the owner's new instruction.
+
+## Phase 11: Alias Completion
+
+- [x] T040 [US3] Reinspect actual environment credentials, research current Cloudflare APIs, update spec/design/contracts and pass supplemental blocking analysis.
+- [x] T041 [US3] Add failing authorization, exact-host, preservation, no-op, drift/rollback and verification regressions in scripts/test_cloudflare_alias.py.
+- [x] T042 [US3] Implement bounded API reconciliation, private receipts, scoped rollback and public verification in scripts/cloudflare_alias.py; register its tests in .github/workflows/build.yml.
+- [x] T043 [US3] Provision the alias, verify DNS/TLS/path/query/canonical behavior, prove repeat-run no-op, exercise rollback and reapply; record redacted evidence in cloudflare.md and verification.md.
+- [x] T044 [US3] Synchronize final source/evidence and CHANGELOG.md, run declared checks and source hygiene, and record protected PR qualification/closure criteria.
+
+T040 precedes T041; T041 precedes T042; passing focused tests precede T043; T043 precedes T044. T014 completes only with all operational acceptance evidence. Required exact-head review, full hosted CI and protected merge remain session completion criteria, with PR-owned receipts in GitHub; issue #352 stays open until those and live checks pass.
