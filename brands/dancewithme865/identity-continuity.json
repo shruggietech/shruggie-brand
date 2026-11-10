@@ -9,8 +9,8 @@
     {
       "path": "brand.json",
       "purpose": "canonical brand source",
-      "bytes": 16719,
-      "sha256": "09f6b734b23e290c4b6194303a09e6cc384178ca1e2c39da0a3af21e6dc2d50a"
+      "bytes": 17064,
+      "sha256": "f0aa9f5a51851919dffa2b42efba9b2460b185cc01e85e261dd33339d0c7bee8"
     },
     {
       "path": "assets/source/horizontal-color.svg",
@@ -1315,5 +1315,5 @@
     },
     "status": "passed"
   },
-  "record_sha256": "dea1363cdd0cff4461a7f2770f16d1c358719c6698e9b93b02c7c27e1d1b845c"
+  "record_sha256": "268efdcf50be7006565d384c9a65e02944b40927f550bc0eeac7b82e81ac9b8c"
 }

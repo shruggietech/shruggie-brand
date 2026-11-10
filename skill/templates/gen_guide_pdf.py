@@ -22,6 +22,7 @@ from messaging import approved_messages
 from brand_essentials import ROLE_LABELS, WORD_ROLES, essentials_projection
 from brand_contract import affiliation, affiliation_text, custom_assets, guide_surface_mode, logo_metrics, vendor_boundary
 from color_roles import load_color_roles
+from guide_cover import COVER_SCRIPT
 
 def chips(t, keys, light=False):
     o = ""
@@ -205,10 +206,12 @@ p { margin:0 0 2.6mm; }
 .cover img.lockup { display:block; width:160mm; height:auto; margin-top:12mm; }
 .cover .sys { margin:0; font-family:var(--font-body); font-weight:var(--font-label-weight); font-size:8pt;
   letter-spacing:.06em; text-transform:uppercase; color:%s; }
-.cover .message { margin-top:20mm; padding:1mm 0 1mm 7mm; border-left:1mm solid; }
-.cover .tag { margin:0; font-family:var(--font-display); font-weight:%d; font-size:23pt;
+.cover .message { display:flex; flex-direction:column; gap:6mm; margin-top:20mm; padding:1mm 0 1mm 7mm; border-left:1mm solid; }
+.cover [data-message-value] { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.cover .slogan { font-family:var(--font-display); font-weight:%d; font-size:23pt;
   letter-spacing:-.025em; line-height:1.08; max-width:145mm; }
-.cover .idea { margin-top:4mm; font-size:11.5pt; color:%s; max-width:152mm; }
+.cover .support { font-size:13.5pt; line-height:1.5; color:%s; max-width:152mm; }
+.cover-continuation .message { margin-top:12mm; }
 .cover .base { position:absolute; left:20mm; bottom:18mm; font-family:var(--font-body);
   font-size:7pt; letter-spacing:.02em; color:%s; }
 .two { display:grid; grid-template-columns:1fr 1fr; gap:7mm; }
@@ -250,7 +253,7 @@ td { padding:1.7mm 2mm; border-bottom:.25mm solid %s; vertical-align:top; }
 .cta-sample.secondary small { font-size:6.5pt; font-weight:var(--font-body-regular); text-transform:uppercase; letter-spacing:.04em; }
 ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
 .sw .m { font-size:6.6pt; }
-""" % (F, type_["display"], type_["body"], type_["mono"], type_["body_medium"], BG, TX, type_["display_bold"], type_["display_regular"], MU, A, BG, LINE, MU, A, type_["display_regular"], MU, MU, CARD, LINE, LINE, TX, LINE, LINE, TX, LINE, OR, CALLOUT, A, A, A, ACC_CALLOUT, A)
+""" % (F, type_["display"], type_["body"], type_["mono"], type_["body_medium"], BG, TX, type_["display_bold"], type_["display_regular"], MU, A, BG, LINE, MU, A, type_["display_regular"], TX, MU, CARD, LINE, LINE, TX, LINE, LINE, TX, LINE, OR, CALLOUT, A, A, A, ACC_CALLOUT, A)
 
     def foot(n):
         return '<div class="foot"><span>%s | Brand System</span><span>%02d</span></div>' % (title, n)
@@ -265,9 +268,9 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
     cover_lines = []
     for role in WORD_ROLES:
         if role in messages:
-            cover_lines.append('<div data-message-role="%s"><div class="tag">%s</div>'
-                               '<div class="idea">%s</div></div>'
-                               % (role.replace("_", "-"), ROLE_LABELS[role], escape(messages[role])))
+            cover_lines.append('<div data-message-role="%s"><p data-message-value class="%s">%s</p></div>'
+                               % (role.replace("_", "-"), "slogan" if role == "slogan" else "support",
+                                  escape(messages[role])))
     cover_message = ('<div class="message" style="border-color:%s">%s</div>'
                      % (A, "".join(cover_lines))) if cover_lines else ""
     pages = []
@@ -298,7 +301,7 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
             '<div class="k">%s</div><div>%s</div>' % (label, escape(value))
             for label, value in name_rows if value)
     if essentials["approved_words"]:
-        name_body += '<div class="card"><div class="ey">Approved words</div><p>The exact approved words and role labels appear on the cover.</p></div>'
+        name_body += '<div class="card"><div class="ey">Approved words</div><p>The opening presents the exact approved words. Named roles remain in the approved-words reference.</p></div>'
     name_body += ('<div class="card"><div class="ey">Visual signatures</div>'
                   '<p>Use the exact delivered masters described on the Logo system sheet. Formal colors and their measured uses are on the Color sheet. '
                   'Display %s, body %s, and mono %s are the declared type families.</p></div>' %
@@ -536,8 +539,8 @@ ul { margin:1mm 0 0; padding-left:4mm; } li { margin-bottom:1.8mm; }
                            "role-cues-compact" if compact else "", "".join(rows)), len(pages) + 1))
 
     html = ("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>%s brand guide"
-            "</title><style>%s</style></head><body>%s</body></html>"
-            % (slug, css, "\n".join(pages)))
+            "</title><style>%s</style></head><body>%s%s</body></html>"
+            % (slug, css, "\n".join(pages), COVER_SCRIPT))
     return html
 
 def main():
@@ -577,6 +580,13 @@ def main():
             b = p.chromium.launch(); pg = b.new_page()
             pg.goto("file://" + str(pathlib.Path(hp).resolve())); pg.wait_for_timeout(1800)
             pg.emulate_media(media="print")
+            pg.wait_for_function("window.__coverReady === true")
+            errors = pg.evaluate("window.__coverErrors")
+            if errors:
+                raise ValueError("Cover layout failed: " + "; ".join(errors))
+            with open(os.path.join(a.kit, "build", "cover-layout.json"), "w", encoding="utf-8", newline="\n") as handle:
+                json.dump(pg.evaluate("window.__coverLayout"), handle, indent=2)
+                handle.write("\n")
             pg.pdf(path=pdf_path, format="A4", print_background=True,
                    margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
             b.close()

@@ -4,6 +4,22 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+## [3.1.2] - 2026-11-09
+
+### Fixed
+
+- Present actual approved slogans at 23pt on label-free guide covers, with readable 13.5pt supporting copy and measured continuation pages for rich messages (S075, #328).
+- Preserve exact semantic message validation without requiring visible cover keys; reject text drift, duplicate roles and unauthorized content.
+- Pin patched glob, minimatch and isomorphic-git dependencies in the WordPress validation fixture so its required audit gate passes without weakening the threshold; exercise its matching and bounded deletion APIs.
+- Publish the exact owner-approved DanceWithMe865 short description, `Learn to dance with Greg "Krucial" Carney.`, in applicable generated outputs and portfolio surfaces (#353).
+
+### Decisions
+
+- 2026-11-09 (S075): Supersede S067's presentation-only cover-label requirement while retaining reference labels and role/use integrity. Keep approved identity, fonts, palettes, social compositions and adapter APIs unchanged; assign DanceWithMe865 1.0.3 and BrandBuilder/site 3.1.2.
+- 2026-11-09 (S075): Record #352 as blocked by Cloudflare DNS/Single Redirect permissions after successful zone discovery but HTTP 403 on configuration inspection. No DNS/rule changes were made. Prepare this candidate under the usual pre-push autopilot checkpoint; publication remains pending explicit authorization.
+- 2026-11-09 (S075): Add rendered cover regressions to the existing browser-enabled CI contract job. Keep the minimum-Python job independent of optional browser dependencies.
+- 2026-11-09 (S075): Resolve newly observed WordPress fixture audit findings with exact transitive overrides and a filesystem compatibility regression. These validation-only updates do not change the consumer adapter or include the unrelated Dependabot backlog.
+
 ## [3.1.1] - 2026-10-28
 
 ### Changed

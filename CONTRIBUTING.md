@@ -29,6 +29,8 @@ Run the geometry unit tests, probe the toolchain, build every kit, and build the
 .\.venv\Scripts\python skill/templates/test_qc_images.py
 .\.venv\Scripts\python scripts/test_insonic_construction.py
 .\.venv\Scripts\python skill/templates/test_brand_essentials.py
+.\.venv\Scripts\python skill/templates/test_messaging.py
+.\.venv\Scripts\python skill/templates/test_guide_cover.py
 .\.venv\Scripts\python specs/068-brand-essentials-docs-navigation/inventory.py
 .\.venv\Scripts\python skill/templates/test_interface_contract.py
 .\.venv\Scripts\python skill/templates/test_documentation_contract.py

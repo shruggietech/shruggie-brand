@@ -104,6 +104,7 @@ Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 
 | dancewithme865 | `affiliation.endorsement` | `"none"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | dancewithme865 | `brand_idea` | `"DanceWithMe865"` | legacy product or strategy summary | Retain in source for product or messaging review; omit from visual guides |
 | dancewithme865 | `messaging.slogan` | `"Join the Krucial Crew."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, consumer-data |
+| dancewithme865 | `messaging.short_description` | `"Learn to dance with Greg \"Krucial\" Carney."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, site-metadata, consumer-data |
 | eso-weave | `title` | `"ESO Weave"` | approved identity name | Project as the approved name |
 | eso-weave | `affiliation.ownership` | `"third-party"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
 | eso-weave | `affiliation.endorsement` | `"none"` | relationship metadata | Derive the declared relationship without inventing an endorsement |
@@ -486,4 +487,4 @@ Introduced by S068 for eleven brands, extended by S070 with insonic and by S071 
 | shruggietech | `messaging.slogan` | `"We’ll figure it out."` | approved identity words | Project only on the declared surfaces: visual-guide, social-image, site-metadata, consumer-data |
 | shruggietech | `messaging.short_description` | `"Modern digital systems, software, and AI-driven experiences."` | approved identity words | Project only on the declared surfaces: visual-guide, strategy-reference, site-metadata, consumer-data |
 
-Total classified items: 481 across 13 production brands.
+Total classified items: 482 across 13 production brands.

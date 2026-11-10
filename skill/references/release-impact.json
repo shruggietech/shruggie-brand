@@ -1,12 +1,12 @@
 {
   "$schema": "release-impact.schema.json",
   "schema_version": 1,
-  "brandbuilder_version": "3.1.1",
+  "brandbuilder_version": "3.1.2",
   "identity_redesign": false,
   "surfaces": {
     "identity": {
       "classification": "unaffected",
-      "summary": "Approved logo geometry and source masters remain unchanged. Seven edited brands receive patch package versions for messaging; identity remains governed by their existing continuity records."
+      "summary": "Approved logo geometry and source masters remain unchanged. DanceWithMe865 receives patch package version 1.0.3 for its approved short description."
     },
     "palette": {
       "classification": "unaffected",
@@ -18,7 +18,7 @@
     },
     "platform_assets": {
       "classification": "optional",
-      "summary": "Regenerate and repin to adopt exact approved messaging in generated packages. Approved logo geometry, platform icon layouts and social-image compositions remain unchanged."
+      "summary": "Regenerate and repin immutable bb3.1.2 packages to adopt corrected guide presentation and approved messaging. Platform icons and social-image compositions remain unchanged."
     },
     "web_react": {
       "classification": "unaffected",
@@ -30,15 +30,15 @@
     },
     "wordpress": {
       "classification": "optional",
-      "summary": "Regenerate WordPress starters to adopt exact approved site descriptions and omit the hero description when the canonical site-metadata role is absent or unresolved. WordPress adapter 1.0.0 retains its public API."
+      "summary": "Regenerate to adopt the exact approved DanceWithMe865 site description. WordPress adapter 1.0.0 retains its public API."
     },
     "documentation": {
       "classification": "required",
-      "summary": "Publish seven brands' exact approved message decisions, corrected portfolio heading and complete card-title layout, and all 68 labeled References entries. Brand Canon 2.1.0 and existing adapter APIs remain unchanged."
+      "summary": "Adopt label-free guide covers with actual 23pt slogans, 13.5pt supporting copy and measured continuation handling. Reference labels and exact semantic message integrity remain required. Brand Canon 2.1.0 and adapter APIs remain unchanged."
     },
     "recovery": {
       "classification": "required",
-      "summary": "Repinning BrandBuilder 3.1.1 requires exact new package IDs and checksums. The site hosts thirteen verified brands; ten owned archives join the skill and portable distribution, while three client kits remain hosted candidates. Previously published packages remain immutable recovery inputs."
+      "summary": "Repinning BrandBuilder 3.1.2 requires exact new package IDs and checksums. Thirteen brands are hosted and ten owned archives are release-authorized; three client kits remain hosted candidates. Older packages remain immutable recovery inputs."
     }
   }
 }
