@@ -1,0 +1,10 @@
+# Qualified Pages Recovery Contract
+
+- The operator dispatches Build on reviewed main with recovery_tag and recovery_run_id. No pull request or branch recovery publisher is eligible. Existing normal verification and tag-only publishers remain unchanged.
+- Qualification binds the current repository, immutable tag commit and original completed push-tag Build run. Python compatibility, approved proofs, contracts, verified build, aggregate build, release preflight and official publication must all have succeeded. Deployment failure is recoverable, not a substitute for qualification.
+- Select exactly one unexpired github-pages-CONTENT_SHA and verified-release-assets-CONTENT_SHA artifact. Their API digests and workflow source revision must match downloaded bytes and the immutable tag.
+- Export the exact tagged Git source and use its release, publication and documentation validators. Candidate SOURCE_COMMIT, records, twelve distribution hashes, official asset digests, checksum asset and release notes must agree. Additional unrelated release attachments are not copied.
+- Accept the official one-file Pages ZIP envelope containing artifact.tar. Reject traversal, duplicate/colliding paths, links, special types and content exceeding the platform site limit. The public documentation record and every hosted release-authorized ZIP must match the original qualified candidate.
+- The uploaded recovery artifact contains the unchanged original artifact.tar; its transport ZIP and artifact ID may differ. The recovery controller SHA remains the real workflow SHA. The TAR retains the original content SHA and is never regenerated or relabeled.
+- Preparation is read-only except local staging and artifact transport. Recovery never creates, edits or replaces a GitHub release, tag, DNS record, redirect or custom-domain setting. The official deployment action alone receives Pages/OIDC permissions.
+- The two Pages publishers serialize through one non-canceling job group. Manual recovery cannot cancel main push validation. A recovery is complete only after explicit deployment success and exact public metadata, archive/PDF, responsive and accessibility checks.

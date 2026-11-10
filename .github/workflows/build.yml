@@ -6,13 +6,22 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      recovery_tag:
+        description: Published tag to recover (leave blank for validation only)
+        type: string
+        required: false
+      recovery_run_id:
+        description: Original qualified tag Build run ID
+        type: string
+        required: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.ref == 'refs/heads/main' && 'pages' || format('{0}-{1}', github.workflow, github.run_id) }}
-  cancel-in-progress: ${{ github.ref == 'refs/heads/main' }}
+  group: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'pages' || format('{0}-{1}', github.workflow, github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
 jobs:
   python-38-compatibility:
@@ -38,6 +47,7 @@ jobs:
           python skill/templates/test_lockup_typography.py
           python skill/templates/test_qc_images.py
           python scripts/test_publication_workflow.py
+          python scripts/test_pages_recovery.py
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_documentation_publication.py
@@ -159,6 +169,7 @@ jobs:
           python skill/templates/test_lockup_typography.py
           python skill/templates/test_qc_images.py
           python scripts/test_publication_workflow.py
+          python scripts/test_pages_recovery.py
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_documentation_publication.py
@@ -341,6 +352,9 @@ jobs:
           fi
 
   deploy-pages:
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
     if: >-
       ${{
         needs.build.result == 'success' &&
@@ -360,7 +374,7 @@ jobs:
     steps:
       - name: Deploy exact verified Pages artifact
         id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.0
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
           artifact_name: github-pages-${{ github.sha }}
 
@@ -429,3 +443,74 @@ jobs:
             --verify-tag \
             --title "shruggie-brandbuilder ${GITHUB_REF_NAME#v}" \
             --notes-file "$CANDIDATE/files/release-notes.md"
+
+  pages-recovery-preflight:
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' &&
+          github.ref == 'refs/heads/main' &&
+          (inputs.recovery_tag != '' || inputs.recovery_run_id != '') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      artifact_name: ${{ steps.prepare.outputs.artifact_name }}
+      source_sha: ${{ steps.prepare.outputs.source_sha }}
+      tar_sha256: ${{ steps.prepare.outputs.tar_sha256 }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RECOVERY_TAG: ${{ inputs.recovery_tag }}
+      RECOVERY_RUN_ID: ${{ inputs.recovery_run_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact controller revision
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Resolve original source qualification
+        run: |
+          python scripts/recover_pages.py resolve --repository "$GITHUB_REPOSITORY" \
+            --tag "$RECOVERY_TAG" --run-id "$RECOVERY_RUN_ID" \
+            --directory "$RUNNER_TEMP/pages-recovery"
+      - name: Install the immutable tag's contract dependencies
+        run: python -m pip install -r "$RUNNER_TEMP/pages-recovery/source/requirements.txt"
+      - name: Validate original release and unchanged Pages payload
+        id: prepare
+        run: python scripts/recover_pages.py prepare --directory "$RUNNER_TEMP/pages-recovery"
+      - name: Transport the qualified TAR without rebuilding
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.0
+        with:
+          name: ${{ steps.prepare.outputs.artifact_name }}
+          path: ${{ runner.temp }}/pages-recovery/pages/artifact.tar
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy-pages-recovery:
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' &&
+          github.ref == 'refs/heads/main' &&
+          needs.pages-recovery-preflight.result == 'success' }}
+    needs: pages-recovery-preflight
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.recover.outputs.page_url }}
+    steps:
+      - name: Activate the original release with the current controller
+        id: recover
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          artifact_name: ${{ needs.pages-recovery-preflight.outputs.artifact_name }}

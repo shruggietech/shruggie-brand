@@ -107,3 +107,7 @@ A visitor opening `brands.shruggie.tech` reaches the matching path and query on 
 - No identity geometry, palette, font-family, social-image composition or unapproved copy changes are requested.
 - The current feature-branch model and standard autopilot protocol apply. The next coordinated patch release is provisionally v3.1.2, subject to release-contract verification.
 - Cloudflare management access is an environmental dependency to investigate early, not an invented prerequisite for the messaging fixes.
+
+### Recovery continuation, 2026-11-10
+
+The owner explicitly requests investigation and repair of the Pages timeouts, live v3.1.2 verification and closure of #328/#353, with #352 left open. Existing authorization covers the necessary reviewed recovery changes and deployment operations. Preserve the published tag and official assets, exact approved content, canonical hostname and HTTPS. Diagnose configuration/state before replacing the deployment path; any recovery transport must preserve qualified artifact bytes and source provenance under FR-011.
