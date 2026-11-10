@@ -49,7 +49,9 @@ class BrandEssentialsTests(unittest.TestCase):
         self.assertIn("Covarity", projection["written_form"])
         self.assertNotIn("<span", projection["written_form"])
         self.assertNotIn(rich["guidance"]["sharp_edge"], str(projection))
-        sparse = essentials_projection(self.brand("dancewithme865"))
+        sparse_brand = self.brand("dancewithme865")
+        sparse_brand["messaging"]["short_description"] = {"status": "absent"}
+        sparse = essentials_projection(sparse_brand)
         self.assertEqual({"slogan": "Join the Krucial Crew."}, sparse["approved_words"])
         self.assertEqual([], sparse["usage_limits"])
         self.assertIn("Approved words", [name for name, _ in essentials_sections(sparse)])

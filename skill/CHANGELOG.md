@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 3.1.2 - 2026-11-09
+
+- Present exact approved slogans as the 23pt cover message, remove visible cover role keys, and use readable 13.5pt supporting copy with measured continuation handling.
+- Validate semantic exact-copy values independently of cover labels while retaining reference labels and rejecting duplicate/wrong roles and unauthorized substitutions.
+- Record the approved DanceWithMe865 short description and package version 1.0.3. Brand Canon 2.1.0, approved identities, palettes, fonts, social compositions and adapter APIs remain unchanged.
+- Regenerate and repin immutable bb3.1.2 packages to adopt corrected guide presentation and the new approved copy. Cloudflare alias provisioning remains blocked by DNS/Single Redirect management permissions; no external configuration was changed.
+- Pin patched WordPress validation-fixture traversal/matching dependencies and verify their bounded filesystem behavior to preserve the required audit gate.
+
 ## 3.1.1 - 2026-10-28
 
 - Assign patch versions to seven brands with exact owner-approved message decisions and to BrandBuilder for corrected generated output. Brand Canon remains 2.1.0; approved geometry, palettes, fonts, social compositions and adapter APIs remain unchanged.

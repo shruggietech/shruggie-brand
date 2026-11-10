@@ -1323,31 +1323,62 @@ def c_icon_suites(kit, brand, rep):
                (generated, len(artifacts), len(aliases)))
 
 class _MessageParser(HTMLParser):
-    """Read labeled rendered message values, including nested print-cover tags."""
+    """Bind exact values to roles without requiring visible presentation labels."""
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.depth = 0
         self.active = None
         self.values = {}
+        self.structured = set()
 
     def handle_starttag(self, tag, attrs):
+        void = tag in {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
+        if self.active is not None and (void or tag in {"script", "style", "iframe", "object", "svg"}):
+            raise ValueError("non-text content inside message role")
+        if void:
+            return
         self.depth += 1
-        role = dict(attrs).get("data-message-role")
+        attributes = dict(attrs)
+        role = attributes.get("data-message-role")
         if role is not None:
+            role = role.replace("_", "-")
             if self.active is not None or role in self.values:
                 raise ValueError("duplicate or nested message role: %s" % role)
-            self.active = (role, self.depth, [])
+            self.active = {"role": role, "depth": self.depth, "pieces": [],
+                           "value": [], "value_depth": None, "value_seen": False, "outside": []}
+        if "data-message-value" in attributes:
+            if self.active is None or self.active["value_seen"]:
+                raise ValueError("duplicate or unbound message value")
+            self.active["value_seen"] = True
+            self.active["value_depth"] = self.depth
 
     def handle_data(self, data):
         if self.active is not None:
-            self.active[2].append(data)
+            self.active["pieces"].append(data)
+            target = "value" if self.active["value_depth"] is not None else "outside"
+            self.active[target].append(data)
 
     def handle_endtag(self, tag):
-        if self.active is not None and self.active[1] == self.depth:
-            role, _, pieces = self.active
-            self.values[role] = "".join(pieces).strip()
-            self.active = None
+        if self.active is not None:
+            active = self.active
+            if active["value_depth"] == self.depth:
+                active["value_depth"] = None
+            if active["depth"] == self.depth:
+                role = active["role"]
+                if active["value_seen"]:
+                    if "".join(active["outside"]).strip():
+                        raise ValueError("unexpected text outside exact message value")
+                    self.values[role] = "".join(active["value"])
+                    self.structured.add(role)
+                else:
+                    self.values[role] = "".join(active["pieces"]).strip()
+                self.active = None
         self.depth -= 1
+
+    def handle_startendtag(self, tag, attrs):
+        self.handle_starttag(tag, attrs)
+        if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}:
+            self.handle_endtag(tag)
 
 
 def message_projection_problems(kit, brand, check_pdf=True):
@@ -1366,6 +1397,9 @@ def message_projection_problems(kit, brand, check_pdf=True):
         parser = _MessageParser()
         try:
             parser.feed(path.read_text(encoding="utf-8"))
+            parser.close()
+            if parser.active is not None:
+                raise ValueError("unclosed message role")
         except (OSError, UnicodeError, ValueError) as error:
             problems.append(relative + " cannot be read: " + str(error))
             continue
@@ -1375,7 +1409,10 @@ def message_projection_problems(kit, brand, check_pdf=True):
         for role, text in expected.items():
             actual = found.get(role, "")
             label = labels[role]
-            if not actual.startswith(label) or actual[len(label):].lstrip(": ") != text:
+            structured = role.replace("_", "-") in parser.structured
+            exact = actual == text if structured else actual in {
+                label + separator + text for separator in ("", ":", ": ", " ")}
+            if not exact:
                 problems.append(relative + " " + role + " differs from exact approved text")
     portal_path = Path(kit, "guidelines/portal.json")
     try:
@@ -1388,11 +1425,29 @@ def message_projection_problems(kit, brand, check_pdf=True):
     if check_pdf and pdf_path.is_file():
         try:
             import fitz
+            from brand_essentials import WORD_ROLES
             with fitz.open(pdf_path) as document:
-                cover = " ".join(document[0].get_text().split())
-                for role, value in expected.items():
-                    if " ".join(value.split()) not in cover or labels[role] not in cover:
-                        problems.append("brand-guide.pdf cover lacks exact " + role)
+                opening = []
+                for index, page in enumerate(document):
+                    if index and "BRAND MESSAGE (CONTINUED)" not in page.get_text().upper():
+                        break
+                    # Exclude system heading and footer; logo is embedded artwork.
+                    opening.append(page.get_text(clip=fitz.Rect(20 * 72 / 25.4, 35 * 72 / 25.4,
+                                                                190 * 72 / 25.4, 270 * 72 / 25.4)))
+                raw_opening = "\n".join(opening)
+                actual = " ".join(raw_opening.split())
+                wanted = " ".join(" ".join(expected[role] for role in WORD_ROLES if role in expected).split())
+                # Extraction inserts line breaks inside hyphenated or long words.
+                # Permit those breaks, but retain source spaces, case and punctuation.
+                pattern = "".join(r"\s+" if part.isspace() else
+                                  r"[\r\n]*".join(re.escape(character) for character in part)
+                                  for part in re.split(r"(\s+)", wanted))
+                if not re.fullmatch(r"\s*" + pattern + r"\s*", raw_opening):
+                    mismatch = next((index for index, pair in enumerate(zip(actual, wanted))
+                                     if pair[0] != pair[1]), min(len(actual), len(wanted)))
+                    problems.append("brand-guide.pdf opening differs from exact approved message text at %d: expected %r, found %r" %
+                                    (mismatch, wanted[max(0, mismatch - 20):mismatch + 60],
+                                     actual[max(0, mismatch - 20):mismatch + 60]))
         except (ImportError, OSError, ValueError, IndexError, RuntimeError) as error:
             problems.append("brand-guide.pdf text cannot be checked: " + str(error))
     return problems

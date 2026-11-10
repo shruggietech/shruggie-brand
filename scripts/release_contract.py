@@ -145,6 +145,15 @@ MIGRATIONS = {
         "logo layouts, approved social compositions and adapter APIs remain unchanged. Ten owned brand "
         "archives are release-authorized; three client kits remain hosted candidates."
     ),
+    "3.1.2": (
+        "Existing kits need migration: **no required identity migration**. Regenerate and repin "
+        "bb3.1.2 packages to adopt label-free guide covers with prominent slogans, readable supporting "
+        "copy and measured continuation handling. DanceWithMe865 1.0.3 records its exact approved "
+        "short description. Existing packages remain immutable recovery inputs. Brand Canon 2.1.0, "
+        "approved geometry, palettes, fonts, social compositions and adapter APIs remain unchanged. "
+        "Ten owned brand archives are release-authorized; three client kits remain hosted candidates. "
+        "Cloudflare alias provisioning remains blocked by management permissions."
+    ),
     "3.1.1": (
         "Existing kits need migration: **no required identity migration**. Regenerate and repin "
         "the seven changed brand packages to adopt their approved message roles and corrected "

@@ -34,7 +34,7 @@ As a kit reader, I see consistent roles and exact approved wording in the PDF, p
 
 **Acceptance Scenarios**:
 
-1. **Given** different introductory copy and an approved slogan, **when** the cover renders, **then** the slogan label carries only the slogan and the introduction retains its own role or is omitted.
+1. **Given** different introductory copy and an approved slogan, **when** the cover renders, **then** the slogan retains only its exact approved value and the introduction retains its own semantic role or is omitted (visible cover labels superseded by S075).
 2. **Given** no approved description, **when** guides render, **then** no descriptor, brand idea, product summary, or generated sentence appears in a description role.
 3. **Given** a guide override that conflicts with canonical copy, **when** validation runs, **then** the conflict is reported instead of publishing either value as approved.
 
@@ -87,7 +87,7 @@ As the owner, I can inspect old wording, original location, current classificati
 ### Measurable Outcomes
 
 - **SC-001**: All eleven current brand records and their legacy messages appear in the inventory, with no unclassified override or material claim.
-- **SC-002**: Approved messages on multiple surfaces retain exact wording and role labels; absent and unresolved values appear on zero public guide surfaces.
+- **SC-002**: Approved messages on multiple surfaces retain exact wording and semantic roles; absent and unresolved values appear on zero public guide surfaces. S075 supersedes the original visible cover-label treatment while retaining useful labels in reference sections.
 - **SC-003**: Fragcap, Go Schedule, Glitchpad, and ShruggieTech pass exact role and punctuation comparisons, including extracted PDF and rendered guide text.
 - **SC-004**: Every production kit reports zero verifier problems and glyph failures, and full documented guide/site validation passes without accessibility regression.
 - **SC-005**: The creative approval flow retains exactly two mandatory gates and adds no required strategy statement.

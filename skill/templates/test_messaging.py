@@ -36,6 +36,67 @@ def sparse():
 
 
 class MessagingContractTests(unittest.TestCase):
+    def test_reference_label_separator_does_not_consume_approved_punctuation(self):
+        brand = sparse()
+        text = ': Exact "owner" words.'
+        brand["messaging"]["slogan"] = message(text, "visual-guide")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "guidelines").mkdir()
+            (root / "build").mkdir()
+            (root / "guidelines/portal.json").write_text(
+                json.dumps({"brand": {"messaging": {"slogan": text}}}), encoding="utf-8")
+            rendered = '<p data-message-role="slogan"><strong>Slogan:</strong> ' + text + '</p>'
+            for relative in ("guidelines/index.html", "build/brand-guide.print.html"):
+                (root / relative).write_text(rendered, encoding="utf-8")
+            self.assertEqual([], message_projection_problems(root, brand, check_pdf=False))
+
+    def test_role_aliases_cannot_hide_a_duplicate(self):
+        brand = sparse()
+        brand["messaging"]["short_description"] = message("Exact description.", "visual-guide")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "guidelines").mkdir()
+            (root / "build").mkdir()
+            (root / "guidelines/portal.json").write_text(
+                json.dumps({"brand": {"messaging": {"short_description": "Exact description."}}}), encoding="utf-8")
+            value = '<p data-message-role="short-description"><strong>Short description:</strong> Exact description.</p>'
+            (root / "guidelines/index.html").write_text(value, encoding="utf-8")
+            target = root / "build/brand-guide.print.html"
+            target.write_text(value.replace("short-description", "short_description"), encoding="utf-8")
+            self.assertEqual([], message_projection_problems(root, brand, check_pdf=False))
+            target.write_text(value + value.replace("short-description", "short_description"), encoding="utf-8")
+            self.assertTrue(any("duplicate" in problem for problem in message_projection_problems(root, brand, check_pdf=False)))
+
+    def test_label_free_cover_preserves_exact_role_values(self):
+        brand = sparse()
+        brand["messaging"]["slogan"] = message('Exact "owner" words & meaning.', "visual-guide")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "guidelines").mkdir()
+            (root / "build").mkdir()
+            (root / "guidelines" / "portal.json").write_text(
+                json.dumps({"brand": {"messaging": {"slogan": 'Exact "owner" words & meaning.'}}}),
+                encoding="utf-8")
+            reference = ('<p data-message-role="slogan"><strong>Slogan:</strong> '
+                         'Exact &quot;owner&quot; words &amp; meaning.</p>')
+            cover = ('<div data-message-role="slogan"><p data-message-value>'
+                     'Exact &quot;owner&quot; words &amp; meaning.</p></div>')
+            (root / "guidelines" / "index.html").write_text(reference, encoding="utf-8")
+            target = root / "build" / "brand-guide.print.html"
+            target.write_text(cover, encoding="utf-8")
+            self.assertEqual([], message_projection_problems(root, brand, check_pdf=False))
+            for invalid in (
+                    cover.replace('data-message-role="slogan"', 'data-message-role="short-description"'),
+                    cover.replace("meaning.", "meaning!"), cover + cover,
+                    cover.replace('<p data-message-value>', '<p data-message-value>Unauthorized. '),
+                    cover.replace('</p></div>', '</p>Unauthorized.</div>'),
+                    cover.replace('<p data-message-value>', '<span data-message-value></span><p data-message-value>'),
+                    cover.replace('<p data-message-value>', '<img alt="extra"><p data-message-value>')):
+                with self.subTest(invalid=invalid):
+                    target.write_text(invalid, encoding="utf-8")
+                    self.assertTrue(message_projection_problems(root, brand, check_pdf=False))
+
     def test_wordpress_hero_respects_canonical_description_and_uses(self):
         brand = sparse()
         brand.update(slug="alpha", title="Alpha", descriptor="Rejected legacy sentence.",

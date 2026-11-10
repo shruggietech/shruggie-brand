@@ -10,6 +10,25 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
+test('patched glob and rimraf retain the fixture matching and bounded deletion APIs', async t => {
+  const temporaryRoot = fs.realpathSync(os.tmpdir());
+  const temporary = fs.mkdtempSync(path.join(temporaryRoot, 'wp-env-glob-'));
+  t.after(() => {
+    assert.equal(path.dirname(fs.realpathSync(temporary)), temporaryRoot);
+    assert.match(path.basename(temporary), /^wp-env-glob-/);
+    fs.rmSync(temporary, { recursive: true, force: true });
+  });
+  for (const file of ['remove-one.txt', 'remove-two.txt', 'keep.txt']) fs.writeFileSync(path.join(temporary, file), file);
+  const { glob } = wpRequire('glob');
+  const { rimraf } = wpRequire('rimraf');
+  assert.deepEqual((await glob('remove-*.txt', { cwd: temporary })).sort(), ['remove-one.txt', 'remove-two.txt']);
+  const abort = new AbortController();
+  abort.abort();
+  await assert.rejects(glob('**/*', { cwd: temporary, signal: abort.signal }), { name: 'AbortError' });
+  await rimraf(path.join(temporary, 'remove-*.txt').replaceAll('\\', '/'), { glob: true });
+  assert.deepEqual(fs.readdirSync(temporary), ['keep.txt']);
+});
+
 test('wp-env CommonJS factory clones into an empty directory with the patched implementation', async t => {
   const SimpleGit = wpRequire('simple-git');
   assert.equal(typeof SimpleGit, 'function');
