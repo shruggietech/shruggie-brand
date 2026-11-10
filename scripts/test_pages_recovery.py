@@ -343,6 +343,26 @@ class UstarTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     recovery.repack_ustar(malicious, root / (kind.decode() + "-output.tar"))
 
+    def test_archive_cli_is_read_only_without_controller_or_staging_arguments(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source, target = root / "source.tar", root / "ustar.tar"
+            self.write_archive(source)
+            recovery.repack_ustar(source, target)
+            with mock.patch.object(recovery, "controller_sha", side_effect=AssertionError("controller lookup forbidden")), \
+                    mock.patch.object(recovery, "GitHub", side_effect=AssertionError("network access forbidden")), \
+                    mock.patch.dict(os.environ, {"GITHUB_ACTIONS": "true", "GITHUB_EVENT_NAME": "pull_request"}):
+                with mock.patch.object(recovery.sys, "argv", ["recover_pages.py", "verify-archive", "--archive", str(target)]), \
+                        mock.patch.object(recovery.sys, "stdout", new_callable=io.StringIO) as output:
+                    self.assertEqual(recovery.main(), 0)
+                    report = json.loads(output.getvalue())
+                    self.assertEqual(report["tar_sha256"], digest(target.read_bytes()))
+                    self.assertEqual(report["files"], 2)
+                    self.assertEqual(report["directories"], 2)
+                with mock.patch.object(recovery.sys, "argv", ["recover_pages.py", "verify-archive", "--archive", str(source)]):
+                    with self.assertRaises(ValueError):
+                        recovery.main()
+
 
 if __name__ == "__main__":
     unittest.main()

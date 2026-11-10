@@ -1,4 +1,10 @@
-# S075 Pages Deployment Blocker
+# S075 Pages Deployment Recovery
+
+## Final Outcome, 2026-11-10
+
+v3.1.2 is live at [brand.shruggie.tech](https://brand.shruggie.tech), with documentation source revision `47b7618f582659c01d39d4b5da10f5f1df220ed8`. The USTAR representation activated successfully before DNS maintenance. All thirteen hosted archives/direct PDFs and eighteen live browser cases passed. Issues [#328](https://github.com/shruggietech/shruggie-brand/issues/328) and [#353](https://github.com/shruggietech/shruggie-brand/issues/353) are closed. GitHub HTTPS enforcement is true, its certificate is approved through 2027-02-08, and canonical Cloudflare proxying is restored. [#352](https://github.com/shruggietech/shruggie-brand/issues/352) remains open for the separate API-permission blocker and untouched alias/redirect work.
+
+The sections below retain the chronological investigation. Their pending observations describe the state at each attempt and are superseded by the successful activation and final acceptance receipts. GitHub did not expose the underlying backend reason for the original stalls.
 
 ## Verified Source and Release
 
@@ -8,7 +14,7 @@ The [official v3.1.2 release](https://github.com/shruggietech/shruggie-brand/rel
 
 ## Deployment Attempts (Chronological)
 
-All attempts used the same exact verified Pages artifact, ID `13740933879`, from [tag run 42764281217](https://github.com/shruggietech/shruggie-brand/actions/runs/42764281217). All prerequisite verification, build, release-preflight and publish-release jobs passed. The overall tag run failed only at Pages deployment.
+The first three attempts used the same exact verified Pages artifact, ID `13740933879`, from [tag run 42764281217](https://github.com/shruggietech/shruggie-brand/actions/runs/42764281217). All prerequisite verification, build, release-preflight and publish-release jobs passed. The overall tag run failed only at Pages deployment.
 
 | Attempt | Job | Observed server state | Result |
 | --- | --- | --- | --- |
@@ -25,7 +31,7 @@ The pinned official action correctly waits for explicit deployment success and c
 - The canonical public documentation record still reports release v3.1.1 at `65af667461798738b0cf381b7c8bc4487afd853a` after the third attempt. A cache-busted request returns the same revision with Cloudflare DYNAMIC/age 0; a direct GitHub Pages origin request with full hostname/TLS validation also returns that old revision.
 - Current edge TLS and direct-origin TLS validate. GitHub's certificate-renewal metadata separately reports bad_authz, while the serving origin certificate remains valid through 2026-12-02. Its relationship to the deployment stall is unproven. No DNS, custom-domain or TLS settings were changed.
 
-## Exact Remaining Work
+## Remaining Work After the Initial Attempts
 
 1. Obtain a successful GitHub Pages activation of the verified v3.1.2 artifact. The immediate supported recovery is retrying only the failed deploy-pages job after the external deployment condition changes. Do not recreate, overwrite or retag the already published release.
 2. Verify public docs/publication.json reports release v3.1.2 and source revision `47b7618f582659c01d39d4b5da10f5f1df220ed8`.
@@ -58,3 +64,19 @@ Hosted recovery preparation [129754951677](https://github.com/shruggietech/shrug
 Both action implementation and documented service limit cap deployment at ten minutes. An 1800000 input would be ineffective and was rejected before implementation. A controlled optional USTAR test is now specified: original GNU long-name metadata is valid, all 916 such records can be represented by USTAR prefix/name fields, and independent complete manifests must prove unchanged member content, order and real metadata. This is a packaging hypothesis, not a confirmed root cause or successful activation.
 
 The real original-artifact USTAR preflight passed: 5,058 equivalent logical members (4,308 regular files and 750 directories), 331,409,561 file bytes, unchanged source/publication and official ZIP binding. Original TAR SHA-256 6bcf0f5a7b0e958a6717ff3bc071b5ea80ab3f93e55524c35fd9385aa7eb4879; USTAR TAR SHA-256 5ccb463e96a314c3750d2f10eeff4cee5bc64472e985b3ab79910b7428c2a20a; equivalent ordered full-member manifest SHA-256 5807b62319702855af5bf802765dd5f4c6d7b0c9a672099d71d5e86e78fab4e5. Both original and USTAR manifests were independently read and retained privately. Source hygiene, compilation, Markdown/public-documentation audits and all 16 recovery/31 workflow tests pass. Hosted CI/review and actual USTAR activation remain pending.
+
+## USTAR Activation and Live Acceptance, 2026-11-10
+
+[PR #358](https://github.com/shruggietech/shruggie-brand/pull/358), reviewed head `75273063361c5632b1ef0fdf0f16e56681157839`, passed clean Codex review and full [PR CI 42798508692](https://github.com/shruggietech/shruggie-brand/actions/runs/42798508692). Squash merge `68abe8d1acc470f1af5f9fabafd32637b7532189` preserves reviewed tree `f8715eea179e891979051a1155333c98dff585c7`. Both the [main run 42804953511](https://github.com/shruggietech/shruggie-brand/actions/runs/42804953511) and [manual recovery run 42804966992](https://github.com/shruggietech/shruggie-brand/actions/runs/42804966992) completed all applicable normal qualification jobs successfully.
+
+Attempt 6 used the same qualified release payload in USTAR representation. [Preflight 129791644802](https://github.com/shruggietech/shruggie-brand/actions/runs/42804966992/job/129791644802) passed, producing artifact `13758566137`. [Deployment 129792486047](https://github.com/shruggietech/shruggie-brand/actions/runs/42804966992/job/129792486047) succeeded at 11:11:12 UTC, and the Pages API returned explicit succeed. The original and USTAR logical member manifests are identical, including order, file bytes and real metadata. Their SHA-256 receipts are recorded above. No release asset, tagged source, deployment timeout or success criterion changed.
+
+The USTAR deployment succeeded while the canonical record was still proxied, before certificate maintenance. This demonstrates an effective format-only recovery, not proof that the original valid GNU long-name records were malformed or the cause of GitHub backend stalls. Future normal Pages uploads explicitly use USTAR and validate the actual uploaded TAR in the same job; all existing quality and publication gates remain required.
+
+Live HTTP acceptance verified all thirteen official GitHub asset digests, twelve checksum-listed distributions, exact release contracts/notes, thirteen hosted kit archives/direct PDFs, exact approved messaging and guide typography. The ten formal owned-brand archives match their official release assets; three client kits are intentional hosted candidates under the existing release-impact contract. Eighteen dark/light desktop/mobile, 320 CSS-pixel and enlarged-text browser cases passed with zero WCAG violations, failed page/asset loads or page/console errors. Four actual Guidelines navigations passed. Browser network tracing separately identified 126 completed HTTP 200 HEAD prefetch cancellations; these are not counted as failed page/asset loads. Representative live covers and responsive/enlarged descriptions were visually inspected.
+
+## Canonical Certificate Repair and Restoration, 2026-11-10
+
+After owner-completed two-factor authentication, the owner expressly approved temporarily switching only the existing canonical CNAME to DNS-only. The target `shruggietech.github.io`, automatic TTL and comment `GitHub Pages for ShruggieTech/shruggie-brand` were preserved. With DNS-only active, GitHub health confirmed Pages service and HTTPS eligibility; a single documented same-domain reprovisioning reset under this changed DNS condition succeeded. The certificate became approved, expiring 2027-02-08, and setting https_enforced=true returned success with true readback.
+
+Canonical proxying was then restored and the original target, TTL and comment were verified in the Cloudflare editor. The final 11:40:33 UTC receipt confirms approved certificate, HTTPS enforcement true, direct-origin HTTP 301 to the canonical HTTPS host, and public HTTPS 200 serving v3.1.2 at the released source revision. Public DNS again resolves to Cloudflare proxy addresses. No temporary DNS-only window or HTTPS regression remains. The alias and Single Redirect were not provisioned; their API capability blocker remains documented in [cloudflare.md](cloudflare.md).

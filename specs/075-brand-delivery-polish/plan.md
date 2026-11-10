@@ -53,7 +53,7 @@ No constitution exceptions. No unrelated dependency upgrades.
 
 The required WordPress fixture audit discovered current transitive findings. T016/T017 add a bounded validation-only repair with exact patched versions and a real glob/rimraf filesystem compatibility check; the existing audit threshold remains unchanged. This is necessary to complete the documented gate, rather than an expansion into the unrelated dependency PR backlog. Supplemental cross-artifact analysis confirms coverage under FR-009/FR-010 and no new constitution conflict.
 
-## Publication Outcome
+## Initial Publication Outcome
 
 The owner authorized remote/publication work on 2026-11-10. PR #354 passed review and CI, merged, and its exact v3.1.2 tag published the verified official release. Three Pages attempts failed to finalize despite a verified artifact. Live acceptance and #328/#353 closure remain pending the recovery in [deployment.md](deployment.md); #352 retains its independent permission blocker. No done-gate was weakened or external completion inferred from artifact checks.
 
@@ -88,3 +88,11 @@ If the debug retry also stalls, use one main-dispatched recovery_ustar boolean i
 Stream original logical members directly into tarfile.USTAR_FORMAT, preserving effective names, member order, directory entries, types, real-member modes, ownership and timestamps. Reject unrepresentable names or metadata instead of truncating, renaming or extracting through the filesystem. Independently reopen both archives and require equal ordered member records with regular-file path, size and SHA-256, directory set and preserved metadata. Recheck qualified publication and hosted release ZIP binding. Retain the original archive, original/new TAR digests and both manifests privately; expose only content/controller/format/manifest provenance receipts in CI.
 
 Default original transport stays unchanged. USTAR mode changes only the archive representation and resulting artifact identity, never site file bytes, release assets, approved source, publication identity or permissions. It is a controlled packaging hypothesis. If it also stalls, stop format experiments and seek GitHub-side investigation with the diagnostic packet.
+
+## Standard Publication Format and Closeout, 2026-11-10
+
+The controlled USTAR deployment succeeded at 11:11 UTC while Cloudflare remained in its original proxied state. Preserve the same pinned official upload/deploy actions and adopt step-local TAR_OPTIONS=--format=ustar for normal Linux Pages packaging. Upstream source has no conflicting format flag and retains RUNNER_TEMP/artifact.tar until job cleanup. Immediately validate that TAR through a read-only verify-archive CLI using the existing strict USTAR/member checks. This stays inside verified-build, so aggregate build, release preflight and normal publication require its success. Recovery transport remains original by default with explicit optional USTAR; future normal tags use the tested USTAR representation automatically.
+
+Current paths and metadata fit USTAR. Unrepresentable future data must fail packaging/validation with an explicit error rather than silently alter names/content or fall back to another format. This is a representation limit, not a new brand-eligibility rule. The default format choice is supported by successful activation, but the exact GitHub backend cause of GNU-format stalls remains unproven. Keep all normal quality/security gates and permissions.
+
+The owner subsequently approved a temporary canonical DNS-only window for certificate repair. GitHub then recognized HTTPS eligibility, same-domain reprovisioning produced an approved certificate through 2027-02-08, and HTTPS enforcement was restored/read back true. Cloudflare proxying, target, Auto TTL and comment were restored to their original values. Direct-origin HTTP now redirects 301 to canonical HTTPS. This separate repair occurred after successful Pages activation. Issues #328/#353 closed after live acceptance; #352 remains open with the machine API permission blocker and untouched alias/redirect work.

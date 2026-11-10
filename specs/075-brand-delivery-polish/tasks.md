@@ -53,11 +53,11 @@
 - [x] T018 Run full documented contributor/CI-parity validation, rebuild all thirteen kits and verify packages/site, recording results in `specs/075-brand-delivery-polish/verification.md`.
 - [x] T019 Audit source-only Git state, UTF-8 without BOM/LF and mojibake; synchronize tasks/evidence in `specs/075-brand-delivery-polish/`.
 - [x] T020 Commit verified source locally and present exact pre-push command and remaining deviations, including #352 and pending publication, in `specs/075-brand-delivery-polish/verification.md`.
-- [ ] T021 Complete Pages deployment and direct live issue verification per `specs/075-brand-delivery-polish/deployment.md`. Authorization, PR #354 review/CI/merge and the official v3.1.2 release are complete; three Pages attempts timed out, so live acceptance and #328/#353 closure remain blocked.
+- [x] T021 Complete Pages deployment and direct live issue verification per `specs/075-brand-delivery-polish/deployment.md`. Authorization, reviewed source/recovery merges, official release, successful USTAR activation, live acceptance and #328/#353 closure are complete.
 
 ## Dependencies and Execution Order
 
-Setup precedes foundation; analysis blocks implementation. T005/T006 precede T007/T008. US2 is independently implementable after foundation; its build joins US1 validation. US3 access failure blocks only T014. Candidate validation follows repository changes and precedes local commit. The pre-push checkpoint was explicitly approved on 2026-11-10. T021 now remains blocked by Pages deployment, independently of the Cloudflare blocker.
+Setup precedes foundation; analysis blocks implementation. T005/T006 precede T007/T008. US2 is independently implementable after foundation; its build joins US1 validation. US3 access failure blocks only T014. Candidate validation follows repository changes and precedes local commit. The pre-push checkpoint was explicitly approved on 2026-11-10. T021 is complete after successful USTAR activation and live acceptance; only T014 remains externally blocked.
 
 ## Parallel Opportunities
 
@@ -70,13 +70,13 @@ Ship US1/US2 together through one rebuild/candidate; preserve the authorized ext
 ## Phase 7: Pages Recovery Continuation
 
 - [x] T022 Investigate current Pages API, upstream action, source workflow and exact uploaded artifact; record findings in `specs/075-brand-delivery-polish/deployment.md`.
-- [ ] T023 Refresh the existing Pages configuration, use documented same-domain certificate reprovisioning if required to restore HTTPS enforcement, and compare private snapshots/public identity; record the observed outcome in `specs/075-brand-delivery-polish/deployment.md`.
+- [x] T023 Refresh the existing Pages configuration, use documented same-domain certificate reprovisioning if required to restore HTTPS enforcement, and compare private snapshots/public identity; record the observed outcome in `specs/075-brand-delivery-polish/deployment.md`.
 - [x] T024 Specify the qualified-artifact recovery contract in `specs/075-brand-delivery-polish/plan.md` and `contracts/pages-recovery.md`, then run blocking analysis before implementation.
 - [x] T025 Add failing provenance, digest, release-consistency and archive-boundary tests in `scripts/test_pages_recovery.py` and workflow invariants in `scripts/test_publication_workflow.py`.
 - [x] T026 Implement qualified source/candidate/TAR validation and hidden noninteractive launches in `scripts/recover_pages.py`.
 - [x] T027 Add main-only manual artifact preparation/deployment, isolated concurrency and correct action labels to `.github/workflows/build.yml`; record the decision in `CHANGELOG.md`.
 - [x] T028 Run targeted tests, real original-artifact preflight, required review/CI and merge; record evidence in `specs/075-brand-delivery-polish/verification.md`.
-- [ ] T029 Activate the exact v3.1.2 TAR through the fresh controller, restore HTTPS enforcement, run existing live acceptance and close #328/#353 in `specs/075-brand-delivery-polish/verification.md`; keep #352 open.
+- [x] T029 Activate the exact v3.1.2 TAR through the fresh controller, restore HTTPS enforcement, run existing live acceptance and close #328/#353 in `specs/075-brand-delivery-polish/verification.md`; keep #352 open.
 
 T023 depends on T022 and the supplemental analysis. T024 depends on the observed T023 result; a further blocking analysis covers any resulting code changes. T025 precedes T026/T027. T028 follows implementation; T029 preserves the original T021 done-gate.
 
@@ -85,13 +85,22 @@ T023 depends on T022 and the supplemental analysis. T024 depends on the observed
 - [x] T030 Review the failed fresh-controller activation and primary upstream timeout/service constraints; reject the ineffective 30-minute input before implementation and record the result in plan.md and research.md.
 - [x] T031 Capture status/request-ID and debug-enabled retry evidence in deployment.md, then reconcile the remaining operational blocker without altering release assets or accepting intermediate status as success.
 
-T029 remains pending after the fresh-controller failure and now depends on the observed T031 outcome and actual HTTPS restoration. The owner authentication request does not pause independent CI or diagnostic work.
+After the fresh-controller failure, T029 remained pending until the successful Phase 9 activation and actual HTTPS restoration. The owner authentication request does not pause independent CI or diagnostic work.
 
 ## Phase 9: Conditional Archive Representation Test
 
 - [x] T032 Research and specify the USTAR-only representation test and complete-manifest invariant in plan.md, data-model.md and contracts/pages-recovery.md, then pass supplemental blocking analysis.
 - [x] T033 Add failing long-name, complete-payload/metadata equivalence, tamper, unsupported-representation and workflow-mode tests in scripts/test_pages_recovery.py and scripts/test_publication_workflow.py.
 - [x] T034 Implement the optional format-only repack in scripts/recover_pages.py, preserving default transport, and expose the boolean mode in the existing Build workflow.
-- [ ] T035 Validate original-artifact repack locally, run required review/CI/merge and perform the one controlled USTAR deployment if the debug retry failed. Keep T029 pending until actual live acceptance and HTTPS restoration.
+- [x] T035 Validate original-artifact repack locally, run required review/CI/merge and perform the one controlled USTAR deployment if the debug retry failed. T029 was completed only after actual live acceptance and HTTPS restoration.
 
 T033 precedes T034. T035 requires completed T031 failure evidence and passing qualification. No archive representation changes affect the immutable published release assets.
+
+## Phase 10: Standard Transport and Final Acceptance Records
+
+- [x] T036 Research the pinned normal uploader and specify step-local USTAR plus same-job archive validation, then pass supplemental blocking analysis.
+- [x] T037 Add failing CLI-without-controller and normal-producer workflow guards in scripts/test_pages_recovery.py and scripts/test_publication_workflow.py.
+- [x] T038 Add read-only verify-archive and standard Pages USTAR packaging/validation, preserving action pins and all gates; record the decision in CHANGELOG.md.
+- [x] T039 Synchronize final live/certificate evidence and issue outcomes, qualify source hygiene and record the final PR qualification criteria.
+
+T037 precedes T038. T039 records completed source/evidence work. The final PR must additionally pass required hosted CI (including actual normal-producer archive validation), clean exact-head review and protected merge before the session is complete. Those PR-owned receipts are recorded in its GitHub conversation/checks, avoiding a recursive source-closeout PR. It does not republish or redeploy unqualified main content over the immutable v3.1.2 site. T014 remains the owner-authorized Cloudflare alias/redirect blocker.
