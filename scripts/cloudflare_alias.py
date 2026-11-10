@@ -251,7 +251,7 @@ def rollback(api, receipt):
                             None if old is None else dict(rule_payload(old), position={"index": operation["position"]}))
     after = snapshot(api)
     require(unrelated(current) == unrelated(after), "Rollback changed unrelated configuration")
-    require(managed(after) == managed(data["before"]), "Rollback alias readback differs from baseline")
+    require(signature(after) == signature(data["before"]), "Rollback alias readback differs from baseline")
     data["rolled_back"] = after
     save(receipt, data)
     return {"host": ALIAS, "changes": len(data["operations"]), "unrelated_unchanged": True, "rolled_back": True}

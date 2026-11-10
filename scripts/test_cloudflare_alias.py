@@ -28,6 +28,7 @@ class FakeAPI:
         self.writes = []
         self.deny = False
         self.counter = 10
+        self.bump_metadata = False
 
     def request(self, method, path, body=None, missing=False):
         parsed = urllib.parse.urlsplit(path)
@@ -52,6 +53,8 @@ class FakeAPI:
             elif method == "PATCH":
                 result = next(r for r in self.records if r["id"] == bits[-1])
                 result.update(body)
+                if self.bump_metadata:
+                    result["modified_on"] = "change-%d" % self.counter
             else:
                 self.records = [r for r in self.records if r["id"] != bits[-1]]
                 result = {}
@@ -66,6 +69,8 @@ class FakeAPI:
                 rule = dict(body)
                 position = rule.pop("position", None)
                 rule["id"] = new_id if method == "POST" else bits[-1]
+                if self.bump_metadata:
+                    rule.update(version=str(self.counter), last_updated="change-%d" % self.counter)
                 self.entry["rules"] = [r for r in self.entry["rules"] if r["id"] != rule["id"]]
                 self.entry["rules"].insert((position or {}).get("index", 1) - 1, rule)
         elif method == "DELETE":
@@ -184,6 +189,25 @@ class AliasTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 alias.rollback(api, receipt)
             self.assertEqual(len(api.writes), writes)
+
+    def test_existing_object_restoration_ignores_new_server_timestamps_and_versions(self):
+        api = FakeAPI()
+        api.bump_metadata = True
+        api.records.append({"id": "4" * 32, "name": alias.ALIAS, "type": "CNAME", "content": "old.example",
+                            "proxied": False, "ttl": 300, "modified_on": "initial"})
+        api.entry["rules"].append(dict(alias.desired_rule(), id="5" * 32, enabled=False,
+                                       version="1", last_updated="initial"))
+        original_record, original_rule = copy.deepcopy(alias.managed(alias.snapshot(api)))
+        with tempfile.TemporaryDirectory() as temporary:
+            receipt = Path(alias.apply(api, Path(temporary))["receipt"])
+            alias.rollback(api, receipt)
+            restored_record, restored_rule = alias.managed(alias.snapshot(api))
+            self.assertEqual(alias.clean(restored_record), alias.clean(original_record))
+            self.assertEqual(restored_rule[0], original_rule[0])
+            self.assertEqual(alias.clean(restored_rule[1]), alias.clean(original_rule[1]))
+            self.assertNotEqual(restored_record["modified_on"], original_record["modified_on"])
+            self.assertNotEqual(restored_rule[1]["version"], original_rule[1]["version"])
+            self.assertTrue(json.loads(receipt.read_text(encoding="utf-8"))["rolled_back"])
 
     def test_api_errors_redact_raw_body_and_redirects_are_not_followed(self):
         error = urllib.error.HTTPError("https://api.cloudflare.com/", 403, "Denied", {},
