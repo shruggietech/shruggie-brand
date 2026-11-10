@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-09
 
-**Status**: Locally verified, pre-push checkpoint (#352 blocked; publication pending)
+**Status**: Merged; official v3.1.2 release published; Pages/live acceptance blocked (#328/#353 open; #352 separately blocked)
 
 **Input**: Owner kickoff: "Kick off S075 under autopilot. Target all three issues, and if Cloudflare access is blocked, finish the other two and report exactly what remains." Issues: [#328](https://github.com/shruggietech/shruggie-brand/issues/328), [#353](https://github.com/shruggietech/shruggie-brand/issues/353), and [#352](https://github.com/shruggietech/shruggie-brand/issues/352).
 

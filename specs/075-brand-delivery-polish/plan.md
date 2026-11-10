@@ -52,3 +52,7 @@ No constitution exceptions. No unrelated dependency upgrades.
 ## Validation Follow-up Decision
 
 The required WordPress fixture audit discovered current transitive findings. T016/T017 add a bounded validation-only repair with exact patched versions and a real glob/rimraf filesystem compatibility check; the existing audit threshold remains unchanged. This is necessary to complete the documented gate, rather than an expansion into the unrelated dependency PR backlog. Supplemental cross-artifact analysis confirms coverage under FR-009/FR-010 and no new constitution conflict.
+
+## Publication Outcome
+
+The owner authorized remote/publication work on 2026-11-10. PR #354 passed review and CI, merged, and its exact v3.1.2 tag published the verified official release. Three Pages attempts failed to finalize despite a verified artifact. Live acceptance and #328/#353 closure remain pending the recovery in [deployment.md](deployment.md); #352 retains its independent permission blocker. No done-gate was weakened or external completion inferred from artifact checks.

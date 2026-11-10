@@ -60,7 +60,7 @@ Evidence is recorded here as checks finish. Pending checks and publication stage
 - Final site lint, static build, README-link audit and full test campaign passed. The campaign passed 12 Node tests, 278 route/viewport checks, 99 visual checks across two themes, and 139 HTML routes at desktop/mobile widths with zero WCAG 2.1 AA violations (671 seconds for site test).
 - Focused DanceWithMe865 site checks passed eight dark/light cases: desktop, 390px mobile, 320 CSS-pixel reflow and 200% enlargement of the changed description text. Exact straight quotes/final period, visibility, containment, internal width and page width passed. Visually inspected desktop/mobile and enlarged mobile descriptions. This focused check does not claim that every unrelated site label was enlarged.
 
-## Evidence and Remaining Work
+## Pre-push Evidence and Remaining Work
 
 Reproducible source commands are in [quickstart.md](quickstart.md), CONTRIBUTING.md and the CI workflow. Local detailed logs, JSON measurements and review images are under ignored dist/private/s075; generated kits, site exports, proof images and release archives are excluded from Git. Qualification artifacts record the pre-commit baseline revision plus the working source changes. The hosted Linux, minimum-Python 3.8 and exact-head workflow jobs remain to be run after push. Hosted CI must rebuild and certify the actual pushed commit before publication; local archives must not be uploaded as release substitutes.
 
@@ -80,3 +80,16 @@ Exact next command awaiting authorization:
 ```powershell
 git push -u origin codex/075-brand-delivery-polish
 ```
+
+## 2026-11-10: Authorized Review, Merge and Release
+
+- The owner explicitly authorized push, PR review/CI, merge, v3.1.2 publication and live verification, while leaving #352 open. The pre-push authorization checkpoint above is historical and has been passed.
+- [PR #354](https://github.com/shruggietech/shruggie-brand/pull/354) received a clean Codex code-review receipt on exact head `477519e122764b51c152c8cb881c85b86c2eb5c4`, with no review threads or actionable findings remaining. One separate security-review command produced no acknowledgment/receipt, so no separate service security-review pass is claimed. Required fixture security/audit checks passed.
+- The [PR workflow](https://github.com/shruggietech/shruggie-brand/actions/runs/42759753815) passed every applicable verification job, including Python 3.8, approved proofs, browser-enabled contracts and the full production build/delivery/site campaign. Minimum-Python pipeline skips remain named capability skips; browser-enabled qualification is separate.
+- PR #354 was squash merged at `47b7618f582659c01d39d4b5da10f5f1df220ed8`. Reviewed head and merged commit have identical tree `648b30c83ef4a9cacc52752a3928dbd96f9d3ca3`. The [post-merge main workflow](https://github.com/shruggietech/shruggie-brand/actions/runs/42764249462) passed all applicable jobs.
+- Annotated tag v3.1.2 points to the merged commit. Its [workflow](https://github.com/shruggietech/shruggie-brand/actions/runs/42764281217) passed all verification, aggregate build, exact-release preflight and official publication jobs. The overall tag workflow failed only in deploy-pages after three targeted deployment attempts. No verification gate was bypassed.
+- The [official v3.1.2 release](https://github.com/shruggietech/shruggie-brand/releases/tag/v3.1.2) is public, stable and latest. All thirteen downloaded assets match GitHub SHA-256 metadata. All twelve distributions match downloaded SHA256SUMS, and the exact-release contract validates their archives and generated notes against the tagged revision. No local artifact was published or existing release asset replaced.
+- Both then-open Dependabot alerts concerned the fixture's isomorphic-git version; the patched 1.38.6 pin resolved them after merge. The open-alert API returned an empty list.
+- The exact uploaded Pages artifact was downloaded and inspected: its digest matches, all 4,308 files are regular files, total content is 331,409,561 bytes, and no hard/symbolic links, unusual types or unsafe member paths are present. Its homepage and guide contain the approved DanceWithMe865 sentence, and its documentation identity is release v3.1.2 at the tagged revision. This does not establish live-site acceptance.
+- Three Pages attempts timed out, respectively at syncing_files, finished_file_sync and an empty server status. Public and cache-busted documentation requests, plus a direct origin request with hostname/TLS validation, still report v3.1.1 at `65af667461798738b0cf381b7c8bc4487afd853a`. Live v3.1.2 acceptance remains unverified; #328 and #353 remain open.
+- See [deployment.md](deployment.md) for chronological attempt/job evidence, diagnostics, artifact expiry and exact recovery/live-check work. GitHub did not return deployment success; no destructive site/domain reset was attempted. The independent Cloudflare blocker remains in [cloudflare.md](cloudflare.md), and #352 remains open.
