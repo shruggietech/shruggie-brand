@@ -257,5 +257,92 @@ class ArchiveTests(unittest.TestCase):
             self.assertFalse(kwargs.get("shell", False))
 
 
+class UstarTests(unittest.TestCase):
+    LONG_NAME = "./docs/" + "nested/" * 16 + "guide.html"
+
+    def write_archive(self, path, change=None):
+        rows = [("./", None), ("./empty/", None), (self.LONG_NAME, b"qualified page"), ("./index.html", b"homepage")]
+        if change == "missing-directory":
+            rows.pop(1)
+        elif change == "extra":
+            rows.append(("./extra", b"unexpected"))
+        elif change == "order":
+            rows.reverse()
+        elif change == "bytes":
+            rows[-1] = ("./index.html", b"replaced")
+        elif change == "name":
+            rows[-1] = ("./renamed.html", b"homepage")
+        elif change == "unrepresentable":
+            rows.append(("x" * 101, b"cannot fit USTAR name"))
+        with tarfile.open(str(path), "w", format=tarfile.GNU_FORMAT) as archive:
+            for name, data in rows:
+                item = tarfile.TarInfo(name)
+                item.type = tarfile.DIRTYPE if data is None else tarfile.REGTYPE
+                item.size = 0 if data is None else len(data)
+                item.mode = 0o755 if data is None else 0o664
+                item.uid, item.gid = 1001, 1001
+                item.uname, item.gname = "runner", "runner"
+                item.mtime = 1794270000
+                if change == "metadata":
+                    item.uid = 1002
+                archive.addfile(item, None if data is None else io.BytesIO(data))
+
+    def test_long_names_reencode_without_changing_members_or_metadata(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source, target = root / "original.tar", root / "ustar.tar"
+            self.write_archive(source)
+            before = source.read_bytes()
+            self.assertIn(b"././@LongLink", before)
+            result = recovery.repack_ustar(source, target, root)
+            self.assertEqual(source.read_bytes(), before)
+            self.assertNotEqual(target.read_bytes(), before)
+            self.assertEqual(target.read_bytes()[257:265], b"ustar\x0000")
+            self.assertEqual(result["original_tar_sha256"], digest(before))
+            self.assertEqual(result["tar_sha256"], digest(target.read_bytes()))
+            self.assertEqual(json.loads((root / "original-members.json").read_text()),
+                             json.loads((root / "ustar-members.json").read_text()))
+            self.assertEqual(recovery.archive_manifest(source), recovery.archive_manifest(target, require_ustar=True))
+
+    def test_complete_equivalence_rejects_changed_bytes_paths_directories_order_or_metadata(self):
+        for change in ("bytes", "name", "missing-directory", "extra", "order", "metadata"):
+            with tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                source, altered, output = root / "source.tar", root / "altered.tar", root / "output.tar"
+                self.write_archive(source)
+                self.write_archive(altered, change)
+                recovery.repack_ustar(altered, output)
+                with self.subTest(change=change), self.assertRaises(ValueError):
+                    recovery.validate_ustar_transport(source, output)
+
+    def test_repack_rejects_unrepresentable_names_and_overwriting_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "source.tar"
+            self.write_archive(source, "unrepresentable")
+            before = source.read_bytes()
+            with self.assertRaises(ValueError):
+                recovery.repack_ustar(source, root / "output.tar")
+            with self.assertRaises(ValueError):
+                recovery.repack_ustar(source, source)
+            self.assertEqual(source.read_bytes(), before)
+
+    def test_repack_rejects_unsafe_members_and_non_ustar_validation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "source.tar"
+            self.write_archive(source)
+            with self.assertRaises(ValueError):
+                recovery.validate_ustar_transport(source, source)
+            for kind in (tarfile.SYMTYPE, tarfile.LNKTYPE, tarfile.CHRTYPE):
+                malicious = root / (kind.decode() + ".tar")
+                with tarfile.open(str(malicious), "w") as archive:
+                    item = tarfile.TarInfo("linked")
+                    item.type, item.linkname = kind, "../outside"
+                    archive.addfile(item)
+                with self.assertRaises(ValueError):
+                    recovery.repack_ustar(malicious, root / (kind.decode() + "-output.tar"))
+
+
 if __name__ == "__main__":
     unittest.main()

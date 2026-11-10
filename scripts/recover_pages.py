@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -171,11 +172,15 @@ def extract_zip(path, output):
                     shutil.copyfileobj(source, destination)
 
 
-def checked_members(archive, limit):
+def checked_members(archive, limit, include_root=False):
     seen = set()
     total = 0
     for item in archive:
         if item.isdir() and item.name in (".", "./"):
+            if include_root:
+                require("." not in seen, "duplicate archive root")
+                seen.add(".")
+                yield item, "."
             continue
         name = register(item.name, seen)
         require(item.type in (tarfile.REGTYPE, tarfile.AREGTYPE, tarfile.DIRTYPE), "TAR links/special types are forbidden")
@@ -272,6 +277,10 @@ def extract_pages(path, output, receipt, binding):
         require(item.file_size <= MAX_ARCHIVE_BYTES, "Pages envelope exceeds staging limit")
         with archive.open(item) as source, target.open("wb") as destination:
             shutil.copyfileobj(source, destination)
+    return validate_pages_tar(target, binding)
+
+
+def validate_pages_tar(target, binding):
     before = file_digest(target)
     found = set()
     documentation_found = False
@@ -298,6 +307,62 @@ def extract_pages(path, output, receipt, binding):
     return {"tar_sha256": before, "files": files, "content_bytes": content_bytes}
 
 
+def archive_manifest(path, require_ustar=False):
+    records = []
+    with path.open("rb") as headers, tarfile.open(str(path), "r:") as archive:
+        for item, name in checked_members(archive, MAX_SITE_BYTES, include_root=True):
+            if require_ustar:
+                headers.seek(item.offset)
+                header = headers.read(512)
+                require(header[257:265] == b"ustar\x0000" and header[156:157] in (b"0", b"\0", b"5"),
+                        "transport contains non-USTAR headers")
+            record = {"path": name, "name": item.name, "type": item.type.decode("ascii"),
+                      "size": item.size, "mode": item.mode, "uid": item.uid, "gid": item.gid,
+                      "uname": item.uname, "gname": item.gname, "mtime": item.mtime,
+                      "linkname": item.linkname, "devmajor": item.devmajor, "devminor": item.devminor,
+                      "pax_headers": item.pax_headers}
+            if item.isfile():
+                value = hashlib.sha256()
+                with archive.extractfile(item) as data:
+                    for chunk in iter(lambda: data.read(1024 * 1024), b""):
+                        value.update(chunk)
+                record["sha256"] = value.hexdigest()
+            records.append(record)
+    return records
+
+
+def validate_ustar_transport(source, target, manifest_directory=None):
+    original = archive_manifest(source)
+    repacked = archive_manifest(target, require_ustar=True)
+    require(original == repacked, "USTAR member content, order or metadata differs")
+    serialized = json.dumps(original, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    if manifest_directory is not None:
+        write_json(manifest_directory / "original-members.json", original)
+        write_json(manifest_directory / "ustar-members.json", repacked)
+    return {"original_tar_sha256": file_digest(source), "tar_sha256": file_digest(target),
+            "logical_manifest_sha256": hashlib.sha256(serialized).hexdigest(), "members": len(original)}
+
+
+def repack_ustar(source, target, manifest_directory=None):
+    require(source.resolve() != target.resolve(), "USTAR output must not overwrite the original")
+    original_digest = file_digest(source)
+    # Validate the complete source before writing, without filesystem extraction.
+    archive_manifest(source)
+    with tarfile.open(str(source), "r:") as original, target.open("xb") as output:
+        with tarfile.open(fileobj=output, mode="w", format=tarfile.USTAR_FORMAT) as repacked:
+            for item, _ in checked_members(original, MAX_SITE_BYTES, include_root=True):
+                require(not item.pax_headers, "USTAR cannot preserve PAX metadata")
+                member = copy.copy(item)
+                if item.isfile():
+                    with original.extractfile(item) as data:
+                        repacked.addfile(member, data)
+                else:
+                    repacked.addfile(member)
+    result = validate_ustar_transport(source, target, manifest_directory)
+    require(result["original_tar_sha256"] == original_digest, "original TAR changed during repack")
+    return result
+
+
 def write_json(path, value):
     with path.open("w", encoding="utf-8", newline="\n") as output:
         json.dump(value, output, indent=2)
@@ -312,7 +377,8 @@ def controller_sha():
     return actual
 
 
-def prepare(directory):
+def prepare(directory, tar_format="original"):
+    require(tar_format in ("original", "ustar"), "invalid recovery TAR format")
     saved = json.loads((directory / "receipt.json").read_text(encoding="utf-8"))
     if os.environ.get("GITHUB_ACTIONS") == "true":
         require(saved["repository"].lower() == os.environ.get("GITHUB_REPOSITORY", "").lower(), "controller repository mismatch")
@@ -329,20 +395,35 @@ def prepare(directory):
     binding = candidate_receipt(candidate, receipt)
     validate_tag_contracts(directory / "source", candidate, receipt)
     result = extract_pages(pages_zip, directory / "pages", receipt, binding)
+    result.update(tar_format=tar_format, original_tar_sha256=result["tar_sha256"])
+    if tar_format == "ustar":
+        original = directory / "pages" / "artifact.tar"
+        repacked = directory / "pages" / "ustar.tar"
+        proof = repack_ustar(original, repacked, directory)
+        require(proof["original_tar_sha256"] == result["tar_sha256"], "qualified TAR changed before repack")
+        validated = validate_pages_tar(repacked, binding)
+        require(validated["tar_sha256"] == proof["tar_sha256"], "USTAR changed after member validation")
+        require(all(validated[key] == result[key] for key in ("files", "content_bytes")), "USTAR inventory differs")
+        original.rename(original.with_name("original-artifact.tar"))
+        repacked.rename(original)
+        result.update(proof)
     controller_run = os.environ.get("GITHUB_RUN_ID", "local")
     require(controller_run == "local" or re.fullmatch(r"[1-9][0-9]*", controller_run) is not None, "invalid controller run ID")
     result.update(source_sha=receipt["source_sha"], controller_sha=receipt["controller_sha"],
                   tag=receipt["tag"], run_id=receipt["run_id"],
-                  artifact_name="github-pages-recovery-" + receipt["source_sha"] + "-" + controller_run)
+                  artifact_name="github-pages-recovery-" + ("ustar-" if tar_format == "ustar" else "") + receipt["source_sha"] + "-" + controller_run)
     write_json(directory / "transport.json", result)
     if os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8", newline="\n") as output:
-            for name in ("artifact_name", "source_sha", "controller_sha", "tar_sha256"):
-                output.write(name + "=" + result[name] + "\n")
+            for name in ("artifact_name", "source_sha", "controller_sha", "tar_sha256", "tar_format", "original_tar_sha256", "logical_manifest_sha256"):
+                if name in result:
+                    output.write(name + "=" + result[name] + "\n")
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8", newline="\n") as output:
-            output.write("Qualified Pages artifact ready for deployment.\n\nContent: %s at %s, original run %d.\n\nController: %s.\n\nUnchanged TAR SHA-256: %s.\n" %
-                         (receipt["tag"], receipt["source_sha"], receipt["run_id"], receipt["controller_sha"], result["tar_sha256"]))
+            output.write("Qualified Pages artifact ready for deployment.\n\nContent: %s at %s, original run %d.\n\nController: %s.\n\nTAR format: %s.\n\nOriginal TAR SHA-256: %s.\n\nTransport TAR SHA-256: %s.\n" %
+                         (receipt["tag"], receipt["source_sha"], receipt["run_id"], receipt["controller_sha"], tar_format, result["original_tar_sha256"], result["tar_sha256"]))
+            if "logical_manifest_sha256" in result:
+                output.write("\nEquivalent ordered member manifest SHA-256: %s.\n" % result["logical_manifest_sha256"])
     print(json.dumps(result), flush=True)
 
 
@@ -356,6 +437,7 @@ def main():
     resolve.add_argument("--directory", required=True, type=Path)
     stage = commands.add_parser("prepare")
     stage.add_argument("--directory", required=True, type=Path)
+    stage.add_argument("--tar-format", choices=("original", "ustar"), default="original")
     args = parser.parse_args()
     directory = args.directory.resolve()
     if args.command == "resolve":
@@ -367,7 +449,7 @@ def main():
         write_json(directory / "receipt.json", receipt)
         print("Qualified %s at %s from run %d" % (receipt["tag"], receipt["source_sha"], receipt["run_id"]), flush=True)
     else:
-        prepare(directory)
+        prepare(directory, args.tar_format)
     return 0
 
 

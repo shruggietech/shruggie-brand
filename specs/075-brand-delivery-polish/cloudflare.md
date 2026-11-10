@@ -30,3 +30,9 @@ All provisioning, TLS/redirect checks, repeat-run proof and exercised rollback r
 
 - [Redirect-only DNS and hostname redirect](https://developers.cloudflare.com/fundamentals/manage-domains/redirect-domain/)
 - [Single Redirect API and permissions](https://developers.cloudflare.com/rules/url-forwarding/single-redirects/create-api/)
+
+## Certificate Restoration Access, 2026-11-10
+
+The saved GitHub-linked browser profile signs in but has no domains. The other saved profile reaches a two-factor authenticator challenge; the owner was asked to complete it while independent Pages work continues. No DNS/rule mutation occurred and the API permission blocker remains.
+
+Separately, GitHub reports certificate bad_authz despite valid current edge/origin TLS. An unchanged-domain Pages API save unexpectedly cleared https_enforced, and GitHub rejects restoring true because certificate issuance is incomplete. The documented same-domain provisioning reset did not restore eligibility. DNS health sees Cloudflare proxying and is_https_eligible=false, with no CAA or current HTTPS error. Canonical configuration inspection and actual HTTPS-flag restoration remain outstanding; this certificate state has not been established as the cause of Pages syncing timeouts. The alias/redirect work above remains open and untouched.

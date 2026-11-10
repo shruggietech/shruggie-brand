@@ -9,3 +9,5 @@ Alias states are undiscovered, inspected, reconciled, verified or blocked. Curre
 Candidate stages are local verified, pushed/reviewed, merged, tagged and published. Each advances only with stage-specific evidence; a local commit cannot claim live completion.
 
 A recovery receipt binds repository, published tag, original qualified run, immutable content SHA, candidate/Pages artifact IDs and digests, official release digests, and the separate deployment-controller SHA. A transported TAR retains its digest and released publication identity. Recovery states are resolved, qualified, transported, activated and live-verified; neither a transport receipt nor intermediate Pages status proves activation.
+
+USTAR representation receipts add tar_format, original_tar_sha256, final tar_sha256 and logical_manifest_sha256. The ordered full-member manifest records effective/raw names, types, sizes, file SHA-256 and preserved mode/ownership/timestamp metadata; original and repacked manifests must be equal before transport.
