@@ -4,6 +4,14 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ## [Unreleased]
 
+### Fixed
+
+- Add qualified-artifact Pages recovery for a published tag when its original deployment stalls, preserving the existing release and exact verified site TAR (S075).
+
+### Decisions
+
+- 2026-11-10 (S075): Keep recovery inside the existing Build workflow, dispatch only from main, validate original qualification jobs, artifact digests and tagged release contracts, and transport the unchanged TAR through the official Pages action with a fresh controller. Keep content provenance separate from controller identity, serialize Pages publishers, and retain normal validation gates.
+
 ## [3.1.2] - 2026-11-09
 
 ### Fixed

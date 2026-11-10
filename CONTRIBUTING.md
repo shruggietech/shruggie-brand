@@ -38,6 +38,8 @@ Run the geometry unit tests, probe the toolchain, build every kit, and build the
 .\.venv\Scripts\python skill/templates/test_web_react_adapter.py
 .\.venv\Scripts\python skill/templates/test_pipeline.py
 .\.venv\Scripts\python skill/templates/test_registry_contract.py
+.\.venv\Scripts\python scripts/test_publication_workflow.py
+.\.venv\Scripts\python scripts/test_pages_recovery.py
 .\.venv\Scripts\python scripts/check_markdown.py
 .\.venv\Scripts\python skill/templates/probe.py
 .\.venv\Scripts\python scripts/build_all.py

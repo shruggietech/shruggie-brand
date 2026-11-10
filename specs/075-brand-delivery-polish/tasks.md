@@ -66,3 +66,16 @@ Cloudflare read-only research and local source research can proceed independentl
 ## Implementation Strategy
 
 Ship US1/US2 together through one rebuild/candidate; preserve the authorized external blocker for US3. This staged result does not claim full three-issue completion or live publication until evidence exists.
+
+## Phase 7: Pages Recovery Continuation
+
+- [x] T022 Investigate current Pages API, upstream action, source workflow and exact uploaded artifact; record findings in `specs/075-brand-delivery-polish/deployment.md`.
+- [ ] T023 Refresh the existing Pages configuration, use documented same-domain certificate reprovisioning if required to restore HTTPS enforcement, and compare private snapshots/public identity; record the observed outcome in `specs/075-brand-delivery-polish/deployment.md`.
+- [x] T024 Specify the qualified-artifact recovery contract in `specs/075-brand-delivery-polish/plan.md` and `contracts/pages-recovery.md`, then run blocking analysis before implementation.
+- [x] T025 Add failing provenance, digest, release-consistency and archive-boundary tests in `scripts/test_pages_recovery.py` and workflow invariants in `scripts/test_publication_workflow.py`.
+- [x] T026 Implement qualified source/candidate/TAR validation and hidden noninteractive launches in `scripts/recover_pages.py`.
+- [x] T027 Add main-only manual artifact preparation/deployment, isolated concurrency and correct action labels to `.github/workflows/build.yml`; record the decision in `CHANGELOG.md`.
+- [ ] T028 Run targeted tests, real original-artifact preflight, required review/CI and merge; record evidence in `specs/075-brand-delivery-polish/verification.md`.
+- [ ] T029 Activate the exact v3.1.2 TAR through the fresh controller, restore HTTPS enforcement, run existing live acceptance and close #328/#353 in `specs/075-brand-delivery-polish/verification.md`; keep #352 open.
+
+T023 depends on T022 and the supplemental analysis. T024 depends on the observed T023 result; a further blocking analysis covers any resulting code changes. T025 precedes T026/T027. T028 follows implementation; T029 preserves the original T021 done-gate.

@@ -9,3 +9,7 @@ Use the repository virtual environment and pinned pnpm 10.28.2 through hidden, r
 5. Verify coordinated release/package metadata and source-only Git, UTF-8 without BOM/LF and mojibake hygiene.
 6. Follow [cloudflare.md](cloudflare.md) for #352; denied DNS/rule access is a blocker, not completion.
 7. Present local commit evidence at the pre-push checkpoint. After explicit publication authorization, require exact-head CI/review, tagged release/Pages and direct live checks before issue closure.
+
+## Qualified-artifact Recovery Validation
+
+Run scripts/test_pages_recovery.py and scripts/test_publication_workflow.py through the hidden launcher. Exercise the helper resolve/prepare phases against original run 42764281217 and tag v3.1.2 in a new ignored staging directory; require original source, official release and TAR transport checks to pass. After reviewed main contains the recovery jobs, dispatch Build on main with recovery_tag=v3.1.2 and recovery_run_id=42764281217. Wait for explicit recovery deployment success, then run the prepared HTTP/archive/PDF and eighteen-case browser acceptance. Restore and verify GitHub HTTPS enforcement before declaring recovery complete. Never dispatch the old tag as the new controller or overwrite its platform SHA.

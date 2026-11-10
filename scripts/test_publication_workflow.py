@@ -50,7 +50,7 @@ EXPECTED_ACTION_VERSIONS = {
     "actions/upload-artifact": "v7.0.0",
     "actions/download-artifact": "v8.0.1",
     "actions/upload-pages-artifact": "v5.0.0",
-    "actions/deploy-pages": "v5.0.0",
+    "actions/deploy-pages": "v5.0.1",
     "pnpm/action-setup": "v6.1.0",
 }
 
@@ -349,6 +349,44 @@ class PublicationArtifactAuditTests(unittest.TestCase):
 
 
 class PublicationWorkflowContractTests(unittest.TestCase):
+    def test_recovery_is_manual_main_only_and_has_no_release_authority(self):
+        text = workflow_text()
+        preflight = job_block(text, "pages-recovery-preflight")
+        publisher = job_block(text, "deploy-pages-recovery")
+        for block in (preflight, publisher):
+            self.assertIn("github.event_name == 'workflow_dispatch'", block)
+            self.assertIn("github.ref == 'refs/heads/main'", block)
+            self.assertNotIn("contents: write", block)
+            self.assertNotIn("gh release", block)
+        self.assertIn("actions: read", preflight)
+        self.assertIn("recover_pages.py resolve", preflight)
+        self.assertIn("recover_pages.py prepare", preflight)
+        self.assertIn('recovery_tag:', text)
+        self.assertIn('recovery_run_id:', text)
+        self.assertIn("RECOVERY_TAG:", preflight)
+        self.assertNotIn("${{ inputs.", preflight.split("run:", 1)[-1].split("env:", 1)[0])
+        self.assertIn("pages-recovery/source/requirements.txt", preflight)
+        self.assertIn("pages-recovery/pages/artifact.tar", preflight)
+        self.assertIn("compression-level: 0", preflight)
+        self.assertIn("needs: pages-recovery-preflight", publisher)
+        self.assertIn("needs.pages-recovery-preflight.result == 'success'", publisher)
+        self.assertIn("needs.pages-recovery-preflight.outputs.artifact_name", publisher)
+        self.assertNotIn("actions/checkout", publisher)
+        self.assertNotRegex(publisher, r"(?m)^\s+run:")
+        self.assertIn("pages: write", publisher)
+        self.assertIn("id-token: write", publisher)
+        self.assertIn("name: github-pages", publisher)
+        self.assertNotRegex(text, r"(?m)^\s+GITHUB_SHA:")
+
+    def test_recovery_cannot_cancel_main_verification_or_overlap_another_pages_publish(self):
+        text = workflow_text()
+        concurrency = text.split("\nconcurrency:\n", 1)[1].split("\njobs:\n", 1)[0]
+        self.assertIn("github.event_name == 'push'", concurrency)
+        for name in ("deploy-pages", "deploy-pages-recovery"):
+            block = job_block(text, name)
+            self.assertIn("group: github-pages", block)
+            self.assertIn("cancel-in-progress: false", block)
+
     def test_build_is_the_only_publication_workflow(self):
         self.assertTrue(WORKFLOW.is_file())
         self.assertFalse((WORKFLOW.parent / "pages.yml").exists())
@@ -462,7 +500,7 @@ class PublicationWorkflowContractTests(unittest.TestCase):
     def test_main_concurrency_and_tag_only_pages_publisher_are_fail_closed(self):
         text = workflow_text()
         self.assertIn("github.ref == 'refs/heads/main'", text)
-        self.assertIn("cancel-in-progress: ${{ github.ref == 'refs/heads/main' }}", text)
+        self.assertIn("cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}", text)
         block = job_block(text, "deploy-pages")
         self.assertIn("needs: [build, verified-build, publish-release]", block)
         self.assertIn("needs.publish-release.result == 'success'", block)
