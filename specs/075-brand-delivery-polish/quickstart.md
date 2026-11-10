@@ -17,3 +17,5 @@ Run scripts/test_pages_recovery.py and scripts/test_publication_workflow.py thro
 If a fresh controller also stalls, retain the official ten-minute cap and explicit success requirement. Capture Pages API response request IDs and cancellation status; a debug-enabled job retry can add action diagnostics. The pinned action ignores timeout values above ten minutes, matching the documented service limit.
 
 After reviewed USTAR support is merged, the conditional packaging test adds recovery_ustar=true to the same main dispatch. The helper must prove ordered full-member content/metadata equivalence, preserve the original archive and record both TAR hashes. Keep the normal ten-minute action cap and require explicit succeed plus live acceptance.
+
+Normal publication now selects USTAR only for the official Pages upload step, then runs verify-archive against RUNNER_TEMP/artifact.tar. Exercise the CLI against a valid USTAR TAR and the original GNU TAR; require success and explicit rejection respectively. Required hosted CI must validate its real producer archive.

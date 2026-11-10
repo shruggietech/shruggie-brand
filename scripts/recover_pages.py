@@ -331,16 +331,20 @@ def archive_manifest(path, require_ustar=False):
     return records
 
 
+def manifest_digest(records):
+    serialized = json.dumps(records, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(serialized).hexdigest()
+
+
 def validate_ustar_transport(source, target, manifest_directory=None):
     original = archive_manifest(source)
     repacked = archive_manifest(target, require_ustar=True)
     require(original == repacked, "USTAR member content, order or metadata differs")
-    serialized = json.dumps(original, sort_keys=True, separators=(",", ":")).encode("utf-8")
     if manifest_directory is not None:
         write_json(manifest_directory / "original-members.json", original)
         write_json(manifest_directory / "ustar-members.json", repacked)
     return {"original_tar_sha256": file_digest(source), "tar_sha256": file_digest(target),
-            "logical_manifest_sha256": hashlib.sha256(serialized).hexdigest(), "members": len(original)}
+            "logical_manifest_sha256": manifest_digest(original), "members": len(original)}
 
 
 def repack_ustar(source, target, manifest_directory=None):
@@ -438,7 +442,18 @@ def main():
     stage = commands.add_parser("prepare")
     stage.add_argument("--directory", required=True, type=Path)
     stage.add_argument("--tar-format", choices=("original", "ustar"), default="original")
+    verify = commands.add_parser("verify-archive")
+    verify.add_argument("--archive", required=True, type=Path)
     args = parser.parse_args()
+    if args.command == "verify-archive":
+        archive = args.archive.resolve()
+        records = archive_manifest(archive, require_ustar=True)
+        files = [item for item in records if item["type"] in ("0", "\0")]
+        print(json.dumps({"tar_format": "ustar", "tar_sha256": file_digest(archive),
+                          "logical_manifest_sha256": manifest_digest(records), "members": len(records),
+                          "files": len(files), "directories": len(records) - len(files),
+                          "content_bytes": sum(item["size"] for item in files)}))
+        return 0
     directory = args.directory.resolve()
     if args.command == "resolve":
         if os.environ.get("GITHUB_ACTIONS") == "true":

@@ -111,3 +111,7 @@ A visitor opening `brands.shruggie.tech` reaches the matching path and query on 
 ### Recovery continuation, 2026-11-10
 
 The owner explicitly requests investigation and repair of the Pages timeouts, live v3.1.2 verification and closure of #328/#353, with #352 left open. Existing authorization covers the necessary reviewed recovery changes and deployment operations. Preserve the published tag and official assets, exact approved content, canonical hostname and HTTPS. Diagnose configuration/state before replacing the deployment path; any recovery transport must preserve qualified file payload and source provenance under FR-011. A format-only archive representation change is permitted only with complete member-content and metadata equivalence, retaining the original archive and all release/tag identities.
+
+### Successful Recovery and Standard Producer
+
+The qualified USTAR representation activated v3.1.2 without changing its file payload. Future normal Pages packaging should use that tested format through the existing official action, with same-job strict format validation before publication eligibility. The release tag/assets and all existing verification/authority boundaries remain unchanged.

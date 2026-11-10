@@ -349,6 +349,14 @@ class PublicationArtifactAuditTests(unittest.TestCase):
 
 
 class PublicationWorkflowContractTests(unittest.TestCase):
+    def test_normal_pages_producer_uses_step_local_ustar_and_is_verified_before_build_passes(self):
+        text = workflow_text()
+        verified = job_block(text, "verified-build")
+        self.assertEqual(text.count("TAR_OPTIONS:"), 1)
+        self.assertRegex(verified, r"actions/upload-pages-artifact@[^\n]+\n        env:\n          TAR_OPTIONS: --format=ustar")
+        self.assertIn('verify-archive --archive "$RUNNER_TEMP/artifact.tar"', verified)
+        self.assertLess(verified.index("actions/upload-pages-artifact@"), verified.index("Verify normal Pages transport format"))
+
     def test_ustar_is_explicit_optional_and_does_not_extend_the_official_timeout(self):
         text = workflow_text()
         self.assertRegex(text, r"(?s)recovery_ustar:\n.*?type: boolean\n.*?default: false")
