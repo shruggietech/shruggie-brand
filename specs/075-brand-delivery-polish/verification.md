@@ -2,7 +2,7 @@
 
 ## Current Outcome
 
-v3.1.2 is live at the immutable released source revision. #328 and #353 are closed after direct archive/PDF and browser acceptance. GitHub HTTPS enforcement and canonical Cloudflare proxying are restored; #352 remains open for automated alias/redirect API access and its unperformed acceptance work. Earlier pending statements below are chronological observations, superseded by the final receipts.
+v3.1.2 is live at the immutable released source revision. #328 and #353 are closed after direct archive/PDF and browser acceptance. GitHub HTTPS enforcement and canonical Cloudflare proxying are restored; #352 is now provisioned and live-verified; it remains open pending the Phase 11 source review/qualification/merge receipts. Earlier pending statements below are chronological observations, superseded by the final receipts.
 
 ## Workflow and Baseline
 
@@ -137,3 +137,23 @@ Issue #328 closed completed at 11:36:05 UTC with eight acceptance criteria check
 The final normal-producer PR retains all required verification, action pins, branch protections and official deployment success checks. Its actual uploaded USTAR validation, full hosted qualification, exact-head review and merge receipts belong to its GitHub checks/conversation. No extra source-closeout commit is needed merely to record that PR itself.
 
 Final source closeout checks passed: seventeen recovery tests, thirty-two publication-workflow tests, compileall, Markdown prose policy and source public-documentation audit (zero problems). All fourteen changed source text files decode strictly as UTF-8 without BOM, use LF and contain no detected mojibake; Git diff whitespace checks pass. Required actual-producer hosted qualification remains a protected merge gate.
+
+## 2026-11-10: Alias Completion Analysis and TDD
+
+Installed setup-plan/setup-tasks/prerequisite scripts resolved the existing S075 artifacts; no extension hooks are configured. Supplemental read-only analysis found zero findings, ambiguities, duplication, unmapped tasks or constitution conflicts. All eleven functional requirements and five success criteria retain task coverage (100%); T040-T044 cover FR-006/FR-007/FR-008/FR-010 and SC-004/SC-005. The eleven built-in quality markers pass; eight reviewer-owned delivery markers remain read-only under the existing explicit autopilot authorization.
+
+The existing User CF_DNS_API_TOKEN was found by environment-name inventory, then independently tested: zone and DNS inspection 200, redirect phase 403. The authenticated dashboard confirmed Zone Read and DNS Edit. The owner approved adding Single Redirect Edit scoped only to shruggie.tech, preserving existing policies/value/expiry/IP filtering. The UI confirmed token updated and the same stored token now receives redirect API 200. No new credential was created.
+
+The new isolated tests first failed on the absent helper. Ten regressions now pass for exact-host creation, no-op, preserved canonical/unrelated state, existing metadata/rule-position restoration, absent entrypoint, preservation of later unrelated additions during rollback, denied inspection, duplicate conflicts, all-object drift preflight, tampered receipt isolation, credential/error redaction, blocked API redirects and exact raw path/query/destination behavior. Synthetic API fixtures stay in memory and temporary directories.
+
+### Alias Operational Results
+
+The API created the exact-host first-position 301 rule and proxied redirect-only A/Auto DNS record. Thirty preexisting DNS records, the graph redirect and canonical hosting settings were preserved. Both initial and final repeats reported zero writes. Scoped rollback and reapply passed, including an additional live certification after red/green tests exposed and corrected missing rule-position drift detection and refusal to reverse known writes in partial receipts. Twelve isolated regressions now pass.
+
+All eight HTTP/HTTPS root/nested/encoded/repeated/empty-query cases return one exact canonical 301 followed by 200. Default TLS certificate/hostname validation passes. Independent public DNS returns Cloudflare A/AAAA addresses in its published ranges; API confirms proxying. A local negative-cache response after the repeated rollback was recorded as a failed ordinary-resolver attempt, separately from successful public-DNS/address-based TLS checks. Recheck the ordinary-resolver command before final closure.
+
+Canonical release remains v3.1.2 at 47b7618f582659c01d39d4b5da10f5f1df220ed8 with HTTPS enforcement true and certificate approved through 2027-02-08. Browser inspection confirms exact-host expression, dynamic canonical path target, 301, preserved query and first order. Private snapshots, receipts and screenshots remain under ignored dist/private/s075/cloudflare-alias. No account/zone/record/rule identifiers or credentials enter committed evidence.
+
+The final local campaign passed all thirty-five contract/check commands, including twelve alias regressions and the existing messaging, geometry, publication, documentation, identity, adapter, conformance and registry checks. Compilation, Markdown prose policy and source public-documentation audit (zero problems) pass. The full pipeline/production build and browser campaign remain required hosted PR gates; no prior-source result substitutes for those. T044 records completed source/evidence preparation; exact-head review, CI, protected merge and final ordinary-resolver acceptance are PR-owned session completion receipts, not a recursive source-closeout task.
+
+All fourteen staged text files pass strict UTF-8 decoding, no BOM, LF and mojibake checks. Staged whitespace checks pass. An explicit scan against the actual private credentials and current account/zone/record/rule identifiers found zero source matches. Generated kits, private receipts, screenshots and machine-local Spec Kit state remain excluded from Git.

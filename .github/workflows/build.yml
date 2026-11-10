@@ -53,6 +53,7 @@ jobs:
           python skill/templates/test_qc_images.py
           python scripts/test_publication_workflow.py
           python scripts/test_pages_recovery.py
+          python scripts/test_cloudflare_alias.py
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_documentation_publication.py
@@ -175,6 +176,7 @@ jobs:
           python skill/templates/test_qc_images.py
           python scripts/test_publication_workflow.py
           python scripts/test_pages_recovery.py
+          python scripts/test_cloudflare_alias.py
           python scripts/test_package_release.py
           python scripts/test_release_contract.py
           python scripts/test_documentation_publication.py

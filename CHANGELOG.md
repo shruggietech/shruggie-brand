@@ -9,6 +9,7 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - Add qualified-artifact Pages recovery for a published tag when its original deployment stalls, preserving the existing release and exact verified site TAR by default (S075).
 - Add an explicit USTAR representation test that preserves every qualified member byte and metadata field, with independent full-manifest validation.
 - Use the successfully activated USTAR format for normal future Pages uploads and verify the actual producer TAR before the build can qualify for publication.
+- Add API reconciliation, private rollback receipts and exact one-hop live verification for the canonical brand alias (S075/#352).
 
 ### Decisions
 
@@ -17,6 +18,8 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 - 2026-11-10 (S075): After unchanged-TAR activation also stalled under a new controller, retain GitHub's hard ten-minute deployment limit and test one POSIX USTAR representation. Preserve member order, content and real metadata; retain original/repacked hashes and manifests. GNU long-name metadata is valid and remains an unproven cause, so seek GitHub-side investigation if the controlled test also stalls.
 
 - 2026-11-10 (S075): After USTAR activation and live acceptance succeeded, apply the format through step-local TAR_OPTIONS on the unchanged official uploader and validate its retained archive inside verified-build. Preserve action pins, normal publication dependencies and the immutable v3.1.2 release; exact backend cause remains unconfirmed.
+
+- 2026-11-10 (S075): Reuse the existing User CF_DNS_API_TOKEN, adding owner-approved Single Redirect Edit for shruggie.tech only through the authenticated dashboard. Reconcile the alias through individual DNS/rule APIs, preserve canonical/unrelated configuration, and require scoped rollback, reapply and zero-write repeat verification. Preserve the published v3.1.2 tag/assets.
 
 ## [3.1.2] - 2026-11-09
 

@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-09
 
-**Status**: Merged; official v3.1.2 release published; Pages/live acceptance blocked (#328/#353 open; #352 separately blocked)
+**Status**: v3.1.2 published and live; #328/#353 closed; #352 alias provisioned/live-verified, source closeout in progress
 
 **Input**: Owner kickoff: "Kick off S075 under autopilot. Target all three issues, and if Cloudflare access is blocked, finish the other two and report exactly what remains." Issues: [#328](https://github.com/shruggietech/shruggie-brand/issues/328), [#353](https://github.com/shruggietech/shruggie-brand/issues/353), and [#352](https://github.com/shruggietech/shruggie-brand/issues/352).
 
@@ -115,3 +115,7 @@ The owner explicitly requests investigation and repair of the Pages timeouts, li
 ### Successful Recovery and Standard Producer
 
 The qualified USTAR representation activated v3.1.2 without changing its file payload. Future normal Pages packaging should use that tested format through the existing official action, with same-job strict format validation before publication eligibility. The release tag/assets and all existing verification/authority boundaries remain unchanged.
+
+### Alias Completion Continuation, 2026-11-10
+
+The owner now requests completion of #352 under autopilot, superseding the earlier instruction to leave it blocked. The existing user-scope CF_DNS_API_TOKEN has Zone Read and DNS Edit. After explicit action-time approval, the authenticated dashboard added Single Redirect Edit for shruggie.tech only, preserving existing policies, token value, expiry and IP filtering. The redirect API now returns 200. Provisioning must use this existing credential and the API, without requiring owner DNS/dashboard edits. Preserve the canonical hostname, proxying, HTTPS enforcement, live release and all unrelated zone configuration. Exercise scoped rollback, reapply and a repeat-run no-op before completion.

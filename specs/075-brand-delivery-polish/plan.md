@@ -4,7 +4,7 @@
 
 ## Summary
 
-Resolve #328 and #353 through shared message projection and one coordinated patch candidate. #352 is blocked by authenticated DNS/rule management permissions, independent of repository work.
+Resolve #328 and #353 through shared message projection and one coordinated patch candidate. Their released/live acceptance is complete. Phase 11 resumes #352 with the existing authenticated browser and DNS token, after its original independent access blocker.
 
 ## Technical Context
 
@@ -96,3 +96,15 @@ The controlled USTAR deployment succeeded at 11:11 UTC while Cloudflare remained
 Current paths and metadata fit USTAR. Unrepresentable future data must fail packaging/validation with an explicit error rather than silently alter names/content or fall back to another format. This is a representation limit, not a new brand-eligibility rule. The default format choice is supported by successful activation, but the exact GitHub backend cause of GNU-format stalls remains unproven. Keep all normal quality/security gates and permissions.
 
 The owner subsequently approved a temporary canonical DNS-only window for certificate repair. GitHub then recognized HTTPS eligibility, same-domain reprovisioning produced an approved certificate through 2027-02-08, and HTTPS enforcement was restored/read back true. Cloudflare proxying, target, Auto TTL and comment were restored to their original values. Direct-origin HTTP now redirects 301 to canonical HTTPS. This separate repair occurred after successful Pages activation. Issues #328/#353 closed after live acceptance; #352 remains open with the machine API permission blocker and untouched alias/redirect work.
+
+## Alias Completion, 2026-11-10
+
+Continue US3/T014 on codex/075-cloudflare-alias. The environment inventory found existing CF_DNS_API_TOKEN in User scope; the registrar credential is not the DNS credential. The authenticated dashboard confirmed existing Zone Read/DNS Edit, and the owner approved adding a separate Single Redirect Edit policy scoped only to shruggie.tech. API access is now available. No new credential, canonical DNS change or publication is needed.
+
+Implement scripts/cloudflare_alias.py using Python 3.8 standard-library HTTPS APIs and scripts/test_cloudflare_alias.py using isolated in-memory API fixtures. Commands apply, rollback and verify consume the existing token from process environment or Windows User environment. Store snapshots, object IDs and operation receipts only under ignored dist/private; emit redacted summaries. Disable API redirects so Authorization cannot follow another origin; report HTTP status/error codes without raw credential-bearing responses.
+
+Discover the exact zone and snapshot its DNS and dynamic-redirect entrypoint. Treat 401/403 as failure; only an actual missing entrypoint 404 permits creation. Reconcile one proxied A record at brands.shruggie.tech to 192.0.2.1 with TTL 1. Reconcile one stable-ref exact-host 301 rule preserving path/query, using individual-rule operations and first position while retaining relative order and contents of other rules. Preserve DNS comments/tags and only replace the alias address fields. Abort ambiguous duplicate alias/rule identities.
+
+Each apply writes a private before snapshot and operation receipt before proceeding. Record the affected objects after each successful write. Repeat correct reconciliation performs zero API writes. Scoped rollback reverses only recorded mutations after checking the current managed object still matches the applied definition; preserve newly added unrelated objects. Never overwrite a whole existing ruleset. Verify unrelated DNS/rules and canonical configuration unchanged after apply/rollback/reapply. A transport timeout does not establish that a write stopped: inspect current state before retrying.
+
+Live verification uses normal TLS validation and redirect-disabled HTTP/HTTPS requests for root, nested paths and encoded/repeated/empty query parameters, requiring an exact one-hop 301 to canonical HTTPS and destination 200. Inspect public alias DNS, canonical routes and release identity. Preserve zone-wide HTTPS/security settings. Exercise rollback against only the newly provisioned alias objects, then reapply and verify the final no-op. Run focused isolation/auth/redaction/rollback tests, all applicable source checks and required hosted qualification/review before protected merge and issue closure. Existing release assets/tag remain unchanged.

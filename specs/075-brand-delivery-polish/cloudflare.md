@@ -2,7 +2,9 @@
 
 ## Current Status, 2026-11-10
 
-Issue #352 remains open. Browser authentication is now resolved and canonical certificate maintenance is complete, with HTTPS enforcement true and original Cloudflare proxy settings restored. The machine credential still lacks DNS Edit and Single Redirect Edit capabilities for automated alias reconciliation. The alias DNS/redirect, its TLS/path/query checks, repeat-run proof and rollback exercise remain untouched and outstanding. Earlier no-mutation and authentication-pending observations below describe the initial investigation, before the separately approved canonical maintenance.
+The alias is provisioned and live-verified. The existing User CF_DNS_API_TOKEN has the required capabilities after an owner-approved Single Redirect Edit policy was added for shruggie.tech only through the authenticated browser. Existing token policies/value/expiry/IP filtering remain unchanged. API provisioning preserved all thirty preexisting DNS records, the existing graph redirect and canonical hosting. Scoped rollback, reapply and zero-write repeat reconciliation passed. #352 remains open only until source review, required CI and protected merge complete.
+
+Earlier permission/authentication and pending-operation observations below describe the chronological investigation and are superseded by the completion receipts.
 
 ## Initial Observed Access
 
@@ -46,3 +48,17 @@ Separately, GitHub reports certificate bad_authz despite valid current edge/orig
 The owner completed the alternate profile two-factor authentication and explicitly approved temporary DNS-only operation for the existing canonical CNAME. Only its proxy flag changed during maintenance; the target, automatic TTL and comment were preserved. Under valid direct Pages DNS, the documented same-domain certificate reprovisioning succeeded. GitHub now reports certificate approved through 2027-02-08 and https_enforced=true. The canonical CNAME is proxied again with its original fields verified. Direct-origin HTTP redirects to canonical HTTPS, and the public site returns v3.1.2 at source revision 47b7618f582659c01d39d4b5da10f5f1df220ed8.
 
 This resolves browser access and the canonical maintenance regression. It does not grant the machine credential the required API scopes, provision brands.shruggie.tech or establish any alias/redirect acceptance result. No unrelated record/rule was changed, and no Cloudflare identifiers or credentials enter committed evidence. The exact remaining operations above remain the #352 done-gate.
+
+## Alias Provisioning and Acceptance, 2026-11-10
+
+The agent inspected the already authenticated dashboard and the actual environment variable names. CF_DNS_API_TOKEN exists in User scope; the separate registrar token lacks DNS/rule access. The DNS token already had Zone Read and DNS Edit. With explicit owner action-time approval, the dashboard added only Single Redirect Edit for shruggie.tech as a separate policy. The existing credential then returned 200 for both DNS and redirect inspection. No new token, credential rotation or owner DNS/dashboard edit was needed.
+
+API reconciliation created one enabled first-position Single Redirect with stable ref s075_brands_canonical_redirect and exact expression `(http.host eq "brands.shruggie.tech")`. Its 301 dynamic target is `concat("https://brand.shruggie.tech", http.request.uri.path)` with preserve_query_string true. It created one proxied A record for brands.shruggie.tech, target 192.0.2.1, TTL 1 (automatic). Private receipts retain before/after snapshots and affected identities; public/source evidence contains no account/zone/record/rule IDs or credentials.
+
+Initial apply made two writes. Reconciliation repeated with zero writes. Scoped rollback removed only those two created objects, preserving the thirty original DNS records and the original graph.shruggie.tech redirect. Reapply made two writes, followed by another zero-write repeat. The final rollback implementation was additionally certified after adding partial-receipt and rule-position-drift checks. The final configuration has thirty-one DNS records and two redirect rules, with unrelated definitions/order preserved. No canonical DNS, proxy, custom-domain, certificate or zone-wide HTTPS setting changed.
+
+Eight exact HTTP/HTTPS cases cover root, nested /docs/references/, empty query values, encoded plus signs and repeated query keys. Each returned 301 directly to the matching canonical HTTPS path/query; each destination returned 200 with no extra redirect. TLS used default trust and hostname validation. The independently observed public A and AAAA addresses fall within Cloudflare published address ranges and do not expose the redirect-only address. API readback confirms proxying.
+
+A repeated rollback/reapply exercise briefly left a negative entry in the local DNS resolver. Independent DNS Inspector lookup returned the correct public Cloudflare A/AAAA records, and all eight cases passed against those independently resolved addresses with default TLS validation. This local cache failure was not counted as a passing ordinary-resolver test; the standard verification command is rechecked before issue closure.
+
+Canonical publication still reports v3.1.2 at 47b7618f582659c01d39d4b5da10f5f1df220ed8, HTTPS enforcement true and certificate approved through 2027-02-08. Normal source qualification and exact-head review remain protected merge gates. All prior blockers are historical; operational alias acceptance is now evidenced.
