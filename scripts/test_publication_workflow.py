@@ -349,6 +349,16 @@ class PublicationArtifactAuditTests(unittest.TestCase):
 
 
 class PublicationWorkflowContractTests(unittest.TestCase):
+    def test_ustar_is_explicit_optional_and_does_not_extend_the_official_timeout(self):
+        text = workflow_text()
+        self.assertRegex(text, r"(?s)recovery_ustar:\n.*?type: boolean\n.*?default: false")
+        preflight = job_block(text, "pages-recovery-preflight")
+        self.assertIn("RECOVERY_TAR_FORMAT:", preflight)
+        self.assertIn("inputs.recovery_ustar && 'ustar' || 'original'", preflight)
+        self.assertIn('--tar-format "$RECOVERY_TAR_FORMAT"', preflight)
+        publisher = job_block(text, "deploy-pages-recovery")
+        self.assertNotRegex(publisher, r"(?m)^\s+timeout:")
+
     def test_recovery_is_manual_main_only_and_has_no_release_authority(self):
         text = workflow_text()
         preflight = job_block(text, "pages-recovery-preflight")

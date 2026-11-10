@@ -6,11 +6,14 @@ All notable changes to the Shruggie brand system are documented in this file. Th
 
 ### Fixed
 
-- Add qualified-artifact Pages recovery for a published tag when its original deployment stalls, preserving the existing release and exact verified site TAR (S075).
+- Add qualified-artifact Pages recovery for a published tag when its original deployment stalls, preserving the existing release and exact verified site TAR by default (S075).
+- Add an explicit USTAR representation test that preserves every qualified member byte and metadata field, with independent full-manifest validation.
 
 ### Decisions
 
 - 2026-11-10 (S075): Keep recovery inside the existing Build workflow, dispatch only from main, validate original qualification jobs, artifact digests and tagged release contracts, and transport the unchanged TAR through the official Pages action with a fresh controller. Keep content provenance separate from controller identity, serialize Pages publishers, and retain normal validation gates.
+
+- 2026-11-10 (S075): After unchanged-TAR activation also stalled under a new controller, retain GitHub's hard ten-minute deployment limit and test one POSIX USTAR representation. Preserve member order, content and real metadata; retain original/repacked hashes and manifests. GNU long-name metadata is valid and remains an unproven cause, so seek GitHub-side investigation if the controlled test also stalls.
 
 ## [3.1.2] - 2026-11-09
 

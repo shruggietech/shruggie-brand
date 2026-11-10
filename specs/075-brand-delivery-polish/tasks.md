@@ -75,7 +75,23 @@ Ship US1/US2 together through one rebuild/candidate; preserve the authorized ext
 - [x] T025 Add failing provenance, digest, release-consistency and archive-boundary tests in `scripts/test_pages_recovery.py` and workflow invariants in `scripts/test_publication_workflow.py`.
 - [x] T026 Implement qualified source/candidate/TAR validation and hidden noninteractive launches in `scripts/recover_pages.py`.
 - [x] T027 Add main-only manual artifact preparation/deployment, isolated concurrency and correct action labels to `.github/workflows/build.yml`; record the decision in `CHANGELOG.md`.
-- [ ] T028 Run targeted tests, real original-artifact preflight, required review/CI and merge; record evidence in `specs/075-brand-delivery-polish/verification.md`.
+- [x] T028 Run targeted tests, real original-artifact preflight, required review/CI and merge; record evidence in `specs/075-brand-delivery-polish/verification.md`.
 - [ ] T029 Activate the exact v3.1.2 TAR through the fresh controller, restore HTTPS enforcement, run existing live acceptance and close #328/#353 in `specs/075-brand-delivery-polish/verification.md`; keep #352 open.
 
 T023 depends on T022 and the supplemental analysis. T024 depends on the observed T023 result; a further blocking analysis covers any resulting code changes. T025 precedes T026/T027. T028 follows implementation; T029 preserves the original T021 done-gate.
+
+## Phase 8: Failed Activation Diagnostics
+
+- [x] T030 Review the failed fresh-controller activation and primary upstream timeout/service constraints; reject the ineffective 30-minute input before implementation and record the result in plan.md and research.md.
+- [x] T031 Capture status/request-ID and debug-enabled retry evidence in deployment.md, then reconcile the remaining operational blocker without altering release assets or accepting intermediate status as success.
+
+T029 remains pending after the fresh-controller failure and now depends on the observed T031 outcome and actual HTTPS restoration. The owner authentication request does not pause independent CI or diagnostic work.
+
+## Phase 9: Conditional Archive Representation Test
+
+- [x] T032 Research and specify the USTAR-only representation test and complete-manifest invariant in plan.md, data-model.md and contracts/pages-recovery.md, then pass supplemental blocking analysis.
+- [x] T033 Add failing long-name, complete-payload/metadata equivalence, tamper, unsupported-representation and workflow-mode tests in scripts/test_pages_recovery.py and scripts/test_publication_workflow.py.
+- [x] T034 Implement the optional format-only repack in scripts/recover_pages.py, preserving default transport, and expose the boolean mode in the existing Build workflow.
+- [ ] T035 Validate original-artifact repack locally, run required review/CI/merge and perform the one controlled USTAR deployment if the debug retry failed. Keep T029 pending until actual live acceptance and HTTPS restoration.
+
+T033 precedes T034. T035 requires completed T031 failure evidence and passing qualification. No archive representation changes affect the immutable published release assets.
