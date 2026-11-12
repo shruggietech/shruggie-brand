@@ -30,8 +30,8 @@ importers:
         specifier: 19.3.1
         version: 19.3.1(react@19.3.1)
       zbsearch:
-        specifier: 4.0.1
-        version: 4.0.1
+        specifier: 4.0.2
+        version: 4.0.2
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.14.0
@@ -2801,8 +2801,8 @@ packages:
     resolution: {integrity: sha512-4BgHT4euQ62wr/9h5UWoMzt4QTrmT3WUo96aRiY2R6RRCyKjCveU23MNwNJISzYvNnbFGZ7O2E1SU5zgWqzS+Q==}
     engines: {node: '>=14.18.0'}
 
-  zbsearch@4.0.1:
-    resolution: {integrity: sha512-lmnEEnb93QQcNv7qARDr7jBVPxYdZbZ9XdZ0dbZ0qaOvGne4jJMW4fjwPfVaUKQXv3FNWvGbDwRDgyaSb1pc8w==}
+  zbsearch@4.0.2:
+    resolution: {integrity: sha512-ma4P7eyXSX5kNPU7yJvCyqa/X8E8aA90Fyd/vMz2K2wFhb4i+Yw1Qezo8/X8hNVzot3+oq5XmwgMcKcFgMOz4Q==}
     engines: {node: '>= 20.0.0'}
 
   zod@4.6.7:
@@ -4619,7 +4619,7 @@ snapshots:
       unified: 11.0.5
       vfile: 6.0.3
       yaml: 2.9.1
-      zbsearch: 4.0.1
+      zbsearch: 4.0.2
     optionalDependencies:
       '@mdx-js/mdx': 3.1.1
       '@types/estree-jsx': 1.0.5
@@ -5798,7 +5798,7 @@ snapshots:
       '@yuku-core/binding-win32-arm64': 0.17.0
       '@yuku-core/binding-win32-x64': 0.17.0
 
-  zbsearch@4.0.1: {}
+  zbsearch@4.0.2: {}
 
   zod@4.6.7: {}
 
