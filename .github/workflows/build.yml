@@ -96,7 +96,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.11.0
       - name: Install approved proof toolchain
@@ -109,7 +109,7 @@ jobs:
           python scripts/export_approved_identity_proofs.py brands/local-companion dist/ci-approved-proofs/local-companion
           python scripts/export_approved_identity_proofs.py brands/insonic dist/ci-approved-proofs/insonic
           python scripts/export_approved_identity_proofs.py brands/localmedia-gallery dist/ci-approved-proofs/localmedia-gallery
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 26.5.0
       - name: Export Scruggs approved identity evidence
@@ -146,7 +146,7 @@ jobs:
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 10.28.2
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.11.0
           cache: pnpm
@@ -222,7 +222,7 @@ jobs:
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 10.28.2
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.11.0
           cache: pnpm
@@ -250,7 +250,7 @@ jobs:
         run: python scripts/build_all.py --exclude scruggs-tire-alignment --exclude dancewithme865
         env:
           GP_APPROVED_PROOF_ROOT: ${{ github.workspace }}/approved-identity-proofs
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 26.5.0
       - name: Build and verify clients with their approved renderer
